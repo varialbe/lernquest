@@ -29,7 +29,7 @@ export const config = {
   host: env('PIPELINE_HOST', '127.0.0.1'),
   port: Number(env('PIPELINE_PORT', '3461')),
   token: env('PIPELINE_TOKEN', ''),
-  promptVersion: 'v1',
+  promptVersion: 'v2',
   questionsPerLevel: 11,
   maxAttempts: 3,
 };

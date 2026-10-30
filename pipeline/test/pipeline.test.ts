@@ -18,8 +18,8 @@ const kinds = ['basics', 'apply', 'deepen', 'boss'];
 const levels = kinds.map((kind, li) => ({
   kind, title: kind,
   questions: Array.from({ length: 10 }, (_, i) => i % 3 === 0
-    ? { type: 'truefalse', prompt: 'Aussage ' + li + '-' + i + ' stimmt?', options: [{ id: 'true', text: 'Wahr' }, { id: 'false', text: 'Falsch' }], correct: ['true'], explanation: 'Weil es so ist.', source: { file: 'x', page: null, section: 'A' }, difficulty: 2, concepts: ['K'] }
-    : { type: 'single', prompt: 'Frage ' + li + '-' + i + '?', options: [{ id: 'a', text: 'eins' }, { id: 'b', text: 'zwei' }, { id: 'c', text: 'drei' }, { id: 'd', text: 'vier' }], correct: ['b'], explanation: 'Zwei ist richtig.', source: { file: 'x', page: null, section: 'A' }, difficulty: 9, concepts: ['K'] }),
+    ? { type: 'truefalse', prompt: 'Aussage ' + li + '-' + i + ' stimmt?', options: [{ id: 'true', text: 'Wahr' }, { id: 'false', text: 'Falsch' }], correct: ['true'], explanation: 'Weil es so ist.', source: { file: 'x', heading: 'mengen' }, difficulty: 2, concepts: ['K'] }
+    : { type: 'single', prompt: 'Frage ' + li + '-' + i + '?', options: [{ id: 'a', text: 'eins' }, { id: 'b', text: 'zwei' }, { id: 'c', text: 'drei' }, { id: 'd', text: 'vier' }], correct: ['b'], explanation: 'Zwei ist richtig.', source: { file: 'x', heading: 'mengen' }, difficulty: 9, concepts: ['K'] }),
 }));
 fs.writeFileSync(out, JSON.stringify({ title: 'Mengen & Relationen', slug: 'Mengen Relationen', summary: 'Eine Zusammenfassung.', concepts: ['K'], keyFacts: ['F'], levels, review: { checked: 40, fixed: 1, removed: 0, notes: 'ok' } }));
 `;
@@ -90,6 +90,7 @@ describe('pipeline', () => {
     expect(unit.id).toBe('ds-01');
     expect(unit.levels[0].questions[1].id).toBe('ds-01-l1-q02');
     expect(unit.levels[0].questions[1].difficulty).toBe(5);
+    expect(unit.levels[0].questions[1].source).toEqual({ file: 'DS/01_Vorlesungen/DS VO1.md', heading: 'Mengen' });
     expect(sh(lq, 'log', '-1', '--format=%s')).toContain('content: add DS Vorlesung 1 – Mengen & Relationen');
   });
 
@@ -108,12 +109,24 @@ describe('pipeline', () => {
 
   it('modified files are ignored by default, new files become unit 2', async () => {
     writeFileSync(join(studium, 'DS/01_Vorlesungen/Diskrete Strukturen VO1.md'), '# Mengen\nGeändert');
-    writeFileSync(join(studium, 'DS/01_Vorlesungen/Diskrete Strukturen VO2.md'), '# Relationen');
+    writeFileSync(
+      join(studium, 'DS/01_Vorlesungen/Diskrete Strukturen VO2.md'),
+      '---\ntags: [ds, relationen]\n---\n# Relationen\nAufbauend auf [[Diskrete Strukturen VO1|Mengen]].\n![[Pasted image 1.png]]\n',
+    );
+    // Bilder/Anhänge in den Vorlesungsordnern sind nie „neu“
+    writeFileSync(join(studium, 'DS/01_Vorlesungen/skizze.png'), 'nicht wirklich ein Bild');
     pushToRemote('vo2');
     const r = await run.execute('run', { quiet: true });
     expect(r.totals.processed).toBe(1);
-    expect(r.files.find((f) => f.status === 'done')?.unitId).toBe('ds-02');
+    const done = r.files.find((f) => f.status === 'done')!;
+    expect(done.unitId).toBe('ds-02');
+    expect(done.notes?.join()).toContain('Bild fehlt');
+    expect(r.files.some((f) => f.path.endsWith('.png'))).toBe(false);
     expect(r.files.find((f) => f.status === 'skipped')?.reason).toContain('REGENERATE_ON_MODIFY=false');
+    const unit = JSON.parse(readFileSync(join(lq, 'content/ds', readdirSync(join(lq, 'content/ds')).find((f) => f.startsWith('02-'))!), 'utf8'));
+    expect(unit.tags).toEqual(['ds', 'relationen']);
+    expect(unit.links).toEqual(['DS/01_Vorlesungen/Diskrete Strukturen VO1.md']);
+    expect(unit.levels[0].questions[0].source).toEqual({ file: 'DS/01_Vorlesungen/Diskrete Strukturen VO2.md', heading: null });
   });
 
   it('refuses to run twice in parallel', async () => {

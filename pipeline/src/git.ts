@@ -3,6 +3,7 @@ import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { config } from './config.ts';
+import { isLectureNote } from './prepare.ts';
 
 function git(repo: string, args: string[], opts: { allowFail?: boolean } = {}): string {
   try {
@@ -39,10 +40,8 @@ export function commitExists(sha: string): boolean {
 
 export type Change = { status: 'A' | 'R' | 'M'; path: string; oldPath?: string };
 
-const isLectureFile = (p: string) => {
-  const name = p.split('/').pop() ?? '';
-  return !name.startsWith('.') && config.studiumDirs.some((d) => p.startsWith(`${d}/`));
-};
+/** Nur Obsidian-Notizen (*.md) in den Vorlesungsordnern; .obsidian/, Bilder und Anhänge werden ignoriert. */
+const isLectureFile = (p: string) => isLectureNote(p) && config.studiumDirs.some((d) => p.startsWith(`${d}/`));
 
 /** Änderungen in den Vorlesungsordnern zwischen zwei Commits (A, R, M). */
 export function diffLectures(from: string, to: string): Change[] {
@@ -66,6 +65,11 @@ export function diffLectures(from: string, to: string): Change[] {
 /** Alle aktuell vorhandenen Vorlesungsdateien. */
 export function listLectureFiles(): string[] {
   return git(config.studiumRepo, ['ls-files', '-z', '--', ...config.studiumDirs]).split('\0').filter(Boolean).filter(isLectureFile);
+}
+
+/** Alle Dateien des Vaults (für die Auflösung von Wikilinks und Bildern). */
+export function listAllFiles(): string[] {
+  return git(config.studiumRepo, ['ls-files', '-z']).split('\0').filter(Boolean);
 }
 
 /** Zeitpunkt (unix s), an dem eine Datei (inkl. Umbenennungen) zuerst hinzugefügt wurde. */

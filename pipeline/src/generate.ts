@@ -4,9 +4,10 @@ import { join } from 'node:path';
 import { LEVEL_KINDS, LEVEL_TITLES, MODULE_INFO, Question, Unit, unitId, type ModuleId } from '@lernquest/shared';
 import { codexJson } from './codex.ts';
 import { config } from './config.ts';
-import type { Extracted } from './extract.ts';
+import type { Heading } from './obsidian.ts';
+import type { Prepared } from './prepare.ts';
 
-export type PreviousUnit = { number: number; title: string; concepts: string[]; keyFacts: string[]; sourceFile: string };
+export type PreviousUnit = { number: number; title: string; concepts: string[]; keyFacts: string[]; sourceFile: string; linked: boolean };
 
 export type GenerateInput = {
   module: ModuleId;
@@ -14,7 +15,7 @@ export type GenerateInput = {
   file: string;
   sha256: string;
   commit: string;
-  extracted: Extracted;
+  prepared: Prepared;
   previous: PreviousUnit[];
   workDir: string;
   log: (msg: string) => void;
@@ -27,9 +28,25 @@ const template = (name: string) => readFileSync(join(config.promptsDir, name), '
 
 export function formatPrevious(prev: PreviousUnit[]): string {
   if (!prev.length) return '_(keine – das ist die erste Unit dieses Moduls)_';
-  return prev
-    .map((u) => `### Unit ${u.number}: ${u.title} (\`${u.sourceFile}\`)\n- Konzepte: ${u.concepts.join(', ')}\n${u.keyFacts.map((f) => `- ${f}`).join('\n')}`)
+  // verlinkte Units zuerst
+  return [...prev]
+    .sort((a, b) => Number(b.linked) - Number(a.linked) || a.number - b.number)
+    .map((u) => `### Unit ${u.number}: ${u.title}${u.linked ? ' (verlinkt)' : ''} (\`${u.sourceFile}\`)\n- Konzepte: ${u.concepts.join(', ')}\n${u.keyFacts.map((f) => `- ${f}`).join('\n')}`)
     .join('\n\n');
+}
+
+const formatHeadings = (h: Heading[]) => (h.length ? h.map((x) => `${'  '.repeat(x.level - 1)}- ${x.text}`).join('\n') : '_(keine Überschriften)_');
+const formatLinked = (p: Prepared) =>
+  p.linked.length ? p.linked.map((n) => `### ${n.title} (\`${n.path}\`)\n${FENCE}markdown\n${n.excerpt}\n${FENCE}`).join('\n\n') : '_(keine)_';
+/** 4 Backticks, damit ```mermaid-Blöcke der Notiz die Umrahmung nicht beenden */
+const FENCE = '````';
+
+/** Überschrift einer Frage auf eine echte Überschrift der Notiz abbilden (exakt, sonst case-insensitiv, sonst null). */
+export function matchHeading(headings: Heading[], wanted: string | null | undefined): string | null {
+  if (!wanted) return null;
+  const clean = (s: string) => s.replace(/^#+\s*/, '').replace(/[*_`]/g, '').trim().toLowerCase();
+  const w = clean(wanted);
+  return headings.find((h) => h.text === wanted)?.text ?? headings.find((h) => clean(h.text) === w)?.text ?? headings.find((h) => clean(h.text).includes(w) || w.includes(clean(h.text)))?.text ?? null;
 }
 
 export function slugify(s: string): string {
@@ -65,7 +82,7 @@ type RawQuestion = {
   options: { id: string; text: string }[];
   correct: string[];
   explanation: string;
-  source: { file: string; page: number | null; section: string | null };
+  source: { file: string; heading: string | null };
   difficulty: number;
   concepts: string[];
 };
@@ -80,7 +97,7 @@ type RawUnit = {
 };
 
 /** Rohausgabe von Codex in das kanonische Unit-Format überführen (IDs, Normalisierung, Validierung). */
-export function normalize(raw: RawUnit, input: Omit<GenerateInput, 'extracted' | 'previous' | 'workDir' | 'log'>, knownFiles: string[]): GenerateResult {
+export function normalize(raw: RawUnit, input: Omit<GenerateInput, 'previous' | 'workDir' | 'log'>, knownFiles: string[]): GenerateResult {
   const id = unitId(input.module, input.number);
   const dropped: string[] = [];
   const levels = LEVEL_KINDS.map((kind, i) => {
@@ -103,6 +120,8 @@ export function normalize(raw: RawUnit, input: Omit<GenerateInput, 'extracted' |
         correct.sort();
       }
       const sourceFile = knownFiles.includes(rq.source?.file) ? rq.source.file : input.file;
+      // Überschriften kennen wir nur für die aktuelle Notiz; fremde Quellen behalten Codex' Angabe
+      const heading = sourceFile === input.file ? matchHeading(input.prepared.headings, rq.source?.heading) : (rq.source?.heading?.trim().slice(0, 200) || null);
       const candidate = {
         id: qid,
         type: rq.type,
@@ -110,7 +129,7 @@ export function normalize(raw: RawUnit, input: Omit<GenerateInput, 'extracted' |
         options,
         correct,
         explanation: rq.explanation.trim(),
-        source: { file: sourceFile, page: rq.source?.page ?? null, section: rq.source?.section?.slice(0, 200) ?? null },
+        source: { file: sourceFile, heading },
         difficulty: Math.min(5, Math.max(1, Math.round(rq.difficulty || 1))),
         concepts: (rq.concepts ?? []).map((c) => c.trim()).filter(Boolean).slice(0, 6),
       };
@@ -133,6 +152,8 @@ export function normalize(raw: RawUnit, input: Omit<GenerateInput, 'extracted' |
     summary: raw.summary.trim(),
     concepts: raw.concepts.map((c) => c.trim()).filter(Boolean).slice(0, 30),
     keyFacts: raw.keyFacts.map((c) => c.trim()).filter(Boolean).slice(0, 30),
+    tags: input.prepared.tags.slice(0, 30),
+    links: input.prepared.links.slice(0, 50),
     source: { file: input.file, sha256: input.sha256, commit: input.commit },
     generator: {
       model: config.codexModel,
@@ -155,9 +176,16 @@ export async function generateUnit(input: GenerateInput): Promise<GenerateResult
     FILE: input.file,
     UNIT_NUMBER: String(input.number),
     QUESTIONS_PER_LEVEL: String(config.questionsPerLevel),
-    SOURCE_KIND: input.extracted.kind,
+    TOPIC: input.prepared.topic ?? '–',
+    TAGS: input.prepared.tags.join(', ') || '–',
+    HEADINGS: formatHeadings(input.prepared.headings),
+    IMAGES: input.prepared.images.length
+      ? `${input.prepared.images.length} (im Text als „[Bild N – angehängt: …]“ markiert, in derselben Reihenfolge angehängt)`
+      : 'keine',
     PREVIOUS_UNITS: formatPrevious(input.previous),
-    SOURCE: '```' + (input.extracted.kind === 'markdown' ? 'markdown' : 'text') + `\n${input.extracted.text}\n` + '```',
+    LINKED_NOTES: formatLinked(input.prepared),
+    // 4 Backticks, damit ```mermaid-Blöcke der Notiz die Umrahmung nicht beenden
+    SOURCE: `\`\`\`\`markdown\n${input.prepared.text}\n\`\`\`\``,
   };
 
   input.log(`  → Generierung (${config.codexModel}, effort ${config.codexEffort})`);
@@ -165,7 +193,7 @@ export async function generateUnit(input: GenerateInput): Promise<GenerateResult
     prompt: fill(template('generate-unit.md'), vars),
     effort: config.codexEffort,
     workDir: input.workDir,
-    images: input.extracted.images,
+    images: input.prepared.images,
     label: 'generate',
     log: input.log,
   })) as RawUnit;
@@ -175,7 +203,7 @@ export async function generateUnit(input: GenerateInput): Promise<GenerateResult
     prompt: fill(template('review-unit.md'), { ...vars, UNIT_JSON: JSON.stringify(draft, null, 1) }),
     effort: config.codexReviewEffort,
     workDir: input.workDir,
-    images: input.extracted.images,
+    images: input.prepared.images,
     label: 'review',
     log: input.log,
   })) as RawUnit;

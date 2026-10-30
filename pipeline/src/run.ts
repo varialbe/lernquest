@@ -1,13 +1,14 @@
 import { randomBytes } from 'node:crypto';
 import { appendFileSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, unlinkSync, writeFileSync } from 'node:fs';
-import { extname, join, relative } from 'node:path';
+import { join, relative } from 'node:path';
 import { and, asc, eq, lt, max } from 'drizzle-orm';
 import { getDb, type DB } from '@lernquest/api/db';
 import { pipelineRuns, pipelineState, processedFiles, units } from '@lernquest/api/schema';
 import { importContentDir, importUnit } from '@lernquest/api/import';
 import { ModuleId } from '@lernquest/shared';
 import { config, moduleOf } from './config.ts';
-import { extract, isSupported } from './extract.ts';
+import type { Vault } from './obsidian.ts';
+import { prepareNote } from './prepare.ts';
 import { generateUnit } from './generate.ts';
 import * as git from './git.ts';
 
@@ -30,6 +31,8 @@ export type FileReport = {
   levels?: number;
   questions?: number;
   dropped?: string[];
+  /** Hinweise zur Notiz: ignorierte/fehlende Bilder, unaufgelöste Wikilinks */
+  notes?: string[];
   review?: { checked: number; fixed: number; removed: number; notes: string };
   error?: string;
   durationSec?: number;
@@ -84,6 +87,8 @@ const setState = (db: DB, key: string, value: string) =>
   db.insert(pipelineState).values({ key, value }).onConflictDoUpdate({ target: pipelineState.key, set: { value, updatedAt: Date.now() } }).run();
 
 const unitForPath = (db: DB, path: string) => db.select().from(units).where(eq(units.sourceFile, path)).get();
+/** Verlinkt die Notiz einer bestehenden Unit (per Wikilink) auf `target`? */
+const linksTo = (db: DB, fromFile: string, target: string) => unitForPath(db, fromFile)?.links.includes(target) ?? false;
 
 function recordFile(db: DB, sha256: string, path: string, status: 'done' | 'failed' | 'skipped', runId: string, extra: { unitId?: string; error?: string } = {}) {
   const prev = db.select().from(processedFiles).where(eq(processedFiles.sha256, sha256)).get();
@@ -107,7 +112,6 @@ function plan(db: DB, mode: Mode, head: string, file: string | undefined, warnin
     items.push(item);
   };
   const classify = (path: string, status: 'A' | 'R' | 'M', oldPath?: string): PlanItem => {
-    if (!isSupported(path)) return { path, sha256: '', action: 'skip', reason: `Format ${extname(path) || '(ohne Endung)'} nicht unterstützt` };
     const abs = git.studiumPath(path);
     if (!existsSync(abs)) return { path, sha256: '', action: 'skip', reason: 'Datei existiert nicht mehr' };
     const sha256 = git.sha256File(abs);
@@ -216,8 +220,10 @@ export async function execute(mode: Mode, opts: { runId?: string; file?: string;
     } else {
       if (!todo.length) log('Nichts Neues.');
       let committed = false;
+      const vault: Vault = { root: config.studiumRepo, files: git.listAllFiles() };
       for (const [i, item] of todo.entries()) {
         const t0 = Date.now();
+        let notes: string[] = [];
         log(`[${i + 1}/${todo.length}] ${item.path} (${item.action}: ${item.reason})`);
         try {
           const module = ModuleId.parse(moduleOf(item.path));
@@ -231,12 +237,17 @@ export async function execute(mode: Mode, opts: { runId?: string; file?: string;
             .where(and(eq(units.module, module), lt(units.number, number)))
             .orderBy(asc(units.number))
             .all()
-            .map((u) => ({ number: u.number, title: u.title, concepts: u.concepts, keyFacts: u.keyFacts, sourceFile: u.sourceFile }));
+            .map((u) => ({ number: u.number, title: u.title, concepts: u.concepts, keyFacts: u.keyFacts, sourceFile: u.sourceFile, linked: false }));
           const workDir = join(config.dataDir, 'work', runId, String(i + 1));
-          const extracted = extract(git.studiumPath(item.path), workDir);
-          log(`  Text: ${extracted.text.length} Zeichen, ${extracted.pages ?? '–'} Seiten, ${extracted.images.length} Bilder · Kontext: ${previous.length} frühere Units`);
+          const prepared = await prepareNote(vault, item.path, workDir);
+          notes = prepared.notes;
+          // Konzeptgraph: Units, deren Notiz per Wikilink verlinkt ist (in beide Richtungen)
+          for (const p of previous) p.linked = prepared.links.includes(p.sourceFile) || linksTo(db, p.sourceFile, item.path);
+          const s = prepared.stats;
+          log(`  Notiz: ${s.chars} Zeichen, ${prepared.headings.length} Überschriften, ${s.mermaid} Mermaid, ${s.callouts} Callouts, ${s.math} Formeln, ${s.images} Bilder · ${prepared.links.length} Wikilinks · Kontext: ${previous.length} frühere Units`);
+          for (const n of notes) log(`  ⚑ ${n}`);
 
-          const { unit, dropped } = await generateUnit({ module, number, file: item.path, sha256: item.sha256, commit: head, extracted, previous, workDir, log });
+          const { unit, dropped } = await generateUnit({ module, number, file: item.path, sha256: item.sha256, commit: head, prepared, previous, workDir, log });
 
           // content/<modul>/<nr>-<slug>.json schreiben (alte Datei derselben Unit ersetzen)
           const modDir = join(config.contentDir, module.toLowerCase());
@@ -261,6 +272,7 @@ export async function execute(mode: Mode, opts: { runId?: string; file?: string;
             levels: unit.levels.length,
             questions: qCount,
             dropped,
+            notes,
             review: unit.generator.review,
             durationSec: Math.round((Date.now() - t0) / 1000),
           });
@@ -268,7 +280,7 @@ export async function execute(mode: Mode, opts: { runId?: string; file?: string;
         } catch (e) {
           const msg = (e as Error).message.slice(0, 2000);
           recordFile(db, item.sha256, item.path, 'failed', runId, { error: msg });
-          files.push({ path: item.path, status: 'failed', error: msg, durationSec: Math.round((Date.now() - t0) / 1000) });
+          files.push({ path: item.path, status: 'failed', error: msg, notes, durationSec: Math.round((Date.now() - t0) / 1000) });
           log(`  ✗ fehlgeschlagen: ${msg}`);
         }
       }
@@ -326,7 +338,10 @@ export function formatReport(r: Report): string {
     `LernQuest-Pipeline ${r.runId} (${r.mode}) – ${({ success: 'erfolgreich', nothing_new: 'nichts Neues', partial: 'teilweise fehlgeschlagen', failed: 'fehlgeschlagen' } as const)[r.status]}`,
     `Dauer ${Math.floor(r.durationSec / 60)} min ${r.durationSec % 60} s · ${r.totals.processed} Units, ${r.totals.levels} Level, ${r.totals.questions} Fragen · ${r.totals.failed} Fehler · ${r.totals.skipped} übersprungen`,
   ];
-  for (const f of r.files.filter((x) => x.status === 'done')) lines.push(`  ✓ ${f.unitId} ${f.title} – ${f.questions} Fragen (${f.path})`);
+  for (const f of r.files.filter((x) => x.status === 'done')) {
+    lines.push(`  ✓ ${f.unitId} ${f.title} – ${f.questions} Fragen (${f.path})`);
+    for (const n of f.notes ?? []) lines.push(`      ⚑ ${n}`);
+  }
   for (const f of r.files.filter((x) => x.status === 'planned')) lines.push(`  + ${f.path} – ${f.reason}`);
   for (const f of r.files.filter((x) => x.status === 'failed')) lines.push(`  ✗ ${f.path}: ${f.error}`);
   for (const w of r.warnings) lines.push(`  ⚠ ${w}`);
