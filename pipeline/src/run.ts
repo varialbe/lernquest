@@ -9,7 +9,9 @@ import { ModuleId } from '@lernquest/shared';
 import { config, moduleOf } from './config.ts';
 import type { Vault } from './obsidian.ts';
 import { prepareNote } from './prepare.ts';
+import { RateLimitError } from './codex.ts';
 import { generateUnit } from './generate.ts';
+import { notify, runMessage } from './notify.ts';
 import * as git from './git.ts';
 
 export type Mode = 'run' | 'backfill' | 'dry-run' | 'regenerate';
@@ -36,6 +38,7 @@ export type FileReport = {
   review?: { checked: number; fixed: number; removed: number; notes: string };
   error?: string;
   durationSec?: number;
+  tokens?: number;
 };
 
 export type Report = {
@@ -48,7 +51,8 @@ export type Report = {
   studiumHead: string;
   previousSha: string | null;
   files: FileReport[];
-  totals: { processed: number; failed: number; skipped: number; levels: number; questions: number };
+  totals: { processed: number; failed: number; skipped: number; levels: number; questions: number; tokens: number };
+  rateLimited: boolean;
   warnings: string[];
 };
 
@@ -90,9 +94,10 @@ const unitForPath = (db: DB, path: string) => db.select().from(units).where(eq(u
 /** Verlinkt die Notiz einer bestehenden Unit (per Wikilink) auf `target`? */
 const linksTo = (db: DB, fromFile: string, target: string) => unitForPath(db, fromFile)?.links.includes(target) ?? false;
 
-function recordFile(db: DB, sha256: string, path: string, status: 'done' | 'failed' | 'skipped', runId: string, extra: { unitId?: string; error?: string } = {}) {
+function recordFile(db: DB, sha256: string, path: string, status: 'done' | 'failed' | 'skipped', runId: string, extra: { unitId?: string; error?: string; countAttempt?: boolean } = {}) {
   const prev = db.select().from(processedFiles).where(eq(processedFiles.sha256, sha256)).get();
-  const attempts = status === 'failed' ? (prev?.status === 'failed' ? prev.attempts + 1 : 1) : (prev?.attempts ?? 1);
+  const base = prev?.status === 'failed' ? prev.attempts : 0;
+  const attempts = status === 'failed' ? base + (extra.countAttempt === false ? 0 : 1) : (prev?.attempts ?? 1);
   db.insert(processedFiles)
     .values({ sha256, path, status, runId, attempts, unitId: extra.unitId ?? null, error: extra.error ?? null })
     .onConflictDoUpdate({
@@ -169,7 +174,7 @@ function plan(db: DB, mode: Mode, head: string, file: string | undefined, warnin
 }
 
 // ---------- Ausführung ----------
-export async function execute(mode: Mode, opts: { runId?: string; file?: string; quiet?: boolean } = {}): Promise<Report> {
+export async function execute(mode: Mode, opts: { runId?: string; file?: string; quiet?: boolean; notify?: boolean } = {}): Promise<Report> {
   const runId = opts.runId ?? newRunId();
   const started = Date.now();
   const logDir = join(config.dataDir, 'runs');
@@ -187,14 +192,15 @@ export async function execute(mode: Mode, opts: { runId?: string; file?: string;
 
   let head = '';
   let locked = false;
+  let rateLimited = false;
   const previousSha = getState(db, 'last_sha');
 
   try {
     if (!dry) {
       acquireLock(runId);
       locked = true;
-      db.insert(pipelineRuns).values({ id: runId, mode, status: 'running' }).onConflictDoNothing().run();
     }
+    db.insert(pipelineRuns).values({ id: runId, mode, status: 'running' }).onConflictDoNothing().run();
     log(`Run ${runId} – Modus ${mode}`);
     if (existsSync(config.contentDir)) {
       const synced = importContentDir(db, config.contentDir).filter((r) => r.status !== 'unchanged');
@@ -247,7 +253,7 @@ export async function execute(mode: Mode, opts: { runId?: string; file?: string;
           log(`  Notiz: ${s.chars} Zeichen, ${prepared.headings.length} Überschriften, ${s.mermaid} Mermaid, ${s.callouts} Callouts, ${s.math} Formeln, ${s.images} Bilder · ${prepared.links.length} Wikilinks · Kontext: ${previous.length} frühere Units`);
           for (const n of notes) log(`  ⚑ ${n}`);
 
-          const { unit, dropped } = await generateUnit({ module, number, file: item.path, sha256: item.sha256, commit: head, prepared, previous, workDir, log });
+          const { unit, dropped, tokens } = await generateUnit({ module, number, file: item.path, sha256: item.sha256, commit: head, prepared, previous, workDir, log });
 
           // content/<modul>/<nr>-<slug>.json schreiben (alte Datei derselben Unit ersetzen)
           const modDir = join(config.contentDir, module.toLowerCase());
@@ -274,14 +280,25 @@ export async function execute(mode: Mode, opts: { runId?: string; file?: string;
             dropped,
             notes,
             review: unit.generator.review,
+            tokens,
             durationSec: Math.round((Date.now() - t0) / 1000),
           });
           log(`  ✓ ${unit.id} „${unit.title}“: ${qCount} Fragen (${imported.status}), Review: ${unit.generator.review.fixed} korrigiert, ${unit.generator.review.removed} entfernt, ${dropped.length} bei Validierung verworfen`);
         } catch (e) {
           const msg = (e as Error).message.slice(0, 2000);
-          recordFile(db, item.sha256, item.path, 'failed', runId, { error: msg });
+          const limited = e instanceof RateLimitError;
+          // Rate-Limit ist nicht die Schuld der Datei → zählt nicht als Fehlversuch
+          recordFile(db, item.sha256, item.path, 'failed', runId, { error: msg, countAttempt: !limited });
           files.push({ path: item.path, status: 'failed', error: msg, notes, durationSec: Math.round((Date.now() - t0) / 1000) });
           log(`  ✗ fehlgeschlagen: ${msg}`);
+          if (limited) {
+            rateLimited = true;
+            const rest = todo.slice(i + 1);
+            for (const r of rest) files.push({ path: r.path, status: 'skipped', reason: 'Codex-Rate-Limit – im nächsten Lauf' });
+            warnings.push(`Codex-Rate-Limit erreicht – ${rest.length} weitere Datei(en) verschoben`);
+            log(`🚦 Rate-Limit – breche ab, ${rest.length} Datei(en) folgen im nächsten Lauf`);
+            break;
+          }
         }
       }
       if (committed) {
@@ -319,7 +336,9 @@ export async function execute(mode: Mode, opts: { runId?: string; file?: string;
       skipped: files.filter((f) => f.status === 'skipped').length,
       levels: done.reduce((n, f) => n + (f.levels ?? 0), 0),
       questions: done.reduce((n, f) => n + (f.questions ?? 0), 0),
+      tokens: files.reduce((n, f) => n + (f.tokens ?? 0), 0),
     },
+    rateLimited,
     warnings,
   };
   const text = formatReport(report);
@@ -327,8 +346,13 @@ export async function execute(mode: Mode, opts: { runId?: string; file?: string;
   const reportDir = join(config.dataDir, 'reports');
   mkdirSync(reportDir, { recursive: true });
   writeFileSync(join(reportDir, `${runId}.json`), JSON.stringify(report, null, 2));
+  db.update(pipelineRuns).set({ status: report.status, finishedAt: Date.now(), summary: text, report }).where(eq(pipelineRuns.id, runId)).run();
   if (!dry) {
-    db.update(pipelineRuns).set({ status: report.status, finishedAt: Date.now(), summary: text, report }).where(eq(pipelineRuns.id, runId)).run();
+    if (opts.notify !== false) {
+      const msg = runMessage(report);
+      const via = await notify(msg.level, msg.title, msg.html, text);
+      log(via === 'telegram' ? 'Zusammenfassung per Telegram gesendet.' : 'Zusammenfassung als Admin-Notification gespeichert (Telegram nicht verfügbar).');
+    }
   }
   return report;
 }
@@ -336,7 +360,7 @@ export async function execute(mode: Mode, opts: { runId?: string; file?: string;
 export function formatReport(r: Report): string {
   const lines = [
     `LernQuest-Pipeline ${r.runId} (${r.mode}) – ${({ success: 'erfolgreich', nothing_new: 'nichts Neues', partial: 'teilweise fehlgeschlagen', failed: 'fehlgeschlagen' } as const)[r.status]}`,
-    `Dauer ${Math.floor(r.durationSec / 60)} min ${r.durationSec % 60} s · ${r.totals.processed} Units, ${r.totals.levels} Level, ${r.totals.questions} Fragen · ${r.totals.failed} Fehler · ${r.totals.skipped} übersprungen`,
+    `Dauer ${Math.floor(r.durationSec / 60)} min ${r.durationSec % 60} s · ${r.totals.processed} Units, ${r.totals.levels} Level, ${r.totals.questions} Fragen · ${r.totals.failed} Fehler · ${r.totals.skipped} übersprungen · ${r.totals.tokens.toLocaleString('de-DE')} Tokens`,
   ];
   for (const f of r.files.filter((x) => x.status === 'done')) {
     lines.push(`  ✓ ${f.unitId} ${f.title} – ${f.questions} Fragen (${f.path})`);

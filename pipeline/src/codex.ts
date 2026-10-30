@@ -12,8 +12,25 @@ export type CodexOptions = {
   log: (msg: string) => void;
 };
 
+export type CodexResult = { data: unknown; tokens: number };
+
+/** Codex meldet ein Rate-/Nutzungslimit – kein Retry, Lauf bricht die restlichen Dateien ab. */
+export class RateLimitError extends Error {
+  constructor(detail: string) {
+    super(`Codex-Rate-Limit: ${detail}`);
+    this.name = 'RateLimitError';
+  }
+}
+const RATE_LIMIT = /rate[ _-]?limit|usage limit|too many requests|\b429\b|quota exceeded|try again (?:in|at|later)/i;
+
+/** „tokens used\n12,345“ aus der codex-exec-Ausgabe lesen. */
+export function parseTokens(output: string): number {
+  const m = [...output.matchAll(/tokens used[:\s]*([\d.,]+)/gi)].at(-1);
+  return m ? Number(m[1]!.replace(/[.,]/g, '')) : 0;
+}
+
 /** Ein nicht-interaktiver `codex exec`-Aufruf (read-only Sandbox, strukturierte Ausgabe). */
-function runOnce(opts: CodexOptions, attempt: number): Promise<unknown> {
+function runOnce(opts: CodexOptions, attempt: number): Promise<CodexResult> {
   const outFile = join(opts.workDir, `${opts.label}-out-${attempt}.json`);
   const logFile = join(opts.workDir, `${opts.label}-codex-${attempt}.log`);
   const args = [
@@ -48,13 +65,19 @@ function runOnce(opts: CodexOptions, attempt: number): Promise<unknown> {
     });
     child.on('close', (code) => {
       clearTimeout(timer);
-      writeFileSync(logFile, Buffer.concat(chunks));
+      const output = Buffer.concat(chunks).toString('utf8');
+      writeFileSync(logFile, output);
       const secs = Math.round((Date.now() - started) / 1000);
-      if (code !== 0) return reject(new Error(`codex exec (${opts.label}) Exit ${code} nach ${secs}s – siehe ${logFile}`));
+      const tokens = parseTokens(output);
+      if (code !== 0) {
+        const errLine = output.split('\n').filter((l) => /error|limit/i.test(l)).at(-1)?.trim().slice(0, 300);
+        if (RATE_LIMIT.test(output)) return reject(new RateLimitError(errLine ?? `Exit ${code}`));
+        return reject(new Error(`codex exec (${opts.label}) Exit ${code} nach ${secs}s${errLine ? `: ${errLine}` : ''} – siehe ${logFile}`));
+      }
       if (!existsSync(outFile)) return reject(new Error(`codex exec (${opts.label}) schrieb keine Ausgabe`));
-      opts.log(`  ✓ ${opts.label} fertig nach ${secs}s`);
+      opts.log(`  ✓ ${opts.label} fertig nach ${secs}s (${tokens.toLocaleString('de-DE')} Tokens)`);
       try {
-        resolve(parseJson(readFileSync(outFile, 'utf8')));
+        resolve({ data: parseJson(readFileSync(outFile, 'utf8')), tokens });
       } catch (e) {
         reject(new Error(`codex exec (${opts.label}) lieferte kein gültiges JSON: ${(e as Error).message}`));
       }
@@ -79,10 +102,11 @@ export function parseJson(text: string): unknown {
 }
 
 /** codex exec mit einem Retry bei Fehler. */
-export async function codexJson(opts: CodexOptions): Promise<unknown> {
+export async function codexJson(opts: CodexOptions): Promise<CodexResult> {
   try {
     return await runOnce(opts, 1);
   } catch (e) {
+    if (e instanceof RateLimitError) throw e;
     opts.log(`  ⚠ ${(e as Error).message} – Retry`);
     return runOnce(opts, 2);
   }

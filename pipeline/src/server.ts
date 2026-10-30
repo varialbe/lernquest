@@ -7,6 +7,7 @@ import { eq } from 'drizzle-orm';
 import { getDb } from '@lernquest/api/db';
 import { pipelineRuns } from '@lernquest/api/schema';
 import { config } from './config.ts';
+import { notify } from './notify.ts';
 import { currentLock, newRunId } from './run.ts';
 
 /** Kleiner Trigger-Dienst für n8n: nur auf 127.0.0.1, Bearer-Token. */
@@ -37,7 +38,7 @@ app.post<{ Body: { mode?: string; file?: string } | undefined }>('/run', async (
   const out = openSync(join(config.dataDir, 'runs', `${runId}.stdout`), 'a');
   const args = ['--import', 'tsx', join(config.root, 'pipeline/src/cli.ts'), mode, '--run-id', runId];
   if (mode === 'regenerate' && req.body?.file) args.push(req.body.file);
-  const child = spawn(process.execPath, args, { cwd: config.root, detached: true, stdio: ['ignore', out, out], env: process.env });
+  const child = spawn(process.execPath, args, { cwd: join(config.root, 'pipeline'), detached: true, stdio: ['ignore', out, out], env: process.env });
   child.unref();
   closeSync(out);
   return reply.code(202).send({ runId, mode, status: 'running' });
@@ -60,6 +61,15 @@ app.get<{ Params: { runId: string } }>('/status/:runId', async (req, reply) => {
     summary: run.summary,
     report: run.report,
   };
+});
+
+/** Für n8n-Fehlerpfade (Trigger nicht erreichbar, Timeout): Telegram bzw. Admin-Notification. */
+app.post<{ Body: { level?: string; title?: string; body?: string } }>('/notify', async (req) => {
+  const level = req.body?.level === 'error' ? 'error' : req.body?.level === 'warn' ? 'warn' : 'info';
+  const title = String(req.body?.title ?? 'LernQuest').slice(0, 200);
+  const body = String(req.body?.body ?? '').slice(0, 3000);
+  const esc = (x: string) => x.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+  return { via: await notify(level, title, esc(body), body) };
 });
 
 await app.listen({ host: config.host, port: config.port });

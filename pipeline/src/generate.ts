@@ -21,7 +21,7 @@ export type GenerateInput = {
   log: (msg: string) => void;
 };
 
-export type GenerateResult = { unit: Unit; dropped: string[] };
+export type GenerateResult = { unit: Unit; dropped: string[]; tokens: number };
 
 const fill = (tpl: string, vars: Record<string, string>) => tpl.replace(/\{\{(\w+)\}\}/g, (_, k: string) => vars[k] ?? `{{${k}}}`);
 const template = (name: string) => readFileSync(join(config.promptsDir, name), 'utf8').replace(/^<!--[\s\S]*?-->\s*/, '');
@@ -74,6 +74,22 @@ function seededShuffle<T>(arr: T[], seed: string): T[] {
     [out[i], out[j]] = [out[j]!, out[i]!];
   }
   return out;
+}
+
+/**
+ * Repariert LaTeX, dessen Backslash beim JSON-Escaping verloren ging: "\frac" → Formfeed+"rac",
+ * "\times" → Tab+"imes", "\beta" → Backspace+"eta", "\neg" → Newline+"eg" (nur innerhalb von $…$).
+ */
+export function fixLatexEscapes(s: string): string {
+  // \f, \b, \v kommen in Fragetexten nie legitim vor
+  const out = s.replace(/\f/g, '\\f').replace(/\x08/g, '\\b').replace(/\v/g, '\\v');
+  // Tab/CR/Newline nur innerhalb von Formeln reparieren (Code-Einrückungen bleiben unberührt)
+  return out.replace(/\$\$?[^$]*\$?\$/g, (math) =>
+    math
+      .replace(/\t(?=[a-zA-Z])/g, '\\t')
+      .replace(/\r(?=[a-zA-Z])/g, '\\r')
+      .replace(/\n(?=(?:eq|eg|abla|u|i|ot|otin|mid|parallel|ewline|leq|geq|subseteq)\b)/g, '\\n'),
+  );
 }
 
 type RawQuestion = {
@@ -165,7 +181,7 @@ export function normalize(raw: RawUnit, input: Omit<GenerateInput, 'previous' | 
     },
     levels,
   });
-  return { unit, dropped };
+  return { unit, dropped, tokens: 0 };
 }
 
 /** Generieren (xhigh) → Prüfen (high) → normalisieren/validieren. */
@@ -189,25 +205,26 @@ export async function generateUnit(input: GenerateInput): Promise<GenerateResult
   };
 
   input.log(`  → Generierung (${config.codexModel}, effort ${config.codexEffort})`);
-  const draft = (await codexJson({
+  const draft = await codexJson({
     prompt: fill(template('generate-unit.md'), vars),
     effort: config.codexEffort,
     workDir: input.workDir,
     images: input.prepared.images,
     label: 'generate',
     log: input.log,
-  })) as RawUnit;
+  });
 
   input.log(`  → Review (effort ${config.codexReviewEffort})`);
-  const reviewed = (await codexJson({
-    prompt: fill(template('review-unit.md'), { ...vars, UNIT_JSON: JSON.stringify(draft, null, 1) }),
+  const reviewed = await codexJson({
+    prompt: fill(template('review-unit.md'), { ...vars, UNIT_JSON: JSON.stringify(draft.data, null, 1) }),
     effort: config.codexReviewEffort,
     workDir: input.workDir,
     images: input.prepared.images,
     label: 'review',
     log: input.log,
-  })) as RawUnit;
+  });
 
   const knownFiles = [input.file, ...input.previous.map((p) => p.sourceFile)];
-  return normalize(reviewed, input, knownFiles);
+  const result = normalize(reviewed.data as RawUnit, input, knownFiles);
+  return { ...result, tokens: draft.tokens + reviewed.tokens };
 }

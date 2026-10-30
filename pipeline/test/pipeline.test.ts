@@ -14,6 +14,7 @@ const FAKE_CODEX = `#!/usr/bin/env node
 const fs = require('fs');
 const a = process.argv;
 const out = a[a.indexOf('-o') + 1];
+console.log('tokens used'); console.log('1,234');
 const kinds = ['basics', 'apply', 'deepen', 'boss'];
 const levels = kinds.map((kind, li) => ({
   kind, title: kind,
@@ -84,6 +85,8 @@ describe('pipeline', () => {
     expect(r.status).toBe('success');
     expect(r.totals.processed).toBe(1);
     expect(r.totals.questions).toBe(40);
+    expect(r.totals.tokens).toBe(2468); // generate + review
+    expect(r.rateLimited).toBe(false);
     const files = readdirSync(join(lq, 'content/ds'));
     expect(files).toEqual(['01-mengen-relationen.json']);
     const unit = JSON.parse(readFileSync(join(lq, 'content/ds', files[0]!), 'utf8'));
@@ -94,9 +97,14 @@ describe('pipeline', () => {
     expect(sh(lq, 'log', '-1', '--format=%s')).toContain('content: add DS Vorlesung 1 – Mengen & Relationen');
   });
 
-  it('second run reports nothing new', async () => {
+  it('second run reports nothing new and falls back to admin notifications without telegram', async () => {
     const r = await run.execute('run', { quiet: true });
     expect(r.status).toBe('nothing_new');
+    const { getDb } = await import('@lernquest/api/db');
+    const { adminNotifications } = await import('@lernquest/api/schema');
+    const notes = getDb().select().from(adminNotifications).all();
+    expect(notes.at(-1)?.title).toContain('nichts Neues');
+    expect(notes.at(-1)?.body).toContain('Telegram nicht konfiguriert');
   });
 
   it('renamed file with same content is not processed again', async () => {
