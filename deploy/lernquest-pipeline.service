@@ -1,0 +1,24 @@
+[Unit]
+Description=LernQuest Pipeline-Trigger (127.0.0.1:3461)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=varialbe
+Group=varialbe
+WorkingDirectory=/home/varialbe/lernquest/pipeline
+EnvironmentFile=/home/varialbe/lernquest/.env
+Environment=HOME=/home/varialbe
+Environment=PATH=/home/varialbe/.local/bin:/usr/local/bin:/usr/bin:/bin
+ExecStart=/usr/bin/node --import tsx src/server.ts
+Restart=on-failure
+RestartSec=5
+# Läufe sind Kindprozesse (detached) und sollen einen Dienst-Neustart überleben
+KillMode=process
+MemoryHigh=300M
+MemoryMax=1G
+Nice=5
+
+[Install]
+WantedBy=multi-user.target
