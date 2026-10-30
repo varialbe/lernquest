@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { Question, isCorrect } from '../src/index.ts';
+import { Question, headingAnchor, isCorrect } from '../src/index.ts';
 
 const base = {
   id: 'ds-01-l1-q01',
@@ -12,7 +12,7 @@ const base = {
   ],
   correct: ['b'],
   explanation: 'Weil eins plus eins zwei ist.',
-  source: { file: 'DS/x.md', page: null, section: 'Intro' },
+  source: { file: 'DS/x.md', heading: 'Intro' },
   difficulty: 1,
   concepts: ['Addition'],
 };
@@ -35,6 +35,14 @@ describe('Question schema', () => {
   it('requires a gap in cloze prompts', () => {
     expect(Question.safeParse({ ...base, type: 'cloze' }).success).toBe(false);
     expect(Question.safeParse({ ...base, type: 'cloze', prompt: 'Eins plus eins ist ___.' }).success).toBe(true);
+  });
+  it('requires a mermaid block for diagram questions', () => {
+    expect(Question.safeParse({ ...base, type: 'diagram' }).success).toBe(false);
+    const d = { ...base, type: 'diagram', prompt: 'Welcher Knoten ist die Wurzel?\n\n```mermaid\ngraph TD; A-->B\n```' };
+    expect(Question.safeParse(d).success).toBe(true);
+  });
+  it('builds heading anchors', () => {
+    expect(headingAnchor('Natürliche Zahlen, Peano & Induktion')).toBe('natürliche-zahlen-peano--induktion');
   });
   it('compares selections as sets', () => {
     expect(isCorrect(['a', 'b'], ['b', 'a'])).toBe(true);

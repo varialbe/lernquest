@@ -11,7 +11,7 @@ export const MODULE_INFO: Record<ModuleId, { name: string; short: string; color:
   ERA: { name: 'Einführung in die Rechnerarchitektur', short: 'ERA', color: '#f97316' },
 };
 
-export const QUESTION_TYPES = ['single', 'multi', 'truefalse', 'cloze', 'code_output', 'calc'] as const;
+export const QUESTION_TYPES = ['single', 'multi', 'truefalse', 'cloze', 'code_output', 'calc', 'diagram'] as const;
 export const QuestionType = z.enum(QUESTION_TYPES);
 export type QuestionType = z.infer<typeof QuestionType>;
 
@@ -30,20 +30,19 @@ export const Option = z.object({
   text: z.string().min(1).max(600),
 });
 
+/** Quelle einer Frage: Obsidian-Notiz + Überschrift (Abschnitt), in der App als Abschnitts-Link angezeigt. */
 export const Source = z.object({
   file: z.string().min(1),
-  /** Seite (PDF/PPTX), null bei Markdown */
-  page: z.number().int().positive().nullable(),
-  /** Abschnitt / Überschrift, v. a. bei Markdown */
-  section: z.string().max(200).nullable().optional(),
+  heading: z.string().max(200).nullable(),
 });
+export type Source = z.infer<typeof Source>;
 
 /** Eine Frage, wie sie im content/-JSON liegt. */
 export const Question = z
   .object({
     id: z.string().regex(/^[a-z0-9-]+$/),
     type: QuestionType,
-    /** Markdown, LaTeX in $…$, Code in ```-Fences. Bei cloze markiert ___ die Lücke. */
+    /** Markdown, LaTeX in $…$, Code in ```-Fences. Bei cloze markiert ___ die Lücke, bei diagram steht ein ```mermaid-Block im Prompt. */
     prompt: z.string().min(5).max(4000),
     options: z.array(Option).min(2).max(6),
     correct: z.array(z.string()).min(1),
@@ -74,6 +73,9 @@ export const Question = z
     } else if (q.options.length < 3) {
       ctx.addIssue({ code: 'custom', message: `${q.type} braucht mindestens 3 Optionen` });
     }
+    if (q.type === 'diagram' && !/```mermaid\s*\n[\s\S]+?```/.test(q.prompt)) {
+      ctx.addIssue({ code: 'custom', message: 'diagram-Prompt braucht einen ```mermaid-Block' });
+    }
     if (q.type === 'cloze' && !q.prompt.includes('___')) {
       ctx.addIssue({ code: 'custom', message: 'cloze-Prompt braucht eine Lücke ___' });
     }
@@ -101,6 +103,10 @@ export const Unit = z
     concepts: z.array(z.string()).min(1).max(30),
     /** Kernaussagen – werden späteren Units als Kontext mitgegeben (Wiederholungsfragen). */
     keyFacts: z.array(z.string()).max(30),
+    /** Tags aus dem Obsidian-Frontmatter */
+    tags: z.array(z.string()).max(30),
+    /** per [[Wikilink]] verlinkte Notizen (Repo-Pfade) – Kanten im Konzeptgraph */
+    links: z.array(z.string()).max(50),
     source: z.object({ file: z.string(), sha256: z.string().length(64), commit: z.string() }),
     generator: z.object({
       model: z.string(),
@@ -120,6 +126,15 @@ export const Unit = z
     if (new Set(qids).size !== qids.length) ctx.addIssue({ code: 'custom', message: 'Doppelte Fragen-IDs' });
   });
 export type Unit = z.infer<typeof Unit>;
+
+/** Abschnitts-Anker wie GitHub/Obsidian ihn aus einer Überschrift bilden. */
+export function headingAnchor(heading: string): string {
+  return heading
+    .trim()
+    .toLowerCase()
+    .replace(/[^\p{L}\p{N}\s_-]/gu, '')
+    .replace(/\s/g, '-');
+}
 
 export const unitId = (module: ModuleId, number: number) => `${module.toLowerCase()}-${String(number).padStart(2, '0')}`;
 

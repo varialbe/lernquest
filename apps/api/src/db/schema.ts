@@ -66,6 +66,9 @@ export const units = sqliteTable(
     summary: text('summary').notNull(),
     concepts: text('concepts', { mode: 'json' }).$type<string[]>().notNull(),
     keyFacts: text('key_facts', { mode: 'json' }).$type<string[]>().notNull(),
+    tags: text('tags', { mode: 'json' }).$type<string[]>().notNull().default(sql`'[]'`),
+    /** per [[Wikilink]] verlinkte Notizen (Konzeptgraph) */
+    links: text('links', { mode: 'json' }).$type<string[]>().notNull().default(sql`'[]'`),
     sourceFile: text('source_file').notNull(),
     sourceSha: text('source_sha').notNull(),
     contentHash: text('content_hash').notNull(),

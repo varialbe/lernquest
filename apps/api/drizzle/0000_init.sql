@@ -173,6 +173,8 @@ CREATE TABLE `units` (
 	`summary` text NOT NULL,
 	`concepts` text NOT NULL,
 	`key_facts` text NOT NULL,
+	`tags` text DEFAULT '[]' NOT NULL,
+	`links` text DEFAULT '[]' NOT NULL,
 	`source_file` text NOT NULL,
 	`source_sha` text NOT NULL,
 	`content_hash` text NOT NULL,

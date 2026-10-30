@@ -34,6 +34,8 @@ export function importUnit(db: DB, raw: unknown): ImportResult {
       summary: unit.summary,
       concepts: unit.concepts,
       keyFacts: unit.keyFacts,
+      tags: unit.tags,
+      links: unit.links,
       sourceFile: unit.source.file,
       sourceSha: unit.source.sha256,
       contentHash,
