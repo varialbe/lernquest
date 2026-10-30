@@ -1,0 +1,72 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["title", "slug", "summary", "concepts", "keyFacts", "levels", "review"],
+  "properties": {
+    "title": { "type": "string", "description": "Kurzer deutscher Titel der Vorlesung, z. B. 'Relationen'" },
+    "slug": { "type": "string", "description": "kebab-case, nur a-z0-9-, z. B. 'relationen'" },
+    "summary": { "type": "string" },
+    "concepts": { "type": "array", "items": { "type": "string" } },
+    "keyFacts": { "type": "array", "items": { "type": "string" } },
+    "levels": {
+      "type": "array",
+      "minItems": 4,
+      "maxItems": 4,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["kind", "title", "questions"],
+        "properties": {
+          "kind": { "type": "string", "enum": ["basics", "apply", "deepen", "boss"] },
+          "title": { "type": "string" },
+          "questions": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": ["type", "prompt", "options", "correct", "explanation", "source", "difficulty", "concepts"],
+              "properties": {
+                "type": { "type": "string", "enum": ["single", "multi", "truefalse", "cloze", "code_output", "calc"] },
+                "prompt": { "type": "string" },
+                "options": {
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "additionalProperties": false,
+                    "required": ["id", "text"],
+                    "properties": { "id": { "type": "string" }, "text": { "type": "string" } }
+                  }
+                },
+                "correct": { "type": "array", "items": { "type": "string" } },
+                "explanation": { "type": "string" },
+                "source": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": ["file", "page", "section"],
+                  "properties": {
+                    "file": { "type": "string" },
+                    "page": { "type": ["integer", "null"] },
+                    "section": { "type": ["string", "null"] }
+                  }
+                },
+                "difficulty": { "type": "integer" },
+                "concepts": { "type": "array", "items": { "type": "string" } }
+              }
+            }
+          }
+        }
+      }
+    },
+    "review": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["checked", "fixed", "removed", "notes"],
+      "properties": {
+        "checked": { "type": "integer" },
+        "fixed": { "type": "integer" },
+        "removed": { "type": "integer" },
+        "notes": { "type": "string" }
+      }
+    }
+  }
+}
