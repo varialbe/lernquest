@@ -16,7 +16,7 @@ export const Email = z.string().trim().toLowerCase().email('Bitte eine gültige 
 export const RegisterReq = z.object({
   /** optional: nur damit der Admin sieht, über wen jemand gekommen ist */
   inviteCode: optionalText(64),
-  email: optionalText(120).pipe(Email.optional()),
+  email: Email,
   newsletter: z.boolean().optional(),
   acceptPrivacy: z.boolean().refine((v) => v, 'Bitte bestätige die Datenschutzerklärung.'),
   username: Username,
@@ -24,7 +24,20 @@ export const RegisterReq = z.object({
   password: Password,
   starterPet: z.string().optional(),
 });
-export const LoginReq = z.object({ username: z.string().trim().min(1).max(64), password: z.string().min(1).max(200) });
+/** `username` = Benutzername oder E-Mail-Adresse */
+export const LoginReq = z.object({ username: z.string().trim().min(1).max(120), password: z.string().min(1).max(200) });
+export const ForgotReq = z.object({ identifier: z.string().trim().min(1).max(120) });
+export const ResetReq = z.object({ token: z.string().min(20).max(200), password: Password });
+/** Konto nach Google-Anmeldung anlegen */
+export const GoogleCompleteReq = z.object({
+  pendingId: z.string().min(10).max(100),
+  username: Username,
+  displayName: z.string().trim().min(1).max(40),
+  inviteCode: optionalText(64),
+  newsletter: z.boolean().optional(),
+  acceptPrivacy: z.boolean().refine((v) => v, 'Bitte bestätige die Datenschutzerklärung.'),
+  starterPet: z.string().optional(),
+});
 export const ChangePasswordReq = z.object({ oldPassword: z.string().max(200), newPassword: Password });
 
 export const AnswerSubmission = z.object({
@@ -50,7 +63,7 @@ export const SettingsReq = z.object({
   activePet: z.string().max(40).optional(),
   soundOn: z.boolean().optional(),
   newsletter: z.boolean().optional(),
-  email: Email.nullable().optional(),
+  email: Email.optional(),
 });
 export const EquipReq = z.object({ petId: z.string(), accessory: z.string().nullable() });
 export const RunSubmitReq = z.object({
@@ -87,7 +100,17 @@ export type MeResponse = {
     weekXp: number;
     dueReviews: number;
   };
-  settings: { theme: string; frame: string | null; soundOn: boolean; activePet: string | null; newsletter: boolean; email: string | null };
+  settings: {
+    theme: string;
+    frame: string | null;
+    soundOn: boolean;
+    activePet: string | null;
+    newsletter: 'none' | 'pending' | 'confirmed';
+    email: string | null;
+    emailVerified: boolean;
+    google: boolean;
+    hasPassword: boolean;
+  };
   pets: PetState[];
   inventory: string[];
 };

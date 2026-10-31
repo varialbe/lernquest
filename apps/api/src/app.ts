@@ -6,6 +6,7 @@ import type { DB } from './db/index.ts';
 import { HttpError } from './lib/http.ts';
 import { adminRoutes } from './routes/admin.ts';
 import { passkeyRoutes } from './routes/passkeys.ts';
+import { accountRoutes } from './routes/account.ts';
 import { userRoutes } from './routes/user.ts';
 
 export async function buildApp(db: DB, opts: { logger?: boolean } = {}): Promise<FastifyInstance> {
@@ -36,6 +37,7 @@ export async function buildApp(db: DB, opts: { logger?: boolean } = {}): Promise
 
   userRoutes(app, db);
   passkeyRoutes(app, db);
+  accountRoutes(app, db);
   adminRoutes(app, db);
   return app;
 }

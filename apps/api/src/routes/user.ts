@@ -37,6 +37,8 @@ import { badRequest, conflict, HttpError, notFound } from '../lib/http.ts';
 import { createDuel, declineDuel, listDuels, playDuel, resolveDuel } from '../lib/duels.ts';
 import { calendar, leaderboard } from '../lib/league.ts';
 import { pushEnabled } from '../lib/push.ts';
+import { emailFields, emailOf, requestNewsletter, sendVerify, stopNewsletter, userByIdentifier } from '../lib/account.ts';
+import { appUrl } from '../lib/mail.ts';
 import { claimQuest, questsFor } from '../lib/quests.ts';
 import { completeRun, mastery, startExam, startWeak } from '../lib/runs.ts';
 import { addStarterPet, equip, purchase, validateSettings } from '../lib/shop.ts';
@@ -53,6 +55,7 @@ export function userRoutes(app: FastifyInstance, db: DB) {
   app.get('/api/config', async () => ({
     sourceLinkBase: process.env.SOURCE_LINK_BASE || 'https://github.com/varialbe/studium/blob/main',
     vapidPublicKey: pushEnabled() ? process.env.VAPID_PUBLIC_KEY : null,
+    googleLogin: !!(process.env.GOOGLE_CLIENT_ID && process.env.GOOGLE_CLIENT_SECRET),
   }));
 
   // Live-Update der iOS-App: Manifest des neuesten Web-Pakets (deploy-web.sh legt es ab). Über die API wegen CORS (capacitor://localhost).
@@ -79,9 +82,9 @@ export function userRoutes(app: FastifyInstance, db: DB) {
     const username = body.username.toLowerCase();
     // Einladungscode ist optional – er zeigt dem Admin nur, über wen jemand gekommen ist
     const code = body.inviteCode?.toUpperCase();
-    if (body.newsletter && !body.email) throw badRequest('email_required', 'Für den Newsletter brauchen wir deine E-Mail-Adresse.');
     const passwordHash = await hashPassword(body.password);
     const now = Date.now();
+    const mail = emailFields(db, body.email);
     const user = db.transaction((tx) => {
       if (code) {
         const inv = tx.select().from(invites).where(eq(invites.code, code)).get();
@@ -96,27 +99,33 @@ export function userRoutes(app: FastifyInstance, db: DB) {
           displayName: body.displayName,
           passwordHash,
           invitedWith: code ?? null,
-          email: body.email ?? null,
-          newsletter: !!body.newsletter,
-          newsletterAt: body.newsletter ? now : null,
+          ...mail,
           privacyAcceptedAt: now,
         })
         .returning()
         .get();
     });
     addStarterPet(db, user.id, body.starterPet);
+    const app = appUrl(req.headers.origin);
+    // Mails dürfen die Registrierung nicht scheitern lassen
+    await sendVerify(db, user, app).catch((e) => req.log.error(e, 'Bestätigungs-Mail fehlgeschlagen'));
+    if (body.newsletter) await requestNewsletter(db, user, app).catch((e) => req.log.error(e, 'Opt-in-Mail fehlgeschlagen'));
     const token = createSession(db, user.id, req.headers['user-agent']);
     return { token, user: toPublicUser(user) };
   });
 
   app.post('/api/auth/login', authLimit, async (req) => {
     const body = LoginReq.parse(req.body);
-    const u = db.select().from(users).where(eq(users.username, body.username.toLowerCase())).get();
+    const u = userByIdentifier(db, body.username);
     if (!u) {
       await burnPasswordCheck(body.password);
-      throw new HttpError(401, 'invalid_credentials', 'Benutzername oder Passwort falsch.');
+      throw new HttpError(401, 'invalid_credentials', 'Benutzername/E-Mail oder Passwort falsch.');
     }
-    if (!(await verifyPassword(u.passwordHash, body.password))) throw new HttpError(401, 'invalid_credentials', 'Benutzername oder Passwort falsch.');
+    if (!u.hasPassword) {
+      await burnPasswordCheck(body.password);
+      throw new HttpError(401, 'google_only', 'Dieses Konto nutzt „Mit Google anmelden“. Über „Passwort vergessen?“ kannst du zusätzlich ein Passwort festlegen.');
+    }
+    if (!(await verifyPassword(u.passwordHash, body.password))) throw new HttpError(401, 'invalid_credentials', 'Benutzername/E-Mail oder Passwort falsch.');
     if (u.disabled) throw new HttpError(403, 'disabled', 'Dein Account ist gesperrt.');
     return { token: createSession(db, u.id, req.headers['user-agent']), user: toPublicUser(u) };
   });
@@ -149,14 +158,21 @@ export function userRoutes(app: FastifyInstance, db: DB) {
     if (s.frame !== undefined) patch.frame = s.frame;
     if (s.activePet !== undefined) patch.activePet = s.activePet;
     if (s.soundOn !== undefined) patch.soundOn = s.soundOn;
-    if (s.email !== undefined) patch.email = s.email;
-    if (s.newsletter !== undefined) {
-      if (s.newsletter && !(s.email ?? req.user.email)) throw badRequest('email_required', 'Für den Newsletter brauchen wir deine E-Mail-Adresse.');
-      patch.newsletter = s.newsletter;
-      patch.newsletterAt = s.newsletter ? Date.now() : null;
+    const app = appUrl(req.headers.origin);
+    let emailChanged = false;
+    if (s.email !== undefined && s.email !== emailOf(req.user)) {
+      Object.assign(patch, emailFields(db, s.email, { exceptUserId: req.user.id }));
+      emailChanged = true;
+      // neue Adresse: Newsletter muss neu bestätigt werden
+      if (req.user.newsletter || req.user.newsletterRequestedAt) Object.assign(patch, { newsletter: false, newsletterAt: null, newsletterRequestedAt: null });
     }
     if (Object.keys(patch).length) db.update(users).set(patch).where(eq(users.id, req.user.id)).run();
-    return meResponse(db, db.select().from(users).where(eq(users.id, req.user.id)).get()!);
+    let fresh = db.select().from(users).where(eq(users.id, req.user.id)).get()!;
+    if (emailChanged) await sendVerify(db, fresh, app).catch((e) => req.log.error(e, 'Bestätigungs-Mail fehlgeschlagen'));
+    if (s.newsletter === true) await requestNewsletter(db, fresh, app);
+    if (s.newsletter === false) stopNewsletter(db, req.user.id);
+    if (s.newsletter !== undefined) fresh = db.select().from(users).where(eq(users.id, req.user.id)).get()!;
+    return meResponse(db, fresh);
   });
 
   // ---------- Lernen ----------

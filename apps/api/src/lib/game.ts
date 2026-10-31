@@ -25,6 +25,7 @@ import type { AuthUser } from './auth.ts';
 import { badRequest, notFound, forbidden } from './http.ts';
 import { effectiveStreak, leitnerNext, recordActivity } from './streak.ts';
 import { addDays, berlinDay, berlinMidnight, weekStart } from './time.ts';
+import { decrypt } from './crypto.ts';
 
 export type Tx = Parameters<Parameters<DB['transaction']>[0]>[0];
 export type AnyDb = DB | Tx;
@@ -69,7 +70,17 @@ export function meResponse(db: DB, u: AuthUser, now = Date.now()): MeResponse {
       weekXp: weekXp(db, u.id, now),
       dueReviews: dueReviews(db, u.id, day),
     },
-    settings: { theme: u.theme, frame: u.frame, soundOn: u.soundOn, activePet: u.activePet, newsletter: u.newsletter, email: u.email },
+    settings: {
+      theme: u.theme,
+      frame: u.frame,
+      soundOn: u.soundOn,
+      activePet: u.activePet,
+      newsletter: u.newsletter ? 'confirmed' : u.newsletterRequestedAt ? 'pending' : 'none',
+      email: decrypt(u.emailEnc),
+      emailVerified: !!u.emailVerifiedAt,
+      google: !!u.googleSub,
+      hasPassword: u.hasPassword,
+    },
     pets: pets.map((p) => ({ petId: p.petId, xp: p.xp, stage: petStage(p.xp), accessory: p.accessory })),
     inventory: inv.map((i) => i.itemId),
   };

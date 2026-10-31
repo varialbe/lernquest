@@ -26,14 +26,56 @@ export const users = sqliteTable('users', {
   soundOn: integer('sound_on', { mode: 'boolean' }).notNull().default(true),
   activePet: text('active_pet'),
   invitedWith: text('invited_with'),
-  /** optional, nur für den Newsletter */
+  /** veraltet (Klartext, nur kurz in 0003) – wird beim Start nach email_enc verschoben und geleert */
   email: text('email'),
+  /** E-Mail verschlüsselt (AES-256-GCM, lib/crypto.ts) */
+  emailEnc: text('email_enc'),
+  /** HMAC der normalisierten E-Mail – zum Suchen (Login, Passwort vergessen), eindeutig */
+  emailHash: text('email_hash'),
+  emailVerifiedAt: integer('email_verified_at'),
+  /** Google-Konto („sub“ aus dem ID-Token) */
+  googleSub: text('google_sub'),
+  /** false bei reinen Google-Konten (Passwort-Hash ist dann ein unbenutzbarer Zufallswert) */
+  hasPassword: integer('has_password', { mode: 'boolean' }).notNull().default(true),
+  /** true = Newsletter bestätigt (Double-Opt-in) */
   newsletter: integer('newsletter', { mode: 'boolean' }).notNull().default(false),
-  /** Zeitpunkt der Newsletter-Einwilligung (Nachweis) */
+  /** Zeitpunkt der Bestätigung (Nachweis der Einwilligung) */
   newsletterAt: integer('newsletter_at'),
+  /** Anmeldung angefordert, Bestätigung steht aus */
+  newsletterRequestedAt: integer('newsletter_requested_at'),
   /** Datenschutzerklärung bei der Registrierung bestätigt */
   privacyAcceptedAt: integer('privacy_accepted_at'),
   createdAt: ts('created_at'),
+}, (t) => [uniqueIndex('users_email_hash_idx').on(t.emailHash), uniqueIndex('users_google_sub_idx').on(t.googleSub)]);
+
+/** Einmal-Tokens für Links in E-Mails – gespeichert wird nur der SHA-256 */
+export const authTokens = sqliteTable(
+  'auth_tokens',
+  {
+    id: integer('id').primaryKey({ autoIncrement: true }),
+    userId: integer('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+    kind: text('kind', { enum: ['verify', 'reset', 'newsletter'] }).notNull(),
+    tokenHash: text('token_hash').notNull().unique(),
+    /** Ziel-Adresse (verschlüsselt) bzw. App-URL für die Weiterleitung */
+    meta: text('meta', { mode: 'json' }).$type<{ app?: string }>().notNull().default(sql`'{}'`),
+    expiresAt: integer('expires_at').notNull(),
+    usedAt: integer('used_at'),
+    createdAt: ts('created_at'),
+  },
+  (t) => [index('auth_tokens_user_idx').on(t.userId)],
+);
+
+/** Newsletter-Ausgaben (Entwurf → versendet), verwaltet über den Telegram-Bot */
+export const newsletterIssues = sqliteTable('newsletter_issues', {
+  id: integer('id').primaryKey({ autoIncrement: true }),
+  subject: text('subject').notNull(),
+  format: text('format', { enum: ['md', 'html', 'txt'] }).notNull().default('md'),
+  source: text('source').notNull().default(''),
+  status: text('status', { enum: ['draft', 'sending', 'sent'] }).notNull().default('draft'),
+  recipients: integer('recipients').notNull().default(0),
+  failed: integer('failed').notNull().default(0),
+  createdAt: ts('created_at'),
+  sentAt: integer('sent_at'),
 });
 
 /** WebAuthn-Passkeys (Login ohne Passwort, Safari/PWA) */

@@ -5,6 +5,7 @@ import { buildApp } from './app.ts';
 import { importContentDir } from './content/import.ts';
 import { getDb } from './db/index.ts';
 import { cleanupSessions } from './lib/auth.ts';
+import { migrateLegacyEmails } from './lib/account.ts';
 import { ensureLeagueRollover } from './lib/league.ts';
 import { expireDuels } from './lib/duels.ts';
 import { newUnitsTick, remindersTick } from './lib/push.ts';
@@ -13,7 +14,10 @@ const db = getDb();
 // content/ ist die Quelle der Wahrheit – beim Start (idempotent) abgleichen
 const synced = importContentDir(db, resolve(ROOT, 'content')).filter((r) => r.status !== 'unchanged');
 for (const f of synced.filter((r) => r.status === 'failed')) console.error(`content/${f.unitId} ungültig: ${f.error}`);
+// E-Mails aus Migration 0003 (Klartext) einmalig verschlüsseln
+const migrated = migrateLegacyEmails(db);
 const app = await buildApp(db, { logger: true });
+if (migrated) app.log.info({ migrated }, 'E-Mail-Adressen verschlüsselt');
 if (synced.length) app.log.info({ synced }, 'content importiert');
 
 const tick = async () => {
