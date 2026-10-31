@@ -1,0 +1,1630 @@
+{
+  "schemaVersion": 1,
+  "id": "eip-05",
+  "module": "EIP",
+  "number": 5,
+  "slug": "primitive-datentypen-und-operatoren",
+  "title": "Primitive Datentypen und Operatoren",
+  "summary": "Diese Unit behandelt primitive Datentypen, ihre Wertebereiche und die Besonderheiten von Floating Point und `char`. Außerdem geht es um automatische und explizite Typkonvertierung, arithmetische Typregeln, Boolean-Operatoren, Zuweisungen sowie Präfix- und Postfix-Inkremente.",
+  "concepts": [
+    "Primitive Datentypen",
+    "Overflow",
+    "Floating Point",
+    "char",
+    "Widening",
+    "Casting",
+    "Integer-Division",
+    "Boolean-Operatoren",
+    "Short-Circuit",
+    "Zuweisung",
+    "Inkrement/Dekrement"
+  ],
+  "keyFacts": [
+    "`byte` besitzt 8 Bits und den Wertebereich −128 bis 127; `int` ist der Standard-Ganzzahltyp.",
+    "`float` hat ungefähr 7 signifikante Stellen, `double` ungefähr 15–16 Stellen.",
+    "`char` ist eine 16-Bit-UTF-16-Codeeinheit; `char c = 'A'` entspricht dem Zeichencode 65.",
+    "Ein `int`-Overflow vom Maximum um 1 führt ohne Exception zum Minimum.",
+    "Dezimalzahlen wie `0.1` sind binär oft nicht exakt darstellbar.",
+    "`3.5` ist ein `double`-Literal, `3.5f` ein `float`-Literal.",
+    "Widening erfolgt unter anderem von `byte` nach `short`, `int`, `long`, `float` und `double`; auch `char` kann automatisch nach `int` konvertiert werden.",
+    "Automatische Konvertierung ist nicht immer verlustfrei, etwa bei `int` nach `float`.",
+    "Beim Casting von `double` nach `int` wird abgeschnitten, nicht gerundet.",
+    "Beim Casting von `130` nach `byte` werden Bits abgeschnitten; das Ergebnis ist `-126`.",
+    "Der Ergebnistyp arithmetischer Ausdrücke folgt der Priorität `double > float > long > int`; auch `byte + byte` ergibt `int`.",
+    "`7 / 2` ergibt bei Integer-Division `3`, während `7.0 / 2` `3.5` ergibt.",
+    "`(double)(7 / 2)` ergibt `3.0`, weil die Integer-Division vor dem Casting stattfindet.",
+    "`7 % 2` ist `1`, `-7 % 2` ist `-1`; Integer-Division durch 0 löst eine Exception aus.",
+    "Bei `&&` und `||` werden rechte Operanden nur ausgewertet, wenn sie für das Ergebnis benötigt werden.",
+    "Die Priorität der Boolean-Operatoren lautet `!` vor `&&` vor `||`.",
+    "`=` ist eine Zuweisung und `==` ein Vergleich; eine Zuweisung liefert selbst einen Wert.",
+    "`++i` erhöht zuerst und verwendet danach den neuen Wert; `i++` verwendet zuerst den alten Wert und erhöht danach."
+  ],
+  "tags": [],
+  "links": [],
+  "source": {
+    "file": "EIP/01_Vorlesungen/EIP VO5.md",
+    "sha256": "fe0238820c8455856ee82df0b7195ded002a67db66fbe28b86a6469fcb6c34d1",
+    "commit": "c01f10e1818d61e8fd05d663cf852d7a59f2e1e4"
+  },
+  "generator": {
+    "model": "gpt-5.6-luna",
+    "effort": "xhigh",
+    "reviewEffort": "high",
+    "promptVersion": "v2",
+    "generatedAt": "2026-10-31T01:07:11.486Z",
+    "review": {
+      "checked": 44,
+      "fixed": 0,
+      "removed": 0,
+      "notes": "Alle 44 Fragen wurden fachlich, formal und hinsichtlich der Quellen geprüft. Die markierten Antworten und Distraktoren sind korrekt; alle Fragen sind eindeutig formuliert und die Mermaid-Anforderung ist nicht relevant, da keine Diagrammfrage enthalten ist."
+    }
+  },
+  "levels": [
+    {
+      "id": "eip-05-l1",
+      "index": 1,
+      "kind": "basics",
+      "title": "Grundlagen",
+      "questions": [
+        {
+          "id": "eip-05-l1-q01",
+          "type": "single",
+          "prompt": "Welcher primitive Datentyp ist in Java der Standard-Ganzzahltyp?",
+          "options": [
+            {
+              "id": "a",
+              "text": "`short`"
+            },
+            {
+              "id": "b",
+              "text": "`long`"
+            },
+            {
+              "id": "c",
+              "text": "`int`"
+            },
+            {
+              "id": "d",
+              "text": "`byte`"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "`int` ist der Standard-Ganzzahltyp. `byte`, `short` und `long` sind ebenfalls Ganzzahltypen, haben aber andere Wertebereiche.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO5.md",
+            "heading": "1. Primitive Datentypen"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Primitive Datentypen"
+          ]
+        },
+        {
+          "id": "eip-05-l1-q02",
+          "type": "multi",
+          "prompt": "Welche Aussagen über primitive Datentypen sind richtig? Wähle alle richtigen Aussagen; mehrere Antworten können richtig sein.",
+          "options": [
+            {
+              "id": "a",
+              "text": "`int` ist der Standard-Ganzzahltyp."
+            },
+            {
+              "id": "b",
+              "text": "`byte` besitzt 8 Bits."
+            },
+            {
+              "id": "c",
+              "text": "`double` besitzt ungefähr 15–16 signifikante Stellen."
+            },
+            {
+              "id": "d",
+              "text": "`boolean` besitzt laut Tabelle eine feste Breite von 1 Bit."
+            }
+          ],
+          "correct": [
+            "a",
+            "b",
+            "c"
+          ],
+          "explanation": "`byte` hat 8 Bits, `int` ist der Standard-Ganzzahltyp und `double` ungefähr 15–16 signifikante Stellen. Für `boolean` ist in der Tabelle keine Bitbreite angegeben.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO5.md",
+            "heading": "1. Primitive Datentypen"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Primitive Datentypen"
+          ]
+        },
+        {
+          "id": "eip-05-l1-q03",
+          "type": "cloze",
+          "prompt": "Das Literal ___ wird als `float` interpretiert.",
+          "options": [
+            {
+              "id": "a",
+              "text": "`3.5f`"
+            },
+            {
+              "id": "b",
+              "text": "`3`"
+            },
+            {
+              "id": "c",
+              "text": "`3.5`"
+            },
+            {
+              "id": "d",
+              "text": "`3.5d`"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "Ein `f`-Suffix kennzeichnet ein `float`-Literal. Ohne Suffix ist `3.5` ein `double`.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO5.md",
+            "heading": "1. Primitive Datentypen"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Floating Point"
+          ]
+        },
+        {
+          "id": "eip-05-l1-q04",
+          "type": "truefalse",
+          "prompt": "Beim Overflow eines `int` führt das Maximum plus 1 ohne Exception zum Minimum.",
+          "options": [
+            {
+              "id": "true",
+              "text": "Wahr"
+            },
+            {
+              "id": "false",
+              "text": "Falsch"
+            }
+          ],
+          "correct": [
+            "true"
+          ],
+          "explanation": "Bei einem `int`-Overflow läuft der Wert vom Maximum zum Minimum über; dabei wird keine Exception ausgelöst.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO5.md",
+            "heading": "1. Primitive Datentypen"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Overflow"
+          ]
+        },
+        {
+          "id": "eip-05-l1-q05",
+          "type": "single",
+          "prompt": "Welche Beschreibung passt zu `char`?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Ein 32-Bit-Typ für Fließkommazahlen"
+            },
+            {
+              "id": "b",
+              "text": "Ein Typ, der nur `true` oder `false` speichern kann"
+            },
+            {
+              "id": "c",
+              "text": "Ein 8-Bit-Typ für kleine Ganzzahlen"
+            },
+            {
+              "id": "d",
+              "text": "Eine 16-Bit-UTF-16-Codeeinheit"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "`char` ist eine 16-Bit-UTF-16-Codeeinheit. Ein einzelnes Unicode-Zeichen kann dabei auch zwei `char` benötigen.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO5.md",
+            "heading": "1. Primitive Datentypen"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "char"
+          ]
+        },
+        {
+          "id": "eip-05-l1-q06",
+          "type": "single",
+          "prompt": "Welche automatische Typkonvertierung ist möglich?",
+          "options": [
+            {
+              "id": "a",
+              "text": "`double` nach `int`"
+            },
+            {
+              "id": "b",
+              "text": "`char` nach `int`"
+            },
+            {
+              "id": "c",
+              "text": "`float` nach `byte`"
+            },
+            {
+              "id": "d",
+              "text": "`long` nach `short`"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "`char` kann automatisch nach `int` konvertiert werden. Die anderen Richtungen würden einen engeren Typ oder einen möglichen Informationsverlust bedeuten.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO5.md",
+            "heading": "2. Typkonvertierung"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Widening"
+          ]
+        },
+        {
+          "id": "eip-05-l1-q07",
+          "type": "single",
+          "prompt": "Welchen Wert liefert `(int) 3.9`?",
+          "options": [
+            {
+              "id": "a",
+              "text": "`3.9`"
+            },
+            {
+              "id": "b",
+              "text": "`3`"
+            },
+            {
+              "id": "c",
+              "text": "Eine Exception"
+            },
+            {
+              "id": "d",
+              "text": "`4`"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "Beim Casting von `double` nach `int` wird abgeschnitten. Es findet keine Rundung auf 4 statt.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO5.md",
+            "heading": "2. Typkonvertierung"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Casting"
+          ]
+        },
+        {
+          "id": "eip-05-l1-q08",
+          "type": "multi",
+          "prompt": "Welche Aussagen zu Ergebnistypen arithmetischer Ausdrücke sind richtig? Wähle alle richtigen Aussagen; mehrere Antworten können richtig sein.",
+          "options": [
+            {
+              "id": "a",
+              "text": "`int + int` ergibt automatisch `double`."
+            },
+            {
+              "id": "b",
+              "text": "`long + float` ergibt `long`."
+            },
+            {
+              "id": "c",
+              "text": "`byte + byte` ergibt `int`."
+            },
+            {
+              "id": "d",
+              "text": "Enthält ein Ausdruck einen `double`-Operanden, ist der Ergebnistyp `double`."
+            }
+          ],
+          "correct": [
+            "c",
+            "d"
+          ],
+          "explanation": "`byte + byte` wird zu `int` promoviert. Die Typpriorität sorgt dafür, dass ein `double`-Operand den Ergebnistyp `double` bestimmt; `long + float` ergibt dagegen `float`.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO5.md",
+            "heading": "2. Typkonvertierung"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Arithmetik"
+          ]
+        },
+        {
+          "id": "eip-05-l1-q09",
+          "type": "truefalse",
+          "prompt": "Der Ausdruck `7 / 2` ergibt in Java den Wert `3`.",
+          "options": [
+            {
+              "id": "true",
+              "text": "Wahr"
+            },
+            {
+              "id": "false",
+              "text": "Falsch"
+            }
+          ],
+          "correct": [
+            "true"
+          ],
+          "explanation": "Beide Operanden sind ganze Zahlen, daher wird Integer-Division verwendet. Der Nachkommateil wird verworfen.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO5.md",
+            "heading": "2. Typkonvertierung"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Integer-Division"
+          ]
+        },
+        {
+          "id": "eip-05-l1-q10",
+          "type": "single",
+          "prompt": "Welche Prioritätsreihenfolge gilt für die Boolean-Operatoren?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Alle drei Operatoren haben dieselbe Priorität"
+            },
+            {
+              "id": "b",
+              "text": "`||` vor `&&` vor `!`"
+            },
+            {
+              "id": "c",
+              "text": "`&&` vor `!` vor `||`"
+            },
+            {
+              "id": "d",
+              "text": "`!` vor `&&` vor `||`"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Die Reihenfolge lautet `!` vor `&&` vor `||`. Dadurch wird beispielsweise die Negation vor dem logischen UND ausgewertet.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO5.md",
+            "heading": "3. Boolean-Operatoren"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Boolean-Operatoren"
+          ]
+        },
+        {
+          "id": "eip-05-l1-q11",
+          "type": "single",
+          "prompt": "Welche Aussage unterscheidet `=` und `==` korrekt?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Beide Operatoren weisen Werte zu."
+            },
+            {
+              "id": "b",
+              "text": "Beide Operatoren vergleichen Werte."
+            },
+            {
+              "id": "c",
+              "text": "`=` weist einen Wert zu, `==` vergleicht."
+            },
+            {
+              "id": "d",
+              "text": "`=` vergleicht Werte, `==` weist einen Wert zu."
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "`=` ist der Zuweisungsoperator. `==` prüft, ob zwei Werte gleich sind.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO5.md",
+            "heading": "4. Assignments & Increments"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Zuweisung"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "eip-05-l2",
+      "index": 2,
+      "kind": "apply",
+      "title": "Anwenden",
+      "questions": [
+        {
+          "id": "eip-05-l2-q01",
+          "type": "code_output",
+          "prompt": "Was gibt dieser Code aus?\n\n```java\nint x = 7 / 2;\nwrite(x);\n```",
+          "options": [
+            {
+              "id": "a",
+              "text": "Eine Exception"
+            },
+            {
+              "id": "b",
+              "text": "`3.5`"
+            },
+            {
+              "id": "c",
+              "text": "`4`"
+            },
+            {
+              "id": "d",
+              "text": "`3`"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Da beide Operanden vom Typ `int` sind, wird Integer-Division verwendet. Deshalb wird `3` ausgegeben.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO5.md",
+            "heading": "2. Typkonvertierung"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Integer-Division"
+          ]
+        },
+        {
+          "id": "eip-05-l2-q02",
+          "type": "code_output",
+          "prompt": "Was gibt dieser Code aus?\n\n```java\ndouble x = (double) (7 / 2);\nwrite(x);\n```",
+          "options": [
+            {
+              "id": "a",
+              "text": "`3`"
+            },
+            {
+              "id": "b",
+              "text": "`3.0`"
+            },
+            {
+              "id": "c",
+              "text": "Eine Exception"
+            },
+            {
+              "id": "d",
+              "text": "`3.5`"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "Zuerst wird `7 / 2` als Integer-Division zu `3`. Erst danach wird der Wert zu `double` konvertiert, also entsteht `3.0`.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO5.md",
+            "heading": "2. Typkonvertierung"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Integer-Division",
+            "Casting"
+          ]
+        },
+        {
+          "id": "eip-05-l2-q03",
+          "type": "calc",
+          "prompt": "Welchen Wert liefert der Ausdruck `(int) -3.9`?",
+          "options": [
+            {
+              "id": "a",
+              "text": "`-3.9`"
+            },
+            {
+              "id": "b",
+              "text": "`-4`"
+            },
+            {
+              "id": "c",
+              "text": "`-3`"
+            },
+            {
+              "id": "d",
+              "text": "`3`"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Beim Casting wird abgeschnitten, also in Richtung 0. Daher wird `-3.9` zu `-3`, nicht zu `-4` gerundet.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO5.md",
+            "heading": "2. Typkonvertierung"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Casting"
+          ]
+        },
+        {
+          "id": "eip-05-l2-q04",
+          "type": "calc",
+          "prompt": "Welchen Wert liefert der Ausdruck `(byte) 130`?",
+          "options": [
+            {
+              "id": "a",
+              "text": "`-126`"
+            },
+            {
+              "id": "b",
+              "text": "`127`"
+            },
+            {
+              "id": "c",
+              "text": "`130`"
+            },
+            {
+              "id": "d",
+              "text": "Eine Exception"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "Beim Casting nach `byte` werden die Bits auf die Breite von `byte` reduziert. Dadurch wird `130` zu `-126`.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO5.md",
+            "heading": "2. Typkonvertierung"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Casting",
+            "Overflow"
+          ]
+        },
+        {
+          "id": "eip-05-l2-q05",
+          "type": "calc",
+          "prompt": "Welcher Wert wird hier in `x` gespeichert?\n\n```java\nlong x = (long) 50000 * 50000;\n```",
+          "options": [
+            {
+              "id": "a",
+              "text": "`2.500.000.000`"
+            },
+            {
+              "id": "b",
+              "text": "`50.000`"
+            },
+            {
+              "id": "c",
+              "text": "`2.500.000`"
+            },
+            {
+              "id": "d",
+              "text": "`-1.794.967.296`"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "Der erste Operand wird vor der Multiplikation zu `long` konvertiert. Daher findet die Multiplikation nicht als überlaufende `int`-Berechnung statt und ergibt `2.500.000.000`.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO5.md",
+            "heading": "2. Typkonvertierung"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Arithmetik",
+            "Overflow"
+          ]
+        },
+        {
+          "id": "eip-05-l2-q06",
+          "type": "truefalse",
+          "prompt": "Der Ausdruck `byte + byte` hat den Ergebnistyp `byte`.",
+          "options": [
+            {
+              "id": "true",
+              "text": "Wahr"
+            },
+            {
+              "id": "false",
+              "text": "Falsch"
+            }
+          ],
+          "correct": [
+            "false"
+          ],
+          "explanation": "Auch zwei `byte`-Operanden werden für die Arithmetik zu `int` promoviert. Das Ergebnis hat daher den Typ `int`.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO5.md",
+            "heading": "2. Typkonvertierung"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Arithmetik"
+          ]
+        },
+        {
+          "id": "eip-05-l2-q07",
+          "type": "multi",
+          "prompt": "Welche Aussagen zur Auswertung von `!p && q || r` sind richtig? Wähle alle richtigen Aussagen; mehrere Antworten können richtig sein.",
+          "options": [
+            {
+              "id": "a",
+              "text": "Ist die linke Seite von `||` wahr, wird `r` nicht ausgewertet."
+            },
+            {
+              "id": "b",
+              "text": "Der Teil mit `&&` wird vor `||` gruppiert."
+            },
+            {
+              "id": "c",
+              "text": "`q` wird in jedem Fall ausgewertet."
+            },
+            {
+              "id": "d",
+              "text": "`!p` wird vor `&&` ausgewertet."
+            }
+          ],
+          "correct": [
+            "a",
+            "b",
+            "d"
+          ],
+          "explanation": "Die Priorität ist `!` vor `&&` vor `||`. Durch Short-Circuit kann sowohl `q` beim `&&` als auch `r` beim `||` übersprungen werden.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO5.md",
+            "heading": "3. Boolean-Operatoren"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Boolean-Operatoren",
+            "Short-Circuit"
+          ]
+        },
+        {
+          "id": "eip-05-l2-q08",
+          "type": "code_output",
+          "prompt": "Was gibt dieser Code aus?\n\n```java\nint i = -1;\nboolean ok = i >= 0 && i < 3;\nwrite(ok);\n```",
+          "options": [
+            {
+              "id": "a",
+              "text": "`true`"
+            },
+            {
+              "id": "b",
+              "text": "`false`"
+            },
+            {
+              "id": "c",
+              "text": "`-1`"
+            },
+            {
+              "id": "d",
+              "text": "Eine Exception"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "`i >= 0` ist bei `i = -1` falsch. Wegen Short-Circuit wird der rechte Teil nicht mehr benötigt und die gesamte Bedingung ist `false`.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO5.md",
+            "heading": "3. Boolean-Operatoren"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Short-Circuit"
+          ]
+        },
+        {
+          "id": "eip-05-l2-q09",
+          "type": "code_output",
+          "prompt": "Was gibt dieser Code aus?\n\n```java\nint i = 5;\nint x = i++;\nwrite(x);\nwrite(i);\n```",
+          "options": [
+            {
+              "id": "a",
+              "text": "Nacheinander `6` und `5`"
+            },
+            {
+              "id": "b",
+              "text": "Nacheinander `5` und `6`"
+            },
+            {
+              "id": "c",
+              "text": "Nacheinander `5` und `5`"
+            },
+            {
+              "id": "d",
+              "text": "Nacheinander `6` und `6`"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "Bei `i++` wird zuerst der alte Wert 5 verwendet und danach `i` auf 6 erhöht. Daher sind die Werte `x = 5` und `i = 6`.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO5.md",
+            "heading": "4. Assignments & Increments"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Inkrement/Dekrement"
+          ]
+        },
+        {
+          "id": "eip-05-l2-q10",
+          "type": "code_output",
+          "prompt": "Was gibt dieser Code aus?\n\n```java\nint i = 5;\nint x = ++i;\nwrite(x);\nwrite(i);\n```",
+          "options": [
+            {
+              "id": "a",
+              "text": "Nacheinander `5` und `6`"
+            },
+            {
+              "id": "b",
+              "text": "Nacheinander `6` und `6`"
+            },
+            {
+              "id": "c",
+              "text": "Nacheinander `6` und `5`"
+            },
+            {
+              "id": "d",
+              "text": "Nacheinander `5` und `5`"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "Bei `++i` wird `i` zuerst auf 6 erhöht. Der neue Wert 6 wird sowohl für `x` als auch beim zweiten `write` verwendet.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO5.md",
+            "heading": "4. Assignments & Increments"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Inkrement/Dekrement"
+          ]
+        },
+        {
+          "id": "eip-05-l2-q11",
+          "type": "cloze",
+          "prompt": "Nach der Ausführung dieses Codes hat `x` den Wert ___.\n\n```java\nint y;\nint x = (y = 5) + 2;\n```",
+          "options": [
+            {
+              "id": "a",
+              "text": "`7`"
+            },
+            {
+              "id": "b",
+              "text": "`5`"
+            },
+            {
+              "id": "c",
+              "text": "`10`"
+            },
+            {
+              "id": "d",
+              "text": "`8`"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "Die innere Zuweisung setzt `y` auf 5 und liefert zugleich den Wert 5. Anschließend wird 2 addiert, sodass `x = 7` gilt.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO5.md",
+            "heading": "4. Assignments & Increments"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Zuweisung"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "eip-05-l3",
+      "index": 3,
+      "kind": "deepen",
+      "title": "Vertiefen",
+      "questions": [
+        {
+          "id": "eip-05-l3-q01",
+          "type": "multi",
+          "prompt": "Welche Aussagen über Widening sind richtig? Wähle alle richtigen Aussagen; mehrere Antworten können richtig sein.",
+          "options": [
+            {
+              "id": "a",
+              "text": "`char` kann automatisch zu `int` konvertiert werden."
+            },
+            {
+              "id": "b",
+              "text": "`int` kann automatisch zu `float` konvertiert werden, aber das ist nicht immer verlustfrei."
+            },
+            {
+              "id": "c",
+              "text": "`double` kann automatisch zu `int` konvertiert werden."
+            },
+            {
+              "id": "d",
+              "text": "`byte` kann automatisch zu `short` konvertiert werden."
+            }
+          ],
+          "correct": [
+            "a",
+            "b",
+            "d"
+          ],
+          "explanation": "Die angegebenen Aufwärtskonvertierungen sind möglich. Die Umwandlung von `double` nach `int` ist dagegen keine automatische Widening-Konvertierung und benötigt ein Casting.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO5.md",
+            "heading": "2. Typkonvertierung"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Widening",
+            "Floating Point"
+          ]
+        },
+        {
+          "id": "eip-05-l3-q02",
+          "type": "truefalse",
+          "prompt": "Das Literal `3.5f` hat den Typ `double`.",
+          "options": [
+            {
+              "id": "true",
+              "text": "Wahr"
+            },
+            {
+              "id": "false",
+              "text": "Falsch"
+            }
+          ],
+          "correct": [
+            "false"
+          ],
+          "explanation": "Das Suffix `f` kennzeichnet `float`. Das Literal `3.5` ohne Suffix ist dagegen ein `double`.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO5.md",
+            "heading": "1. Primitive Datentypen"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Floating Point"
+          ]
+        },
+        {
+          "id": "eip-05-l3-q03",
+          "type": "single",
+          "prompt": "Welche Aussage zu diesem Code ist korrekt?\n\n```java\nchar c = 'A';\n```",
+          "options": [
+            {
+              "id": "a",
+              "text": "Die Zuweisung ist wegen des Zeichens ungültig."
+            },
+            {
+              "id": "b",
+              "text": "`c` benötigt genau 8 Bits."
+            },
+            {
+              "id": "c",
+              "text": "Jedes Unicode-Zeichen benötigt genau ein `char`."
+            },
+            {
+              "id": "d",
+              "text": "`c` entspricht dem Zeichencode 65."
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "`'A'` hat den Zeichencode 65. Ein `char` ist eine 16-Bit-UTF-16-Codeeinheit; manche Unicode-Zeichen benötigen deshalb zwei `char`.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO5.md",
+            "heading": "1. Primitive Datentypen"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "char"
+          ]
+        },
+        {
+          "id": "eip-05-l3-q04",
+          "type": "calc",
+          "prompt": "Welchen Wert liefert der Ausdruck `-7 % 2`?",
+          "options": [
+            {
+              "id": "a",
+              "text": "`0`"
+            },
+            {
+              "id": "b",
+              "text": "`1`"
+            },
+            {
+              "id": "c",
+              "text": "`-3`"
+            },
+            {
+              "id": "d",
+              "text": "`-1`"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Der Restoperator behält hier das Vorzeichen des linken Operanden. Daher ist `-7 % 2` gleich `-1`.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO5.md",
+            "heading": "2. Typkonvertierung"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Arithmetik"
+          ]
+        },
+        {
+          "id": "eip-05-l3-q05",
+          "type": "single",
+          "prompt": "Was geschieht bei einer Integer-Division durch 0?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Der Divisor wird automatisch zu `double` konvertiert."
+            },
+            {
+              "id": "b",
+              "text": "Das Ergebnis ist `Infinity`."
+            },
+            {
+              "id": "c",
+              "text": "Das Ergebnis ist 0."
+            },
+            {
+              "id": "d",
+              "text": "Es tritt eine Exception auf."
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Eine Division durch 0 mit Integer-Operanden löst eine Exception aus. Eine automatische Umwandlung in `double` findet nicht statt.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO5.md",
+            "heading": "2. Typkonvertierung"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Integer-Division"
+          ]
+        },
+        {
+          "id": "eip-05-l3-q06",
+          "type": "code_output",
+          "prompt": "Was gibt dieser Code aus?\n\n```java\nbyte b = 127;\nb = (byte) (b + 1);\nwrite(b);\n```",
+          "options": [
+            {
+              "id": "a",
+              "text": "`128`"
+            },
+            {
+              "id": "b",
+              "text": "`-128`"
+            },
+            {
+              "id": "c",
+              "text": "Eine Exception"
+            },
+            {
+              "id": "d",
+              "text": "`127`"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "`b + 1` wird zunächst als `int` berechnet und danach nach `byte` gecastet. Der Überlauf vom `byte`-Maximum 127 führt zu `-128`.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO5.md",
+            "heading": "1. Primitive Datentypen"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Overflow",
+            "Casting"
+          ]
+        },
+        {
+          "id": "eip-05-l3-q07",
+          "type": "multi",
+          "prompt": "Welche Aussagen über Floating Point sind richtig? Wähle alle richtigen Aussagen; mehrere Antworten können richtig sein.",
+          "options": [
+            {
+              "id": "a",
+              "text": "`3.5f` ist ein `float`-Literal."
+            },
+            {
+              "id": "b",
+              "text": "`3.5` ist ohne Suffix ein `double`-Literal."
+            },
+            {
+              "id": "c",
+              "text": "Jede endliche Dezimalzahl ist binär exakt darstellbar."
+            },
+            {
+              "id": "d",
+              "text": "Dezimalzahlen wie `0.1` sind binär oft nicht exakt darstellbar."
+            }
+          ],
+          "correct": [
+            "a",
+            "b",
+            "d"
+          ],
+          "explanation": "Die Mitschrift weist auf die mögliche Ungenauigkeit binärer Darstellung hin. Außerdem kennzeichnet `f` ein `float`; ohne Suffix ist `3.5` ein `double`.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO5.md",
+            "heading": "1. Primitive Datentypen"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Floating Point"
+          ]
+        },
+        {
+          "id": "eip-05-l3-q08",
+          "type": "single",
+          "prompt": "Gegeben sei `i = -1`. Welche Aussage zur Bedingung `i >= 0 && i < a.length` ist korrekt?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Der rechte Operand wird vor dem linken ausgewertet."
+            },
+            {
+              "id": "b",
+              "text": "Die Bedingung ist wahr, weil `-1 < a.length` gilt."
+            },
+            {
+              "id": "c",
+              "text": "Die Bedingung ist falsch; der rechte Operand wird wegen Short-Circuit nicht ausgewertet."
+            },
+            {
+              "id": "d",
+              "text": "Es tritt sofort eine Exception wegen des negativen Index auf."
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Der linke Operand `i >= 0` ist falsch. Bei `&&` wird der rechte Operand dann nicht mehr ausgewertet und die Gesamtbedingung ist falsch.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO5.md",
+            "heading": "3. Boolean-Operatoren"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Short-Circuit",
+            "Boolean-Operatoren"
+          ]
+        },
+        {
+          "id": "eip-05-l3-q09",
+          "type": "truefalse",
+          "prompt": "In `int x = (y = 5) + 2;` weist die innere Zuweisung `y` den Wert 5 zu und liefert zugleich den Wert 5 für die Addition.",
+          "options": [
+            {
+              "id": "true",
+              "text": "Wahr"
+            },
+            {
+              "id": "false",
+              "text": "Falsch"
+            }
+          ],
+          "correct": [
+            "true"
+          ],
+          "explanation": "Eine Zuweisung liefert selbst einen Wert. Deshalb wird hier 5 zu `y` zugewiesen und anschließend für die Addition verwendet.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO5.md",
+            "heading": "4. Assignments & Increments"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Zuweisung"
+          ]
+        },
+        {
+          "id": "eip-05-l3-q10",
+          "type": "calc",
+          "prompt": "Welchen Ergebnistyp hat der Ausdruck `2 + 3L + 4.0f`?",
+          "options": [
+            {
+              "id": "a",
+              "text": "`long`"
+            },
+            {
+              "id": "b",
+              "text": "`int`"
+            },
+            {
+              "id": "c",
+              "text": "`double`"
+            },
+            {
+              "id": "d",
+              "text": "`float`"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Zunächst führt `long` den Ausdruck über `int` hinaus. Durch den anschließenden `float`-Operanden wird der Ergebnistyp nach der Priorität zu `float`.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO5.md",
+            "heading": "2. Typkonvertierung"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Arithmetik"
+          ]
+        },
+        {
+          "id": "eip-05-l3-q11",
+          "type": "multi",
+          "prompt": "Betrachte die beiden Fälle jeweils unabhängig voneinander mit `i = 5`. Welche Aussagen sind richtig? Wähle alle richtigen Aussagen; mehrere Antworten können richtig sein.",
+          "options": [
+            {
+              "id": "a",
+              "text": "`a[i++] = 7` schreibt nach `a[5]` und lässt `i` danach den Wert 6 haben."
+            },
+            {
+              "id": "b",
+              "text": "Bei `++i` wird der alte Wert vor der Erhöhung verwendet."
+            },
+            {
+              "id": "c",
+              "text": "Bei `i++` wird `i` vor der Indexverwendung erhöht."
+            },
+            {
+              "id": "d",
+              "text": "`a[++i] = 7` schreibt nach `a[6]` und lässt `i` danach den Wert 6 haben."
+            }
+          ],
+          "correct": [
+            "a",
+            "d"
+          ],
+          "explanation": "Das Postfix-Inkrement verwendet zuerst den alten Wert, das Präfix-Inkrement erhöht zuerst. Deshalb entstehen die Indizes 5 beziehungsweise 6.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO5.md",
+            "heading": "4. Assignments & Increments"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Inkrement/Dekrement"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "eip-05-l4",
+      "index": 4,
+      "kind": "boss",
+      "title": "Boss",
+      "questions": [
+        {
+          "id": "eip-05-l4-q01",
+          "type": "code_output",
+          "prompt": "Was gibt dieser Code in dieser Reihenfolge aus?\n\n```java\nint y;\nint x = (y = 5) + 2;\ndouble z = 7 / 2;\nwrite(x);\nwrite(y);\nwrite(z);\n```",
+          "options": [
+            {
+              "id": "a",
+              "text": "`7`, `5`, `3.0`"
+            },
+            {
+              "id": "b",
+              "text": "`5`, `7`, `3.0`"
+            },
+            {
+              "id": "c",
+              "text": "`5`, `7`, `3.5`"
+            },
+            {
+              "id": "d",
+              "text": "`7`, `5`, `3.5`"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "Die Zuweisung liefert 5, also wird `x` zu 7 und `y` bleibt 5. Bei `7 / 2` findet zuerst Integer-Division statt; die Zuweisung zu `double` ergibt daher `3.0`.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO5.md",
+            "heading": "4. Assignments & Increments"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Zuweisung",
+            "Integer-Division"
+          ]
+        },
+        {
+          "id": "eip-05-l4-q02",
+          "type": "code_output",
+          "prompt": "Was gibt dieser Code aus?\n\n```java\nboolean p = false;\nboolean q = true;\nboolean r = false;\nboolean x = !p && q || r;\nwrite(x);\n```",
+          "options": [
+            {
+              "id": "a",
+              "text": "`false`"
+            },
+            {
+              "id": "b",
+              "text": "`true`"
+            },
+            {
+              "id": "c",
+              "text": "`1`"
+            },
+            {
+              "id": "d",
+              "text": "Eine Exception"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "`!p` wird zu `true`, also ist `!p && q` ebenfalls wahr. Wegen der Priorität wird danach `true || r` ausgewertet, was `true` ergibt.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO5.md",
+            "heading": "3. Boolean-Operatoren"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Boolean-Operatoren"
+          ]
+        },
+        {
+          "id": "eip-05-l4-q03",
+          "type": "calc",
+          "prompt": "Welche Werte entstehen bei den beiden Initialisierungen?\n\n```java\nint a = (int) (7.0 / 2);\ndouble b = (double) (7 / 2);\n```",
+          "options": [
+            {
+              "id": "a",
+              "text": "`a = 3`, `b = 3.0`"
+            },
+            {
+              "id": "b",
+              "text": "`a = 4`, `b = 3.5`"
+            },
+            {
+              "id": "c",
+              "text": "`a = 3`, `b = 3.5`"
+            },
+            {
+              "id": "d",
+              "text": "`a = 4`, `b = 3.0`"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "`7.0 / 2` ergibt 3.5 und wird anschließend zu 3 abgeschnitten. Bei `b` geschieht die Integer-Division `7 / 2` zuerst, daher wird erst der Wert 3 zu `double` konvertiert.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO5.md",
+            "heading": "2. Typkonvertierung"
+          },
+          "difficulty": 5,
+          "concepts": [
+            "Integer-Division",
+            "Casting"
+          ]
+        },
+        {
+          "id": "eip-05-l4-q04",
+          "type": "code_output",
+          "prompt": "Was gibt dieser Code aus?\n\n```java\nbyte b = (byte) 130;\nint x = b + 1;\nwrite(x);\n```",
+          "options": [
+            {
+              "id": "a",
+              "text": "`-126`"
+            },
+            {
+              "id": "b",
+              "text": "`131`"
+            },
+            {
+              "id": "c",
+              "text": "Eine Exception"
+            },
+            {
+              "id": "d",
+              "text": "`-125`"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Der Cast macht aus 130 den `byte`-Wert `-126`. Die Addition wird als `int` ausgeführt, sodass `x = -126 + 1 = -125` gilt.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO5.md",
+            "heading": "2. Typkonvertierung"
+          },
+          "difficulty": 5,
+          "concepts": [
+            "Casting",
+            "Arithmetik"
+          ]
+        },
+        {
+          "id": "eip-05-l4-q05",
+          "type": "multi",
+          "prompt": "Betrachte den Code. Welche Aussagen sind richtig? Wähle alle richtigen Aussagen; mehrere Antworten können richtig sein.\n\n```java\nint i = -1;\nint[] a = new int[3];\nboolean ok = i >= 0 && i < a.length;\n```",
+          "options": [
+            {
+              "id": "a",
+              "text": "`i = -1` ist ein gültiger Index und macht `ok` wahr."
+            },
+            {
+              "id": "b",
+              "text": "`ok` ist `false`."
+            },
+            {
+              "id": "c",
+              "text": "`&&` wertet den rechten Operand vor dem linken aus."
+            },
+            {
+              "id": "d",
+              "text": "Es wird kein Array-Element gelesen."
+            },
+            {
+              "id": "e",
+              "text": "Der rechte Operand von `&&` wird wegen Short-Circuit nicht ausgewertet."
+            }
+          ],
+          "correct": [
+            "b",
+            "d",
+            "e"
+          ],
+          "explanation": "Der linke Vergleich ist bei `i = -1` falsch, daher stoppt `&&` die Auswertung. Es wird kein Elementzugriff versucht und `ok` ist `false`.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO4.md",
+            "heading": null
+          },
+          "difficulty": 5,
+          "concepts": [
+            "Short-Circuit",
+            "Arrays"
+          ]
+        },
+        {
+          "id": "eip-05-l4-q06",
+          "type": "code_output",
+          "prompt": "Was gibt dieser Code aus?\n\n```java\nint x = 2;\nint y = 3;\nint z = 4;\ndouble r = (double) (x + y * z);\nwrite(r);\n```",
+          "options": [
+            {
+              "id": "a",
+              "text": "`20.0`"
+            },
+            {
+              "id": "b",
+              "text": "`14.0`"
+            },
+            {
+              "id": "c",
+              "text": "`24.0`"
+            },
+            {
+              "id": "d",
+              "text": "`14`"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "Beim Parsen bindet `*` stärker als `+`, daher wird zuerst `3 * 4 = 12` und dann `2 + 12 = 14` berechnet. Erst danach wird das Ergebnis zu `double`, also zu `14.0`, konvertiert.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO3.md",
+            "heading": null
+          },
+          "difficulty": 5,
+          "concepts": [
+            "Arithmetik",
+            "Casting"
+          ]
+        },
+        {
+          "id": "eip-05-l4-q07",
+          "type": "code_output",
+          "prompt": "Was gibt dieser Code aus?\n\n```java\nint a;\na = 7 / 2;\nwrite(a);\n```",
+          "options": [
+            {
+              "id": "a",
+              "text": "`3`"
+            },
+            {
+              "id": "b",
+              "text": "`3.5`"
+            },
+            {
+              "id": "c",
+              "text": "`4`"
+            },
+            {
+              "id": "d",
+              "text": "Eine Exception"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "Die Variable wird zunächst deklariert und anschließend zugewiesen. Da die Division mit zwei `int`-Operanden erfolgt, wird `3` gespeichert und ausgegeben.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO2.md",
+            "heading": null
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Zuweisung",
+            "Integer-Division"
+          ]
+        },
+        {
+          "id": "eip-05-l4-q08",
+          "type": "code_output",
+          "prompt": "Was gibt dieser Code in dieser Reihenfolge aus?\n\n```java\nint i = 5;\nint x = i++;\nint y = ++i;\nwrite(x);\nwrite(y);\nwrite(i);\n```",
+          "options": [
+            {
+              "id": "a",
+              "text": "`6`, `7`, `7`"
+            },
+            {
+              "id": "b",
+              "text": "`5`, `7`, `7`"
+            },
+            {
+              "id": "c",
+              "text": "`6`, `6`, `6`"
+            },
+            {
+              "id": "d",
+              "text": "`5`, `6`, `7`"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "`i++` liefert 5 und erhöht `i` auf 6. Danach erhöht `++i` zuerst auf 7 und liefert 7; somit sind `x = 5`, `y = 7` und `i = 7`.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO5.md",
+            "heading": "4. Assignments & Increments"
+          },
+          "difficulty": 5,
+          "concepts": [
+            "Inkrement/Dekrement"
+          ]
+        },
+        {
+          "id": "eip-05-l4-q09",
+          "type": "code_output",
+          "prompt": "Was gibt dieser Code aus, und tritt eine Exception auf?\n\n```java\nboolean ok = false && 7 / 0 > 1;\nwrite(ok);\n```",
+          "options": [
+            {
+              "id": "a",
+              "text": "Eine Exception, bevor etwas ausgegeben wird"
+            },
+            {
+              "id": "b",
+              "text": "`0`, ohne Exception"
+            },
+            {
+              "id": "c",
+              "text": "`false`, ohne Exception"
+            },
+            {
+              "id": "d",
+              "text": "`true`, ohne Exception"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Die linke Seite von `&&` ist bereits `false`, deshalb wird der rechte Ausdruck mit der Division durch 0 nicht ausgewertet. Das Ergebnis ist `false` ohne Exception.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO5.md",
+            "heading": "3. Boolean-Operatoren"
+          },
+          "difficulty": 5,
+          "concepts": [
+            "Short-Circuit",
+            "Integer-Division"
+          ]
+        },
+        {
+          "id": "eip-05-l4-q10",
+          "type": "single",
+          "prompt": "Welche Deklaration verhindert, dass die Multiplikation bereits als `int` überläuft?",
+          "options": [
+            {
+              "id": "a",
+              "text": "`long x = (long) (50000 * 50000);`"
+            },
+            {
+              "id": "b",
+              "text": "`long x = (int) 50000 * 50000;`"
+            },
+            {
+              "id": "c",
+              "text": "`long x = (long) 50000 * 50000;`"
+            },
+            {
+              "id": "d",
+              "text": "`int x = (long) 50000 * 50000;`"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Der Cast muss vor der Multiplikation stattfinden. Bei Option b wird die Multiplikation zunächst als `int` berechnet und erst danach zu `long` konvertiert.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO5.md",
+            "heading": "2. Typkonvertierung"
+          },
+          "difficulty": 5,
+          "concepts": [
+            "Overflow",
+            "Casting"
+          ]
+        },
+        {
+          "id": "eip-05-l4-q11",
+          "type": "multi",
+          "prompt": "Welche Aussagen sind richtig? Wähle alle richtigen Aussagen; mehrere Antworten können richtig sein.",
+          "options": [
+            {
+              "id": "a",
+              "text": "`(int) -3.9` rundet auf `-4`."
+            },
+            {
+              "id": "b",
+              "text": "`(byte) 130` ergibt `130`."
+            },
+            {
+              "id": "c",
+              "text": "`(int) -3.9` ergibt `-3`."
+            },
+            {
+              "id": "d",
+              "text": "`(double) (7 / 2)` ergibt `3.0`."
+            }
+          ],
+          "correct": [
+            "c",
+            "d"
+          ],
+          "explanation": "Beim Casting nach `int` wird abgeschnitten, nicht gerundet. Außerdem findet bei `(double)(7 / 2)` die Integer-Division vor dem Casting statt; ein `byte` kann den Wert 130 nicht unverändert darstellen.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO5.md",
+            "heading": "2. Typkonvertierung"
+          },
+          "difficulty": 5,
+          "concepts": [
+            "Casting",
+            "Integer-Division",
+            "Overflow"
+          ]
+        }
+      ]
+    }
+  ]
+}
