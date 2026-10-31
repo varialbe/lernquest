@@ -45,6 +45,7 @@ export function TopBar({ left }: { left?: ReactNode }) {
 const NAV: { to: string; label: string; icon: IconName; match: (p: string) => boolean }[] = [
   { to: '/', label: 'Lernen', icon: 'book', match: (p) => p === '/' },
   { to: '/practice', label: 'Üben', icon: 'dumbbell', match: (p) => p.startsWith('/practice') },
+  { to: '/praxis', label: 'Praxis', icon: 'sparkle', match: (p) => p.startsWith('/praxis') },
   { to: '/league', label: 'Liga', icon: 'trophy', match: (p) => p.startsWith('/league') },
   { to: '/pets', label: 'Pets', icon: 'paw', match: (p) => p.startsWith('/pets') },
   { to: '/shop', label: 'Shop', icon: 'store', match: (p) => p.startsWith('/shop') },
@@ -55,13 +56,13 @@ export function BottomNav() {
   const { data: me } = useMe();
   return (
     <nav className="safe-bottom fixed inset-x-0 bottom-0 z-30 border-t-2 border-line bg-surface/95 backdrop-blur-md" aria-label="Navigation">
-      <div className="mx-auto grid h-16 max-w-xl grid-cols-5">
+      <div className="mx-auto grid h-16 max-w-xl grid-cols-6">
         {NAV.map((n) => {
           const active = n.match(path);
           const badge = n.to === '/practice' ? (me?.stats.dueReviews ?? 0) : 0;
           return (
             <Link key={n.to} href={n.to} className="group flex flex-col items-center justify-center gap-0.5" aria-current={active ? 'page' : undefined}>
-              <span className={`relative flex h-9 w-12 items-center justify-center rounded-2xl border-2 transition-colors ${active ? 'border-primary bg-primary-soft text-primary' : 'border-transparent text-muted group-hover:text-ink'}`}>
+              <span className={`relative flex h-9 w-11 items-center justify-center rounded-2xl border-2 transition-colors ${active ? 'border-primary bg-primary-soft text-primary' : 'border-transparent text-muted group-hover:text-ink'}`}>
                 <Icon name={n.icon} size={22} />
                 {badge > 0 && <span className="absolute -right-1.5 -top-1.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-error px-1 text-[11px] font-black text-white">{badge > 99 ? '99+' : badge}</span>}
               </span>

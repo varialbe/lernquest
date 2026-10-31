@@ -12,6 +12,7 @@ import { Quiz } from './pages/Quiz.tsx';
 
 const League = lazy(() => import('./pages/League.tsx'));
 const Pets = lazy(() => import('./pages/Pets.tsx'));
+const Praxis = lazy(() => import('./pages/Praxis.tsx'));
 const Shop = lazy(() => import('./pages/Shop.tsx'));
 const Profile = lazy(() => import('./pages/Profile.tsx'));
 const Admin = lazy(() => import('./pages/Admin.tsx'));
@@ -92,6 +93,7 @@ function Authed({ onLogin, onLogout }: { onLogin: (t: string) => void; onLogout:
         <Route path="/practice">
           <Quiz key="practice" practice />
         </Route>
+        <Route path="/praxis" component={Praxis} />
         <Route path="/league" component={League} />
         <Route path="/pets" component={Pets} />
         <Route path="/shop" component={Shop} />

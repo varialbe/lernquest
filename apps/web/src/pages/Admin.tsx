@@ -220,6 +220,11 @@ function ReportsTab() {
           {q && (
             <div className="mt-2 text-sm">
               <Markdown text={q.prompt} className="font-bold" />
+              {q.slider && (
+                <p className="font-black text-success">
+                  ✓ {q.slider.answer} {q.slider.unit ?? ''} (± {q.slider.tolerance}, Regler {q.slider.min}–{q.slider.max}, {q.slider.scale})
+                </p>
+              )}
               <ul className="mt-1 space-y-0.5">
                 {q.options.map((o) => (
                   <li key={o.id} className={q.correct.includes(o.id) ? 'font-black text-success' : 'text-muted'}>

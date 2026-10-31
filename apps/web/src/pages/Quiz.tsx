@@ -3,7 +3,8 @@ import { AnimatePresence, motion } from 'motion/react';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useLocation } from 'wouter';
-import { headingAnchor, isCorrect, PETS, type LevelResponse, type Question, type RewardResponse } from '@lernquest/shared';
+import { checkAnswer, headingAnchor, PETS, type LevelResponse, type Question, type RewardResponse } from '@lernquest/shared';
+import { EstimateInput, fmtNum } from '../components/Estimate.tsx';
 import { Icon } from '../components/icons.tsx';
 import { Markdown } from '../components/Markdown.tsx';
 import { Mascot } from '../components/Pet.tsx';
@@ -22,6 +23,7 @@ const TYPE_LABEL: Record<Question['type'], string> = {
   code_output: 'Was gibt dieser Code aus?',
   calc: 'Rechne nach',
   diagram: 'Schau dir das Diagramm an',
+  estimate: 'Schätze!',
 };
 const PRAISE = ['Super!', 'Richtig!', 'Stark!', 'Genau so!', 'Klasse!', 'Volltreffer!'];
 
@@ -183,6 +185,7 @@ export function Quiz({ levelId, practice }: { levelId?: string; practice?: boole
         setResult(r);
         void qc.invalidateQueries({ queryKey: ['me'] });
         void qc.invalidateQueries({ queryKey: ['path'] });
+        void qc.invalidateQueries({ queryKey: ['discover'] });
         void qc.invalidateQueries({ queryKey: ['profile'] });
         void qc.invalidateQueries({ queryKey: ['lb'] });
       } catch (e) {
@@ -197,7 +200,7 @@ export function Quiz({ levelId, practice }: { levelId?: string; practice?: boole
 
   const check = useCallback(() => {
     if (!q || !selected.length || phase !== 'answering') return;
-    const ok = isCorrect(q.correct, selected);
+    const ok = checkAnswer(q, selected);
     if (!(q.id in firstTry)) setFirstTry((f) => ({ ...f, [q.id]: selected }));
     if (ok) {
       setPhase('correct');
@@ -287,7 +290,7 @@ export function Quiz({ levelId, practice }: { levelId?: string; practice?: boole
   }
   if (result) {
     const petName = (id: string) => PETS.find((p) => p.id === id);
-    return <Reward result={result} practice={!!practice} petName={petName} onContinue={(to) => navigate(to)} />;
+    return <Reward result={result} practice={!!practice} petName={petName} onContinue={(to) => navigate(to === '/' && data?.level?.kind === 'bonus' ? '/praxis' : to)} />;
   }
   if (!q) {
     return (
@@ -339,11 +342,20 @@ export function Quiz({ levelId, practice }: { levelId?: string; practice?: boole
           <motion.div key={`${q.id}-${queue.length}`} initial={{ x: 40, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: -40, opacity: 0 }} transition={{ duration: 0.22 }}>
             <div className="mb-2 flex items-center gap-2">
               {retry && <span className="rounded-lg bg-error-soft px-2 py-0.5 text-xs font-black uppercase text-error">Noch mal</span>}
+              {data?.level?.kind === 'bonus' && <span className="rounded-lg bg-gold/20 px-2 py-0.5 text-xs font-black uppercase text-gold-dark">Praxis</span>}
               <h1 className="text-sm font-black uppercase tracking-wider text-primary">{TYPE_LABEL[q.type]}</h1>
             </div>
             <div key={shake} className={phase === 'wrong' ? 'animate-shake' : ''}>
               <Markdown text={q.prompt} gap={gap} className="mb-5 text-[1.18rem] font-extrabold leading-snug" />
-              {q.type === 'truefalse' ? (
+              {q.type === 'estimate' && q.slider ? (
+                <EstimateInput
+                  slider={q.slider}
+                  value={selected.length ? Number(selected[0]) : null}
+                  onChange={(v) => phase === 'answering' && setSelected([String(v)])}
+                  reveal={phase !== 'answering'}
+                  correct={phase === 'correct'}
+                />
+              ) : q.type === 'truefalse' ? (
                 <TrueFalse q={q} selected={selected} phase={phase} onPick={toggle} />
               ) : (
                 <div className="space-y-3">
@@ -396,6 +408,12 @@ export function Quiz({ levelId, practice }: { levelId?: string; practice?: boole
                 {phase === 'wrong' && (
                   <div className="mt-3 text-error-dark dark:text-error">
                     <p className="text-sm font-black uppercase">Richtig wäre:</p>
+                    {q.slider && (
+                      <p className="text-lg font-black">
+                        {fmtNum(q.slider.answer)} {q.slider.unit ?? ''}
+                        {q.slider.tolerance > 0 && <span className="text-sm font-extrabold opacity-80"> (± {fmtNum(q.slider.tolerance)} zählt als richtig)</span>}
+                      </p>
+                    )}
                     {q.options
                       .filter((o) => q.correct.includes(o.id))
                       .map((o) => (
