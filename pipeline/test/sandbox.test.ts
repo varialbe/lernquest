@@ -22,7 +22,6 @@ describe('verify script sandbox', () => {
     expect(blocked('import os\nopen(os.path.expanduser("~/.ssh/authorized_keys")).read()')).toMatch(/Sandbox/);
     expect(blocked('open("x.txt", "w").write("hi")')).toMatch(/Sandbox/);
     expect(blocked('import os\nos.listdir("/home")')).toMatch(/Sandbox/);
-    expect(blocked('import os\nprint("ANSWER:", os.environ.get("TELEGRAM_BOT_TOKEN", "leer"))\nraise SystemExit(0 if "TELEGRAM_BOT_TOKEN" not in os.environ else 1)')).toBeDefined();
   });
   it('does not leak environment secrets', () => {
     process.env.LQ_SECRET_PROBE = 'geheim';
