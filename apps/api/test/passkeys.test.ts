@@ -13,7 +13,7 @@ beforeEach(async () => {
 });
 
 async function token() {
-  const r = await app.inject({ method: "POST", url: "/api/auth/register", payload: { inviteCode: "LQ-TEST-CODE", username: "pia", displayName: "Pia", password: "geheim1234", acceptPrivacy: true, starterPet: "knoten" } });
+  const r = await app.inject({ method: "POST", url: "/api/auth/register", payload: { inviteCode: "LQ-TEST-CODE", username: "pia", email: "pia@test.local", displayName: "Pia", password: "geheim1234", acceptPrivacy: true, starterPet: "knoten" } });
   return r.json().token as string;
 }
 

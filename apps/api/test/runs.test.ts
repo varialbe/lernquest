@@ -17,7 +17,7 @@ beforeEach(async () => {
 });
 
 async function register(username: string) {
-  const res = await app.inject({ method: 'POST', url: '/api/auth/register', payload: { inviteCode: 'LQ-TEST-CODE', username, displayName: username, password: 'geheim1234', acceptPrivacy: true } });
+  const res = await app.inject({ method: 'POST', url: '/api/auth/register', payload: { inviteCode: 'LQ-TEST-CODE', username, email: `${username}@test.local`, displayName: username, password: 'geheim1234', acceptPrivacy: true } });
   return res.json().token as string;
 }
 const authed = (token: string) => ({ authorization: `Bearer ${token}` });
