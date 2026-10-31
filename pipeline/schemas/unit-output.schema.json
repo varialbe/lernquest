@@ -72,7 +72,9 @@
                 "explanation",
                 "source",
                 "difficulty",
-                "concepts"
+                "concepts",
+                "context",
+                "verify"
               ],
               "properties": {
                 "type": {
@@ -147,6 +149,78 @@
                   "items": {
                     "type": "string"
                   }
+                },
+                "context": {
+                  "type": [
+                    "object",
+                    "null"
+                  ],
+                  "additionalProperties": false,
+                  "description": "Daten zum Lösen (Graph/Code/Tabelle), die über der Frage angezeigt werden. null, wenn der Prompt allein reicht.",
+                  "required": [
+                    "type",
+                    "content",
+                    "language",
+                    "caption",
+                    "frames"
+                  ],
+                  "properties": {
+                    "type": {
+                      "type": "string",
+                      "enum": [
+                        "mermaid",
+                        "code",
+                        "table"
+                      ]
+                    },
+                    "content": {
+                      "type": "string",
+                      "description": "mermaid: Diagrammcode ohne Fence (max. ~15 Knoten) · code: Quelltext ohne Fence · table: Markdown-Tabelle"
+                    },
+                    "language": {
+                      "type": [
+                        "string",
+                        "null"
+                      ],
+                      "description": "Sprache bei code, sonst null"
+                    },
+                    "caption": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    },
+                    "frames": {
+                      "type": "array",
+                      "description": "Nur mermaid: optionale Schritte (gleiches Diagramm in Folgezuständen). Sonst leer.",
+                      "items": {
+                        "type": "object",
+                        "additionalProperties": false,
+                        "required": [
+                          "content",
+                          "caption"
+                        ],
+                        "properties": {
+                          "content": {
+                            "type": "string"
+                          },
+                          "caption": {
+                            "type": [
+                              "string",
+                              "null"
+                            ]
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                "verify": {
+                  "type": [
+                    "string",
+                    "null"
+                  ],
+                  "description": "Bei Rechen-/Algorithmus-/Code-Aufgaben: eigenständiges Python-3-Skript (nur Standardbibliothek), das die Lösung aus den Eingaben der Frage selbst berechnet und als letzte Zeile 'ANSWER: <Options-IDs kommagetrennt>' bzw. bei estimate 'ANSWER: <Zahl>' ausgibt. Sonst null."
                 }
               }
             }

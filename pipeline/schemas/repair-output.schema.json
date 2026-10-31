@@ -1,0 +1,231 @@
+{
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "questions"
+  ],
+  "properties": {
+    "questions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "key",
+          "type",
+          "prompt",
+          "options",
+          "correct",
+          "explanation",
+          "source",
+          "difficulty",
+          "concepts",
+          "slider",
+          "context",
+          "verify"
+        ],
+        "properties": {
+          "key": {
+            "type": "string"
+          },
+          "type": {
+            "type": "string",
+            "enum": [
+              "single",
+              "multi",
+              "truefalse",
+              "cloze",
+              "code_output",
+              "calc",
+              "diagram",
+              "estimate"
+            ]
+          },
+          "prompt": {
+            "type": "string"
+          },
+          "options": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "additionalProperties": false,
+              "required": [
+                "id",
+                "text"
+              ],
+              "properties": {
+                "id": {
+                  "type": "string"
+                },
+                "text": {
+                  "type": "string"
+                }
+              }
+            }
+          },
+          "correct": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "explanation": {
+            "type": "string"
+          },
+          "source": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": [
+              "file",
+              "heading"
+            ],
+            "properties": {
+              "file": {
+                "type": "string",
+                "description": "Repo-Pfad der Quelldatei"
+              },
+              "heading": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "exakte Überschrift aus der Liste der Überschriften"
+              }
+            }
+          },
+          "difficulty": {
+            "type": "integer"
+          },
+          "concepts": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
+          },
+          "slider": {
+            "anyOf": [
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "required": [
+                  "min",
+                  "max",
+                  "step",
+                  "answer",
+                  "tolerance",
+                  "unit",
+                  "scale"
+                ],
+                "properties": {
+                  "min": {
+                    "type": "number"
+                  },
+                  "max": {
+                    "type": "number"
+                  },
+                  "step": {
+                    "type": "number"
+                  },
+                  "answer": {
+                    "type": "number"
+                  },
+                  "tolerance": {
+                    "type": "number"
+                  },
+                  "unit": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "scale": {
+                    "type": "string",
+                    "enum": [
+                      "linear",
+                      "log"
+                    ]
+                  }
+                }
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "context": {
+            "type": [
+              "object",
+              "null"
+            ],
+            "additionalProperties": false,
+            "description": "Daten zum Lösen (Graph/Code/Tabelle), die über der Frage angezeigt werden. null, wenn der Prompt allein reicht.",
+            "required": [
+              "type",
+              "content",
+              "language",
+              "caption",
+              "frames"
+            ],
+            "properties": {
+              "type": {
+                "type": "string",
+                "enum": [
+                  "mermaid",
+                  "code",
+                  "table"
+                ]
+              },
+              "content": {
+                "type": "string",
+                "description": "mermaid: Diagrammcode ohne Fence (max. ~15 Knoten) · code: Quelltext ohne Fence · table: Markdown-Tabelle"
+              },
+              "language": {
+                "type": [
+                  "string",
+                  "null"
+                ],
+                "description": "Sprache bei code, sonst null"
+              },
+              "caption": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "frames": {
+                "type": "array",
+                "description": "Nur mermaid: optionale Schritte (gleiches Diagramm in Folgezuständen). Sonst leer.",
+                "items": {
+                  "type": "object",
+                  "additionalProperties": false,
+                  "required": [
+                    "content",
+                    "caption"
+                  ],
+                  "properties": {
+                    "content": {
+                      "type": "string"
+                    },
+                    "caption": {
+                      "type": [
+                        "string",
+                        "null"
+                      ]
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "verify": {
+            "type": [
+              "string",
+              "null"
+            ],
+            "description": "Bei Rechen-/Algorithmus-/Code-Aufgaben: eigenständiges Python-3-Skript (nur Standardbibliothek), das die Lösung aus den Eingaben der Frage selbst berechnet und als letzte Zeile 'ANSWER: <Options-IDs kommagetrennt>' bzw. bei estimate 'ANSWER: <Zahl>' ausgibt. Sonst null."
+          }
+        }
+      }
+    }
+  }
+}

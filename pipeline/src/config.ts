@@ -24,14 +24,20 @@ export const config = {
   regenerateOnModify: env('REGENERATE_ON_MODIFY', 'false') === 'true',
   gitPush: env('GIT_PUSH', 'true') === 'true',
   codexBin: env('CODEX_BIN', 'codex'),
-  codexModel: env('CODEX_MODEL', 'gpt-5.6-luna'),
+  codexModel: env('CODEX_MODEL', 'gpt-6-luna'),
   codexEffort: env('CODEX_EFFORT', 'xhigh'),
   codexReviewEffort: env('CODEX_REVIEW_EFFORT', 'high'),
+  /** Blind-Test (Frage ohne Vorlesung lösen) */
+  codexBlindEffort: env('CODEX_BLIND_EFFORT', 'high'),
+  /** Python für die Prüfskripte der Rechenaufgaben */
+  pythonBin: env('PYTHON_BIN', 'python3'),
+  /** Blind-Test + Prüfskripte + Reparatur nach jeder Generierung */
+  qualityGate: env('QUALITY_GATE', 'true') === 'true',
   codexTimeoutMs: Number(env('CODEX_TIMEOUT_MIN', '30')) * 60_000,
   host: env('PIPELINE_HOST', '127.0.0.1'),
   port: Number(env('PIPELINE_PORT', '3461')),
   token: env('PIPELINE_TOKEN', ''),
-  promptVersion: 'v2',
+  promptVersion: 'v3',
   questionsPerLevel: 11,
   bonusQuestions: 10,
   /** Praxis-Level (Bonus) für neue Units mitgenerieren */

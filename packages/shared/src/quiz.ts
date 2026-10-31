@@ -67,6 +67,66 @@ export const Slider = z
   });
 export type Slider = z.infer<typeof Slider>;
 
+/** Grobe Knotenzahl eines Mermaid-Diagramms (Flowchart/Graph: IDs vor [ ( { >; sonst Teilnehmer/Zustände). */
+export function mermaidNodeCount(code: string): number {
+  const ids = new Set<string>();
+  const lines = code.split('\n').map((l) => l.trim()).filter((l) => l && !l.startsWith('%%'));
+  const kind = lines[0]?.split(/\s/)[0] ?? '';
+  for (const l of lines.slice(1)) {
+    if (/^(style|classDef|class|linkStyle|click|subgraph|end|direction|note|loop|alt|else|opt|par|rect|activate|deactivate|autonumber)\b/i.test(l)) continue;
+    if (kind === 'sequenceDiagram') {
+      const p = /^(?:participant|actor)\s+(\S+)/.exec(l);
+      if (p) ids.add(p[1]!);
+      for (const m of l.matchAll(/([\w]+)\s*-[->x)]+[+-]?\s*([\w]+)\s*:/g)) ids.add(m[1]!).add(m[2]!);
+      continue;
+    }
+    // Flowchart/Graph/State: Zeile an Kanten zerlegen, jeweils die führende Knoten-ID nehmen
+    const segments = l
+      .replace(/\|[^|]*\|/g, ' ')
+      .replace(/"[^"]*"/g, '""')
+      .split(/\s*(?:<?-+\.?-*>|<?=+>|-{2,}[xo]?|-\.-+|~~~|--\s[^-]*-->|&)\s*/);
+    for (const s of segments) {
+      const m = /^(\[\*\]|[A-Za-z_][\w]*)/.exec(s.trim());
+      if (m && !/^(state)$/.test(m[1]!)) ids.add(m[1]!);
+    }
+  }
+  return ids.size;
+}
+/** Obergrenze für Kontextdiagramme – größere Instanzen sind auf dem Handy nicht mehr lesbar. */
+export const MAX_DIAGRAM_NODES = 18;
+
+/** Ein Schritt eines Schritt-für-Schritt-Diagramms (gleiches Diagramm, anderer Zustand). */
+export const ContextFrame = z.object({
+  content: z.string().min(1).max(4000),
+  caption: z.string().max(200).nullable(),
+});
+
+/**
+ * Daten, die zum Lösen nötig sind und über der Frage angezeigt werden (Graph, Code, Tabelle).
+ * Macht Fragen selbsttragend: Alles Nötige steht hier oder im Prompt, nie „in der Vorlesung“.
+ */
+export const QuestionContext = z
+  .object({
+    type: z.enum(['mermaid', 'code', 'table']),
+    /** mermaid: Diagrammcode ohne Fence · code: Quelltext · table: Markdown-Tabelle */
+    content: z.string().min(1).max(4000),
+    /** Sprache bei `code` (java, c, python, asm …) */
+    language: z.string().max(20).nullable().optional(),
+    caption: z.string().max(200).nullable().optional(),
+    /** nur bei `mermaid`: Schritte zum Durchblättern (z. B. Zustände eines Algorithmus) */
+    frames: z.array(ContextFrame).max(12).optional(),
+  })
+  .superRefine((c, ctx) => {
+    if (c.frames?.length && c.type !== 'mermaid') ctx.addIssue({ code: 'custom', message: 'frames nur bei mermaid-Kontext' });
+    if (c.type === 'mermaid') {
+      for (const code of [c.content, ...(c.frames ?? []).map((f) => f.content)]) {
+        if (mermaidNodeCount(code) > MAX_DIAGRAM_NODES) ctx.addIssue({ code: 'custom', message: `Kontextdiagramm hat mehr als ${MAX_DIAGRAM_NODES} Knoten – kleinere Instanz wählen` });
+      }
+    }
+    if (c.type === 'table' && !/^\s*\|.*\|\s*\n\s*\|[\s:|-]+\|/m.test(c.content)) ctx.addIssue({ code: 'custom', message: 'table-Kontext braucht eine Markdown-Tabelle' });
+  });
+export type QuestionContext = z.infer<typeof QuestionContext>;
+
 /** Eine Frage, wie sie im content/-JSON liegt. */
 export const Question = z
   .object({
@@ -74,6 +134,8 @@ export const Question = z
     type: QuestionType,
     /** Markdown, LaTeX in $…$, Code in ```-Fences. Bei cloze markiert ___ die Lücke, bei diagram steht ein ```mermaid-Block im Prompt. */
     prompt: z.string().min(5).max(4000),
+    /** optional: Graph/Code/Tabelle, die über der Frage gezeigt werden */
+    context: QuestionContext.optional(),
     /** leer bei `estimate` */
     options: z.array(Option).max(6),
     correct: z.array(z.string()),
@@ -113,8 +175,8 @@ export const Question = z
     } else if (q.options.length < 3) {
       ctx.addIssue({ code: 'custom', message: `${q.type} braucht mindestens 3 Optionen` });
     }
-    if (q.type === 'diagram' && !/```mermaid\s*\n[\s\S]+?```/.test(q.prompt)) {
-      ctx.addIssue({ code: 'custom', message: 'diagram-Prompt braucht einen ```mermaid-Block' });
+    if (q.type === 'diagram' && !/```mermaid\s*\n[\s\S]+?```/.test(q.prompt) && q.context?.type !== 'mermaid') {
+      ctx.addIssue({ code: 'custom', message: 'diagram braucht einen mermaid-Kontext (oder ```mermaid-Block im Prompt)' });
     }
     if (q.type === 'cloze' && !q.prompt.includes('___')) {
       ctx.addIssue({ code: 'custom', message: 'cloze-Prompt braucht eine Lücke ___' });

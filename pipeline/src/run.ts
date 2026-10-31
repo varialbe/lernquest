@@ -12,6 +12,7 @@ import { prepareNote } from './prepare.ts';
 import { RateLimitError } from './codex.ts';
 import { generateBonus } from './bonus.ts';
 import { generateUnit } from './generate.ts';
+import { qualityGate, type GateReport } from './quality.ts';
 import { notify, runMessage } from './notify.ts';
 import * as git from './git.ts';
 
@@ -37,6 +38,8 @@ export type FileReport = {
   /** Hinweise zur Notiz: ignorierte/fehlende Bilder, unaufgelöste Wikilinks */
   notes?: string[];
   review?: { checked: number; fixed: number; removed: number; notes: string };
+  /** Blind-Test/Prüfskripte/Reparatur */
+  gate?: GateReport;
   error?: string;
   durationSec?: number;
   tokens?: number;
@@ -71,13 +74,13 @@ export function currentLock(): { pid: number; runId: string; startedAt: string }
     return null; // verwaistes Lockfile
   }
 }
-function acquireLock(runId: string) {
+export function acquireLock(runId: string) {
   const held = currentLock();
   if (held && held.pid !== process.pid) throw new Error(`Pipeline läuft bereits (Run ${held.runId}, PID ${held.pid})`);
   mkdirSync(config.dataDir, { recursive: true });
   writeFileSync(lockFile(), JSON.stringify({ pid: process.pid, runId, startedAt: new Date().toISOString() }));
 }
-function releaseLock(runId: string) {
+export function releaseLock(runId: string) {
   try {
     const lock = JSON.parse(readFileSync(lockFile(), 'utf8'));
     if (lock.runId === runId) unlinkSync(lockFile());
@@ -271,6 +274,13 @@ export async function execute(mode: Mode, opts: { runId?: string; file?: string;
             const current = db.select({ f: units.sourceFile }).from(units).where(eq(units.id, unit.id)).get()?.f ?? unit.source.file;
             const note = existsSync(git.studiumPath(current)) ? await prepareNote(vault, current, workDir) : null;
             const b = await generateBonus(unit, note, workDir, log);
+            if (config.qualityGate) {
+              // nur das neue Praxis-Level prüfen
+              const g = await qualityGate(Unit.parse({ ...b.unit, levels: b.unit.levels }), { raws: b.raws, source: note ? { file: current, headings: note.headings, text: note.text } : null, workDir, log, label: 'blind-bonus', only: [b.unit.levels[4]!.id] });
+              b.unit = g.unit;
+              b.tokens += g.tokens;
+              b.dropped.push(...g.report.dropped.map((d) => `Blind-Test verworfen: „${d.prompt.slice(0, 60)}…“ – ${d.reason}`));
+            }
             writeFileSync(file, JSON.stringify(b.unit, null, 2) + '\n');
             committed = git.commitContent([relative(config.lernquestRepo, file)], `content: add ${unit.module} Vorlesung ${unit.number} – Praxis-Level`) || committed;
             importUnit(db, b.unit);
@@ -302,7 +312,7 @@ export async function execute(mode: Mode, opts: { runId?: string; file?: string;
 
           const gen = await generateUnit({ module, number, file: item.path, sha256: item.sha256, commit: head, prepared, previous, workDir, log });
           let { unit, tokens } = gen;
-          const { dropped } = gen;
+          const { dropped, raws } = gen;
           // Praxis-Level (Bonus) – ein Fehler hier verhindert die Unit nicht
           if (config.generateBonus) {
             try {
@@ -310,10 +320,21 @@ export async function execute(mode: Mode, opts: { runId?: string; file?: string;
               unit = b.unit;
               tokens += b.tokens;
               dropped.push(...b.dropped);
+              for (const [k, v] of b.raws) raws.set(k, v);
             } catch (e) {
               notes.push(`Praxis-Level fehlgeschlagen (später mit \`pnpm pipeline bonus\`): ${(e as Error).message.slice(0, 200)}`);
               if (e instanceof RateLimitError) stopAfterThis = true;
             }
+          }
+
+          // Qualitäts-Tor: Prüfskripte, Blind-Test ohne Vorlesung, Reparatur (max. 2×) oder verwerfen
+          let gate: GateReport | undefined;
+          if (config.qualityGate) {
+            const g = await qualityGate(unit, { raws, source: { file: item.path, headings: prepared.headings, text: prepared.text }, workDir, log });
+            unit = g.unit;
+            tokens += g.tokens;
+            gate = g.report;
+            dropped.push(...g.report.dropped.map((d) => `Blind-Test verworfen: „${d.prompt.slice(0, 60)}…“ – ${d.reason}`));
           }
 
           // content/<modul>/<nr>-<slug>.json schreiben (alte Datei derselben Unit ersetzen)
@@ -341,6 +362,7 @@ export async function execute(mode: Mode, opts: { runId?: string; file?: string;
             dropped,
             notes,
             review: unit.generator.review,
+            gate,
             tokens,
             durationSec: Math.round((Date.now() - t0) / 1000),
           });
@@ -432,6 +454,7 @@ export function formatReport(r: Report): string {
   ];
   for (const f of r.files.filter((x) => x.status === 'done')) {
     lines.push(`  ✓ ${f.unitId} ${f.title} – ${f.questions} Fragen (${f.path})`);
+    if (f.gate) lines.push(`      Blind-Test: ${f.gate.checked - f.gate.failedFirst}/${f.gate.checked} direkt bestanden, ${f.gate.repaired.length} repariert, ${f.gate.dropped.length} verworfen`);
     for (const n of f.notes ?? []) lines.push(`      ⚑ ${n}`);
   }
   for (const f of r.files.filter((x) => x.status === 'planned')) lines.push(`  + ${f.path} – ${f.reason}`);

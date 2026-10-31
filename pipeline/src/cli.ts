@@ -15,6 +15,11 @@ if (cmd === 'telegram-setup') {
   process.exit(0);
 }
 if (cmd === 'watchdog') process.exit((await watchdog()) ? 0 : 2);
+if (cmd === 'audit') {
+  const { audit } = await import('./audit.ts');
+  const r = await audit(positional, { notify: !rest.includes('--no-notify') });
+  process.exit(r.totals.failedUnits ? 1 : 0);
+}
 
 if (!(cmd in modes)) {
   console.log(`LernQuest-Pipeline
@@ -24,10 +29,11 @@ if (!(cmd in modes)) {
   pnpm pipeline dry-run             nur anzeigen, was neu wäre
   pnpm pipeline regenerate <datei>  eine Notiz neu generieren (Pfad relativ zum Studium-Repo)
   pnpm pipeline bonus [unit-id]      Praxis-Level für Units ohne Bonus (oder eine Unit neu) erzeugen
+  pnpm pipeline audit [unit-id …]  Blind-Test über bestehende Units, Durchgefallene neu generieren (--no-notify: ohne Telegram)
   pnpm pipeline watchdog            prüfen, ob heute ein nächtlicher Lauf stattfand (sonst Warnung)
   pnpm pipeline telegram-setup      einmalig: Chat-ID nach /start an den Bot in .env eintragen`);
   process.exit(cmd === 'help' ? 0 : 1);
 }
 
-const report = await execute(modes[cmd]!, { runId, file: positional.join(' ') || undefined });
+const report = await execute(modes[cmd]!, { runId, file: positional.join(' ') || undefined, notify: !rest.includes('--no-notify') });
 process.exit(report.status === 'failed' ? 1 : 0);

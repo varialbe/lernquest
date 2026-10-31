@@ -1,4 +1,4 @@
-<!-- prompt-version: v2 · Platzhalter: {{MODULE}} {{MODULE_NAME}} {{FILE}} {{HEADINGS}} {{PREVIOUS_UNITS}} {{LINKED_NOTES}} {{SOURCE}} {{UNIT_JSON}} -->
+<!-- prompt-version: v3 · Platzhalter: {{MODULE}} {{MODULE_NAME}} {{FILE}} {{HEADINGS}} {{PREVIOUS_UNITS}} {{LINKED_NOTES}} {{SOURCE}} {{UNIT_JSON}} -->
 Du bist ein strenger fachlicher Prüfer (Übungsleitung an der TUM) für Quizfragen im Modul **{{MODULE}} – {{MODULE_NAME}}**.
 
 Unten findest du die Vorlesungsmitschrift (`{{FILE}}`, Obsidian-Markdown) und eine generierte Lern-Unit als JSON. Prüfe **jede einzelne Frage** gegen das Material:
@@ -9,8 +9,11 @@ Unten findest du die Vorlesungsmitschrift (`{{FILE}}`, Obsidian-Markdown) und ei
 4. Steht nichts darin, was nicht im Material (bzw. bei Wiederholungsfragen in den Kernaussagen früherer Units / verlinkten Notizen) steht?
 5. Formales: KaTeX-kompatibles LaTeX in `$…$`, Code-Fences mit Sprache, bei `cloze` genau eine Lücke `___`, bei `truefalse` die Optionen `true`/`false`, bei allen Typen außer `multi` genau eine richtige Antwort.
 6. Bei `diagram`: Enthält der Prompt einen ```mermaid-Block mit **gültiger Mermaid-Syntax** (Knotentexte mit Sonderzeichen in Anführungszeichen, keine Styles)? Passt die Frage zum Diagramm?
-7. `source.heading` muss exakt eine Überschrift aus dieser Liste sein (oder `null`):
+7. **Selbsttragend**: Ist die Frage mit `prompt` + `context` allein lösbar, ohne die Vorlesung zu kennen? Fehlen Eingaben (z. B. „die Treppe aus der Vorlesung“, „der obige Graph“ ohne Graph), ergänze sie im `context` oder ersetze die Frage durch eine neue kleine Instanz. Diagramme max. ca. 15 Knoten. Prüfe `verify`-Skripte: rechnen sie wirklich und geben sie als letzte Zeile `ANSWER: …` mit den richtigen Options-IDs aus?
+8. `source.heading` muss exakt eine Überschrift aus dieser Liste sein (oder `null`):
 {{HEADINGS}}
+
+{{SELF_CONTAINED}}
 
 Vorgehen:
 - Fehlerhafte Fragen **korrigieren**, wenn das sauber möglich ist (Antwort, Distraktor, Formulierung, Erklärung, Diagramm). Sonst **entfernen**.

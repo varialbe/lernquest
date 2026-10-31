@@ -1,4 +1,4 @@
-<!-- prompt-version: v2 · Platzhalter: {{MODULE}} {{MODULE_NAME}} {{FILE}} {{UNIT_NUMBER}} {{QUESTIONS_PER_LEVEL}} {{TOPIC}} {{TAGS}} {{HEADINGS}} {{IMAGES}} {{PREVIOUS_UNITS}} {{LINKED_NOTES}} {{SOURCE}} -->
+<!-- prompt-version: v3 · Platzhalter: {{MODULE}} {{MODULE_NAME}} {{FILE}} {{UNIT_NUMBER}} {{QUESTIONS_PER_LEVEL}} {{TOPIC}} {{TAGS}} {{HEADINGS}} {{IMAGES}} {{PREVIOUS_UNITS}} {{LINKED_NOTES}} {{SOURCE}} -->
 Du bist Didaktik-Experte und Tutor an der TUM. Erstelle aus der folgenden Vorlesungsmitschrift (Obsidian-Markdown) eine Lern-Unit für eine Quiz-App im Stil von Duolingo.
 
 ## Kontext
@@ -33,9 +33,10 @@ Fragetypen (`type`) – nutze eine abwechslungsreiche Mischung, passend zum Fach
 - `cloze`: Lückentext, die Lücke im Prompt ist `___` (genau eine), 4 Optionen zum Einsetzen.
 - `code_output`: „Was gibt dieser Code aus?“ – Code in ```-Fence mit Sprache (vor allem EIP; nur Sprachen/Konstrukte aus der Mitschrift). Rechne den Code Schritt für Schritt nach.
 - `calc`: Rechen-/Umwandlungsaufgabe mit 4 Optionen (vor allem ERA/DS, z. B. Zahlensysteme, Zweierkomplement, Mengen, Logik). Rechne jede Option nach.
-- `diagram`: Frage zu einem Mermaid-Diagramm. Der Prompt **muss** einen ```mermaid-Block enthalten (aus der Mitschrift übernommen oder vereinfacht/abgewandelt, gültige Mermaid-Syntax, kurze Knotentexte, keine Styles/Farben). Beispiele: „Welcher Schritt fehlt im Ablauf?“, „Was beschreibt dieses Diagramm?“, „Welche Kante ist falsch?“. Wenn die Mitschrift Mermaid-Diagramme enthält, erzeuge pro Unit insgesamt 2–5 `diagram`-Fragen; sonst keine.
+- `diagram`: Frage zu einem Mermaid-Diagramm. Das Diagramm steht in `context` (type `mermaid`, aus der Mitschrift übernommen oder vereinfacht/abgewandelt, gültige Mermaid-Syntax, kurze Knotentexte, keine Styles/Farben, max. ca. 15 Knoten). Beispiele: „Welcher Schritt fehlt im Ablauf?“, „Was beschreibt dieses Diagramm?“, „Welche Kante ist falsch?“. Wenn die Mitschrift Mermaid-Diagramme enthält, erzeuge pro Unit insgesamt 2–5 `diagram`-Fragen; sonst keine.
 
 Für jede Frage:
+- `context`: Graph/Code/Tabelle zur Frage oder `null` (siehe „Selbsttragende Fragen“). `verify`: Python-Prüfskript oder `null`.
 - `prompt`: Deutsch, Markdown; Formeln in `$…$` (KaTeX-kompatibel, keine `\(`-Syntax), Code/Mermaid in Fences. Kurz und eindeutig. Keine Callout-Syntax im Prompt.
 - `options`: IDs `a`, `b`, `c`, … (bei truefalse `true`/`false`). Distraktoren müssen **plausibel** sein (typische Studentenfehler, Verwechslungen, Vorzeichen-/Off-by-one-Fehler), aber **eindeutig falsch**. Keine absurden Optionen, keine „Alle oben genannten“.
 - `correct`: Liste der richtigen Options-IDs (bei allen Typen außer `multi` genau eine).
@@ -48,6 +49,8 @@ Außerdem auf Unit-Ebene:
 - `summary`: 2–4 Sätze, worum es geht.
 - `concepts`: 5–15 Kernkonzepte. `keyFacts`: 8–20 präzise Kernaussagen (Definitionen, Sätze, Regeln), die später als Kontext für Wiederholungsfragen dienen.
 - `review`: `{"checked":0,"fixed":0,"removed":0,"notes":""}`.
+
+{{SELF_CONTAINED}}
 
 ## Harte Regeln
 - Sprache Deutsch, Fachbegriffe und Notation **wie in der Mitschrift**.

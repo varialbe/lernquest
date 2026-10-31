@@ -21,10 +21,12 @@ export type GenerateInput = {
   log: (msg: string) => void;
 };
 
-export type GenerateResult = { unit: Unit; dropped: string[]; tokens: number };
+export type GenerateResult = { unit: Unit; dropped: string[]; tokens: number; raws: Map<string, RawQuestion> };
 
 export const fill = (tpl: string, vars: Record<string, string>) => tpl.replace(/\{\{(\w+)\}\}/g, (_, k: string) => vars[k] ?? `{{${k}}}`);
-export const template = (name: string) => readFileSync(join(config.promptsDir, name), 'utf8').replace(/^<!--[\s\S]*?-->\s*/, '');
+const strip = (name: string) => readFileSync(join(config.promptsDir, name), 'utf8').replace(/^<!--[\s\S]*?-->\s*/, '');
+/** Prompt-Vorlage laden; {{SELF_CONTAINED}} wird durch die gemeinsamen Regeln aus _self-contained.md ersetzt. */
+export const template = (name: string) => strip(name).replace('{{SELF_CONTAINED}}', () => strip('_self-contained.md').trim());
 
 export function formatPrevious(prev: PreviousUnit[]): string {
   if (!prev.length) return '_(keine – das ist die erste Unit dieses Moduls)_';
@@ -103,6 +105,9 @@ type RawQuestion = {
   concepts: string[];
   /** nur bei estimate (Bonus-Schema) */
   slider?: { min: number; max: number; step: number; answer: number; tolerance: number; unit: string | null; scale: string } | null;
+  context?: { type: string; content: string; language?: string | null; caption?: string | null; frames?: { content: string; caption: string | null }[] } | null;
+  /** Python-Prüfskript (Rechen-/Algorithmus-Aufgaben), letzte Zeile „ANSWER: …“ – landet nicht im Content */
+  verify?: string | null;
 };
 export type { RawQuestion };
 
@@ -135,10 +140,12 @@ export function normalizeQuestion(
   // Überschriften kennen wir nur für die aktuelle Notiz; fremde Quellen behalten Codex' Angabe
   const heading = sourceFile === ctx.file ? matchHeading(ctx.headings, rq.source?.heading) : rq.source?.heading?.trim().slice(0, 200) || null;
   const concepts = (rq.concepts ?? []).map((c) => c.trim()).filter(Boolean).slice(0, 6);
+  const context = normalizeContext(rq.context);
   const candidate = {
     id: qid,
     type: rq.type,
     prompt: fixLatexEscapes(rq.prompt.trim()),
+    ...(context ? { context } : {}),
     options,
     correct,
     ...(slider ? { slider } : {}),
@@ -150,6 +157,23 @@ export function normalizeQuestion(
   const parsed = Question.safeParse(candidate);
   if (parsed.success) return { ok: true, question: parsed.data };
   return { ok: false, error: `„${candidate.prompt.slice(0, 60)}…“ – ${parsed.error.issues.map((x) => x.message).join('; ')}` };
+}
+
+/** Kontext aus der Codex-Ausgabe säubern: leere Felder weg, Fences entfernen, Mermaid ohne ```-Rahmen. */
+export function normalizeContext(c: RawQuestion['context']): Question['context'] | undefined {
+  if (!c?.content?.trim()) return undefined;
+  const unfence = (s: string) => s.trim().replace(/^```[\w-]*\s*
+/, '').replace(/
+?```\s*$/, '').trim();
+  const type = c.type === 'code' || c.type === 'table' ? c.type : 'mermaid';
+  const frames = type === 'mermaid' ? (c.frames ?? []).filter((f) => f.content?.trim()).map((f) => ({ content: unfence(f.content), caption: f.caption?.trim() || null })) : [];
+  return {
+    type,
+    content: type === 'table' ? c.content.trim() : unfence(c.content),
+    ...(type === 'code' && c.language?.trim() ? { language: c.language.trim().toLowerCase() } : {}),
+    ...(c.caption?.trim() ? { caption: fixLatexEscapes(c.caption.trim()) } : {}),
+    ...(frames.length ? { frames } : {}),
+  };
 }
 
 type RawUnit = {
@@ -166,6 +190,7 @@ type RawUnit = {
 export function normalize(raw: RawUnit, input: Omit<GenerateInput, 'previous' | 'workDir' | 'log'>, knownFiles: string[]): GenerateResult {
   const id = unitId(input.module, input.number);
   const dropped: string[] = [];
+  const raws = new Map<string, RawQuestion>();
   const levels = LEVEL_KINDS.map((kind, i) => {
     const rawLevel = raw.levels.find((l) => l.kind === kind) ?? raw.levels[i];
     const qs: Question[] = [];
@@ -173,8 +198,10 @@ export function normalize(raw: RawUnit, input: Omit<GenerateInput, 'previous' | 
       if (rq.type === 'estimate') continue; // Schätzfragen gibt es nur im Praxis-Level
       const qid = `${id}-l${i + 1}-q${String(qs.length + 1).padStart(2, '0')}`;
       const r = normalizeQuestion(rq, qid, { file: input.file, headings: input.prepared.headings, knownFiles, fallbackConcept: raw.concepts[0] ?? raw.title });
-      if (r.ok) qs.push(r.question);
-      else dropped.push(`${kind}: ${r.error}`);
+      if (r.ok) {
+        qs.push(r.question);
+        raws.set(r.question.prompt, rq);
+      } else dropped.push(`${kind}: ${r.error}`);
       if (qs.length === 12) break;
     }
     return { id: `${id}-l${i + 1}`, index: i + 1, kind, title: rawLevel?.title?.trim() || LEVEL_TITLES[kind], questions: qs };
@@ -203,7 +230,7 @@ export function normalize(raw: RawUnit, input: Omit<GenerateInput, 'previous' | 
     },
     levels,
   });
-  return { unit, dropped, tokens: 0 };
+  return { unit, dropped, tokens: 0, raws };
 }
 
 /** Generieren (xhigh) → Prüfen (high) → normalisieren/validieren. */
