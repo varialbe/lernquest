@@ -1,0 +1,1676 @@
+{
+  "schemaVersion": 1,
+  "id": "eip-04",
+  "module": "EIP",
+  "number": 4,
+  "slug": "control-flow-graphs-strings-und-arrays",
+  "title": "Control-Flow Graphs, Strings und Arrays",
+  "summary": "Diese Unit behandelt Control-Flow Graphs als Darstellung von Programmausführungen und die Reduzierbarkeit von Kontrollfluss. Außerdem geht es um Variableninitialisierung, String-Konkatenation und -Vergleich, eindimensionale und zweidimensionale Arrays sowie For-Schleifen und ihre While-Äquivalenz.",
+  "concepts": [
+    "Control-Flow Graph (CFG)",
+    "Pfad und operationale Semantik",
+    "Bedingung und Join",
+    "Reduzierbarkeit",
+    "Variablendeklaration und Initialisierung",
+    "String-Konkatenation",
+    "Stringvergleich mit equals",
+    "Arrays und Indizes",
+    "Array-Referenzen",
+    "2D-Arrays",
+    "For-Schleife",
+    "Schleifeninvariante",
+    "Euklidischer Algorithmus",
+    "Laufzeit",
+    "Syntax und Semantik"
+  ],
+  "keyFacts": [
+    "Ein Pfad von Start nach Stop entspricht einer Ausführung; zusammen mit dem mitgeführten Zustand beschreibt er die operationale Semantik.",
+    "Ein Bedingungsknoten besitzt genau eine yes- und eine no-Kante.",
+    "Bei einem if führt die Body-Kante zum nächsten Statement, bei einem while zurück zur Bedingung.",
+    "Jedes MiniJava-Programm hat einen CFG; umgekehrt lässt sich ein CFG genau dann in ein strukturiertes Programm umwandeln, wenn er reduzierbar ist.",
+    "Ein reduzierbarer Graph hat für jede Schleife genau einen Eintrittspunkt.",
+    "Lokale Variablen haben keinen Default-Wert; Lesen vor der ersten Zuweisung ist ein Compilerfehler.",
+    "Bei String-Konkatenation mit + wird der andere Operand zu Text konvertiert und von links nach rechts ausgewertet.",
+    "s1.equals(s2) vergleicht String-Inhalte; == vergleicht nicht den Text.",
+    "Ein Array hat eine feste Länge und enthält Werte desselben Typs; bei Länge n sind die Indizes 0 bis n-1 gültig.",
+    "Elemente eines neu erzeugten int-Arrays sind mit 0 initialisiert; die Länge 0 ist erlaubt.",
+    "Eine Array-Variable speichert eine Referenz; eine Zuweisung wie b = a erzeugt kein neues Array.",
+    "Ein 2D-Array ist ein Array von Arrays; seine Zeilen dürfen unterschiedlich lang sein.",
+    "Bei einer For-Schleife läuft das Update nach dem Body und vor dem nächsten Bedingungstest.",
+    "Die For-Schleife for(init; cond; upd) ist äquivalent zu init gefolgt von einer While-Schleife, deren Body zuerst den ursprünglichen Body und danach das Update ausführt."
+  ],
+  "tags": [
+    "tum",
+    "info1",
+    "CIT123001",
+    "lecture"
+  ],
+  "links": [],
+  "source": {
+    "file": "EIP/01_Vorlesungen/EIP VO4.md",
+    "sha256": "a4c92693bee8c0d4fee1b6766a2248667edb26f0feca796a923d5c7fd4f246bd",
+    "commit": "c01f10e1818d61e8fd05d663cf852d7a59f2e1e4"
+  },
+  "generator": {
+    "model": "gpt-5.6-luna",
+    "effort": "xhigh",
+    "reviewEffort": "high",
+    "promptVersion": "v2",
+    "generatedAt": "2026-10-31T00:50:29.284Z",
+    "review": {
+      "checked": 44,
+      "fixed": 2,
+      "removed": 0,
+      "notes": "Alle 44 Fragen geprüft. Korrigiert wurden ein For-Schleifen-Distraktor samt Erklärung sowie die missverständlich formulierte Grammatik-Frage; deren Quelle wurde passend auf die For-Schleife gesetzt. Keine Frage musste entfernt oder ersetzt werden."
+    }
+  },
+  "levels": [
+    {
+      "id": "eip-04-l1",
+      "index": 1,
+      "kind": "basics",
+      "title": "Grundlagen",
+      "questions": [
+        {
+          "id": "eip-04-l1-q01",
+          "type": "single",
+          "prompt": "Was entspricht in einem Control-Flow Graph (CFG) einem Pfad von Start nach Stop?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Einer einzelnen Variablendeklaration"
+            },
+            {
+              "id": "b",
+              "text": "Nur dem Schleifenrumpf"
+            },
+            {
+              "id": "c",
+              "text": "Einer möglichen Ausführung des Programms"
+            },
+            {
+              "id": "d",
+              "text": "Einem Compilerfehler"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Ein Start-Stop-Pfad beschreibt eine mögliche Ausführung. Die konkreten Kanten an Verzweigungen hängen von den aktuellen Variablenwerten ab.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO4.md",
+            "heading": "1. Control-Flow Graphs (CFG)"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Control-Flow Graph (CFG)",
+            "Pfad und operationale Semantik"
+          ]
+        },
+        {
+          "id": "eip-04-l1-q02",
+          "type": "multi",
+          "prompt": "Wähle alle richtigen Aussagen zu Knoten und Kanten in einem CFG. Mehrere Antworten können richtig sein.",
+          "options": [
+            {
+              "id": "a",
+              "text": "Ein Bedingungsknoten hat genau eine no-Kante."
+            },
+            {
+              "id": "b",
+              "text": "Der Startknoten muss eine eingehende Kante besitzen."
+            },
+            {
+              "id": "c",
+              "text": "Ein Bedingungsknoten hat genau eine yes-Kante."
+            },
+            {
+              "id": "d",
+              "text": "Jeder Knoten außer Stop hat genau zwei ausgehende Kanten."
+            },
+            {
+              "id": "e",
+              "text": "Jeder Knoten außer Start hat eingehende Kanten."
+            }
+          ],
+          "correct": [
+            "a",
+            "c",
+            "e"
+          ],
+          "explanation": "Bedingungen verzweigen genau in yes und no. Außerdem hat jeder Knoten außer Start einen Eingang; Start selbst braucht daher keinen Eingang.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO4.md",
+            "heading": "1. Control-Flow Graphs (CFG)"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Control-Flow Graph (CFG)",
+            "Bedingung und Join"
+          ]
+        },
+        {
+          "id": "eip-04-l1-q03",
+          "type": "truefalse",
+          "prompt": "Bei einem `while` führt die Kante nach dem Schleifenrumpf zurück zur Bedingung.",
+          "options": [
+            {
+              "id": "true",
+              "text": "Wahr"
+            },
+            {
+              "id": "false",
+              "text": "Falsch"
+            }
+          ],
+          "correct": [
+            "true"
+          ],
+          "explanation": "Das ist der zentrale Kontrollflussunterschied zum `if`: Nach dem Body wird beim `while` erneut die Bedingung geprüft.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO4.md",
+            "heading": "vs."
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Control-Flow Graph (CFG)"
+          ]
+        },
+        {
+          "id": "eip-04-l1-q04",
+          "type": "cloze",
+          "prompt": "Lokale Variablen haben keinen Default-Wert. Lesen vor einer Zuweisung führt zu einem ___.",
+          "options": [
+            {
+              "id": "a",
+              "text": "leeren String"
+            },
+            {
+              "id": "b",
+              "text": "neuen Array"
+            },
+            {
+              "id": "c",
+              "text": "automatischen Wert 0"
+            },
+            {
+              "id": "d",
+              "text": "Compilerfehler"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Eine lokale Variable muss vor ihrer Verwendung definiert werden. Andernfalls meldet der Compiler `variable n might not have been initialized`.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO4.md",
+            "heading": "2. Variablen: Deklaration & Initialisierung"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Variablendeklaration und Initialisierung"
+          ]
+        },
+        {
+          "id": "eip-04-l1-q05",
+          "type": "single",
+          "prompt": "Welche Aussage beschreibt einen String-Literal wie `\"Hello\"` korrekt?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Ein String-Literal ist immer leer."
+            },
+            {
+              "id": "b",
+              "text": "Die Anführungszeichen markieren den Text, gehören aber nicht zu ihm."
+            },
+            {
+              "id": "c",
+              "text": "Die Anführungszeichen gehören zum gespeicherten Text."
+            },
+            {
+              "id": "d",
+              "text": "Ein String-Literal darf nur Ziffern enthalten."
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "Die Anführungszeichen kennzeichnen im Programm den String. Der gespeicherte Text lautet nur `Hello`.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO4.md",
+            "heading": "3. Strings"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "String-Konkatenation"
+          ]
+        },
+        {
+          "id": "eip-04-l1-q06",
+          "type": "single",
+          "prompt": "Welche Methode vergleicht bei Strings den Inhalt?",
+          "options": [
+            {
+              "id": "a",
+              "text": "`s1.compareText(s2)`"
+            },
+            {
+              "id": "b",
+              "text": "`s1.length(s2)`"
+            },
+            {
+              "id": "c",
+              "text": "`s1.equals(s2)`"
+            },
+            {
+              "id": "d",
+              "text": "`s1 == s2`"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "`equals` vergleicht den String-Inhalt. `==` ist in dieser Vorlesung ausdrücklich nicht der Textvergleich.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO4.md",
+            "heading": "3. Strings"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Stringvergleich mit equals"
+          ]
+        },
+        {
+          "id": "eip-04-l1-q07",
+          "type": "single",
+          "prompt": "Welche Aussage über ein Array ist richtig?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Es kann nur zur Compile-Zeit erzeugt werden."
+            },
+            {
+              "id": "b",
+              "text": "Es besitzt nur den Index 1."
+            },
+            {
+              "id": "c",
+              "text": "Es enthält eine feste Anzahl von Werten desselben Typs."
+            },
+            {
+              "id": "d",
+              "text": "Es enthält Werte beliebiger Typen und hat eine veränderliche Länge."
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Ein Array hat eine feste Länge und speichert Werte desselben Typs. Die Länge kann zwar zur Laufzeit festgelegt werden, bleibt danach aber fix.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO4.md",
+            "heading": "4. Arrays"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Arrays und Indizes"
+          ]
+        },
+        {
+          "id": "eip-04-l1-q08",
+          "type": "cloze",
+          "prompt": "Für ein Array der Länge $n$ sind die gültigen Indizes ___.",
+          "options": [
+            {
+              "id": "a",
+              "text": "`0` bis `n`"
+            },
+            {
+              "id": "b",
+              "text": "nur `n-1`"
+            },
+            {
+              "id": "c",
+              "text": "`1` bis `n`"
+            },
+            {
+              "id": "d",
+              "text": "`0` bis `n-1`"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Arrays beginnen beim Index 0 und enden bei `n-1`. Der Zugriff auf `a[n]` liegt bereits außerhalb des Arrays.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO4.md",
+            "heading": "4. Arrays"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Arrays und Indizes"
+          ]
+        },
+        {
+          "id": "eip-04-l1-q09",
+          "type": "truefalse",
+          "prompt": "Bei `int[][] grid` ist `grid[1]` selbst ein Array.",
+          "options": [
+            {
+              "id": "true",
+              "text": "Wahr"
+            },
+            {
+              "id": "false",
+              "text": "Falsch"
+            }
+          ],
+          "correct": [
+            "true"
+          ],
+          "explanation": "Ein 2D-Array ist ein Array von Arrays. `grid[1]` bezeichnet daher eine Zeile, während `grid[1][2]` ein einzelnes `int` bezeichnet.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO4.md",
+            "heading": "2D-Arrays = Array von Arrays"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "2D-Arrays"
+          ]
+        },
+        {
+          "id": "eip-04-l1-q10",
+          "type": "single",
+          "prompt": "Was bündelt eine For-Schleife in ihrer Klammer?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Initialisierung, Bedingung und Update"
+            },
+            {
+              "id": "b",
+              "text": "Nur zwei Bedingungen"
+            },
+            {
+              "id": "c",
+              "text": "Deklaration, Stringvergleich und Arraykopie"
+            },
+            {
+              "id": "d",
+              "text": "Nur die Ausgabe"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "Die For-Schleife fasst `init`, `cond` und `upd` zu einer gut lesbaren Index-Schleife zusammen.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO4.md",
+            "heading": "5. For-Schleife"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "For-Schleife"
+          ]
+        },
+        {
+          "id": "eip-04-l1-q11",
+          "type": "diagram",
+          "prompt": "Welche Beschreibung passt zu diesem Kontrollflussdiagramm?\n\n```mermaid\nflowchart TD\n    I[\"init\"] --> C{\"cond\"}\n    C -- yes --> B[\"body\"] --> U[\"update\"] --> C\n    C -- no --> N[\"next statement\"]\n```",
+          "options": [
+            {
+              "id": "a",
+              "text": "Ablauf einer Variablendeklaration ohne Schleife"
+            },
+            {
+              "id": "b",
+              "text": "Nur eine String-Konkatenation"
+            },
+            {
+              "id": "c",
+              "text": "Unbedingter Sprung zum Programmstart"
+            },
+            {
+              "id": "d",
+              "text": "Ablauf einer For-Schleife"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Das Diagramm zeigt Initialisierung, Test, Body, Update und den Übergang zum nächsten Statement. Genau diese Reihenfolge beschreibt die For-Schleife.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO4.md",
+            "heading": "5. For-Schleife"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "For-Schleife",
+            "Control-Flow Graph (CFG)"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "eip-04-l2",
+      "index": 2,
+      "kind": "apply",
+      "title": "Anwenden",
+      "questions": [
+        {
+          "id": "eip-04-l2-q01",
+          "type": "code_output",
+          "prompt": "Was gibt dieser Code aus?\n\n```java\nint x = 30, y = 20;\nwhile (x != y)\n    if (x < y) y = y - x;\n    else x = x - y;\nwrite(x);\n```",
+          "options": [
+            {
+              "id": "a",
+              "text": "`10`"
+            },
+            {
+              "id": "b",
+              "text": "`30`"
+            },
+            {
+              "id": "c",
+              "text": "`20`"
+            },
+            {
+              "id": "d",
+              "text": "`0`"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "Zuerst wird wegen `30 < 20` false `x` zu 10. Danach wird wegen `10 < 20` `y` zu 10; nun endet die Schleife und `x` ist 10.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO4.md",
+            "heading": "Beispiel: Euklid (Subtraktion)"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Control-Flow Graph (CFG)",
+            "Pfad und operationale Semantik"
+          ]
+        },
+        {
+          "id": "eip-04-l2-q02",
+          "type": "diagram",
+          "prompt": "Welcher Knoten wird nach beiden möglichen Zuweisungen erneut erreicht?\n\n```mermaid\nflowchart TD\n    S([Start]) --> R1[\"x = readInt();\"] --> R2[\"y = readInt();\"] --> C1{\"x != y\"}\n    C1 -- yes --> C2{\"x < y\"}\n    C2 -- yes --> A1[\"y = y - x;\"] --> C1\n    C2 -- no --> A2[\"x = x - y;\"] --> C1\n    C1 -- no --> W[\"write(x);\"] --> E([Stop])\n```",
+          "options": [
+            {
+              "id": "a",
+              "text": "`W`"
+            },
+            {
+              "id": "b",
+              "text": "`A1`"
+            },
+            {
+              "id": "c",
+              "text": "`C2`"
+            },
+            {
+              "id": "d",
+              "text": "`C1`"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Beide Zuweisungen bilden den Schleifenrumpf und führen anschließend zurück zum Test `x != y`, also zum Knoten `C1`.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO4.md",
+            "heading": "Beispiel: Euklid (Subtraktion)"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Control-Flow Graph (CFG)"
+          ]
+        },
+        {
+          "id": "eip-04-l2-q03",
+          "type": "code_output",
+          "prompt": "Was gibt dieser Code aus?\n\n```java\nwrite(\"sum: \" + 2 + 3);\n```",
+          "options": [
+            {
+              "id": "a",
+              "text": "`sum: 5`"
+            },
+            {
+              "id": "b",
+              "text": "`5sum: `"
+            },
+            {
+              "id": "c",
+              "text": "`sum: 23`"
+            },
+            {
+              "id": "d",
+              "text": "`sum: 2 + 3`"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Sobald der linke Operand ein String ist, wird der nächste Operand zu Text. Links-nach-rechts entsteht zuerst `sum: 2` und danach `sum: 23`.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO4.md",
+            "heading": "3. Strings"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "String-Konkatenation"
+          ]
+        },
+        {
+          "id": "eip-04-l2-q04",
+          "type": "code_output",
+          "prompt": "Was gibt dieser Code aus?\n\n```java\nwrite(\"sum: \" + (2 + 3));\n```",
+          "options": [
+            {
+              "id": "a",
+              "text": "`sum: 23`"
+            },
+            {
+              "id": "b",
+              "text": "`sum: `"
+            },
+            {
+              "id": "c",
+              "text": "`5sum: `"
+            },
+            {
+              "id": "d",
+              "text": "`sum: 5`"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Die Klammern erzwingen zuerst die numerische Addition `2 + 3 = 5`. Erst danach wird das Ergebnis mit dem String verkettet.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO4.md",
+            "heading": "3. Strings"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "String-Konkatenation"
+          ]
+        },
+        {
+          "id": "eip-04-l2-q05",
+          "type": "code_output",
+          "prompt": "Was gibt dieser Code aus?\n\n```java\nint[] a = new int[3];\na[1] = 7;\nwrite(a[1]);\n```",
+          "options": [
+            {
+              "id": "a",
+              "text": "`1`"
+            },
+            {
+              "id": "b",
+              "text": "`3`"
+            },
+            {
+              "id": "c",
+              "text": "`7`"
+            },
+            {
+              "id": "d",
+              "text": "`0`"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Das Array hat zunächst überall den Wert 0. Die Zuweisung verändert aber `a[1]` zu 7, und genau dieses Element wird ausgegeben.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO4.md",
+            "heading": "4. Arrays"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Arrays und Indizes"
+          ]
+        },
+        {
+          "id": "eip-04-l2-q06",
+          "type": "code_output",
+          "prompt": "Was passiert bei diesem Code?\n\n```java\nint[] a = new int[3];\nwrite(a[3]);\n```",
+          "options": [
+            {
+              "id": "a",
+              "text": "Es tritt eine `ArrayIndexOutOfBoundsException` auf."
+            },
+            {
+              "id": "b",
+              "text": "Es wird `0` ausgegeben."
+            },
+            {
+              "id": "c",
+              "text": "Es wird `3` ausgegeben."
+            },
+            {
+              "id": "d",
+              "text": "Das Array wird automatisch verlängert."
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "Bei Länge 3 sind nur die Indizes 0, 1 und 2 gültig. `a[3]` wird beim Laufzeitcheck als ungültig erkannt.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO4.md",
+            "heading": "4. Arrays"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Arrays und Indizes"
+          ]
+        },
+        {
+          "id": "eip-04-l2-q07",
+          "type": "code_output",
+          "prompt": "Was gibt dieser Code aus?\n\n```java\nint[] a = new int[3];\nint[] b = a;\nb[1] = 7;\nwrite(a[1]);\n```",
+          "options": [
+            {
+              "id": "a",
+              "text": "`0`"
+            },
+            {
+              "id": "b",
+              "text": "`1`"
+            },
+            {
+              "id": "c",
+              "text": "`3`"
+            },
+            {
+              "id": "d",
+              "text": "`7`"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "`b = a` kopiert nur die Referenz. Beide Variablen zeigen auf dasselbe Array, sodass die Änderung über `b` auch über `a` sichtbar ist.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO4.md",
+            "heading": "Referenzen ⚠"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Array-Referenzen"
+          ]
+        },
+        {
+          "id": "eip-04-l2-q08",
+          "type": "code_output",
+          "prompt": "Was gibt dieser Code aus?\n\n```java\nint[][] grid = new int[3][4];\ngrid[1][2] = 7;\nwrite(grid[1][2]);\n```",
+          "options": [
+            {
+              "id": "a",
+              "text": "`7`"
+            },
+            {
+              "id": "b",
+              "text": "`2`"
+            },
+            {
+              "id": "c",
+              "text": "`4`"
+            },
+            {
+              "id": "d",
+              "text": "`1`"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "`grid[1][2]` bezeichnet Zeile 1 und darin Spalte 2. Genau dort wird 7 gespeichert und anschließend gelesen.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO4.md",
+            "heading": "2D-Arrays = Array von Arrays"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "2D-Arrays"
+          ]
+        },
+        {
+          "id": "eip-04-l2-q09",
+          "type": "code_output",
+          "prompt": "Welche Werte werden in welcher Reihenfolge ausgegeben?\n\n```java\nint[] a = new int[3];\na[0] = 4;\na[1] = 1;\na[2] = 6;\nfor (int i = 0; i < a.length; ++i) write(a[i]);\n```",
+          "options": [
+            {
+              "id": "a",
+              "text": "`4, 1, 6`"
+            },
+            {
+              "id": "b",
+              "text": "`1, 4, 6`"
+            },
+            {
+              "id": "c",
+              "text": "`6, 1, 4`"
+            },
+            {
+              "id": "d",
+              "text": "`4, 1`"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "`i` nimmt die Werte 0, 1 und 2 an. Der Zugriff erfolgt daher in Array-Reihenfolge: 4, dann 1, dann 6.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO4.md",
+            "heading": "5. For-Schleife"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "For-Schleife",
+            "Arrays und Indizes"
+          ]
+        },
+        {
+          "id": "eip-04-l2-q10",
+          "type": "cloze",
+          "prompt": "Beim Einlesen eines Arrays gilt vor jedem Test die Invariante: Die ersten ___ Elemente sind bereits gelesen.",
+          "options": [
+            {
+              "id": "a",
+              "text": "`i`"
+            },
+            {
+              "id": "b",
+              "text": "`i - 1`"
+            },
+            {
+              "id": "c",
+              "text": "`a.length - i`"
+            },
+            {
+              "id": "d",
+              "text": "`a.length + i`"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "Vor dem Test `i < a.length` sind genau die Positionen 0 bis `i-1` gelesen, also insgesamt `i` Elemente.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO4.md",
+            "heading": "Array einlesen"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Schleifeninvariante",
+            "Arrays und Indizes"
+          ]
+        },
+        {
+          "id": "eip-04-l2-q11",
+          "type": "single",
+          "prompt": "Welche For-Schleife besucht jedes Element von `a` genau einmal?",
+          "options": [
+            {
+              "id": "a",
+              "text": "`for (int i = 0; i <= a.length; ++i) write(a[i]);`"
+            },
+            {
+              "id": "b",
+              "text": "`for (int i = 1; i < a.length; ++i) write(a[i]);`"
+            },
+            {
+              "id": "c",
+              "text": "`for (int i = a.length - 1; i > 0; --i) write(a[i]);`"
+            },
+            {
+              "id": "d",
+              "text": "`for (int i = 0; i < a.length; ++i) write(a[i]);`"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Die Indizes 0 bis `a.length - 1` sind genau die gültigen Arraypositionen. Variante b überspringt 0, c greift am Ende auf `a[a.length]` zu und d lässt Index 0 aus.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO4.md",
+            "heading": "5. For-Schleife"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "For-Schleife",
+            "Arrays und Indizes"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "eip-04-l3",
+      "index": 3,
+      "kind": "deepen",
+      "title": "Vertiefen",
+      "questions": [
+        {
+          "id": "eip-04-l3-q01",
+          "type": "multi",
+          "prompt": "Wähle alle richtigen Aussagen zur Reduzierbarkeit. Mehrere Antworten können richtig sein.",
+          "options": [
+            {
+              "id": "a",
+              "text": "Jeder CFG kann immer in ein strukturiertes Programm übersetzt werden."
+            },
+            {
+              "id": "b",
+              "text": "Jedes MiniJava-Programm besitzt einen CFG."
+            },
+            {
+              "id": "c",
+              "text": "In einer reduzierbaren Schleife gibt es genau einen Eintrittspunkt."
+            },
+            {
+              "id": "d",
+              "text": "Die Umwandlung in ein strukturiertes Programm existiert genau dann, wenn der CFG reduzierbar ist."
+            },
+            {
+              "id": "e",
+              "text": "Ein Sprung in die Mitte einer Schleife ist mit der Reduzierbarkeit vereinbar."
+            }
+          ],
+          "correct": [
+            "b",
+            "c",
+            "d"
+          ],
+          "explanation": "Ein CFG gehört zu jedem MiniJava-Programm. Die Rückrichtung gilt nur für reduzierbare Graphen; mehrere Eintrittspunkte beziehungsweise Sprünge in die Mitte verletzen die Bedingung.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO4.md",
+            "heading": "Reduzierbarkeit"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Reduzierbarkeit",
+            "Control-Flow Graph (CFG)"
+          ]
+        },
+        {
+          "id": "eip-04-l3-q02",
+          "type": "single",
+          "prompt": "Warum ist die Kante nach dem Body beim `if` anders als beim `while`?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Beim `if` geht sie immer zu Start, beim `while` zu Stop."
+            },
+            {
+              "id": "b",
+              "text": "Beim `if` gibt es keine Bedingung, beim `while` zwei."
+            },
+            {
+              "id": "c",
+              "text": "Beim `if` geht sie zum nächsten Statement, beim `while` zurück zur Bedingung."
+            },
+            {
+              "id": "d",
+              "text": "Beim `if` führt sie zurück zum Body, beim `while` zum nächsten Statement."
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Beide Konstrukte besitzen Test und Branch. Nur die Anschlusskante des Bodys unterscheidet einmalige Auswahl von wiederholter Prüfung.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO4.md",
+            "heading": "vs."
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Control-Flow Graph (CFG)"
+          ]
+        },
+        {
+          "id": "eip-04-l3-q03",
+          "type": "truefalse",
+          "prompt": "Ein CFG-Pfad allein legt die Ausführung vollständig fest, auch wenn die Variablenwerte am Verzweigungsknoten unbekannt sind.",
+          "options": [
+            {
+              "id": "true",
+              "text": "Wahr"
+            },
+            {
+              "id": "false",
+              "text": "Falsch"
+            }
+          ],
+          "correct": [
+            "false"
+          ],
+          "explanation": "Am Verzweigungsknoten entscheidet der aktuelle Variablenzustand, welche Kante genommen wird. Deshalb gehört der mitgeführte Zustand zur operationalen Semantik.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO4.md",
+            "heading": "1. Control-Flow Graphs (CFG)"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Pfad und operationale Semantik"
+          ]
+        },
+        {
+          "id": "eip-04-l3-q04",
+          "type": "code_output",
+          "prompt": "Welche Ausgabe entsteht?\n\n```java\nint[] a = new int[4];\nfor (int i = 0; i < a.length; ++i) {\n    a[i] = i + 2;\n}\nwrite(a[3]);\n```",
+          "options": [
+            {
+              "id": "a",
+              "text": "`2`"
+            },
+            {
+              "id": "b",
+              "text": "`3`"
+            },
+            {
+              "id": "c",
+              "text": "`4`"
+            },
+            {
+              "id": "d",
+              "text": "`5`"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Die Schleife setzt die Werte auf 2, 3, 4 und 5 für die Indizes 0 bis 3. Daher ist `a[3]` gleich 5.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO4.md",
+            "heading": "5. For-Schleife"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "For-Schleife",
+            "Arrays und Indizes"
+          ]
+        },
+        {
+          "id": "eip-04-l3-q05",
+          "type": "single",
+          "prompt": "Welche While-Schleife ist zur folgenden For-Schleife äquivalent?\n\n```java\nfor (int i = 0; i < a.length; ++i) write(a[i]);\n```",
+          "options": [
+            {
+              "id": "a",
+              "text": "`{ int i = 0; while (i <= a.length) { write(a[i]); i = i + 1; } }`"
+            },
+            {
+              "id": "b",
+              "text": "`{ int i = 1; while (i <= a.length) { write(a[i]); i = i + 1; } }`"
+            },
+            {
+              "id": "c",
+              "text": "`{ int i = 0; while (i < a.length) { write(a[i]); i = i + 1; } }`"
+            },
+            {
+              "id": "d",
+              "text": "`{ int i = 0; while (i < a.length) { i = i + 1; write(a[i]); } }`"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Die Initialisierung kommt vor die Schleife, der Body vor das Update, und danach erfolgt der nächste Test. Die anderen Varianten verschieben das Update oder verwenden eine falsche Grenze.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO4.md",
+            "heading": "5. For-Schleife"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "For-Schleife"
+          ]
+        },
+        {
+          "id": "eip-04-l3-q06",
+          "type": "multi",
+          "prompt": "Wähle alle richtigen Aussagen über das Erzeugen von Arrays. Mehrere Antworten können richtig sein.",
+          "options": [
+            {
+              "id": "a",
+              "text": "Die Elemente eines neuen `int`-Arrays sind zunächst 0."
+            },
+            {
+              "id": "b",
+              "text": "Ein neues `int`-Array ist zunächst mit 1 gefüllt."
+            },
+            {
+              "id": "c",
+              "text": "Wenn sich die Variable für die Länge später ändert, wächst das Array mit."
+            },
+            {
+              "id": "d",
+              "text": "`new int[3]` erzeugt ein Array der Länge 3."
+            },
+            {
+              "id": "e",
+              "text": "Die Länge eines Arrays bleibt nach der Erzeugung fix."
+            }
+          ],
+          "correct": [
+            "a",
+            "d",
+            "e"
+          ],
+          "explanation": "Die Länge kann zur Laufzeit festgelegt werden, ist danach aber unveränderlich. Neue `int`-Elemente starten mit 0.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO4.md",
+            "heading": "4. Arrays"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Arrays und Indizes"
+          ]
+        },
+        {
+          "id": "eip-04-l3-q07",
+          "type": "code_output",
+          "prompt": "Was gibt dieser Code aus?\n\n```java\nString s = \"ab\";\nwrite(s.equals(\"ab\"));\n```",
+          "options": [
+            {
+              "id": "a",
+              "text": "`true`"
+            },
+            {
+              "id": "b",
+              "text": "`ab`"
+            },
+            {
+              "id": "c",
+              "text": "Ein Arrayfehler"
+            },
+            {
+              "id": "d",
+              "text": "`false`"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "`equals` vergleicht den Inhalt. Beide Strings enthalten dieselben Zeichen, daher ist das Ergebnis `true`.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO4.md",
+            "heading": "3. Strings"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Stringvergleich mit equals"
+          ]
+        },
+        {
+          "id": "eip-04-l3-q08",
+          "type": "code_output",
+          "prompt": "Welche Ausgabe entsteht?\n\n```java\nint[] a = new int[3];\nfor (int i = 0; i < a.length; ++i) a[i] = i;\nint result = a[0];\nfor (int i = 1; i < a.length; ++i)\n    if (a[i] < result) result = a[i];\nwrite(result);\n```",
+          "options": [
+            {
+              "id": "a",
+              "text": "`3`"
+            },
+            {
+              "id": "b",
+              "text": "`0`"
+            },
+            {
+              "id": "c",
+              "text": "`1`"
+            },
+            {
+              "id": "d",
+              "text": "`2`"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "Das Array enthält 0, 1 und 2. Die Minimum-Schleife startet mit `a[0]` und findet keinen kleineren Wert, also bleibt `result` gleich 0.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO4.md",
+            "heading": "Minimum (Voraussetzung               )"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Schleifeninvariante",
+            "Arrays und Indizes"
+          ]
+        },
+        {
+          "id": "eip-04-l3-q09",
+          "type": "multi",
+          "prompt": "Wähle alle richtigen Aussagen zu Referenzen. Mehrere Antworten können richtig sein.",
+          "options": [
+            {
+              "id": "a",
+              "text": "`b = a` erzeugt automatisch ein zweites gleich großes Array."
+            },
+            {
+              "id": "b",
+              "text": "Die Variable speichert direkt alle Arrayelemente anstelle einer Referenz."
+            },
+            {
+              "id": "c",
+              "text": "`int[] b = a` kopiert die Referenz."
+            },
+            {
+              "id": "d",
+              "text": "Nach `b = a` zeigen `a` und `b` auf dasselbe Array."
+            },
+            {
+              "id": "e",
+              "text": "Eine Änderung über `b` kann über `a` sichtbar sein."
+            }
+          ],
+          "correct": [
+            "c",
+            "d",
+            "e"
+          ],
+          "explanation": "Bei der Zuweisung wird nur die Referenz übernommen. Deshalb teilen sich beide Variablen dasselbe Array; ein neues Array wird nicht erzeugt.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO4.md",
+            "heading": "Referenzen ⚠"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Array-Referenzen"
+          ]
+        },
+        {
+          "id": "eip-04-l3-q10",
+          "type": "single",
+          "prompt": "Welche Aussage über ein 2D-Array folgt aus `int[][] grid = new int[3][4]`?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Es gibt 3 Zeilen mit jeweils 4 Spalten."
+            },
+            {
+              "id": "b",
+              "text": "Jede Zeile muss später dieselbe Länge wie jede andere Zeile behalten."
+            },
+            {
+              "id": "c",
+              "text": "`grid[1]` ist ein einzelnes `int`."
+            },
+            {
+              "id": "d",
+              "text": "Es gibt 4 Zeilen mit jeweils 3 Spalten."
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "Die äußere Länge 3 bezeichnet die Zeilen, die innere Länge 4 die Spalten. `grid[1]` ist dabei selbst eine Zeile, also ein Array.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO4.md",
+            "heading": "2D-Arrays = Array von Arrays"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "2D-Arrays"
+          ]
+        },
+        {
+          "id": "eip-04-l3-q11",
+          "type": "diagram",
+          "prompt": "Welche Kante zeigt im Diagramm den Rücksprung einer Schleife?\n\n```mermaid\nflowchart TD\n    I[\"init\"] --> C{\"cond\"}\n    C -- yes --> B[\"body\"] --> U[\"update\"] --> C\n    C -- no --> N[\"next statement\"]\n```",
+          "options": [
+            {
+              "id": "a",
+              "text": "`B --> U`"
+            },
+            {
+              "id": "b",
+              "text": "`C -- yes --> B`"
+            },
+            {
+              "id": "c",
+              "text": "`I --> C`"
+            },
+            {
+              "id": "d",
+              "text": "`U --> C`"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Nach dem Body führt der Update-Schritt zurück zum Bedingungstest. Dadurch kann die Schleife erneut durchlaufen werden.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO4.md",
+            "heading": "5. For-Schleife"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "For-Schleife",
+            "Control-Flow Graph (CFG)"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "eip-04-l4",
+      "index": 4,
+      "kind": "boss",
+      "title": "Boss",
+      "questions": [
+        {
+          "id": "eip-04-l4-q01",
+          "type": "code_output",
+          "prompt": "Ein Array enthält `30` und `20`. Welche Ausgabe erzeugt der folgende Code?\n\n```java\nint[] a = new int[2];\na[0] = 30;\na[1] = 20;\nint x = a[0], y = a[1];\nwhile (x != y)\n    if (x < y) y = y - x;\n    else x = x - y;\nwrite(x);\n```",
+          "options": [
+            {
+              "id": "a",
+              "text": "`10`"
+            },
+            {
+              "id": "b",
+              "text": "`30`"
+            },
+            {
+              "id": "c",
+              "text": "`20`"
+            },
+            {
+              "id": "d",
+              "text": "`0`"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "Der Ablauf ergibt zuerst `x = 10`, dann `y = 10`. Danach endet die Schleife und `x = 10` wird ausgegeben.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO2.md",
+            "heading": null
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Euklidischer Algorithmus",
+            "Control-Flow Graph (CFG)"
+          ]
+        },
+        {
+          "id": "eip-04-l4-q02",
+          "type": "multi",
+          "prompt": "Wähle alle Aussagen, die den Zusammenhang zwischen Array-Einlesen, Schleifeninvariante und Laufzeit korrekt beschreiben. Mehrere Antworten können richtig sein.",
+          "options": [
+            {
+              "id": "a",
+              "text": "Die Schleife liest dieselben Elemente unbegrenzt erneut."
+            },
+            {
+              "id": "b",
+              "text": "Die Bedingung `i < a.length` verhindert den Zugriff auf `a[a.length]`."
+            },
+            {
+              "id": "c",
+              "text": "Jeder Schleifendurchlauf liest ein Element und erhöht `i` um 1."
+            },
+            {
+              "id": "d",
+              "text": "Vor jedem Test sind genau `i` Elemente gelesen."
+            },
+            {
+              "id": "e",
+              "text": "Das Verfahren beginnt mit `i = 1`, damit Index 0 übersprungen wird."
+            }
+          ],
+          "correct": [
+            "b",
+            "c",
+            "d"
+          ],
+          "explanation": "Mit `i = 0` werden die Positionen nacheinander verarbeitet; nach jedem Lesen steigt `i`. Bei `i = a.length` endet die Schleife, bevor der ungültige Index verwendet wird.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO4.md",
+            "heading": "Array einlesen"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Schleifeninvariante",
+            "Arrays und Indizes"
+          ]
+        },
+        {
+          "id": "eip-04-l4-q03",
+          "type": "single",
+          "prompt": "Welche Umformung bewahrt die Reihenfolge der folgenden For-Schleife?\n\n```java\nfor (int i = 1; i < a.length; ++i)\n    if (a[i] < result) result = a[i];\n```",
+          "options": [
+            {
+              "id": "a",
+              "text": "`int i = 0; while (i <= a.length) { if (a[i] < result) result = a[i]; i = i + 1; }`"
+            },
+            {
+              "id": "b",
+              "text": "`int i = 1; while (i <= a.length) { if (a[i] < result) result = a[i]; i = i + 1; }`"
+            },
+            {
+              "id": "c",
+              "text": "`int i = 1; while (i < a.length) { i = i + 1; if (a[i] < result) result = a[i]; }`"
+            },
+            {
+              "id": "d",
+              "text": "`int i = 1; while (i < a.length) { if (a[i] < result) result = a[i]; i = i + 1; }`"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Die For-Schleife startet bei 1, prüft vor dem Body `i < a.length` und erhöht erst nach dem Body. Genau das bildet Variante a ab.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO4.md",
+            "heading": "5. For-Schleife"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "For-Schleife",
+            "Schleifeninvariante"
+          ]
+        },
+        {
+          "id": "eip-04-l4-q04",
+          "type": "code_output",
+          "prompt": "Was gibt dieser Code aus?\n\n```java\nString s = \"x\";\nwrite(s + 1 + 2);\nwrite(s + (1 + 2));\n```",
+          "options": [
+            {
+              "id": "a",
+              "text": "Zuerst `x3`, danach `x12`"
+            },
+            {
+              "id": "b",
+              "text": "Zweimal `x12`"
+            },
+            {
+              "id": "c",
+              "text": "Zweimal `x3`"
+            },
+            {
+              "id": "d",
+              "text": "Zuerst `x12`, danach `x3`"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Im ersten Ausdruck erfolgt die Verkettung links nach rechts: `x` wird zu `x1` und danach zu `x12`. In der zweiten Zeile berechnen die Klammern zuerst `1 + 2 = 3`.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO4.md",
+            "heading": "3. Strings"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "String-Konkatenation"
+          ]
+        },
+        {
+          "id": "eip-04-l4-q05",
+          "type": "single",
+          "prompt": "Warum ist `result = a[0]` eine notwendige Voraussetzung für den gezeigten Minimum-Algorithmus, wenn `a.length > 0` gilt?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Damit die Arraylänge veränderlich bleibt."
+            },
+            {
+              "id": "b",
+              "text": "Damit vor dem ersten Schleifentest bereits ein Wert als aktuelles Minimum vorhanden ist."
+            },
+            {
+              "id": "c",
+              "text": "Damit die Schleife bei `i = 0` startet und `a[-1]` liest."
+            },
+            {
+              "id": "d",
+              "text": "Damit Index 0 absichtlich nie berücksichtigt wird."
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "Die Invariante benötigt vor dem ersten Test ein Minimum der bereits betrachteten Elemente. `a[0]` liefert dieses erste Element; deshalb muss das Array nicht leer sein.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO4.md",
+            "heading": "Minimum (Voraussetzung               )"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Schleifeninvariante",
+            "Arrays und Indizes"
+          ]
+        },
+        {
+          "id": "eip-04-l4-q06",
+          "type": "diagram",
+          "prompt": "Welche Eigenschaft unterscheidet die beiden Teilgraphen?\n\n```mermaid\nflowchart LR\n    subgraph reduzierbar\n    S1([Start]) --> L1((loop)) --> X1(( )) --> L1\n    X1 --> E1([Stop])\n    end\n    subgraph nicht_reduzierbar\n    S2([Start]) --> L2((loop)) --> X2(( )) --> L2\n    S2 --> X2\n    X2 --> E2([Stop])\n    end\n```",
+          "options": [
+            {
+              "id": "a",
+              "text": "Die linke Schleife hat zwei unabhängige Eintrittspunkte."
+            },
+            {
+              "id": "b",
+              "text": "Die rechte Schleife besitzt keinen Stop-Knoten."
+            },
+            {
+              "id": "c",
+              "text": "Die rechte Schleife hat einen zusätzlichen Eintritt in ihre Mitte."
+            },
+            {
+              "id": "d",
+              "text": "Die linke Schleife besitzt überhaupt keinen Rücksprung."
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Im nicht reduzierbaren Teil führt zusätzlich zu `L2` ein Weg direkt von `S2` nach `X2`. Damit hat die Schleife mehr als einen Eintrittspunkt.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO4.md",
+            "heading": "Reduzierbarkeit"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Reduzierbarkeit",
+            "Control-Flow Graph (CFG)"
+          ]
+        },
+        {
+          "id": "eip-04-l4-q07",
+          "type": "code_output",
+          "prompt": "Welche Ausgabe entsteht?\n\n```java\nint[][] grid = new int[2][3];\ngrid[0][1] = 4;\ngrid[1] = new int[1];\nwrite(grid[0][1]);\nwrite(grid[1].length);\n```",
+          "options": [
+            {
+              "id": "a",
+              "text": "Eine Exception beim Zuweisen von `grid[1]`"
+            },
+            {
+              "id": "b",
+              "text": "`0` und danach `1`"
+            },
+            {
+              "id": "c",
+              "text": "`4` und danach `1`"
+            },
+            {
+              "id": "d",
+              "text": "`4` und danach `3`"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "`grid[0]` bleibt die ursprüngliche Zeile mit Wert 4 an Position 1. `grid[1]` kann als einzelne Zeile neu referenziert werden und hat danach Länge 1.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO4.md",
+            "heading": "2D-Arrays = Array von Arrays"
+          },
+          "difficulty": 5,
+          "concepts": [
+            "2D-Arrays",
+            "Array-Referenzen"
+          ]
+        },
+        {
+          "id": "eip-04-l4-q08",
+          "type": "code_output",
+          "prompt": "Welche Ausgabe entsteht, wenn das Array im Code mit den Werten 5, 2 und 7 gefüllt wird?\n\n```java\nint[] a = new int[3];\na[0] = 5;\na[1] = 2;\na[2] = 7;\nint result = a[0];\nfor (int i = 1; i < a.length; ++i)\n    if (a[i] < result) result = a[i];\nwrite(result);\n```",
+          "options": [
+            {
+              "id": "a",
+              "text": "`5`"
+            },
+            {
+              "id": "b",
+              "text": "`2`"
+            },
+            {
+              "id": "c",
+              "text": "`7`"
+            },
+            {
+              "id": "d",
+              "text": "`0`"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "`result` startet mit 5, wird beim Vergleich mit 2 ersetzt und bleibt beim Vergleich mit 7 unverändert. Das Minimum ist daher 2.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO4.md",
+            "heading": "Minimum (Voraussetzung               )"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Schleifeninvariante",
+            "For-Schleife"
+          ]
+        },
+        {
+          "id": "eip-04-l4-q09",
+          "type": "multi",
+          "prompt": "Wähle alle richtigen Aussagen zur For-Schleife und ihrer Ausführungsreihenfolge. Mehrere Antworten können richtig sein.",
+          "options": [
+            {
+              "id": "a",
+              "text": "Die Ausführungsreihenfolge ist trotzdem init, Test, Body, Update, nächster Test."
+            },
+            {
+              "id": "b",
+              "text": "Eine Umformung in eine While-Schleife kann die Struktur der einzelnen Schritte sichtbar machen."
+            },
+            {
+              "id": "c",
+              "text": "Der Body wird auch ausgeführt, wenn der erste Test false ergibt."
+            },
+            {
+              "id": "d",
+              "text": "`init`, `cond` und `upd` sind im Quelltext räumlich in der For-Klammer gebündelt."
+            },
+            {
+              "id": "e",
+              "text": "Der Update-Ausdruck läuft vor dem ersten Test."
+            }
+          ],
+          "correct": [
+            "a",
+            "b",
+            "d"
+          ],
+          "explanation": "Die For-Syntax bündelt die drei Teile, aber semantisch kommt der erste Test vor Body und Update. Bei false wird der Body übersprungen; die While-Umformung macht diese Reihenfolge explizit.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO4.md",
+            "heading": "5. For-Schleife"
+          },
+          "difficulty": 5,
+          "concepts": [
+            "For-Schleife",
+            "Syntax und Semantik"
+          ]
+        },
+        {
+          "id": "eip-04-l4-q10",
+          "type": "single",
+          "prompt": "Ein einmaliges Durchgehen eines Arrays mit $n$ Elementen prüft jedes Element genau einmal. Welche Laufzeitklasse passt dazu?",
+          "options": [
+            {
+              "id": "a",
+              "text": "$\\Theta(2^n)$"
+            },
+            {
+              "id": "b",
+              "text": "$\\Theta(n^2)$"
+            },
+            {
+              "id": "c",
+              "text": "$\\Theta(n)$"
+            },
+            {
+              "id": "d",
+              "text": "$\\Theta(1)$"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Die Anzahl der Prüfungen wächst proportional mit der Elementzahl. Das entspricht $\\Theta(n)$, wie beim einmaligen Durchgehen einer geordneten Liste.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO1.md",
+            "heading": null
+          },
+          "difficulty": 5,
+          "concepts": [
+            "Laufzeit",
+            "For-Schleife",
+            "Arrays und Indizes"
+          ]
+        },
+        {
+          "id": "eip-04-l4-q11",
+          "type": "code_output",
+          "prompt": "Welche Bedingung beendet diesen Ablauf bei positiven Eingaben, und warum?\n\n```java\nint x = readInt(), y = readInt();\nwhile (x != y)\n    if (x < y) y = y - x;\n    else x = x - y;\nwrite(x);\n```",
+          "options": [
+            {
+              "id": "a",
+              "text": "`x < y`; danach wird immer sofort ausgegeben."
+            },
+            {
+              "id": "b",
+              "text": "`x == 0`; die Variablen werden bis 0 subtrahiert."
+            },
+            {
+              "id": "c",
+              "text": "`x > y`; dieser Test beendet die Schleife."
+            },
+            {
+              "id": "d",
+              "text": "`x == y`; die Subtraktionen führen bei positiven Werten schließlich dorthin."
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Der Schleifentest ist `x != y`; beendet wird also bei Gleichheit. Bei positiven Eingaben bleiben die Werte positiv und der euklidische Algorithmus erreicht schließlich den Anker `x = y`.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO2.md",
+            "heading": null
+          },
+          "difficulty": 5,
+          "concepts": [
+            "Euklidischer Algorithmus",
+            "Control-Flow Graph (CFG)",
+            "Pfad und operationale Semantik"
+          ]
+        }
+      ]
+    }
+  ]
+}
