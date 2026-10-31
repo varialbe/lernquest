@@ -1,0 +1,35 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+    paths-ignore: ['content/**', '**/*.md']
+  pull_request:
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: git config --global user.email ci@example.com && git config --global user.name ci
+      - name: Typecheck
+        run: pnpm -r --if-present typecheck
+      - name: Tests (shared, api, pipeline)
+        run: pnpm -r --if-present test
+        env:
+          TZ: Europe/Berlin
+      - name: Build web
+        run: pnpm --filter @lernquest/web build
+      - name: Validate content
+        run: pnpm --filter @lernquest/api exec tsx -e "import('./src/content/import.ts').then(async (m) => { const { openDb } = await import('./src/db/index.ts'); const r = m.importContentDir(openDb(':memory:'), '../../content'); const bad = r.filter((x) => x.status === 'failed'); console.log(r.length, 'units'); if (bad.length) { console.error(bad); process.exit(1); } })"

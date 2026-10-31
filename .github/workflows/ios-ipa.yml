@@ -1,0 +1,66 @@
+name: iOS IPA (unsigned)
+
+# Nur manuell oder bei Release-Tags – spart macOS-Minuten
+on:
+  workflow_dispatch:
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  ipa:
+    runs-on: macos-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+
+      - name: Build web app (API über HTTPS)
+        working-directory: apps/web
+        env:
+          VITE_API_BASE: https://lern.varialbe.xyz
+        run: npx vite build
+
+      - name: Capacitor sync
+        working-directory: apps/web
+        run: npx cap sync ios
+
+      - name: xcodebuild (ohne Signatur)
+        working-directory: apps/web/ios/App
+        run: |
+          xcodebuild -project App.xcodeproj -scheme App -configuration Release -sdk iphoneos \
+            -derivedDataPath build -destination 'generic/platform=iOS' \
+            CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" \
+            build | tail -n 40
+
+      - name: Package IPA
+        working-directory: apps/web/ios/App
+        run: |
+          APP=build/Build/Products/Release-iphoneos/App.app
+          test -d "$APP"
+          mkdir -p Payload && cp -R "$APP" Payload/
+          VERSION="${GITHUB_REF_NAME#v}"
+          zip -qry "LernQuest-${VERSION:-dev}-unsigned.ipa" Payload
+          ls -lh *.ipa
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: LernQuest-unsigned-ipa
+          path: apps/web/ios/App/*.ipa
+          retention-days: 30
+
+      - name: Release
+        if: startsWith(github.ref, 'refs/tags/v')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: apps/web/ios/App/*.ipa
+          body: |
+            Unsignierte IPA – mit eigener Apple-ID per SideStore oder Sideloadly installieren.
+            Anleitung: docs/ios-sideloading.md
