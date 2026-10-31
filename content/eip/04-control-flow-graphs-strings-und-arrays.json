@@ -775,39 +775,46 @@
           ]
         },
         {
-          "id": "eip-04-l2-q10",
+          "id": "eip-04-l2-q10-r1",
           "type": "cloze",
-          "prompt": "Beim Einlesen eines Arrays gilt vor jedem Test die Invariante: Die ersten ___ Elemente sind bereits gelesen.",
+          "prompt": "Ein Array `a` der Länge 4 wird mit der gezeigten Schleife von links nach rechts eingelesen. Vor jedem Test von `i < a.length` gilt: Die ersten ___ Elemente sind bereits gelesen.",
+          "context": {
+            "type": "code",
+            "content": "int[] a = new int[4];\nint i = 0;\nwhile (i < a.length) {\n    a[i] = readInt();\n    i = i + 1;\n}",
+            "language": "java",
+            "caption": "`readInt()` liefert jeweils eine ganze Zahl. Die Schleife liest das Array von Index 0 an ein."
+          },
           "options": [
             {
               "id": "a",
-              "text": "`i`"
+              "text": "a.length + i"
             },
             {
               "id": "b",
-              "text": "`i - 1`"
+              "text": "a.length - i"
             },
             {
               "id": "c",
-              "text": "`a.length - i`"
+              "text": "i - 1"
             },
             {
               "id": "d",
-              "text": "`a.length + i`"
+              "text": "i"
             }
           ],
           "correct": [
-            "a"
+            "d"
           ],
-          "explanation": "Vor dem Test `i < a.length` sind genau die Positionen 0 bis `i-1` gelesen, also insgesamt `i` Elemente.",
+          "explanation": "Die Schleife startet mit `i = 0`. Vor jedem Test wurden die Positionen von 0 bis `i - 1` gelesen, also genau `i` Elemente. Nach jedem Lesen wird `i` um 1 erhöht.",
           "source": {
             "file": "EIP/01_Vorlesungen/EIP VO4.md",
             "heading": "Array einlesen"
           },
           "difficulty": 2,
           "concepts": [
+            "Array einlesen",
             "Schleifeninvariante",
-            "Arrays und Indizes"
+            "Indizes"
           ]
         },
         {
@@ -1298,9 +1305,15 @@
           ]
         },
         {
-          "id": "eip-04-l4-q02",
+          "id": "eip-04-l4-q02-r1",
           "type": "multi",
-          "prompt": "Wähle alle Aussagen, die den Zusammenhang zwischen Array-Einlesen, Schleifeninvariante und Laufzeit korrekt beschreiben. Mehrere Antworten können richtig sein.",
+          "prompt": "Ein Array `a` der Länge 3 wird mit der gezeigten Schleife eingelesen. `readInt()` liefert jeweils eine ganze Zahl. Wähle alle Aussagen, die für diese Schleife gelten.",
+          "context": {
+            "type": "code",
+            "content": "int[] a = new int[3];\nint i = 0;\nwhile (i < a.length) {\n    a[i] = readInt();\n    i = i + 1;\n}",
+            "language": "java",
+            "caption": "Die Arraylänge ist 3. `readInt()` liefert bei jedem Aufruf eine ganze Zahl."
+          },
           "options": [
             {
               "id": "a",
@@ -1308,35 +1321,36 @@
             },
             {
               "id": "b",
-              "text": "Die Bedingung `i < a.length` verhindert den Zugriff auf `a[a.length]`."
+              "text": "Vor jedem Test der Schleifenbedingung sind genau `i` Elemente gelesen."
             },
             {
               "id": "c",
-              "text": "Jeder Schleifendurchlauf liest ein Element und erhöht `i` um 1."
+              "text": "Das Verfahren beginnt mit `i = 1`, damit Index 0 übersprungen wird."
             },
             {
               "id": "d",
-              "text": "Vor jedem Test sind genau `i` Elemente gelesen."
+              "text": "Jeder Schleifendurchlauf liest ein Element und erhöht `i` um 1."
             },
             {
               "id": "e",
-              "text": "Das Verfahren beginnt mit `i = 1`, damit Index 0 übersprungen wird."
+              "text": "Die Bedingung `i < a.length` verhindert, dass die Schleife `a[a.length]` liest."
             }
           ],
           "correct": [
             "b",
-            "c",
-            "d"
+            "d",
+            "e"
           ],
-          "explanation": "Mit `i = 0` werden die Positionen nacheinander verarbeitet; nach jedem Lesen steigt `i`. Bei `i = a.length` endet die Schleife, bevor der ungültige Index verwendet wird.",
+          "explanation": "`i` startet bei 0 und steigt nach jedem gelesenen Element um 1. Damit wird jeder gültige Index einmal gelesen. Bei `i == a.length` ist die Bedingung falsch und der Schleifenkörper wird nicht mehr ausgeführt. Vor jedem Test wurden genau `i` Elemente gelesen.",
           "source": {
             "file": "EIP/01_Vorlesungen/EIP VO4.md",
             "heading": "Array einlesen"
           },
-          "difficulty": 4,
+          "difficulty": 2,
           "concepts": [
+            "Array einlesen",
             "Schleifeninvariante",
-            "Arrays und Indizes"
+            "Schleifenbedingung"
           ]
         },
         {
@@ -1376,13 +1390,19 @@
           ]
         },
         {
-          "id": "eip-04-l4-q04",
+          "id": "eip-04-l4-q04-r1",
           "type": "code_output",
-          "prompt": "Was gibt dieser Code aus?\n\n```java\nString s = \"x\";\nwrite(s + 1 + 2);\nwrite(s + (1 + 2));\n```",
+          "prompt": "Welche beiden Werte gibt der Code aus? `write(wert)` gibt den Wert in einer eigenen Zeile aus. Bei `+` gilt: Sobald ein Operand ein String ist, wird der andere Operand in Text umgewandelt; die Auswertung erfolgt von links nach rechts.",
+          "context": {
+            "type": "code",
+            "content": "String s = \"x\";\nwrite(s + 1 + 2);\nwrite(s + (1 + 2));",
+            "language": "java",
+            "caption": "Der Code führt zwei `write`-Aufrufe aus."
+          },
           "options": [
             {
               "id": "a",
-              "text": "Zuerst `x3`, danach `x12`"
+              "text": "Zweimal `x3`"
             },
             {
               "id": "b",
@@ -1390,60 +1410,69 @@
             },
             {
               "id": "c",
-              "text": "Zweimal `x3`"
+              "text": "Zuerst `x12`, danach `x3`"
             },
             {
               "id": "d",
-              "text": "Zuerst `x12`, danach `x3`"
+              "text": "Zuerst `x3`, danach `x12`"
             }
           ],
           "correct": [
-            "d"
+            "c"
           ],
-          "explanation": "Im ersten Ausdruck erfolgt die Verkettung links nach rechts: `x` wird zu `x1` und danach zu `x12`. In der zweiten Zeile berechnen die Klammern zuerst `1 + 2 = 3`.",
+          "explanation": "Im ersten Ausdruck wird von links nach rechts verkettet: `s + 1` ergibt `x1`, danach ergibt `x1 + 2` den Text `x12`. In der zweiten Zeile werden zuerst die Klammern ausgewertet: `1 + 2` ergibt 3, also wird `x3` ausgegeben.",
           "source": {
             "file": "EIP/01_Vorlesungen/EIP VO4.md",
             "heading": "3. Strings"
           },
-          "difficulty": 4,
+          "difficulty": 2,
           "concepts": [
-            "String-Konkatenation"
+            "String-Konkatenation",
+            "Auswertungsreihenfolge",
+            "Klammern"
           ]
         },
         {
-          "id": "eip-04-l4-q05",
+          "id": "eip-04-l4-q05-r1",
           "type": "single",
-          "prompt": "Warum ist `result = a[0]` eine notwendige Voraussetzung für den gezeigten Minimum-Algorithmus, wenn `a.length > 0` gilt?",
+          "prompt": "Der folgende Minimum-Algorithmus setzt `result` zuerst auf `a[0]` und beginnt die Schleife bei `i = 1`. Das Array hat mindestens ein Element. Welche Aufgabe erfüllt diese Initialisierung für den Algorithmus?",
+          "context": {
+            "type": "code",
+            "content": "int[] a = {7, 2, 5};\nint result = a[0];\nfor (int i = 1; i < a.length; ++i)\n    if (a[i] < result) result = a[i];\nwrite(result);",
+            "language": "java",
+            "caption": "Der Algorithmus gibt das Minimum des nichtleeren Arrays aus."
+          },
           "options": [
             {
               "id": "a",
-              "text": "Damit die Arraylänge veränderlich bleibt."
+              "text": "Sie stellt vor dem ersten Schleifentest einen Wert bereit, der das Minimum der bereits betrachteten Elemente ist."
             },
             {
               "id": "b",
-              "text": "Damit vor dem ersten Schleifentest bereits ein Wert als aktuelles Minimum vorhanden ist."
+              "text": "Sie sorgt dafür, dass Index 0 absichtlich nie berücksichtigt wird."
             },
             {
               "id": "c",
-              "text": "Damit die Schleife bei `i = 0` startet und `a[-1]` liest."
+              "text": "Sie sorgt dafür, dass die Schleife bei `i = 0` startet und `a[-1]` liest."
             },
             {
               "id": "d",
-              "text": "Damit Index 0 absichtlich nie berücksichtigt wird."
+              "text": "Sie sorgt dafür, dass die Arraylänge veränderlich bleibt."
             }
           ],
           "correct": [
-            "b"
+            "a"
           ],
-          "explanation": "Die Invariante benötigt vor dem ersten Test ein Minimum der bereits betrachteten Elemente. `a[0]` liefert dieses erste Element; deshalb muss das Array nicht leer sein.",
+          "explanation": "Vor dem ersten Schleifentest ist zunächst nur `a[0]` betrachtet. Durch `result = a[0]` ist `result` bereits das Minimum dieses bisher betrachteten Bereichs. Die Schleife prüft anschließend die Elemente ab Index 1.",
           "source": {
             "file": "EIP/01_Vorlesungen/EIP VO4.md",
             "heading": "Minimum (Voraussetzung               )"
           },
-          "difficulty": 4,
+          "difficulty": 2,
           "concepts": [
+            "Minimum in einem Array",
             "Schleifeninvariante",
-            "Arrays und Indizes"
+            "Arrayindizes"
           ]
         },
         {

@@ -676,38 +676,40 @@
           ]
         },
         {
-          "id": "era-04-l2-q07",
+          "id": "era-04-l2-q07-r1",
           "type": "calc",
-          "prompt": "Der 32-Bit-Wert `0x10325476` beginnt bei Adresse `n`. Welches Byte steht bei Little Endian an `n+2`?",
+          "prompt": "Der 32-Bit-Wert `0x6C2A91E7` beginnt an der Byteadresse `n`. Seine Bytes vom höchstwertigen zum niederwertigsten sind `0x6C`, `0x2A`, `0x91`, `0xE7`. Bei Little Endian steht das niederwertigste Byte an `n`; an jeder folgenden Adresse steht das nächsthöhere Byte. Welches Byte steht an `n+2`?",
           "options": [
             {
               "id": "a",
-              "text": "`0x54`"
+              "text": "0xE7"
             },
             {
               "id": "b",
-              "text": "`0x10`"
+              "text": "0x91"
             },
             {
               "id": "c",
-              "text": "`0x32`"
+              "text": "0x2A"
             },
             {
               "id": "d",
-              "text": "`0x76`"
+              "text": "0x6C"
             }
           ],
           "correct": [
             "c"
           ],
-          "explanation": "Little Endian legt die Bytes in der Reihenfolge `76`, `54`, `32`, `10` ab. Daher steht an `n+2` das Byte `0x32`.",
+          "explanation": "Die Bytes liegen bei Little Endian ab `n` in der Reihenfolge `0xE7`, `0x91`, `0x2A`, `0x6C`. Damit steht an `n+2` das Byte `0x2A`.",
           "source": {
             "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO4.md",
             "heading": "Little Endian und Big Endian"
           },
-          "difficulty": 3,
+          "difficulty": 2,
           "concepts": [
-            "Little Endian und Big Endian"
+            "Little Endian",
+            "Byte-Reihenfolge",
+            "Speicheradressen"
           ]
         },
         {
@@ -1141,73 +1143,78 @@
           ]
         },
         {
-          "id": "era-04-l3-q09",
+          "id": "era-04-l3-q09-r1",
           "type": "single",
-          "prompt": "Welche Aussage passt zu den genannten Beispielen für unausgerichtete Zugriffe?",
+          "prompt": "Für diese Frage gilt: Ein 4-Byte-Datum an Adresse $A$ ist ausgerichtet, wenn $A \\bmod 4 = 0$. x86 kann unausgerichtete Zugriffe ermöglichen; manche ARM-Typen haben strengere Ausrichtungsanforderungen. Ein 4-Byte-Zugriff beginnt an Byteadresse 6. Welche Aussage trifft zu?",
           "options": [
             {
               "id": "a",
-              "text": "Alignment ist nur für Sprungbefehle relevant, nie für Daten."
+              "text": "Alle x86-Prozessoren müssen den Zugriff ablehnen und alle ARM-Prozessoren müssen ihn erlauben."
             },
             {
               "id": "b",
-              "text": "x86 kann unausgerichtete Zugriffe ermöglichen, während manche ARM-Typen strengere Anforderungen haben."
+              "text": "Ein x86-Prozessor, der unausgerichtete Zugriffe ermöglicht, kann den Zugriff erlauben; bei manchen ARM-Typen kann er gegen die strengere Ausrichtungsanforderung verstoßen."
             },
             {
               "id": "c",
-              "text": "Alle Prozessoren müssen unausgerichtete Zugriffe immer ablehnen."
+              "text": "Adresse 6 ist ausgerichtet, weil sie durch 2 teilbar ist."
             },
             {
               "id": "d",
-              "text": "Eine Adresse wie 6 ist für jedes 4-Byte-Datum automatisch ausgerichtet."
+              "text": "Ausrichtung ist nur für Sprungbefehle relevant, nicht für Datenzugriffe."
             }
           ],
           "correct": [
             "b"
           ],
-          "explanation": "Die Mitschrift nennt x86 als Beispiel für mögliche unausgerichtete Zugriffe und manche ARM-Typen als Beispiel für strengere Anforderungen. Für ein 4-Byte-Datum wäre 6 außerdem nicht durch 4 teilbar.",
+          "explanation": "$6 \\bmod 4 = 2$, also ist die Adresse für ein 4-Byte-Datum unausgerichtet. Laut den in der Frage genannten Eigenschaften kann ein x86-Prozessor unausgerichtete Zugriffe ermöglichen; bei manchen ARM-Typen kann die Adresse die strengere Anforderung verletzen.",
           "source": {
             "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO4.md",
             "heading": "Ausrichtung (*Alignment*)"
           },
-          "difficulty": 4,
+          "difficulty": 2,
           "concepts": [
-            "Alignment"
+            "Ausrichtung",
+            "Byteadressen",
+            "Unausgerichtete Zugriffe"
           ]
         },
         {
-          "id": "era-04-l3-q10",
+          "id": "era-04-l3-q10-r1",
           "type": "code_output",
-          "prompt": "Was gibt dieser Code aus, genauer: Welchen Wert enthält `s0` am Ende?\n\n```asm\naddi s3, x0, 5\naddi s4, x0, 5\naddi s0, x0, 10\naddi s1, x0, 3\nbne  s3, s4, L1\nadd  s0, s0, s1\nL1:\nsub  s0, s0, s3\n```",
+          "prompt": "In diesem RISC-V-Code gilt `x0 = 0`. `addi rd, rs, n` schreibt `rs + n` nach `rd`; `add` addiert zwei Register, `sub` zieht das zweite Register vom ersten ab. `bne r1, r2, L` springt zu `L`, wenn die Registerwerte verschieden sind. Ein Sprung zu einem Label führt die Ausführung dort fort; Instruktionen vor dem Label werden übersprungen, Instruktionen ab dem Label werden ausgeführt.\n\nWelchen Wert enthält `s0` nach Ausführung des Codes?\n\n```asm\naddi s3, x0, 4\naddi s4, x0, 7\naddi s0, x0, 20\naddi s1, x0, 6\nbne  s3, s4, L1\nadd  s0, s0, s1\nL1:\nsub  s0, s0, s3\n```",
           "options": [
             {
               "id": "a",
-              "text": "2"
+              "text": "4"
             },
             {
               "id": "b",
-              "text": "5"
+              "text": "26"
             },
             {
               "id": "c",
-              "text": "13"
+              "text": "16"
             },
             {
               "id": "d",
-              "text": "8"
+              "text": "22"
             }
           ],
           "correct": [
-            "d"
+            "c"
           ],
-          "explanation": "`s3` und `s4` sind gleich, daher wird die Addition ausgeführt: $s0=10+3=13$. Danach folgt die Subtraktion bei `L1`: $13-5=8$.",
+          "explanation": "`s3` und `s4` enthalten 4 und 7. Weil sie verschieden sind, springt `bne` zu `L1` und überspringt die Addition. Die Subtraktion am Label wird ausgeführt: `s0 = 20 − 4 = 16`.",
           "source": {
             "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO4.md",
             "heading": "Bedingter Sprung (*Branch*)"
           },
-          "difficulty": 4,
+          "difficulty": 2,
           "concepts": [
-            "Sprünge und Branches"
+            "bedingter Sprung",
+            "bne",
+            "Sprungmarken",
+            "Assembler-Ausführung"
           ]
         },
         {
@@ -1404,45 +1411,47 @@
           ]
         },
         {
-          "id": "era-04-l4-q05",
+          "id": "era-04-l4-q05-r2",
           "type": "multi",
-          "prompt": "Ein 4-Byte-Wert `0x10325476` beginnt bei Adresse 1000. Welche Aussagen treffen bei Little Endian zu? Wähle alle richtigen Aussagen; mehrere Antworten können richtig sein.",
+          "prompt": "Der 32-Bit-Wert `0x5C7E91A3` beginnt an Byteadresse 128. Seine Bytes vom höchstwertigen zum niederwertigsten sind `0x5C`, `0x7E`, `0x91`, `0xA3`. Bei Little Endian steht das niederwertigste Byte an der niedrigsten Adresse; an jeder folgenden Adresse steht das nächsthöhere Byte. Ein 4-Byte-Datum an Adresse $A$ ist ausgerichtet, wenn $A \\bmod 4 = 0$. Welche Aussagen treffen zu? Wähle alle richtigen Aussagen.",
           "options": [
             {
               "id": "a",
-              "text": "Adresse 1000 ist für ein 4-Byte-Datum ausgerichtet."
+              "text": "An Adresse 130 steht das Byte 0x91."
             },
             {
               "id": "b",
-              "text": "An Adresse 1002 steht `0x10`."
+              "text": "Das höchstwertige Byte 0x5C steht an Adresse 131."
             },
             {
               "id": "c",
-              "text": "Das höchstwertige Byte steht an der niedrigsten Adresse."
+              "text": "Adresse 128 ist für ein 4-Byte-Datum ausgerichtet."
             },
             {
               "id": "d",
-              "text": "An Adresse 1000 steht `0x76`."
+              "text": "An Adresse 128 steht das Byte 0xA3."
             },
             {
               "id": "e",
-              "text": "An Adresse 1001 steht `0x54`."
+              "text": "An Adresse 129 steht das Byte 0x7E."
             }
           ],
           "correct": [
-            "a",
-            "d",
-            "e"
+            "b",
+            "c",
+            "d"
           ],
-          "explanation": "Little Endian legt die Bytes als `76`, `54`, `32`, `10` ab. Außerdem gilt $1000\\bmod4=0$, daher ist die Startadresse ausgerichtet.",
+          "explanation": "Bei Little Endian liegen die Bytes an den Adressen 128 bis 131 in der Reihenfolge `0xA3`, `0x91`, `0x7E`, `0x5C`. Somit treffen c und e zu. Außerdem ist 128 durch 4 teilbar, also ist auch a richtig.",
           "source": {
             "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO4.md",
             "heading": "Little Endian und Big Endian"
           },
-          "difficulty": 5,
+          "difficulty": 2,
           "concepts": [
-            "Little Endian und Big Endian",
-            "Alignment"
+            "Little Endian",
+            "Ausrichtung",
+            "Byte-Reihenfolge",
+            "Speicheradressen"
           ]
         },
         {

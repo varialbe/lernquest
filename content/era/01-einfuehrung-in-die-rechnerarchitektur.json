@@ -787,37 +787,39 @@
           ]
         },
         {
-          "id": "era-01-l2-q10",
+          "id": "era-01-l2-q10-r1",
           "type": "calc",
-          "prompt": "Welche normalisierte Binärdarstellung entspricht $6{,}5_{10}$?",
+          "prompt": "Schreibe $5{,}25_{10}$ als normalisierte Binär-Gleitkommazahl. Für diese Frage bedeutet normalisiert: genau eine führende $1$ vor dem Binärkomma, also die Form $1{,}xxxxx_2 \\cdot 2^e$. Welche Darstellung ist richtig?",
           "options": [
             {
               "id": "a",
-              "text": "$1{,}101_2·2^3$"
+              "text": "1.0101₂ · 2^3"
             },
             {
               "id": "b",
-              "text": "$1{,}011_2·2^2$"
+              "text": "1.0101₂ · 2^1"
             },
             {
               "id": "c",
-              "text": "$1{,}101_2·2^1$"
+              "text": "1.0101₂ · 2^2"
             },
             {
               "id": "d",
-              "text": "$1{,}101_2·2^2$"
+              "text": "1.1010₂ · 2^2"
             }
           ],
           "correct": [
-            "d"
+            "c"
           ],
-          "explanation": "6,5 entspricht zunächst 110,1₂. Durch Verschieben des Binärkommas entsteht 1,101₂·2².",
+          "explanation": "$5{,}25_{10}=101{,}01_2$. Verschiebt man das Binärkomma um zwei Stellen nach links, erhält man $1{,}0101_2 \\cdot 2^2$.",
           "source": {
             "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO1.md",
             "heading": "Reelle Zahlen: Festkomma und Gleitkomma"
           },
           "difficulty": 2,
           "concepts": [
+            "Binärdarstellung",
+            "Normalisierung",
             "Gleitkomma"
           ]
         },
@@ -1120,39 +1122,46 @@
           ]
         },
         {
-          "id": "era-01-l3-q08",
+          "id": "era-01-l3-q08-r1",
           "type": "code_output",
-          "prompt": "Was gibt dieser C-Code aus?\n\n```c\nint A[2][2] = {{1, 2}, {3, 4}};\nint b[2] = {10, 20};\nint v[2] = {0, 0};\nfor (int i = 0; i < 2; i++)\n    for (int j = 0; j < 2; j++)\n        v[i] = v[i] + A[i][j] * b[j];\nprintf(\"%d %d\", v[0], v[1]);\n```",
+          "prompt": "Welche Zeile gibt dieses vollständige C-Programm aus?",
+          "context": {
+            "type": "code",
+            "content": "#include <stdio.h>\n\nint main(void) {\n    int A[2][2] = {{1, 2}, {2, 3}};\n    int b[2] = {1, 2};\n    int v[2] = {0, 0};\n\n    for (int i = 0; i < 2; i++) {\n        for (int j = 0; j < 2; j++) {\n            v[i] = v[i] + A[i][j] * b[j];\n        }\n    }\n\n    printf(\"%d %d\\n\", v[0], v[1]);\n    return 0;\n}",
+            "language": "c",
+            "caption": "Vollständiges C-Programm mit Matrix A und Vektor b"
+          },
           "options": [
             {
               "id": "a",
-              "text": "30 70"
+              "text": "5 7"
             },
             {
               "id": "b",
-              "text": "10 20"
+              "text": "8 5"
             },
             {
               "id": "c",
-              "text": "50 110"
+              "text": "5 8"
             },
             {
               "id": "d",
-              "text": "110 50"
+              "text": "3 5"
             }
           ],
           "correct": [
             "c"
           ],
-          "explanation": "Für die erste Zeile gilt $1·10+2·20=50$, für die zweite $3·10+4·20=110$. Deshalb wird `50 110` ausgegeben.",
+          "explanation": "Für `i = 0` wird $1\\cdot1+2\\cdot2=5$ berechnet. Für `i = 1` wird $2\\cdot1+3\\cdot2=8$ berechnet. Daher gibt das Programm `5 8` aus.",
           "source": {
             "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO1.md",
             "heading": "Warum Rechnerarchitektur?"
           },
-          "difficulty": 3,
+          "difficulty": 2,
           "concepts": [
-            "Rechnerarchitektur",
-            "Performance Portability"
+            "Matrix-Vektor-Multiplikation",
+            "geschachtelte Schleifen",
+            "C-Code-Ausführung"
           ]
         },
         {
@@ -1264,45 +1273,47 @@
       "title": "Boss",
       "questions": [
         {
-          "id": "era-01-l4-q01",
+          "id": "era-01-l4-q01-r1",
           "type": "multi",
-          "prompt": "Welche Schlussfolgerungen sind aus dem Matrix-Vektor-Beispiel gerechtfertigt? Wähle alle richtigen Aussagen; mehrere Antworten können richtig sein.",
+          "prompt": "Ein Programm berechnet das Matrix-Vektor-Produkt mit $v_i=\\sum_j A_{ij}b_j$. Beide Varianten starten mit $v_i=0$ und verarbeiten jedes Paar $(i,j)$ genau einmal mit `v[i] += A[i][j] * b[j]`. Bei `i/j` ist `i` die äußere Schleife, bei `j/i` ist `j` die äußere Schleife. Auf demselben Rechner, mit denselben Daten und Einstellungen, wurden für $N=12\\,800$ folgende Laufzeiten gemessen: `i/j` 0,71 s und `j/i` 4,54 s. Welche Aussagen werden durch diese Angaben gestützt? Wähle alle zutreffenden Aussagen.",
           "options": [
             {
               "id": "a",
-              "text": "Aus den Laufzeiten folgt, dass j/i ein anderes mathematisches Ergebnis berechnet."
+              "text": "Die Messung auf diesem Rechner beweist, dass die konkrete Rechnerarchitektur für die Laufzeit unerheblich ist."
             },
             {
               "id": "b",
-              "text": "Die Reihenfolge der Schleifen kann die Laufzeit stark verändern."
+              "text": "Auf dem getesteten Rechner dauerte j/i mehr als sechsmal so lange wie i/j."
             },
             {
               "id": "c",
-              "text": "Bei korrekter Umsetzung berechnen beide Schleifenreihenfolgen dieselbe mathematische Operation."
+              "text": "Beide Varianten zielen auf dieselbe mathematische Formel vᵢ = ∑ⱼ Aᵢⱼbⱼ."
             },
             {
               "id": "d",
-              "text": "Für $N=12\\,800$ wurden 0,71 s für i/j und 4,54 s für j/i angegeben."
+              "text": "Aus dem Zeitunterschied folgt, dass j/i eine andere mathematische Formel berechnet."
             },
             {
               "id": "e",
-              "text": "Die konkrete Rechnerarchitektur ist für die Laufzeit dieses Beispiels unerheblich."
+              "text": "Für N = 12 800 wurden 0,71 s für i/j und 4,54 s für j/i gemessen."
             }
           ],
           "correct": [
             "b",
             "c",
-            "d"
+            "e"
           ],
-          "explanation": "Die Messung zeigt einen großen Laufzeitunterschied trotz gleicher Matrix-Vektor-Operation. Daraus folgt kein anderes mathematisches Ergebnis und auch keine Unabhängigkeit von der Hardware.",
+          "explanation": "Das Verhältnis $4{,}54/0{,}71\\approx6{,}39$ stützt b. Beide Varianten verarbeiten alle Matrix-Vektor-Paare und sammeln dieselben Produkte in $v_i$, also gilt c. d gibt die Messwerte wieder. Der Laufzeitunterschied belegt keine andere Formel; eine Messung auf einem Rechner belegt auch keine Unabhängigkeit von der Architektur.",
           "source": {
             "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO1.md",
             "heading": "Warum Rechnerarchitektur?"
           },
-          "difficulty": 4,
+          "difficulty": 3,
           "concepts": [
-            "Rechnerarchitektur",
-            "Performance Portability"
+            "Matrix-Vektor-Multiplikation",
+            "Schleifenreihenfolge",
+            "Laufzeit",
+            "Rechnerarchitektur"
           ]
         },
         {
