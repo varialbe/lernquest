@@ -1,10 +1,12 @@
 import { motion } from 'motion/react';
-import { useState, type FormEvent, type ReactNode } from 'react';
+import { useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react';
 import { Link } from 'wouter';
 import { PETS, STARTER_PETS, type PublicUser } from '@lernquest/shared';
 import { Mascot, PetImage } from '../components/Pet.tsx';
 import { Button } from '../components/ui.tsx';
+import { Icon } from '../components/icons.tsx';
 import { api } from '../lib/api.ts';
+import { autofillAvailable, cancelPasskeyAutofill, isCancel, loginWithPasskey, passkeyError, passkeysSupported } from '../lib/passkey.ts';
 
 function Field({ label, hint, ...rest }: React.InputHTMLAttributes<HTMLInputElement> & { label: string; hint?: string }) {
   return (
@@ -44,6 +46,34 @@ export function Login({ onLogin }: { onLogin: (token: string) => void }) {
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const canPasskey = passkeysSupported();
+  const loginRef = useRef(onLogin);
+  loginRef.current = onLogin;
+  // Passkey als Vorschlag direkt im Benutzernamen-Feld (Safari/iOS „Passwörter“)
+  useEffect(() => {
+    let alive = true;
+    void autofillAvailable().then((ok) => {
+      if (!ok || !alive) return;
+      loginWithPasskey(true)
+        .then((t) => alive && loginRef.current(t))
+        .catch((e) => alive && !isCancel(e) && setError(passkeyError(e)));
+    });
+    return () => {
+      alive = false;
+      cancelPasskeyAutofill();
+    };
+  }, []);
+  const passkey = async () => {
+    setBusy(true);
+    setError(null);
+    try {
+      onLogin(await loginWithPasskey(false));
+    } catch (e) {
+      if (!isCancel(e)) setError(passkeyError(e));
+    } finally {
+      setBusy(false);
+    }
+  };
   const submit = async (e: FormEvent) => {
     e.preventDefault();
     setBusy(true);
@@ -60,12 +90,19 @@ export function Login({ onLogin }: { onLogin: (token: string) => void }) {
   return (
     <AuthLayout title="LernQuest" subtitle="DS, EIP und ERA – jeden Tag ein kleines Level.">
       <form onSubmit={submit} className="space-y-4">
-        <Field label="Benutzername" name="username" autoComplete="username" autoCapitalize="none" value={username} onChange={(e) => setUsername(e.target.value)} required />
-        <Field label="Passwort" name="password" type="password" autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} required />
+        <Field label="Benutzername" id="username" name="username" autoComplete={canPasskey ? 'username webauthn' : 'username'} autoCapitalize="none" autoCorrect="off" spellCheck={false} value={username} onChange={(e) => setUsername(e.target.value)} required />
+        <Field label="Passwort" id="password" name="password" type="password" autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} required />
         <ErrorBox msg={error} />
         <Button type="submit" full disabled={busy || !username || !password}>
           {busy ? 'Einen Moment …' : 'Anmelden'}
         </Button>
+        {canPasskey && (
+          <Button type="button" variant="secondary" full disabled={busy} onClick={passkey}>
+            <span className="inline-flex items-center gap-2">
+              <Icon name="key" size={20} /> Mit Passkey anmelden
+            </span>
+          </Button>
+        )}
       </form>
       <p className="mt-8 text-center text-sm font-bold text-muted">
         Neu hier?{' '}
@@ -99,10 +136,10 @@ export function Register({ onLogin }: { onLogin: (token: string) => void }) {
   return (
     <AuthLayout title="Willkommen!" subtitle="LernQuest ist eine geschlossene Gruppe – du brauchst einen Einladungscode." pose="cheer">
       <form onSubmit={submit} className="space-y-4">
-        <Field label="Einladungscode" placeholder="LQ-XXXX-XXXX" autoCapitalize="characters" value={f.inviteCode} onChange={set('inviteCode')} required />
-        <Field label="Benutzername" autoComplete="username" autoCapitalize="none" value={f.username} onChange={set('username')} hint="3–24 Zeichen: Buchstaben, Zahlen, _ . -" required />
-        <Field label="Anzeigename" value={f.displayName} onChange={set('displayName')} placeholder="So sehen dich die anderen" required />
-        <Field label="Passwort" type="password" autoComplete="new-password" value={f.password} onChange={set('password')} hint="Mindestens 8 Zeichen" required />
+        <Field label="Einladungscode" name="invite" autoComplete="off" placeholder="LQ-XXXX-XXXX" autoCapitalize="characters" value={f.inviteCode} onChange={set('inviteCode')} required />
+        <Field label="Benutzername" id="username" name="username" autoComplete="username" autoCapitalize="none" autoCorrect="off" spellCheck={false} value={f.username} onChange={set('username')} hint="3–24 Zeichen: Buchstaben, Zahlen, _ . -" required />
+        <Field label="Anzeigename" name="nickname" autoComplete="nickname" value={f.displayName} onChange={set('displayName')} placeholder="So sehen dich die anderen" required />
+        <Field label="Passwort" id="new-password" name="new-password" type="password" autoComplete="new-password" value={f.password} onChange={set('password')} hint="Mindestens 8 Zeichen" required />
         <div>
           <span className="mb-2 block px-1 text-sm font-extrabold text-muted">Wähle dein erstes Pet</span>
           <div className="grid grid-cols-3 gap-3">
@@ -139,7 +176,7 @@ export function Register({ onLogin }: { onLogin: (token: string) => void }) {
   );
 }
 
-export function ChangePassword({ forced, onDone }: { forced?: boolean; onDone: (token: string) => void }) {
+export function ChangePassword({ forced, onDone, username }: { forced?: boolean; onDone: (token: string) => void; username?: string }) {
   const [oldPassword, setOld] = useState('');
   const [newPassword, setNew] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -155,8 +192,9 @@ export function ChangePassword({ forced, onDone }: { forced?: boolean; onDone: (
   return (
     <AuthLayout title="Neues Passwort" subtitle={forced ? 'Dein Passwort wurde zurückgesetzt. Bitte wähle jetzt ein eigenes.' : 'Ändere dein Passwort.'} pose="book">
       <form onSubmit={submit} className="space-y-4">
+        {username && <input type="text" name="username" autoComplete="username" value={username} readOnly hidden />}
         {!forced && <Field label="Aktuelles Passwort" type="password" autoComplete="current-password" value={oldPassword} onChange={(e) => setOld(e.target.value)} required />}
-        <Field label="Neues Passwort" type="password" autoComplete="new-password" value={newPassword} onChange={(e) => setNew(e.target.value)} hint="Mindestens 8 Zeichen" required />
+        <Field label="Neues Passwort" name="new-password" type="password" autoComplete="new-password" value={newPassword} onChange={(e) => setNew(e.target.value)} hint="Mindestens 8 Zeichen" required />
         <ErrorBox msg={error} />
         <Button type="submit" full disabled={newPassword.length < 8}>
           Speichern

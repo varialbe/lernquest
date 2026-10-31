@@ -29,6 +29,24 @@ export const users = sqliteTable('users', {
   createdAt: ts('created_at'),
 });
 
+/** WebAuthn-Passkeys (Login ohne Passwort, Safari/PWA) */
+export const passkeys = sqliteTable(
+  'passkeys',
+  {
+    /** Credential-ID (base64url) */
+    id: text('id').primaryKey(),
+    userId: integer('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+    /** COSE-Public-Key (base64url) */
+    publicKey: text('public_key').notNull(),
+    counter: integer('counter').notNull().default(0),
+    transports: text('transports', { mode: 'json' }).$type<string[]>().notNull().default(sql`'[]'`),
+    name: text('name').notNull(),
+    createdAt: ts('created_at'),
+    lastUsedAt: integer('last_used_at'),
+  },
+  (t) => [index('passkeys_user_idx').on(t.userId)],
+);
+
 export const sessions = sqliteTable(
   'sessions',
   {
