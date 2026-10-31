@@ -6,7 +6,7 @@ import { getToken, setToken, setUnauthorizedHandler } from './lib/api.ts';
 import { flushPending } from './lib/offline.ts';
 import { useMe } from './lib/queries.ts';
 import { setMuted } from './lib/sound.ts';
-import { ChangePassword, Forgot, Login, Register, ResetPassword } from './pages/Auth.tsx';
+import { ChangePassword, Forgot, knownDevice, Login, Register, rememberDevice, ResetPassword, Welcome } from './pages/Auth.tsx';
 import { Home } from './pages/Home.tsx';
 import { Quiz, type RunSpec } from './pages/Quiz.tsx';
 import { Datenschutz, Impressum } from './pages/Legal.tsx';
@@ -37,6 +37,7 @@ export function App() {
   const login = (t: string) => {
     setToken(t);
     setTok(t);
+    rememberDevice();
     qc.clear();
     navigate('/');
   };
@@ -72,9 +73,10 @@ export function App() {
         <Route path="/register">
           <Register onLogin={login} />
         </Route>
-        <Route>
+        <Route path="/login">
           <Login onLogin={login} />
         </Route>
+        <Route>{knownDevice() || /[?&]oauth/.test(location.search) ? <Login onLogin={login} /> : <Welcome />}</Route>
       </Switch>
     );
   }

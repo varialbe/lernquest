@@ -183,7 +183,7 @@ Keine Neustarts nötig. Jeder Lauf liest `.env` neu. Das verwendete Modell steht
 ## Newsletter (Double-Opt-in, Telegram-Bot)
 - Anmeldung (Registrierung oder Profil) → Bestätigungs-Mail → erst nach Klick `newsletter = true` (Zeitpunkte als Nachweis). Jede Ausgabe hat einen signierten Abmeldelink plus `List-Unsubscribe` (One-Click).
 - Verwaltet über den Bot **`lernquest-bot`** (systemd, Long-Polling, reagiert nur auf `TELEGRAM_CHAT_ID`):
-  `/newsletter new <Betreff>` → Inhalt als Nachricht (Markdown) oder Datei `.md`/`.html`/`.txt` schicken · `/newsletter draft [id]` · `/newsletter subject <Betreff>` · `/newsletter test` (Mail an `NEWSLETTER_TEST_TO` + HTML-Vorschau im Chat) · `/newsletter send` (mit Rückfrage) · `/newsletter overview` · `/newsletter delete [id]`.
+  Bedienung über Buttons: `/start` (oder einfach eine Nachricht) öffnet das Menü → **📝 Neuer Newsletter** (Betreff, dann Inhalt als Nachricht/Markdown oder Datei `.md`/`.html`/`.txt`) → Entwurf-Karte mit **Betreff ändern · Inhalt ersetzen · Testmail + Vorschau** (an `NEWSLETTER_TEST_TO`) **· Senden** (mit Rückfrage) **· Löschen**; dazu **📂 Entwürfe** und **📊 Übersicht**. Eine Datei ohne offenen Schritt wird direkt ein neuer Entwurf. Die alten `/newsletter …`-Befehle gehen weiter als Abkürzung.
 - Layout und Footer (Abmelden, Impressum, Datenschutz, ©) kommen automatisch dazu (`apps/api/src/lib/mail.ts`).
 - Logs: `journalctl -u lernquest-bot -f`.
 

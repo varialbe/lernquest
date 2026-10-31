@@ -2,13 +2,11 @@
  * Telegram-Bot für den Newsletter (Dienst lernquest-bot, Long-Polling – kein Webhook, kein offener Port).
  * Reagiert ausschließlich auf den Admin-Chat (TELEGRAM_CHAT_ID).
  *
- *   /newsletter new <Betreff>     neuen Entwurf anlegen, danach Inhalt schicken (Text = Markdown, oder Datei .md/.html/.txt)
- *   /newsletter draft [id]        aktuellen Entwurf zeigen bzw. Entwurf <id> auswählen
- *   /newsletter subject <Betreff> Betreff ändern
- *   /newsletter test              Testmail an NEWSLETTER_TEST_TO + HTML-Vorschau hier im Chat
- *   /newsletter send              an alle bestätigten Abonnenten senden (mit Rückfrage)
- *   /newsletter overview          Abonnenten, Entwürfe, versendete Ausgaben
- *   /newsletter delete [id]       Entwurf löschen
+ * Bedienung über Buttons: /start (oder irgendeine Nachricht ohne offenen Schritt) zeigt das Menü.
+ *   📝 Neuer Newsletter → Betreff schicken → Inhalt schicken (Text = Markdown, oder Datei .md/.html/.txt)
+ *   Entwurf-Karte: Betreff ändern · Inhalt ersetzen · Testmail + Vorschau · Senden (mit Rückfrage) · Löschen
+ *   📂 Entwürfe · 📊 Übersicht
+ * Die alten Befehle (/newsletter new|draft|subject|test|send|overview|delete) funktionieren weiter als Abkürzung.
  */
 import './env.ts';
 import { desc, eq } from 'drizzle-orm';
@@ -36,120 +34,230 @@ async function tg<T = unknown>(method: string, body: Record<string, unknown> | F
   if (!json.ok) throw new Error(`${method}: ${json.description}`);
   return json.result;
 }
-const say = (text: string, extra: Record<string, unknown> = {}) => tg('sendMessage', { chat_id: ADMIN_CHAT, text: text.slice(0, 4000), parse_mode: 'HTML', disable_web_page_preview: true, ...extra });
 
-// ---------- Zustand (in pipeline_state: aktiver Entwurf, Update-Offset) ----------
+type Button = { text: string; callback_data: string };
+type Keyboard = Button[][];
+const btn = (text: string, data: string): Button => ({ text, callback_data: data });
+
+/**
+ * Antwortet: kommt die Aktion von einem Button, wird dessen Nachricht ersetzt (Chat bleibt aufgeräumt),
+ * sonst eine neue Nachricht geschickt.
+ */
+async function show(text: string, keyboard: Keyboard = [], editId?: number) {
+  const body = { chat_id: ADMIN_CHAT, text: text.slice(0, 4000), parse_mode: 'HTML', disable_web_page_preview: true, reply_markup: { inline_keyboard: keyboard } };
+  if (editId) {
+    try {
+      return await tg('editMessageText', { ...body, message_id: editId });
+    } catch (e) {
+      if (/not modified/.test((e as Error).message)) return;
+      // zu alt/gelöscht → neu schicken
+    }
+  }
+  return tg('sendMessage', body);
+}
+const say = (text: string) => show(text);
+
+// ---------- Zustand (in pipeline_state: aktiver Entwurf, offener Schritt, Update-Offset) ----------
 const getKV = (k: string) => db.select().from(pipelineState).where(eq(pipelineState.key, k)).get()?.value ?? null;
 const setKV = (k: string, v: string) => db.insert(pipelineState).values({ key: k, value: v }).onConflictDoUpdate({ target: pipelineState.key, set: { value: v, updatedAt: Date.now() } }).run();
 const issueById = (id: number) => db.select().from(newsletterIssues).where(eq(newsletterIssues.id, id)).get();
+const draftById = (id: number) => {
+  const i = issueById(id);
+  return i?.status === 'draft' ? i : undefined;
+};
 function activeDraft(): Issue | undefined {
   const id = Number(getKV('bot.draft'));
-  const i = id ? issueById(id) : undefined;
-  return i?.status === 'draft' ? i : undefined;
+  return id ? draftById(id) : undefined;
+}
+const drafts = () => db.select().from(newsletterIssues).where(eq(newsletterIssues.status, 'draft')).orderBy(desc(newsletterIssues.id)).all();
+
+/** Worauf der Bot gerade wartet: Betreff für neuen Entwurf, neuer Betreff, Inhalt */
+type Await = { kind: 'new' } | { kind: 'subject' | 'content'; id: number };
+const getAwait = (): Await | null => {
+  try {
+    return JSON.parse(getKV('bot.await') ?? 'null') as Await | null;
+  } catch {
+    return null;
+  }
+};
+const setAwait = (a: Await | null) => setKV('bot.await', JSON.stringify(a));
+
+// ---------- Bildschirme ----------
+const MENU: Keyboard = [
+  [btn('📝 Neuer Newsletter', 'new'), btn('📂 Entwürfe', 'drafts')],
+  [btn('📊 Übersicht', 'overview'), btn('❓ Hilfe', 'help')],
+];
+const back = (to = 'menu', label = '⬅️ Menü') => [btn(label, to)];
+
+function menu(editId?: number) {
+  setAwait(null);
+  const c = subscriberCounts(db);
+  const n = drafts().length;
+  return show(`<b>📬 LernQuest-Newsletter</b>\n${c.confirmed ?? 0} Abonnenten · ${n} ${n === 1 ? 'Entwurf' : 'Entwürfe'}\n\nWas möchtest du tun?`, MENU, editId);
 }
 
-const HELP = `<b>📬 Newsletter-Befehle</b>
-/newsletter new &lt;Betreff&gt; – neuer Entwurf
-/newsletter draft [id] – Entwurf zeigen/auswählen
-/newsletter subject &lt;Betreff&gt; – Betreff ändern
-/newsletter test – Testmail an ${esc(TEST_TO)} + Vorschau
-/newsletter send – an alle Abonnenten senden
-/newsletter overview – Übersicht
-/newsletter delete [id] – Entwurf löschen
+const HELP = `<b>❓ So geht’s</b>
+1. <b>📝 Neuer Newsletter</b> → Betreff schicken
+2. Inhalt schicken: einfach als Nachricht (Markdown: <code>**fett**</code>, <code># Überschrift</code>, Links) oder als Datei <b>.md</b>, <b>.html</b>, <b>.txt</b>
+3. <b>🧪 Testmail</b> → geht an ${esc(TEST_TO)}, die HTML-Vorschau kommt hier in den Chat
+4. <b>🚀 Senden</b> → mit Rückfrage an alle bestätigten Abonnenten
 
-Inhalt: nach <code>new</code> einfach eine Nachricht schicken (Markdown) oder eine Datei <b>.md</b>, <b>.html</b> oder <b>.txt</b> hochladen. Absender: news.quest@varialbe.xyz, Footer mit Abmeldelink kommt automatisch dazu.`;
+Absender ist news.quest@varialbe.xyz. Footer mit Abmeldelink, Impressum und Datenschutz kommt automatisch dazu.`;
 
-function describe(i: Issue) {
+function draftCard(i: Issue, editId?: number, note = '') {
+  setKV('bot.draft', String(i.id));
   const { text } = render(i.format, i.source);
-  const preview = text ? esc(text.slice(0, 500)) + (text.length > 500 ? ' …' : '') : '<i>(noch kein Inhalt – schick mir Text oder eine Datei)</i>';
-  return `<b>Entwurf #${i.id}</b>: ${esc(i.subject)}\nFormat: ${i.format.toUpperCase()} · ${i.source.length.toLocaleString('de-DE')} Zeichen\n\n${preview}`;
+  const preview = text ? esc(text.slice(0, 600)) + (text.length > 600 ? ' …' : '') : '<i>(noch kein Inhalt)</i>';
+  const head = `${note ? `${note}\n\n` : ''}<b>✉️ Entwurf #${i.id}</b>\n<b>Betreff:</b> ${esc(i.subject)}\n<b>Format:</b> ${i.format.toUpperCase()} · ${i.source.length.toLocaleString('de-DE')} Zeichen\n\n${preview}`;
+  const kb: Keyboard = [
+    [btn('✏️ Betreff', `subj:${i.id}`), btn(i.source ? '📄 Inhalt ersetzen' : '📄 Inhalt schicken', `content:${i.id}`)],
+    ...(i.source ? [[btn('🧪 Testmail + Vorschau', `test:${i.id}`), btn('🚀 Senden', `send:${i.id}`)]] : []),
+    [btn('🗑 Löschen', `del:${i.id}`), btn('⬅️ Menü', 'menu')],
+  ];
+  return show(head, kb, editId);
 }
 
-async function handleCommand(text: string) {
-  const [, sub = 'help', ...rest] = text.trim().split(/\s+/);
-  const arg = text.trim().split(/\s+/).slice(2).join(' ').trim();
-  switch (sub.toLowerCase()) {
-    case 'new': {
-      if (!arg) return say('Bitte mit Betreff: <code>/newsletter new Neue Level für ERA</code>');
-      const i = db.insert(newsletterIssues).values({ subject: arg.slice(0, 200), format: 'md', source: '' }).returning().get();
-      setKV('bot.draft', String(i.id));
-      return say(`✏️ Entwurf <b>#${i.id}</b> angelegt: ${esc(i.subject)}\n\nSchick mir jetzt den Inhalt – als Nachricht (Markdown) oder als Datei (.md/.html/.txt).`);
-    }
-    case 'draft': {
-      if (rest[0] && /^\d+$/.test(rest[0])) {
-        const i = issueById(Number(rest[0]));
-        if (!i || i.status !== 'draft') return say(`Kein Entwurf #${esc(rest[0])}.`);
-        setKV('bot.draft', String(i.id));
-        return say(`Aktiver Entwurf ist jetzt #${i.id}.\n\n${describe(i)}`);
-      }
-      const i = activeDraft();
-      const others = db.select().from(newsletterIssues).where(eq(newsletterIssues.status, 'draft')).orderBy(desc(newsletterIssues.id)).all().filter((x) => x.id !== i?.id);
-      const list = others.length ? `\n\nWeitere Entwürfe: ${others.map((x) => `#${x.id} ${esc(x.subject)}`).join(' · ')}\n(<code>/newsletter draft &lt;id&gt;</code> zum Wechseln)` : '';
-      return say((i ? describe(i) : 'Kein aktiver Entwurf. Leg einen an: <code>/newsletter new &lt;Betreff&gt;</code>') + list);
-    }
-    case 'subject': {
-      const i = activeDraft();
-      if (!i) return say('Kein aktiver Entwurf.');
-      if (!arg) return say('Bitte mit neuem Betreff.');
-      db.update(newsletterIssues).set({ subject: arg.slice(0, 200) }).where(eq(newsletterIssues.id, i.id)).run();
-      return say(`Betreff von #${i.id}: ${esc(arg)}`);
-    }
-    case 'test': {
-      const i = activeDraft();
-      if (!i?.source) return say('Kein Entwurf mit Inhalt.');
-      await sendTest(i, TEST_TO);
-      const fd = new FormData();
-      fd.set('chat_id', ADMIN_CHAT);
-      fd.set('caption', `Vorschau #${i.id} – Testmail ging an ${TEST_TO}`);
-      fd.set('document', new Blob([previewHtml(i)], { type: 'text/html' }), `newsletter-${i.id}-vorschau.html`);
-      await tg('sendDocument', fd);
-      return;
-    }
-    case 'send': {
-      const i = activeDraft();
-      if (!i?.source) return say('Kein Entwurf mit Inhalt.');
-      const { confirmed } = subscriberCounts(db);
-      if (!confirmed) return say('Es gibt noch keine bestätigten Abonnenten.');
-      return say(`Wirklich senden?\n\n<b>#${i.id}</b> ${esc(i.subject)}\nan <b>${confirmed}</b> bestätigte Abonnenten von news.quest@varialbe.xyz`, {
-        reply_markup: { inline_keyboard: [[{ text: `✅ Jetzt an ${confirmed} senden`, callback_data: `send:${i.id}` }, { text: 'Abbrechen', callback_data: 'cancel' }]] },
-      });
-    }
-    case 'overview': {
-      const c = subscriberCounts(db);
-      const drafts = db.select().from(newsletterIssues).where(eq(newsletterIssues.status, 'draft')).orderBy(desc(newsletterIssues.id)).all();
-      const sent = db.select().from(newsletterIssues).where(eq(newsletterIssues.status, 'sent')).orderBy(desc(newsletterIssues.sentAt)).limit(8).all();
-      const d = (ms: number | null) => (ms ? new Date(ms).toLocaleString('de-DE', { timeZone: 'Europe/Berlin', dateStyle: 'short', timeStyle: 'short' }) : '–');
-      return say(
-        [
-          '<b>📊 Newsletter-Übersicht</b>',
-          `Abonnenten: <b>${c.confirmed ?? 0}</b> bestätigt · ${c.pending ?? 0} warten auf Bestätigung`,
-          '',
-          `<b>Entwürfe</b> (${drafts.length})${activeDraft() ? ` – aktiv: #${activeDraft()!.id}` : ''}`,
-          ...(drafts.length ? drafts.map((x) => `#${x.id} ${esc(x.subject)} · ${x.format.toUpperCase()}`) : ['–']),
-          '',
-          '<b>Versendet</b>',
-          ...(sent.length ? sent.map((x) => `#${x.id} ${esc(x.subject)} · ${d(x.sentAt)} · ${x.recipients - x.failed}/${x.recipients} zugestellt`) : ['–']),
-        ].join('\n'),
-      );
-    }
-    case 'delete': {
-      const i = rest[0] && /^\d+$/.test(rest[0]) ? issueById(Number(rest[0])) : activeDraft();
-      if (!i || i.status !== 'draft') return say('Kein Entwurf zum Löschen.');
-      db.delete(newsletterIssues).where(eq(newsletterIssues.id, i.id)).run();
-      return say(`🗑 Entwurf #${i.id} gelöscht.`);
-    }
-    default:
-      return say(HELP);
+function draftList(editId?: number) {
+  const list = drafts();
+  if (!list.length) return show('📂 Keine Entwürfe.', [[btn('📝 Neuer Newsletter', 'new')], back()], editId);
+  return show(
+    '<b>📂 Entwürfe</b> – tippe einen an:',
+    [...list.slice(0, 20).map((x) => [btn(`#${x.id} ${x.subject}`.slice(0, 60), `open:${x.id}`)]), back()],
+    editId,
+  );
+}
+
+function overview(editId?: number) {
+  const c = subscriberCounts(db);
+  const ds = drafts();
+  const sent = db.select().from(newsletterIssues).where(eq(newsletterIssues.status, 'sent')).orderBy(desc(newsletterIssues.sentAt)).limit(8).all();
+  const d = (ms: number | null) => (ms ? new Date(ms).toLocaleString('de-DE', { timeZone: 'Europe/Berlin', dateStyle: 'short', timeStyle: 'short' }) : '–');
+  return show(
+    [
+      '<b>📊 Übersicht</b>',
+      `Abonnenten: <b>${c.confirmed ?? 0}</b> bestätigt · ${c.pending ?? 0} warten auf Bestätigung`,
+      '',
+      `<b>Entwürfe</b> (${ds.length})`,
+      ...(ds.length ? ds.map((x) => `#${x.id} ${esc(x.subject)} · ${x.format.toUpperCase()}`) : ['–']),
+      '',
+      '<b>Versendet</b>',
+      ...(sent.length ? sent.map((x) => `#${x.id} ${esc(x.subject)} · ${d(x.sentAt)} · ${x.recipients - x.failed}/${x.recipients} zugestellt`) : ['–']),
+    ].join('\n'),
+    [[btn('📂 Entwürfe', 'drafts'), btn('⬅️ Menü', 'menu')]],
+    editId,
+  );
+}
+
+function createDraft(subject: string) {
+  const i = db.insert(newsletterIssues).values({ subject: subject.slice(0, 200), format: 'md', source: '' }).returning().get();
+  setKV('bot.draft', String(i.id));
+  setAwait({ kind: 'content', id: i.id });
+  return show(`✏️ Entwurf <b>#${i.id}</b>: ${esc(i.subject)}\n\nSchick mir jetzt den <b>Inhalt</b> – als Nachricht (Markdown) oder als Datei (.md/.html/.txt).`, [[btn('Abbrechen', `open:${i.id}`)]]);
+}
+
+async function testDraft(i: Issue) {
+  await sendTest(i, TEST_TO);
+  const fd = new FormData();
+  fd.set('chat_id', ADMIN_CHAT);
+  fd.set('caption', `Vorschau #${i.id} – Testmail ging an ${TEST_TO}`);
+  fd.set('document', new Blob([previewHtml(i)], { type: 'text/html' }), `newsletter-${i.id}-vorschau.html`);
+  await tg('sendDocument', fd);
+  return draftCard(i, undefined, '🧪 Testmail verschickt.');
+}
+
+function askSend(i: Issue, editId?: number) {
+  const { confirmed } = subscriberCounts(db);
+  if (!confirmed) return show('Es gibt noch keine bestätigten Abonnenten.', [[btn('⬅️ Zurück', `open:${i.id}`)]], editId);
+  return show(`<b>Wirklich senden?</b>\n\n#${i.id} ${esc(i.subject)}\nan <b>${confirmed}</b> bestätigte Abonnenten von news.quest@varialbe.xyz`, [[btn(`✅ Jetzt an ${confirmed} senden`, `sendok:${i.id}`)], [btn('Abbrechen', `open:${i.id}`)]], editId);
+}
+
+async function doSend(i: Issue, editId?: number) {
+  await show(`🚀 Sende #${i.id} …`, [], editId);
+  const r = await sendIssue(db, i, (done, total) => void say(`… ${done}/${total}`).catch(() => {}));
+  if (getKV('bot.draft') === String(i.id)) setKV('bot.draft', '');
+  return show(`✅ <b>#${i.id} versendet</b>: ${r.sent}/${r.total} zugestellt${r.failed ? `, ${r.failed} fehlgeschlagen` : ''}.`, [back()]);
+}
+
+// ---------- Buttons ----------
+async function onButton(data: string, editId: number) {
+  const [action = '', idStr] = data.split(':');
+  const id = Number(idStr);
+  if (action === 'menu') return menu(editId);
+  if (action === 'help') return show(HELP, [back()], editId);
+  if (action === 'drafts') return draftList(editId);
+  if (action === 'overview') return overview(editId);
+  if (action === 'new') {
+    setAwait({ kind: 'new' });
+    return show('📝 Wie soll der <b>Betreff</b> lauten? Schick ihn mir als Nachricht.', [[btn('Abbrechen', 'menu')]], editId);
+  }
+  const i = draftById(id);
+  if (!i) return show('Dieser Entwurf wurde schon versendet oder gelöscht.', [back()], editId);
+  switch (action) {
+    case 'open':
+      setAwait(null);
+      return draftCard(i, editId);
+    case 'subj':
+      setAwait({ kind: 'subject', id });
+      return show(`✏️ Neuer Betreff für #${id}?\nAktuell: ${esc(i.subject)}`, [[btn('Abbrechen', `open:${id}`)]], editId);
+    case 'content':
+      setAwait({ kind: 'content', id });
+      return show(`📄 Schick mir den Inhalt für #${id} – als Nachricht (Markdown) oder Datei (.md/.html/.txt).`, [[btn('Abbrechen', `open:${id}`)]], editId);
+    case 'test':
+      if (!i.source) return draftCard(i, editId, 'Erst Inhalt schicken.');
+      await show(`🧪 Schicke Testmail an ${esc(TEST_TO)} …`, [], editId);
+      return testDraft(i);
+    case 'send':
+      return askSend(i, editId);
+    case 'sendok':
+      return doSend(i, editId);
+    case 'del':
+      return show(`🗑 Entwurf #${id} „${esc(i.subject)}“ wirklich löschen?`, [[btn('Ja, löschen', `delok:${id}`), btn('Abbrechen', `open:${id}`)]], editId);
+    case 'delok':
+      db.delete(newsletterIssues).where(eq(newsletterIssues.id, id)).run();
+      if (getKV('bot.draft') === String(id)) setKV('bot.draft', '');
+      return show(`🗑 Entwurf #${id} gelöscht.`, [back()], editId);
   }
 }
 
+// ---------- Texte/Dateien ----------
 const FORMAT_OF: Record<string, Format> = { md: 'md', markdown: 'md', html: 'html', htm: 'html', txt: 'txt', text: 'txt' };
 
-async function setContent(source: string, format: Format, label: string) {
-  const i = activeDraft();
-  if (!i) return say('Kein aktiver Entwurf. Erst <code>/newsletter new &lt;Betreff&gt;</code>.');
-  db.update(newsletterIssues).set({ source, format }).where(eq(newsletterIssues.id, i.id)).run();
-  return say(`📄 Inhalt für #${i.id} übernommen (${label}).\n\n${describe(issueById(i.id)!)}\n\nWeiter: /newsletter test oder /newsletter send`);
+function setContent(id: number, source: string, format: Format, label: string) {
+  const i = draftById(id);
+  if (!i) return say('Dieser Entwurf existiert nicht mehr.');
+  db.update(newsletterIssues).set({ source, format }).where(eq(newsletterIssues.id, id)).run();
+  setAwait(null);
+  return draftCard(draftById(id)!, undefined, `📄 Inhalt übernommen (${label}).`);
+}
+
+/** Alte Slash-Befehle als Abkürzung */
+async function handleCommand(text: string) {
+  const parts = text.trim().split(/\s+/);
+  const sub = (parts[1] ?? '').toLowerCase();
+  const arg = parts.slice(2).join(' ').trim();
+  const target = parts[2] && /^\d+$/.test(parts[2]) ? draftById(Number(parts[2])) : activeDraft();
+  switch (sub) {
+    case 'new':
+      if (arg) return createDraft(arg);
+      return onButton('new', 0);
+    case 'draft':
+      return target ? draftCard(target) : draftList();
+    case 'subject':
+      if (!target) return draftList();
+      if (!arg) return onButton(`subj:${target.id}`, 0);
+      db.update(newsletterIssues).set({ subject: arg.slice(0, 200) }).where(eq(newsletterIssues.id, target.id)).run();
+      return draftCard(draftById(target.id)!, undefined, '✏️ Betreff geändert.');
+    case 'test':
+      return target?.source ? testDraft(target) : draftList();
+    case 'send':
+      return target?.source ? askSend(target) : draftList();
+    case 'overview':
+      return overview();
+    case 'delete':
+      return target ? onButton(`del:${target.id}`, 0) : draftList();
+    default:
+      return menu();
+  }
 }
 
 type Update = {
@@ -162,20 +270,12 @@ async function handle(u: Update) {
   if (u.callback_query) {
     const q = u.callback_query;
     if (String(q.message?.chat.id) !== ADMIN_CHAT) return;
-    await tg('answerCallbackQuery', { callback_query_id: q.id });
-    if (q.message) await tg('editMessageReplyMarkup', { chat_id: ADMIN_CHAT, message_id: q.message.message_id, reply_markup: { inline_keyboard: [] } }).catch(() => {});
-    if (q.data === 'cancel') return say('Abgebrochen.');
-    const m = /^send:(\d+)$/.exec(q.data ?? '');
-    if (!m) return;
-    const i = issueById(Number(m[1]));
-    if (!i || i.status !== 'draft') return say('Dieser Entwurf wurde schon versendet oder gelöscht.');
-    await say(`🚀 Sende #${i.id} …`);
-    const r = await sendIssue(db, i, (done, total) => void say(`… ${done}/${total}`).catch(() => {}));
-    if (getKV('bot.draft') === String(i.id)) setKV('bot.draft', '');
-    return say(`✅ <b>#${i.id} versendet</b>: ${r.sent}/${r.total} zugestellt${r.failed ? `, ${r.failed} fehlgeschlagen` : ''}.`);
+    await tg('answerCallbackQuery', { callback_query_id: q.id }).catch(() => {});
+    return onButton(q.data ?? 'menu', q.message?.message_id ?? 0);
   }
   const msg = u.message;
   if (!msg || String(msg.chat.id) !== ADMIN_CHAT) return; // fremde Chats ignorieren
+  const waiting = getAwait();
   if (msg.document) {
     const name = msg.document.file_name ?? 'datei';
     const fmt = FORMAT_OF[name.split('.').pop()?.toLowerCase() ?? ''];
@@ -184,16 +284,32 @@ async function handle(u: Update) {
     const f = await tg<{ file_path: string }>('getFile', { file_id: msg.document.file_id });
     const res = await fetch(`https://api.telegram.org/file/bot${TOKEN}/${f.file_path}`, { signal: AbortSignal.timeout(20_000) });
     const source = await res.text();
-    if (msg.caption?.trim() && activeDraft()) db.update(newsletterIssues).set({ subject: msg.caption.trim().slice(0, 200) }).where(eq(newsletterIssues.id, activeDraft()!.id)).run();
-    return setContent(source, fmt, `Datei ${esc(name)}`);
+    // Datei ohne offenen Schritt → neuer Entwurf, Betreff aus Bildunterschrift oder Dateiname
+    let id = waiting?.kind === 'content' ? waiting.id : 0;
+    if (!id) {
+      const subject = msg.caption?.trim() || name.replace(/\.[^.]+$/, '');
+      id = db.insert(newsletterIssues).values({ subject: subject.slice(0, 200), format: fmt, source: '' }).returning().get().id;
+    } else if (msg.caption?.trim()) {
+      db.update(newsletterIssues).set({ subject: msg.caption.trim().slice(0, 200) }).where(eq(newsletterIssues.id, id)).run();
+    }
+    return setContent(id, source, fmt, `Datei ${esc(name)}`);
   }
   const text = msg.text ?? '';
-  if (/^\/(newsletter|nl)(@\w+)?\b/i.test(text)) return handleCommand(text.replace(/^\/(newsletter|nl)(@\w+)?/i, '/newsletter'));
-  if (/^\/(start|help)/i.test(text)) return say(HELP);
-  if (text && !text.startsWith('/')) {
-    if (!activeDraft()) return say('Kein aktiver Entwurf – leg einen an mit <code>/newsletter new &lt;Betreff&gt;</code>.');
-    return setContent(text, 'md', 'Nachricht als Markdown');
+  if (/^\/(newsletter|nl)(@\w+)?\b/i.test(text)) {
+    setAwait(null);
+    return handleCommand(text.replace(/^\/(newsletter|nl)(@\w+)?/i, '/newsletter'));
   }
+  if (text.startsWith('/')) return menu(); // /start, /help, /menu …
+  if (!text.trim()) return;
+  if (waiting?.kind === 'new') return createDraft(text.trim());
+  if (waiting?.kind === 'subject') {
+    if (!draftById(waiting.id)) return menu();
+    db.update(newsletterIssues).set({ subject: text.trim().slice(0, 200) }).where(eq(newsletterIssues.id, waiting.id)).run();
+    setAwait(null);
+    return draftCard(draftById(waiting.id)!, undefined, '✏️ Betreff geändert.');
+  }
+  if (waiting?.kind === 'content') return setContent(waiting.id, text, 'md', 'Nachricht als Markdown');
+  return menu();
 }
 
 async function main() {
@@ -201,7 +317,8 @@ async function main() {
     log('TELEGRAM_BOT_TOKEN/TELEGRAM_CHAT_ID fehlen – Bot startet nicht.');
     process.exit(1);
   }
-  await tg('setMyCommands', { commands: [{ command: 'newsletter', description: 'Newsletter: new, draft, test, send, overview' }, { command: 'help', description: 'Hilfe' }] }).catch((e) => log(e));
+  await tg('setMyCommands', { commands: [{ command: 'start', description: 'Newsletter-Menü' }] }).catch((e) => log(e));
+  await tg('setChatMenuButton', { chat_id: Number(ADMIN_CHAT), menu_button: { type: 'commands' } }).catch((e) => log(e));
   log('Bot läuft (Long-Polling).');
   let offset = Number(getKV('bot.offset') ?? 0);
   for (;;) {

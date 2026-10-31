@@ -171,7 +171,7 @@ export function Datenschutz() {
 
       <H>9. Lokaler Speicher auf deinem Gerät</H>
       <p>
-        Die App speichert im lokalen Speicher deines Browsers bzw. der App: den Anmeldeschlüssel, Ton- und Farbeinstellungen, das zuletzt gewählte Modul und offline beantwortete Level, bis sie übertragen sind. Das ist für die Funktion technisch erforderlich (§ 25 Abs. 2 Nr. 2
+        Die App speichert im lokalen Speicher deines Browsers bzw. der App: den Anmeldeschlüssel, ob auf dem Gerät schon ein Konto benutzt wurde (damit die Anmeldung statt der Begrüßung erscheint), Ton- und Farbeinstellungen, das zuletzt gewählte Modul und offline beantwortete Level, bis sie übertragen sind. Das ist für die Funktion technisch erforderlich (§ 25 Abs. 2 Nr. 2
         TDDDG). Es werden keine Cookies gesetzt.
       </p>
 

@@ -85,6 +85,41 @@ function GoogleButton({ label, onLogin, onError }: { label: string; onLogin: (t:
   );
 }
 
+const KNOWN = 'lq.knownDevice';
+/** Wurde auf diesem Gerät schon einmal ein Konto benutzt? Dann direkt zur Anmeldung statt Begrüßung. */
+export const knownDevice = () => {
+  try {
+    return localStorage.getItem(KNOWN) === '1';
+  } catch {
+    return false;
+  }
+};
+export const rememberDevice = () => {
+  try {
+    localStorage.setItem(KNOWN, '1');
+  } catch {
+    /* privat/gesperrt – dann eben wieder die Begrüßung */
+  }
+};
+
+/** Erster Besuch: großer Knopf zum Registrieren, Anmelden als zweite Wahl (wie Duolingo & Co.) */
+export function Welcome() {
+  const [, navigate] = useLocation();
+  return (
+    <AuthLayout title="LernQuest" subtitle="DS, EIP und ERA – jeden Tag ein kleines Level. Kostenlos." pose="cheer">
+      <div className="space-y-3">
+        <Button full onClick={() => navigate('/register')}>
+          Los geht’s
+        </Button>
+        <Button full variant="secondary" onClick={() => navigate('/login')}>
+          Ich habe schon ein Konto
+        </Button>
+      </div>
+      <Copyright className="mt-10" />
+    </AuthLayout>
+  );
+}
+
 export function Login({ onLogin }: { onLogin: (token: string) => void }) {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -147,7 +182,7 @@ export function Login({ onLogin }: { onLogin: (token: string) => void }) {
     }
   };
   return (
-    <AuthLayout title="LernQuest" subtitle="DS, EIP und ERA – jeden Tag ein kleines Level.">
+    <AuthLayout title="Willkommen zurück!" subtitle="Melde dich an und mach da weiter, wo du aufgehört hast.">
       <form onSubmit={submit} className="space-y-4">
         <Field label="Benutzername oder E-Mail" id="username" name="username" autoComplete={canPasskey ? 'username webauthn' : 'username'} autoCapitalize="none" autoCorrect="off" spellCheck={false} value={username} onChange={(e) => setUsername(e.target.value)} required />
         <Field label="Passwort" id="password" name="password" type="password" autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} required />
