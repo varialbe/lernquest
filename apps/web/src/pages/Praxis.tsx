@@ -8,6 +8,7 @@ import { Mascot } from '../components/Pet.tsx';
 import { Page } from '../components/Shell.tsx';
 import { Pill, Segmented, Spinner } from '../components/ui.tsx';
 import { api, assetUrl } from '../lib/api.ts';
+import { MathText } from '../components/MathText.tsx';
 
 /** Praxis-Bereich: Transfer in die echte Welt + Schätzfragen – je Unit ein Bonus-Level. */
 export default function Praxis() {
@@ -74,7 +75,7 @@ export default function Praxis() {
                   </span>
                   {it.isNew && <Pill className="bg-gold/20 text-gold-dark">Neu</Pill>}
                 </div>
-                <p className="truncate font-black">{it.unitTitle}</p>
+                <p className="truncate font-black"><MathText text={it.unitTitle} /></p>
                 <p className="truncate text-sm font-semibold text-muted">{locked ? 'Erst „Grundlagen“ abschließen' : `${it.title} · ${it.questionCount} Fragen`}</p>
               </div>
               {done ? (

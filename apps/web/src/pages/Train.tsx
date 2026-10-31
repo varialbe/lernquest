@@ -7,6 +7,7 @@ import { Page } from '../components/Shell.tsx';
 import { Button, Card, Pill, ProgressBar, Segmented } from '../components/ui.tsx';
 import { assetUrl } from '../lib/api.ts';
 import { savedModule, useDuels, useMastery, useMe } from '../lib/queries.ts';
+import { MathText } from '../components/MathText.tsx';
 
 export const LEVEL_COLOR: Record<ConceptMastery['level'], string> = {
   weak: 'var(--c-error)',
@@ -19,14 +20,14 @@ export function ConceptBar({ c }: { c: ConceptMastery }) {
   return (
     <div>
       <div className="flex items-baseline justify-between gap-2">
-        <span className="min-w-0 truncate font-extrabold">{c.concept}</span>
+        <MathText text={c.concept} className="min-w-0 truncate font-extrabold" />
         <span className="shrink-0 text-sm font-black tabular-nums" style={{ color: LEVEL_COLOR[c.level] }}>
           {c.level === 'new' ? 'neu' : `${Math.round(c.score * 100)} %`}
         </span>
       </div>
       <ProgressBar value={c.level === 'new' ? 0.04 : Math.max(0.04, c.score)} height={10} color={LEVEL_COLOR[c.level]} className="mt-1" />
       <p className="mt-0.5 truncate text-xs font-bold text-muted">
-        Unit {c.unitNumber} · {c.unitTitle} · {c.correct}/{c.answered} richtig
+        Unit {c.unitNumber} · <MathText text={c.unitTitle} /> · {c.correct}/{c.answered} richtig
       </p>
     </div>
   );

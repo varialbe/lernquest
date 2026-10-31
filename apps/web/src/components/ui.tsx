@@ -1,6 +1,7 @@
 import { AnimatePresence, motion } from 'motion/react';
 import type { ButtonHTMLAttributes, ReactNode } from 'react';
 import { useEffect } from 'react';
+import { MathText, plainMath } from './MathText.tsx';
 
 type Variant = 'primary' | 'success' | 'error' | 'secondary' | 'gold' | 'ghost' | 'danger-outline';
 const variants: Record<Variant, string> = {
@@ -84,7 +85,7 @@ export function Modal({ open, onClose, children, title }: { open: boolean; onClo
           <motion.div
             role="dialog"
             aria-modal
-            aria-label={title}
+            aria-label={title ? plainMath(title) : undefined}
             // safe-area-Abstand zusätzlich zum normalen Innenabstand (sonst klebt der Button unten und sein 3D-Schatten wird abgeschnitten)
             className="max-h-[92dvh] w-full max-w-md overflow-y-auto rounded-t-3xl bg-surface p-5 pb-[calc(1.5rem+env(safe-area-inset-bottom))] shadow-2xl sm:rounded-3xl"
             initial={{ y: 60, opacity: 0.6 }}
@@ -94,7 +95,7 @@ export function Modal({ open, onClose, children, title }: { open: boolean; onClo
             onClick={(e) => e.stopPropagation()}
           >
             <div className="mx-auto mb-3 h-1.5 w-12 rounded-full bg-line sm:hidden" />
-            {title && <h2 className="mb-3 text-xl font-black">{title}</h2>}
+            {title && <h2 className="mb-3 text-xl font-black"><MathText text={title} /></h2>}
             {children}
           </motion.div>
         </motion.div>

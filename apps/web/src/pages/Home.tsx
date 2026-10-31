@@ -9,6 +9,7 @@ import { Page } from '../components/Shell.tsx';
 import { Button, Card, Modal, Pill, ProgressBar, Segmented, Spinner } from '../components/ui.tsx';
 import { assetUrl } from '../lib/api.ts';
 import { useMe, usePath } from '../lib/queries.ts';
+import { MathText } from '../components/MathText.tsx';
 
 const OFFSETS = [0, 56, 84, 56, 0, -56, -84, -56];
 const KIND_ICON = { basics: 'star', apply: 'dumbbell', deepen: 'book' } as const;
@@ -76,7 +77,7 @@ function UnitSection({ unit, color, currentId, onOpen, index }: { unit: UnitNode
               Unit {unit.number}
               {unit.isNew && <Pill className="bg-white text-[11px]" ><span style={{ color }}>Neu</span></Pill>}
             </div>
-            <h2 className="mt-0.5 text-xl font-black leading-tight">{unit.title}</h2>
+            <h2 className="mt-0.5 text-xl font-black leading-tight"><MathText text={unit.title} /></h2>
           </div>
           <button onClick={() => setInfo(true)} className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border-2 border-white/30 bg-white/15" aria-label="Worum geht's?">
             <Icon name="book" size={22} />
@@ -93,11 +94,11 @@ function UnitSection({ unit, color, currentId, onOpen, index }: { unit: UnitNode
       </div>
 
       <Modal open={info} onClose={() => setInfo(false)} title={unit.title}>
-        <p className="font-semibold text-muted">{unit.summary}</p>
+        <p className="font-semibold text-muted"><MathText text={unit.summary} /></p>
         <div className="mt-4 flex flex-wrap gap-2">
           {unit.concepts.map((c) => (
             <span key={c} className="rounded-xl bg-surface-2 px-2.5 py-1 text-sm font-bold">
-              {c}
+              <MathText text={c} />
             </span>
           ))}
         </div>
@@ -193,7 +194,7 @@ export function Home() {
         {sel && (
           <div>
             <p className="font-bold text-muted">
-              Unit {sel.unit.number} · {sel.unit.title}
+              Unit {sel.unit.number} · <MathText text={sel.unit.title} />
             </p>
             <div className="mt-4 grid grid-cols-2 gap-3">
               <div className="rounded-2xl bg-surface-2 p-3">
