@@ -106,9 +106,9 @@
           ]
         },
         {
-          "id": "eip-01-l1-q02",
+          "id": "eip-01-l1-q02-r1",
           "type": "truefalse",
-          "prompt": "Eine Route mit Treppen darf ausgewählt werden, wenn sie schneller als alle Routen ohne Treppen ist.",
+          "prompt": "Ein Routenplaner erhält eine Liste von Routen. Jede Route hat eine Kennung, eine Dauer in Minuten und die Angabe, ob sie Treppen enthält. Er soll die schnellste Route ohne Treppen auswählen. Bei gleicher Dauer bleibt die zuerst gelistete geeignete Route ausgewählt; gibt es keine geeignete Route, meldet er „Keine geeignete Route“. Aussage: Eine Route mit Treppen darf ausgewählt werden, wenn sie schneller ist als alle Routen ohne Treppen.",
           "options": [
             {
               "id": "true",
@@ -122,21 +122,22 @@
           "correct": [
             "false"
           ],
-          "explanation": "Die Anforderung schließt Routen mit Treppen aus. Eine kürzere Dauer macht eine ungeeignete Route nicht geeignet.",
+          "explanation": "Die Anforderung erlaubt nur Routen ohne Treppen. Eine kürzere Dauer macht eine Route mit Treppen nicht geeignet.",
           "source": {
             "file": "EIP/01_Vorlesungen/EIP VO1.md",
             "heading": "Präzise Anforderung"
           },
           "difficulty": 1,
           "concepts": [
-            "präzise Anforderung",
-            "Eignung und Treppenfilter"
+            "Anforderungen",
+            "Routenauswahl",
+            "Eignung"
           ]
         },
         {
-          "id": "eip-01-l1-q03",
+          "id": "eip-01-l1-q03-r1",
           "type": "cloze",
-          "prompt": "Bei gleicher Dauer bleibt die ___ Route in der vorgegebenen Reihenfolge ausgewählt.",
+          "prompt": "Ein Routenplaner prüft eine geordnete Routenliste der Reihe nach. Er berücksichtigt nur Routen ohne Treppen und ersetzt die bisherige Wahl nur durch eine Route mit kürzerer Dauer. Bei gleicher Dauer bleibt somit die ___ geeignete Route in der Reihenfolge ausgewählt.",
           "options": [
             {
               "id": "a",
@@ -158,15 +159,16 @@
           "correct": [
             "a"
           ],
-          "explanation": "Die präzise Regel entscheidet den Gleichstand zugunsten der ersten geeigneten Route in der Eingabereihenfolge.",
+          "explanation": "Bei gleicher Dauer wird die bisherige Wahl nicht ersetzt. Daher bleibt die zuerst geprüfte geeignete Route ausgewählt.",
           "source": {
             "file": "EIP/01_Vorlesungen/EIP VO1.md",
-            "heading": "Präzise Anforderung"
+            "heading": "Sonderfall: Gleichstand"
           },
           "difficulty": 1,
           "concepts": [
-            "Gleichstandsregel",
-            "geordnete Routenliste"
+            "Gleichstand",
+            "Reihenfolge",
+            "Routenauswahl"
           ]
         },
         {
@@ -209,39 +211,40 @@
           ]
         },
         {
-          "id": "eip-01-l1-q05",
+          "id": "eip-01-l1-q05-r1",
           "type": "single",
-          "prompt": "Eine geordnete Liste enthält nur Routen mit Treppen. Was ist das korrekte Ergebnis bei unveränderter Anforderung?",
+          "prompt": "Ein Routenplaner darf nur Routen ohne Treppen auswählen. Er prüft diese geordnete Liste und meldet „Keine geeignete Route“, wenn keine Route die Bedingung erfüllt:\n\n- R1: 4 Minuten, mit Treppen\n- R2: 9 Minuten, mit Treppen\n- R3: 6 Minuten, mit Treppen\n\nWas gibt der Routenplaner aus?",
           "options": [
             {
               "id": "a",
-              "text": "Die letzte Route der Liste"
+              "text": "Route R3 (6 Minuten)"
             },
             {
               "id": "b",
-              "text": "„Keine geeignete Route“"
+              "text": "Keine geeignete Route"
             },
             {
               "id": "c",
-              "text": "Die Route mit der längsten Dauer"
+              "text": "Route R1 (4 Minuten)"
             },
             {
               "id": "d",
-              "text": "Die schnellste Route mit Treppen"
+              "text": "Route R2 (9 Minuten)"
             }
           ],
           "correct": [
             "b"
           ],
-          "explanation": "Keine Route erfüllt die Bedingung „ohne Treppen“. Die schnellste Route mit Treppen wäre nur bei einer geänderten Anforderung eine passende Rückfallregel.",
+          "explanation": "Alle drei Routen enthalten Treppen. Daher erfüllt keine die Auswahlbedingung, und der Planer meldet „Keine geeignete Route“.",
           "source": {
             "file": "EIP/01_Vorlesungen/EIP VO1.md",
             "heading": "Sonderfall: Alle Routen enthalten Treppen"
           },
-          "difficulty": 2,
+          "difficulty": 1,
           "concepts": [
-            "keine geeignete Route",
-            "Eignung und Treppenfilter"
+            "Routen auswählen",
+            "Bedingungen prüfen",
+            "Keine geeignete Route"
           ]
         },
         {
@@ -498,39 +501,46 @@
           ]
         },
         {
-          "id": "eip-01-l2-q03",
+          "id": "eip-01-l2-q03-r1",
           "type": "code_output",
-          "prompt": "Für die Eingabe A (12 Minuten, ohne Treppen), B (7 Minuten, mit Treppen), C (9 Minuten, ohne Treppen): Welche Kennung meldet das Verfahren?\n\n```text\nbest = none\n\nfor each route in the supplied order:\n    if the route has no stairs:\n        if best is none:\n            best = route\n        else if the route is faster than best:\n            best = route\n\nreport best, or \"no suitable route\" if best is none\n```",
+          "prompt": "Im folgenden Verfahren bedeutet eine kleinere Minutenzahl eine schnellere Route. Routen mit Treppen werden übersprungen; bei gleicher Dauer bleibt die bisherige Wahl bestehen. Welche Kennung wird ausgegeben?",
+          "context": {
+            "type": "code",
+            "content": "routes = [\n    (\"X\", 15, False),\n    (\"Y\", 6, True),\n    (\"Z\", 9, False),\n]\n\nbest = None\nfor name, minutes, stairs in routes:\n    if not stairs:\n        if best is None or minutes < best[1]:\n            best = (name, minutes)\n\nprint(best[0] if best is not None else \"Keine geeignete Route\")",
+            "language": "python",
+            "caption": "Routenliste und Auswahlverfahren"
+          },
           "options": [
             {
               "id": "a",
-              "text": "A"
+              "text": "Z"
             },
             {
               "id": "b",
-              "text": "B"
+              "text": "Y"
             },
             {
               "id": "c",
-              "text": "Keine geeignete Route"
+              "text": "X"
             },
             {
               "id": "d",
-              "text": "C"
+              "text": "Keine geeignete Route"
             }
           ],
           "correct": [
-            "d"
+            "a"
           ],
-          "explanation": "A wird zunächst gemerkt. B wird wegen der Treppen ignoriert. C ist geeignet und mit 9 Minuten schneller als A mit 12 Minuten.",
+          "explanation": "Y wird wegen der Treppen ignoriert. X wird zunächst gemerkt; Z ist ebenfalls geeignet und mit 9 Minuten schneller als X mit 15 Minuten.",
           "source": {
             "file": "EIP/01_Vorlesungen/EIP VO1.md",
             "heading": "Algorithmus mit einer bisher besten Route"
           },
-          "difficulty": 3,
+          "difficulty": 2,
           "concepts": [
-            "bisher beste Route",
-            "Eignung und Treppenfilter"
+            "Algorithmus",
+            "Routenauswahl",
+            "Schrittweise Ausführung"
           ]
         },
         {
@@ -841,9 +851,9 @@
           ]
         },
         {
-          "id": "eip-01-l3-q02",
+          "id": "eip-01-l3-q02-r1",
           "type": "truefalse",
-          "prompt": "Wenn zwei geeignete Routen gleich schnell sind, bleibt bei der festgelegten Regel die zuerst geprüfte Route ausgewählt.",
+          "prompt": "Ein Routenplaner prüft eine geordnete Liste. Er wählt die schnellste Route ohne Treppen aus; bei gleicher Dauer bleibt die zuerst geprüfte geeignete Route ausgewählt. Gibt es keine Route ohne Treppen, meldet er „Keine geeignete Route“. Aussage: Wenn zwei geeignete Routen gleich schnell sind, bleibt nach dieser Regel die zuerst geprüfte Route ausgewählt.",
           "options": [
             {
               "id": "true",
@@ -857,15 +867,16 @@
           "correct": [
             "true"
           ],
-          "explanation": "Die Wahl wird nur durch eine schnellere Route ersetzt. Bei gleicher Dauer bleibt die bisherige, also die zuerst geprüfte geeignete Route erhalten.",
+          "explanation": "Die bisherige Wahl wird nur durch eine schnellere geeignete Route ersetzt. Bei gleicher Dauer bleibt daher die zuerst geprüfte geeignete Route ausgewählt.",
           "source": {
             "file": "EIP/01_Vorlesungen/EIP VO1.md",
             "heading": "Sonderfall: Gleichstand"
           },
-          "difficulty": 3,
+          "difficulty": 1,
           "concepts": [
-            "Gleichstandsregel",
-            "geordnete Routenliste"
+            "Gleichstand",
+            "Reihenfolge",
+            "Routenauswahl"
           ]
         },
         {
@@ -1082,9 +1093,9 @@
           ]
         },
         {
-          "id": "eip-01-l3-q09",
+          "id": "eip-01-l3-q09-r1",
           "type": "single",
-          "prompt": "Eine Implementierung ersetzt `best` auch dann, wenn die neue geeignete Route gleich schnell ist. Welche festgelegte Regel verletzt sie?",
+          "prompt": "Ein Routenplaner soll aus einer geordneten Liste die schnellste Route ohne Treppen auswählen. Bei gleicher Dauer soll er die erste geeignete Route in der Liste behalten. Eine Implementierung ersetzt `best` auch dann, wenn eine neu geprüfte geeignete Route gleich schnell wie `best` ist. Welche festgelegte Regel verletzt die Implementierung?",
           "options": [
             {
               "id": "a",
@@ -1096,25 +1107,26 @@
             },
             {
               "id": "c",
-              "text": "Bei Gleichstand die erste Route in der Reihenfolge zu behalten"
+              "text": "Die Dauer als Routendatum zu speichern"
             },
             {
               "id": "d",
-              "text": "Die Dauer als Routendatum zu speichern"
+              "text": "Bei Gleichstand die erste Route in der Reihenfolge zu behalten"
             }
           ],
           "correct": [
-            "c"
+            "d"
           ],
-          "explanation": "Eine Aktualisierung bei gleicher Dauer lässt die spätere Route gewinnen. Die festgelegte Regel verlangt, die bisherige erste geeignete Route zu behalten.",
+          "explanation": "Wird `best` bei gleicher Dauer ersetzt, gewinnt die später geprüfte Route. Die festgelegte Regel verlangt, die erste geeignete Route zu behalten.",
           "source": {
             "file": "EIP/01_Vorlesungen/EIP VO1.md",
-            "heading": "Sonderfall: Gleichstand"
+            "heading": "Präzise Anforderung"
           },
-          "difficulty": 4,
+          "difficulty": 2,
           "concepts": [
-            "Gleichstandsregel",
-            "Testen und Korrektheit"
+            "Gleichstand",
+            "Anforderungen",
+            "Algorithmus"
           ]
         },
         {
@@ -1269,9 +1281,9 @@
           ]
         },
         {
-          "id": "eip-01-l4-q02",
+          "id": "eip-01-l4-q02-r1",
           "type": "multi",
-          "prompt": "Nach jeder neu eingegangenen Route wird ein Ergebnis benötigt. Welche Aussagen beschreiben den Vergleich korrekt? Mehrere Antworten können richtig sein.",
+          "prompt": "Ein Routenplaner erhält n Routen nacheinander. Nach jedem Eingang soll die bisher schnellste Route ohne Treppen bekannt sein. Eine einzelne Routenprüfung und das Aktualisieren der gespeicherten Wahl benötigen jeweils konstante Arbeit. Verglichen werden zwei Verfahren: Beim ersten wird nach jedem Eingang die gesamte bisherige Liste erneut geprüft. Beim zweiten wird die bisherige Wahl gespeichert und nur die neu eingegangene Route geprüft. Welche Aussagen stimmen? Mehrere Antworten sind richtig.",
           "options": [
             {
               "id": "a",
@@ -1279,52 +1291,52 @@
             },
             {
               "id": "b",
-              "text": "Mit gemerkter Wahl werden insgesamt n Routen geprüft."
+              "text": "Für eine einzige Auswahl am Ende ist wiederholtes Durchgehen der Liste notwendig."
             },
             {
               "id": "c",
-              "text": "Für eine einzelne Auswahl am Ende ist ein wiederholtes Durchgehen notwendig."
+              "text": "Beim erneuten Durchgehen wächst die Gesamtarbeit in Θ(n²)."
             },
             {
               "id": "d",
-              "text": "Beim erneuten Durchgehen wächst die Gesamtarbeit in Θ(n²)."
+              "text": "Mit gemerkter Wahl werden insgesamt n Routen geprüft."
             }
           ],
           "correct": [
             "a",
-            "b",
+            "c",
             "d"
           ],
-          "explanation": "Das Merken führt zu n Prüfungen. Ohne gemerkte Wahl summieren sich die Durchgänge zu n(n+1)/2 und damit zu Θ(n²); bei nur einem Endergebnis genügt dagegen ein Durchgang.",
+          "explanation": "Das wiederholte Prüfen untersucht nacheinander Listen der Längen 1 bis n, also insgesamt n(n+1)/2 Routen. Mit gespeicherter Wahl wird jede Route nur einmal geprüft. Für ein einziges Ergebnis am Ende genügt ein Durchgang.",
           "source": {
             "file": "EIP/01_Vorlesungen/EIP VO1.md",
             "heading": "Was spart das Merken der besten Route?"
           },
-          "difficulty": 5,
+          "difficulty": 3,
           "concepts": [
-            "Laufzeit Θ(n)",
-            "erneutes Durchgehen und Laufzeit Θ(n²)",
-            "einmaliges Durchgehen"
+            "Laufzeit",
+            "Θ-Notation",
+            "Inkrementelle Verarbeitung"
           ]
         },
         {
-          "id": "eip-01-l4-q03-r1",
+          "id": "eip-01-l4-q03-r2",
           "type": "code_output",
-          "prompt": "Die Dauer ist in Minuten angegeben; eine kleinere Zahl bedeutet eine schnellere Route. `stairs` ist `True`, wenn eine Route Treppen enthält. Bei gleicher Dauer bleibt die zuerst gemerkte Route gewählt. Welche Kennung gibt das Programm aus?",
+          "prompt": "`minutes` gibt die Dauer in Minuten an; weniger Minuten bedeuten eine schnellere Route. `stairs` ist `True`, wenn eine Route Treppen enthält. Das Programm berücksichtigt nur Routen ohne Treppen und ersetzt `best` nur bei einer kürzeren Dauer. Bei gleicher Dauer bleibt die zuerst gemerkte Route gewählt. Welche Kennung gibt es aus?",
           "context": {
             "type": "code",
-            "content": "routes = [\n    (\"P\", 10, False),\n    (\"Q\", 10, False),\n    (\"R\", 8, True),\n    (\"S\", 9, False),\n]\n\nbest = None\nfor name, minutes, stairs in routes:\n    if not stairs:\n        if best is None or minutes < best[1]:\n            best = (name, minutes)\n\nprint(best[0] if best is not None else \"no suitable route\")",
+            "content": "routes = [\n    (\"P\", 18, False),\n    (\"Q\", 18, False),\n    (\"R\", 4, True),\n    (\"S\", 7, False),\n]\n\nbest = None\nfor name, minutes, stairs in routes:\n    if not stairs:\n        if best is None or minutes < best[1]:\n            best = (name, minutes)\n\nprint(best[0] if best is not None else \"no suitable route\")",
             "language": "python",
-            "caption": "Routenliste und Auswahlprogramm"
+            "caption": "Programm mit Routendaten"
           },
           "options": [
             {
               "id": "a",
-              "text": "S"
+              "text": "Q"
             },
             {
               "id": "b",
-              "text": "P"
+              "text": "S"
             },
             {
               "id": "c",
@@ -1332,22 +1344,22 @@
             },
             {
               "id": "d",
-              "text": "Q"
+              "text": "P"
             }
           ],
           "correct": [
-            "a"
+            "b"
           ],
-          "explanation": "P wird als erste geeignete Route gemerkt. Q ist gleich schnell und ersetzt P deshalb nicht. R enthält Treppen und wird übersprungen. S ist geeignet und mit 9 Minuten schneller als P, daher wird S ausgegeben.",
+          "explanation": "P wird zuerst gemerkt. Q ist gleich schnell und ersetzt P nicht. R wird wegen der Treppen ignoriert. S ist geeignet und mit 7 Minuten schneller als P mit 18 Minuten, daher wird S ausgegeben.",
           "source": {
             "file": "EIP/01_Vorlesungen/EIP VO1.md",
             "heading": "Algorithmus mit einer bisher besten Route"
           },
-          "difficulty": 3,
+          "difficulty": 2,
           "concepts": [
-            "Code nachvollziehen",
-            "Routen auswählen",
-            "Gleichstand"
+            "Codeausführung",
+            "Gleichstand",
+            "Routenauswahl"
           ]
         },
         {
@@ -1464,9 +1476,9 @@
           ]
         },
         {
-          "id": "eip-01-l4-q07",
+          "id": "eip-01-l4-q07-r1",
           "type": "truefalse",
-          "prompt": "Wenn eine geeignete Route schneller als `best` ist, ersetzt sie die bisherige Wahl. Wenn sie gleich schnell ist, bleibt die bisherige Wahl erhalten.",
+          "prompt": "Ein Routenplaner soll die schnellste Route ohne Treppen aus einer geordneten Liste auswählen. Eine kleinere Minutenzahl bedeutet eine schnellere Route. Das Verfahren speichert die bisher beste Route und ersetzt sie nur dann, wenn eine neu geprüfte geeignete Route schneller ist. Aussage: Bei gleicher Dauer bleibt die bisherige Wahl erhalten.",
           "options": [
             {
               "id": "true",
@@ -1480,15 +1492,16 @@
           "correct": [
             "true"
           ],
-          "explanation": "Der Algorithmus ersetzt `best` nur durch eine schnellere geeignete Route. Das setzt die Regel um, bei Gleichstand die erste Route zu behalten.",
+          "explanation": "Eine gleich schnelle Route ist nicht schneller als `best`. Sie ersetzt die bisherige Wahl daher nicht.",
           "source": {
             "file": "EIP/01_Vorlesungen/EIP VO1.md",
             "heading": "Algorithmus mit einer bisher besten Route"
           },
-          "difficulty": 4,
+          "difficulty": 1,
           "concepts": [
-            "bisher beste Route",
-            "Gleichstandsregel"
+            "Algorithmus",
+            "Gleichstand",
+            "Routenauswahl"
           ]
         },
         {
