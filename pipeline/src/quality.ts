@@ -158,7 +158,7 @@ async function repair(
 /** Prüft eine komplette Unit (inkl. Praxis-Level) und repariert/verwirft durchgefallene Fragen. */
 export async function qualityGate(
   unit: Unit,
-  opts: { raws?: RawIndex; source: GateSource; workDir: string; log: (m: string) => void; label?: string; /** nur diese Level prüfen */ only?: string[] },
+  opts: { raws?: RawIndex; source: GateSource; workDir: string; log: (m: string) => void; label?: string; /** nur diese Level prüfen */ only?: string[]; /** diese Fragen unabhängig vom Blind-Test neu generieren (ID → Grund) */ force?: Map<string, string> },
 ): Promise<GateResult> {
   const { source, workDir, log } = opts;
   const raws = opts.raws ?? new Map();
@@ -178,6 +178,7 @@ export async function qualityGate(
   const blind = await blindTest(all, unit.module, workDir, opts.label ?? 'blind', log);
   tokens += blind.tokens;
   for (const [id, reason] of blind.failures) failures.set(id, failures.has(id) ? `${failures.get(id)}; ${reason}` : reason);
+  for (const [id, reason] of opts.force ?? []) if (all.some((q) => q.id === id)) failures.set(id, failures.has(id) ? `${failures.get(id)}; ${reason}` : reason);
   report.failedFirst = failures.size;
   log(`  Blind-Test ${unit.id}: ${all.length - failures.size}/${all.length} bestanden${report.verified ? `, ${report.verified} Prüfskripte ok` : ''}`);
 

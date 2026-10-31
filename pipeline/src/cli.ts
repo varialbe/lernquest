@@ -6,7 +6,8 @@ import { watchdog } from './watchdog.ts';
 const [cmd = 'help', ...rest] = process.argv.slice(2);
 const runIdFlag = rest.indexOf('--run-id');
 const runId = runIdFlag >= 0 ? rest[runIdFlag + 1] : undefined;
-const positional = rest.filter((a, i) => !a.startsWith('--') && rest[i - 1] !== '--run-id');
+const flag = (name: string) => (rest.indexOf(name) >= 0 ? rest[rest.indexOf(name) + 1] : undefined);
+const positional = rest.filter((a, i) => !a.startsWith('--') && !['--run-id', '--force', '--reason'].includes(rest[i - 1]!));
 
 const modes: Record<string, Mode> = { run: 'run', backfill: 'backfill', 'dry-run': 'dry-run', regenerate: 'regenerate', bonus: 'bonus' };
 
@@ -17,7 +18,8 @@ if (cmd === 'telegram-setup') {
 if (cmd === 'watchdog') process.exit((await watchdog()) ? 0 : 2);
 if (cmd === 'audit') {
   const { audit } = await import('./audit.ts');
-  const r = await audit(positional, { notify: !rest.includes('--no-notify') });
+  // --force id1,id2 --reason "…": diese Fragen ohne Blind-Test-Befund neu generieren (z. B. stillschweigend vorausgesetztes Vorlesungsszenario)
+  const r = await audit(positional, { notify: !rest.includes('--no-notify'), force: flag('--force')?.split(',').filter(Boolean), reason: flag('--reason') });
   process.exit(r.totals.failedUnits ? 1 : 0);
 }
 

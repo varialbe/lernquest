@@ -24,7 +24,7 @@ const PARALLEL = 3;
  * (max. 2 Versuche, mit Prüfskript bei Rechenaufgaben) oder verwerfen. Ersatzfragen bekommen neue IDs (…-r1),
  * die alten werden beim Import deaktiviert. Ergebnis: data/reports/audit-<runId>.json + Telegram.
  */
-export async function audit(only: string[] = [], opts: { notify?: boolean } = {}): Promise<AuditReport> {
+export async function audit(only: string[] = [], opts: { notify?: boolean; force?: string[]; reason?: string } = {}): Promise<AuditReport> {
   const runId = `audit-${newRunId()}`;
   const started = Date.now();
   const logDir = join(config.dataDir, 'runs');
@@ -57,7 +57,8 @@ export async function audit(only: string[] = [], opts: { notify?: boolean } = {}
         mkdirSync(workDir, { recursive: true });
         const current = db.select({ f: units.sourceFile }).from(units).where(eq(units.id, unit.id)).get()?.f ?? unit.source.file;
         const note = existsSync(git.studiumPath(current)) ? await prepareNote(vault, current, workDir) : null;
-        const g = await qualityGate(unit, { source: note ? { file: current, headings: note.headings, text: note.text } : null, workDir, log: ulog });
+        const force = new Map((opts.force ?? []).map((id) => [id, `manuell markiert: ${opts.reason ?? 'nicht selbsttragend'}`]));
+        const g = await qualityGate(unit, { force, source: note ? { file: current, headings: note.headings, text: note.text } : null, workDir, log: ulog });
         const changed = g.report.repaired.length + g.report.dropped.length > 0;
         if (changed) {
           writeFileSync(file, JSON.stringify(g.unit, null, 2) + '\n');
