@@ -160,6 +160,20 @@ describe('pipeline', () => {
     expect((await run.execute('bonus', { quiet: true })).status).toBe('nothing_new'); // alle haben schon eins
   });
 
+  it('bonus mode commits every unit it fills, not only the first', async () => {
+    const dir = join(lq, "content/ds");
+    for (const f of readdirSync(dir)) {
+      const u = JSON.parse(readFileSync(join(dir, f), "utf8"));
+      u.levels = u.levels.slice(0, 4);
+      writeFileSync(join(dir, f), JSON.stringify(u, null, 2) + "\n");
+    }
+    sh(lq, "commit", "-qam", "strip praxis");
+    const r = await run.execute("bonus", { quiet: true });
+    expect(r.files.map((f) => f.unitId).sort()).toEqual(["ds-01", "ds-02"]);
+    expect(sh(lq, "status", "--porcelain").trim()).toBe("");
+    expect(sh(lq, "log", "-2", "--format=%s").match(/Praxis-Level/g)).toHaveLength(2);
+  });
+
   it('refuses to run twice in parallel', async () => {
     const { config } = await import('../src/config.ts');
     mkdirSync(config.dataDir, { recursive: true });

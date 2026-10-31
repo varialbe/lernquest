@@ -272,7 +272,7 @@ export async function execute(mode: Mode, opts: { runId?: string; file?: string;
             const note = existsSync(git.studiumPath(current)) ? await prepareNote(vault, current, workDir) : null;
             const b = await generateBonus(unit, note, workDir, log);
             writeFileSync(file, JSON.stringify(b.unit, null, 2) + '\n');
-            committed ||= git.commitContent([relative(config.lernquestRepo, file)], `content: add ${unit.module} Vorlesung ${unit.number} – Praxis-Level`);
+            committed = git.commitContent([relative(config.lernquestRepo, file)], `content: add ${unit.module} Vorlesung ${unit.number} – Praxis-Level`) || committed;
             importUnit(db, b.unit);
             const bq = b.unit.levels[4]!.questions;
             files.push({ path: unit.source.file, status: 'done', unitId: unit.id, title: `${unit.title} (Praxis)`, levels: 1, questions: bq.length, dropped: b.dropped, review: b.review, tokens: b.tokens, durationSec: Math.round((Date.now() - t0) / 1000) });
