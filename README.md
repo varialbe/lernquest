@@ -148,6 +148,9 @@ Die Fragen selbst (`content/`) liegen ohnehin versioniert im Haupt-Repo.
 | Eine Frage ist falsch | In der App melden → Admin → Meldungen → „Frage deaktivieren“ (bleibt auch nach Re-Import deaktiviert) |
 | API startet nicht | `journalctl -u lernquest-api -n 50`; ungültige `content/*.json` werden beim Start übersprungen und geloggt |
 | PWA-Icons 404 unter `/icons/` | Apache hat global `Alias /icons/` (autoindex). Deshalb liegen die App-Icons unter `/app-icons/`. |
+| Google-Login: „redirect_uri_mismatch“ | Callback-URLs (siehe „Konten, Google, E-Mails“) in der Google Cloud Console unter „Autorisierte Weiterleitungs-URIs“ eintragen; OAuth-Zustimmungsbildschirm auf „In Produktion“ |
+| Mails kommen nicht an | `sudo tail -f /var/log/mail.log` (status=sent?, DKIM-Signature field added?), Spam-Ordner |
+| Bot antwortet nicht | `systemctl status lernquest-bot`, `journalctl -u lernquest-bot -n 50`; nur der Chat aus `TELEGRAM_CHAT_ID` wird bedient |
 | Zertifikat | `sudo certbot renew --cert-name lern.varialbe.xyz --dry-run` (Renew-Hook lädt Apache neu) |
 | Backup kam nicht an | `journalctl -u lernquest-backup -n 50`; `git -C ~/backups/lernquest-offsite log -3` |
 | Backup zurückspielen | `sudo systemctl stop lernquest-api lernquest-pipeline`, `gunzip -c ~/backups/lernquest/<datei>.db.gz > data/lernquest.db`, `rm -f data/lernquest.db-wal data/lernquest.db-shm`, Dienste starten |
@@ -168,6 +171,21 @@ CODEX_REVIEW_EFFORT=high      # Reasoning-Effort Review
 CODEX_TIMEOUT_MIN=30
 ```
 Keine Neustarts nötig. Jeder Lauf liest `.env` neu. Das verwendete Modell steht in jeder Unit unter `generator`.
+
+## Konten, Google, E-Mails
+- **Registrieren** mit Benutzername + E-Mail + Passwort oder **mit Google**. Einladungscode ist optional (zeigt dem Admin nur, wer wen eingeladen hat). Datenschutz-Bestätigung ist Pflicht, Zeitpunkt wird gespeichert.
+- **Anmelden** mit Benutzername oder E-Mail, Passkey oder Google. „Passwort vergessen?“ schickt einen Link (1 h gültig, einmalig).
+- **Datenschutz in der DB** (`apps/api/src/lib/crypto.ts`): E-Mails nur AES-256-GCM-verschlüsselt (`DATA_KEY`), Suche per HMAC (`EMAIL_HASH_KEY`), Einmal-Tokens nur als SHA-256, Passwörter Argon2id. **`DATA_KEY`/`EMAIL_HASH_KEY` nie ändern** – sonst sind alle Adressen unlesbar (sie stecken im verschlüsselten Offsite-Backup der `.env`).
+- **Google** (`apps/api/src/routes/account.ts`): Authorization Code + PKCE, `GOOGLE_CLIENT_ID/SECRET` in `.env`. Callback-URLs (in der Google Cloud Console eintragen): `https://lern.varialbe.xyz/api/auth/google/callback` und `https://mateenbatt.de/lernen/api/auth/google/callback`. Die iOS-App öffnet Google in Safari und holt das Ergebnis per Polling ab (Google verbietet Logins in eingebetteten WebViews). Gleiche, dort bestätigte E-Mail → Konto wird automatisch verknüpft.
+- **E-Mails** per SMTP an den lokalen Postfix (`127.0.0.1:25`, DKIM `mail2026`): Account-Mails von `lernquest.reset@varialbe.xyz`, Newsletter von `news.quest@varialbe.xyz` (beide Aliase → `varialbe`, also Antworten/Bounces landen im normalen Postfach). Nicht über `sendmail`: die Dienste laufen mit `NoNewPrivileges`.
+- **Admin → Nutzer**: Suche, Details (E-Mail, Anmeldearten, Sitzungen, Einladung, Newsletter), Bearbeiten, Reset-Mail, temporäres Passwort, Sperren, Abmelden erzwingen, Google trennen, Admin-Rolle, Fortschritt zurücksetzen, Konto löschen.
+
+## Newsletter (Double-Opt-in, Telegram-Bot)
+- Anmeldung (Registrierung oder Profil) → Bestätigungs-Mail → erst nach Klick `newsletter = true` (Zeitpunkte als Nachweis). Jede Ausgabe hat einen signierten Abmeldelink plus `List-Unsubscribe` (One-Click).
+- Verwaltet über den Bot **`lernquest-bot`** (systemd, Long-Polling, reagiert nur auf `TELEGRAM_CHAT_ID`):
+  `/newsletter new <Betreff>` → Inhalt als Nachricht (Markdown) oder Datei `.md`/`.html`/`.txt` schicken · `/newsletter draft [id]` · `/newsletter subject <Betreff>` · `/newsletter test` (Mail an `NEWSLETTER_TEST_TO` + HTML-Vorschau im Chat) · `/newsletter send` (mit Rückfrage) · `/newsletter overview` · `/newsletter delete [id]`.
+- Layout und Footer (Abmelden, Impressum, Datenschutz, ©) kommen automatisch dazu (`apps/api/src/lib/mail.ts`).
+- Logs: `journalctl -u lernquest-bot -f`.
 
 ## Passkeys und Passwörter
 - **Passkeys** (WebAuthn, `apps/api/src/routes/passkeys.ts`): Relying Party ist `WEB_ORIGIN` (lern.varialbe.xyz). Anlegen unter Profil → Passkeys, Anmelden per Button oder direkt als Vorschlag im Benutzernamen-Feld. Funktioniert in Safari und der Home-Screen-App.
