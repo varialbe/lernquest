@@ -1468,74 +1468,83 @@
           ]
         },
         {
-          "id": "era-06-l4-q06",
+          "id": "era-06-l4-q06-r1",
           "type": "calc",
-          "prompt": "Der alte `sp` sei `0x1000`. Nach einem 32-Byte-Frame gilt `s0=sp+32`. Welche Adresse enthält im Beispiel die lokale Variable `n` bei `-20(s0)`?",
+          "prompt": "Ein Stack Pointer hat vor dem Anlegen eines Stackframes die Adresse `0x1000`. Ein 32-Byte-Frame wird reserviert, indem die Framegröße von `sp` abgezogen wird. Danach gilt `s0 = sp + 32`. Die lokale Variable `n` liegt bei `-20(s0)`: Der Offset ist ein vorzeichenbehafteter Byte-Offset zur Basisadresse `s0` und wird hier dezimal angegeben. Welche Hexadezimaladresse enthält `n`?",
           "options": [
             {
               "id": "a",
-              "text": "`0x0fec`"
-            },
-            {
-              "id": "b",
               "text": "`0x100c`"
             },
             {
+              "id": "b",
+              "text": "`0x0fec`"
+            },
+            {
               "id": "c",
-              "text": "`0x0fdc`"
+              "text": "`0x0ff4`"
             },
             {
               "id": "d",
-              "text": "`0x0ff4`"
+              "text": "`0x0fdc`"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "Nach dem Reservieren ist `sp = 0x1000 - 32 = 0x0fe0`. Damit ist `s0 = 0x0fe0 + 32 = 0x1000`. Der Offset `-20` ist dezimal, also `-0x14`; die Adresse ist `0x1000 - 0x14 = 0x0fec`.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO6.md",
+            "heading": "1. Stackframe anlegen und Variablen initialisieren"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Stackframe",
+            "Stack Pointer",
+            "Adressberechnung"
+          ]
+        },
+        {
+          "id": "era-06-l4-q07-r1",
+          "type": "single",
+          "prompt": "In dieser Schleife lädt `lw` den aktuellen Wert von `i` nach `t0` und `n` nach `t1`. `bge t0, t1, .Lprint` springt zu `.Lprint`, wenn der vorzeichenbehaftete Wert in `t0` mindestens so groß ist wie der in `t1`; sonst folgt der Schleifenrumpf. `.Lprint` liegt hinter dem Rumpf und bereitet die Ausgabe vor. Für diese Prüfung gilt `i = 10` und `n = 10`. Was geschieht?",
+          "context": {
+            "type": "code",
+            "content": ".Ltest:\n    lw   t0, -24(s0)       # i laden\n    lw   t1, -20(s0)       # n laden\n    bge  t0, t1, .Lprint\n    # Schleifenrumpf\n    addiw t0, t0, 1        # i erhöhen\n    sw   t0, -24(s0)\n    j    .Ltest\n.Lprint:\n    # Ausgabe vorbereiten; danach die Schleife verlassen",
+            "language": "asm",
+            "caption": "Schleifenprüfung und Abbruchsprung"
+          },
+          "options": [
+            {
+              "id": "a",
+              "text": "Der Sprung zu `.Lprint` wird ausgeführt; die Ausgabe wird vorbereitet und der Schleifenrumpf nicht erneut durchlaufen."
+            },
+            {
+              "id": "b",
+              "text": "Der Stackframe wird sofort ohne Ausgabe freigegeben."
+            },
+            {
+              "id": "c",
+              "text": "Der Schleifenrumpf wird mit `i = 10` ein weiteres Mal ausgeführt."
+            },
+            {
+              "id": "d",
+              "text": "`i` wird automatisch auf 0 zurückgesetzt."
             }
           ],
           "correct": [
             "a"
           ],
-          "explanation": "Nach der Reservierung ist `sp=0x0fe0`, daher wird `s0=0x1000`. Die Adresse von `n` ist `0x1000-20=0x0fec`; die negative Displacement-Angabe wird von `s0` abgezogen.",
-          "source": {
-            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO6.md",
-            "heading": "1. Stackframe anlegen und Variablen initialisieren"
-          },
-          "difficulty": 5,
-          "concepts": [
-            "Stackframe",
-            "RV64-Summenprogramm"
-          ]
-        },
-        {
-          "id": "era-06-l4-q07",
-          "type": "single",
-          "prompt": "Im Summenprogramm wird bei `i=10` die Anweisung `bge t0, t1, .Lprint` ausgeführt, wobei `t0=i` und `t1=n=10` gilt. Was passiert?",
-          "options": [
-            {
-              "id": "a",
-              "text": "Der Schleifenrumpf wird mit `i=10` ein weiteres Mal ausgeführt."
-            },
-            {
-              "id": "b",
-              "text": "`i` wird automatisch auf 0 zurückgesetzt."
-            },
-            {
-              "id": "c",
-              "text": "Der Sprung zu `.Lprint` wird ausgeführt und die Schleife endet."
-            },
-            {
-              "id": "d",
-              "text": "Der Stackframe wird sofort ohne Ausgabe freigegeben."
-            }
-          ],
-          "correct": [
-            "c"
-          ],
-          "explanation": "`bge` springt bei `t0>=t1`. Da `10>=10` gilt, wird der Rumpf übersprungen und die Ausgabe vorbereitet.",
+          "explanation": "Da `10 >= 10` gilt, nimmt `bge` den Sprung zu `.Lprint`. Der Schleifenrumpf wird bei `i = 10` nicht ausgeführt.",
           "source": {
             "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO6.md",
             "heading": "2. Schleifenbedingung und Schleifenrumpf"
           },
-          "difficulty": 4,
+          "difficulty": 2,
           "concepts": [
-            "RV64-Summenprogramm"
+            "Schleifenbedingung",
+            "vorzeichenbehafteter Vergleich",
+            "bedingter Sprung"
           ]
         },
         {
