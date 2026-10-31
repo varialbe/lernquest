@@ -162,9 +162,7 @@ export function normalizeQuestion(
 /** Kontext aus der Codex-Ausgabe säubern: leere Felder weg, Fences entfernen, Mermaid ohne ```-Rahmen. */
 export function normalizeContext(c: RawQuestion['context']): Question['context'] | undefined {
   if (!c?.content?.trim()) return undefined;
-  const unfence = (s: string) => s.trim().replace(/^```[\w-]*\s*
-/, '').replace(/
-?```\s*$/, '').trim();
+  const unfence = (s: string) => s.trim().replace(/^```[\w-]*\s*\n/, '').replace(/\n?```\s*$/, '').trim();
   const type = c.type === 'code' || c.type === 'table' ? c.type : 'mermaid';
   const frames = type === 'mermaid' ? (c.frames ?? []).filter((f) => f.content?.trim()).map((f) => ({ content: unfence(f.content), caption: f.caption?.trim() || null })) : [];
   return {
