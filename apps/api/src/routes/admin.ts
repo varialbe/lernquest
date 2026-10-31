@@ -1,0 +1,153 @@
+import { existsSync, readFileSync } from 'node:fs';
+import { dirname, join } from 'node:path';
+import { desc, eq, sql } from 'drizzle-orm';
+import type { SQLiteTable } from 'drizzle-orm/sqlite-core';
+import type { FastifyInstance } from 'fastify';
+import { z } from 'zod';
+import type { DB } from '../db/index.ts';
+import { adminNotifications, invites, pipelineRuns, processedFiles, questionReports, questions, units, users } from '../db/schema.ts';
+import { hashPassword, randomInviteCode, randomPassword, requireAdmin, revokeAllSessions } from '../lib/auth.ts';
+import { badRequest, HttpError, notFound } from '../lib/http.ts';
+
+const dataDir = () => dirname(process.env.DATABASE_PATH ?? 'data/lernquest.db');
+const Id = z.coerce.number().int().positive();
+
+export function adminRoutes(app: FastifyInstance, db: DB) {
+  const admin = { preHandler: requireAdmin(db) };
+
+  app.get('/api/admin/overview', admin, async () => {
+    const count = (t: SQLiteTable) => db.select({ n: sql<number>`count(*)` }).from(t).get()?.n ?? 0;
+    return {
+      users: count(users),
+      units: count(units),
+      questions: db.select({ n: sql<number>`count(*)` }).from(questions).where(eq(questions.active, true)).get()?.n ?? 0,
+      openReports: db.select({ n: sql<number>`count(*)` }).from(questionReports).where(eq(questionReports.status, 'open')).get()?.n ?? 0,
+      unreadNotifications: db.select({ n: sql<number>`count(*)` }).from(adminNotifications).where(eq(adminNotifications.read, false)).get()?.n ?? 0,
+      lastRun: db.select().from(pipelineRuns).orderBy(desc(pipelineRuns.startedAt)).limit(1).get() ?? null,
+      failedFiles: db.select().from(processedFiles).where(eq(processedFiles.status, 'failed')).all(),
+    };
+  });
+
+  // ---------- Nutzer ----------
+  app.get('/api/admin/users', admin, async () =>
+    db
+      .select({
+        id: users.id,
+        username: users.username,
+        displayName: users.displayName,
+        role: users.role,
+        disabled: users.disabled,
+        unlockAll: users.unlockAll,
+        xp: users.xp,
+        coins: users.coins,
+        streak: users.streak,
+        lastActiveDay: users.lastActiveDay,
+        createdAt: users.createdAt,
+      })
+      .from(users)
+      .orderBy(users.id)
+      .all(),
+  );
+
+  app.patch<{ Params: { id: string } }>('/api/admin/users/:id', admin, async (req) => {
+    const id = Id.parse(req.params.id);
+    const body = z.object({ disabled: z.boolean().optional(), unlockAll: z.boolean().optional(), role: z.enum(['user', 'admin']).optional(), coins: z.number().int().min(0).max(1e6).optional() }).parse(req.body);
+    if (id === req.user.id && (body.disabled || body.role === 'user')) throw badRequest('self', 'Du kannst dich nicht selbst sperren oder degradieren.');
+    const target = db.select().from(users).where(eq(users.id, id)).get();
+    if (!target) throw notFound('Nutzer nicht gefunden');
+    db.update(users).set(body).where(eq(users.id, id)).run();
+    if (body.disabled) revokeAllSessions(db, id);
+    return { ok: true };
+  });
+
+  /** Temporäres Passwort – wird genau einmal angezeigt; Nutzer muss es beim nächsten Login ändern. */
+  app.post<{ Params: { id: string } }>('/api/admin/users/:id/reset-password', admin, async (req) => {
+    const id = Id.parse(req.params.id);
+    if (!db.select().from(users).where(eq(users.id, id)).get()) throw notFound('Nutzer nicht gefunden');
+    const temp = randomPassword(12);
+    db.update(users).set({ passwordHash: await hashPassword(temp), mustChangePassword: true }).where(eq(users.id, id)).run();
+    revokeAllSessions(db, id);
+    return { temporaryPassword: temp };
+  });
+
+  // ---------- Einladungen ----------
+  app.get('/api/admin/invites', admin, async () => db.select().from(invites).orderBy(desc(invites.createdAt)).all());
+  app.post('/api/admin/invites', admin, async (req) => {
+    const body = z.object({ maxUses: z.number().int().min(1).max(50).default(1), note: z.string().max(100).optional(), days: z.number().int().min(1).max(365).optional() }).parse(req.body ?? {});
+    const code = randomInviteCode();
+    db.insert(invites).values({ code, createdBy: req.user.id, maxUses: body.maxUses, note: body.note ?? null, expiresAt: body.days ? Date.now() + body.days * 86_400_000 : null }).run();
+    return db.select().from(invites).where(eq(invites.code, code)).get();
+  });
+  app.delete<{ Params: { code: string } }>('/api/admin/invites/:code', admin, async (req) => {
+    db.update(invites).set({ revoked: true }).where(eq(invites.code, req.params.code)).run();
+    return { ok: true };
+  });
+
+  // ---------- Pipeline ----------
+  app.get('/api/admin/runs', admin, async () =>
+    db
+      .select({ id: pipelineRuns.id, mode: pipelineRuns.mode, status: pipelineRuns.status, startedAt: pipelineRuns.startedAt, finishedAt: pipelineRuns.finishedAt, summary: pipelineRuns.summary })
+      .from(pipelineRuns)
+      .orderBy(desc(pipelineRuns.startedAt))
+      .limit(50)
+      .all(),
+  );
+  app.get<{ Params: { id: string } }>('/api/admin/runs/:id', admin, async (req) => {
+    const id = req.params.id.replace(/[^\w-]/g, '');
+    const run = db.select().from(pipelineRuns).where(eq(pipelineRuns.id, id)).get();
+    if (!run) throw notFound('Lauf nicht gefunden');
+    const logFile = join(dataDir(), 'runs', `${id}.log`);
+    const log = existsSync(logFile) ? readFileSync(logFile, 'utf8').split('\n').slice(-300).join('\n') : '';
+    return { ...run, log };
+  });
+  app.post('/api/admin/runs', admin, async (req) => {
+    const { mode } = z.object({ mode: z.enum(['run', 'dry-run']).default('run') }).parse(req.body ?? {});
+    const url = `http://${process.env.PIPELINE_HOST || '127.0.0.1'}:${process.env.PIPELINE_PORT || 3461}/run`;
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { authorization: `Bearer ${process.env.PIPELINE_TOKEN}`, 'content-type': 'application/json' },
+      body: JSON.stringify({ mode }),
+      signal: AbortSignal.timeout(10_000),
+    }).catch((e: Error) => {
+      throw new HttpError(502, 'pipeline_unreachable', `Pipeline-Dienst nicht erreichbar: ${e.message}`);
+    });
+    const json = await res.json();
+    if (res.status === 409) throw new HttpError(409, 'already_running', `Läuft bereits (${json.runId}).`);
+    if (!res.ok) throw new HttpError(502, 'pipeline_error', JSON.stringify(json));
+    return json;
+  });
+
+  // ---------- Fragen & Meldungen ----------
+  app.get('/api/admin/reports', admin, async () =>
+    db
+      .select({ report: questionReports, username: users.username, question: questions.data, active: questions.active })
+      .from(questionReports)
+      .leftJoin(users, eq(users.id, questionReports.userId))
+      .leftJoin(questions, eq(questions.id, questionReports.questionId))
+      .orderBy(sql`${questionReports.status} = 'open' desc`, desc(questionReports.createdAt))
+      .limit(200)
+      .all(),
+  );
+  app.patch<{ Params: { id: string } }>('/api/admin/reports/:id', admin, async (req) => {
+    const id = Id.parse(req.params.id);
+    const body = z.object({ status: z.enum(['open', 'resolved', 'dismissed']), deactivateQuestion: z.boolean().optional() }).parse(req.body);
+    const r = db.select().from(questionReports).where(eq(questionReports.id, id)).get();
+    if (!r) throw notFound('Meldung nicht gefunden');
+    db.update(questionReports).set({ status: body.status, resolvedBy: req.user.id, resolvedAt: Date.now() }).where(eq(questionReports.id, id)).run();
+    if (body.deactivateQuestion) db.update(questions).set({ active: false, disabledByAdmin: true }).where(eq(questions.id, r.questionId)).run();
+    return { ok: true };
+  });
+  app.patch<{ Params: { id: string } }>('/api/admin/questions/:id', admin, async (req) => {
+    const { active } = z.object({ active: z.boolean() }).parse(req.body);
+    const res = db.update(questions).set({ active, disabledByAdmin: !active }).where(eq(questions.id, req.params.id)).run();
+    if (!res.changes) throw notFound('Frage nicht gefunden');
+    return { ok: true };
+  });
+
+  // ---------- Benachrichtigungen ----------
+  app.get('/api/admin/notifications', admin, async () => db.select().from(adminNotifications).orderBy(desc(adminNotifications.createdAt)).limit(100).all());
+  app.post('/api/admin/notifications/read', admin, async () => {
+    db.update(adminNotifications).set({ read: true }).where(eq(adminNotifications.read, false)).run();
+    return { ok: true };
+  });
+}
