@@ -75,7 +75,8 @@ export function Modal({ open, onClose, children, title }: { open: boolean; onClo
             role="dialog"
             aria-modal
             aria-label={title}
-            className="safe-bottom w-full max-w-md rounded-t-3xl bg-surface p-5 pb-6 shadow-2xl sm:rounded-3xl"
+            // safe-area-Abstand zusätzlich zum normalen Innenabstand (sonst klebt der Button unten und sein 3D-Schatten wird abgeschnitten)
+            className="max-h-[92dvh] w-full max-w-md overflow-y-auto rounded-t-3xl bg-surface p-5 pb-[calc(1.5rem+env(safe-area-inset-bottom))] shadow-2xl sm:rounded-3xl"
             initial={{ y: 60, opacity: 0.6 }}
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: 80, opacity: 0 }}
