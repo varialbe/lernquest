@@ -1,9 +1,9 @@
 import { lazy, memo, Suspense, type ReactNode } from 'react';
 import ReactMarkdown from 'react-markdown';
-import rehypeHighlight from 'rehype-highlight';
 import rehypeKatex from 'rehype-katex';
 import remarkGfm from 'remark-gfm';
 import remarkMath from 'remark-math';
+import { rehypeHighlightLite } from '../lib/highlight.ts';
 
 const Mermaid = lazy(() => import('./Mermaid.tsx'));
 const GAP = '⁣GAP⁣';
@@ -15,7 +15,7 @@ export const Markdown = memo(function Markdown({ text, gap, className = '' }: { 
     <div className={`prose-q ${className}`}>
       <ReactMarkdown
         remarkPlugins={[remarkGfm, remarkMath]}
-        rehypePlugins={[[rehypeKatex, { throwOnError: false, strict: false }], [rehypeHighlight, { detect: false, ignoreMissing: true }]]}
+        rehypePlugins={[[rehypeKatex, { throwOnError: false, strict: false }], rehypeHighlightLite]}
         components={{
           code({ className: cls, children }) {
             const lang = /language-(\w+)/.exec(cls ?? '')?.[1];

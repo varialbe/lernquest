@@ -4,7 +4,7 @@
  * - ein gemeinsamer Style-Guide-Prompt für alle Bilder (gleicher Stil, Perspektive, transparenter Hintergrund, quadratisch)
  * - sequentiell, überspringt vorhandene Dateien (erneut ausführen = nur fehlende nachholen; FORCE=name1,name2 zum Neuerzeugen)
  * - Codex legt Bilder unter ~/.codex/generated_images ab; das neueste Bild nach dem Aufruf wird übernommen
- * - Ausgabe: public/assets/<name>.webp (512 px bzw. 256 px für Icons) + Kontaktabzüge in .tmp/contact-*.png zur Sichtprüfung
+ * - Ausgabe: public/assets/<name>.webp (512 px bzw. 256 px für Icons), App-Icon nach assets-src/app-icon.png + Kontaktabzüge in .tmp/contact-*.png zur Sichtprüfung
  *
  *   node scripts/gen-assets.mjs [filter]
  */
@@ -121,7 +121,7 @@ const jobs = [...Object.entries(ASSETS).map(([n, [subject, size]]) => ({ name: n
 
 for (const job of jobs) {
   if (filter && !job.name.includes(filter)) continue;
-  const out = join(OUT, job.icon ? `${job.name}.png` : `${job.name}.webp`);
+  const out = job.icon ? resolve(import.meta.dirname, '../assets-src', `${job.name}.png`) : join(OUT, `${job.name}.webp`);
   if (existsSync(out) && !force.has(job.name)) continue;
   const t0 = Date.now();
   try {

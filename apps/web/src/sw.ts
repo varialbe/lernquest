@@ -32,8 +32,8 @@ self.addEventListener('push', (event) => {
   event.waitUntil(
     self.registration.showNotification(data.title ?? 'LernQuest', {
       body: data.body ?? 'Zeit für eine kleine Lernrunde!',
-      icon: '/icons/icon-192.png',
-      badge: '/icons/icon-192.png',
+      icon: '/app-icons/icon-192.png',
+      badge: '/app-icons/icon-192.png',
       data: { url: data.url ?? '/' },
       tag: 'lq-reminder',
     }),
