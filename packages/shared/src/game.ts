@@ -40,7 +40,7 @@ export const PETS: PetDef[] = [
   { id: 'bit', name: 'Bit', stageNames: ['Bit', 'Byte', 'Megabyte'], price: 0, color: '#38bdf8', blurb: 'Ein neugieriger Elektro-Fuchs.' },
   { id: 'pixel', name: 'Pixel', stageNames: ['Pixel', 'Sprite', 'Shader'], price: 0, color: '#f472b6', blurb: 'Eine bunte Glitzer-Katze.' },
   { id: 'knoten', name: 'Knoten', stageNames: ['Knötchen', 'Knoten', 'Graphzilla'], price: 0, color: '#a3e635', blurb: 'Ein Moos-Drache, der Graphen liebt.' },
-  { id: 'lambda', name: 'Lambda', stageNames: ['Lambdi', 'Lambda', 'Y-Kombinator'], price: 120, color: '#c084fc', blurb: 'Ein funktionales Eulen-Küken.' },
+  { id: 'lambda', name: 'Lambda', stageNames: ['Lambdi', 'Lambda', 'Y-Kombinator'], price: 120, color: '#c084fc', blurb: 'Ein funktionales Chamäleon.' },
   { id: 'register', name: 'Register', stageNames: ['Reggi', 'Register', 'Cache-Koloss'], price: 150, color: '#fb923c', blurb: 'Ein Panzer-Gürteltier aus Silizium.' },
   { id: 'menge', name: 'Menge', stageNames: ['Mengchen', 'Menge', 'Potenzmenge'], price: 180, color: '#facc15', blurb: 'Eine Qualle, die alles enthält.' },
   { id: 'stack', name: 'Stack', stageNames: ['Stäckchen', 'Stack', 'Heap-Hüter'], price: 220, color: '#4ade80', blurb: 'Ein stapelnder Schildkröten-Turm.' },
