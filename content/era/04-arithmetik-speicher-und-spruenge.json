@@ -1176,38 +1176,41 @@
           ]
         },
         {
-          "id": "era-04-l3-q10",
+          "id": "era-04-l3-q10-r1",
           "type": "code_output",
-          "prompt": "Was gibt dieser Code aus, genauer: Welchen Wert enthält `s0` am Ende?\n\n```asm\naddi s3, x0, 5\naddi s4, x0, 5\naddi s0, x0, 10\naddi s1, x0, 3\nbne  s3, s4, L1\nadd  s0, s0, s1\nL1:\nsub  s0, s0, s3\n```",
+          "prompt": "In diesem RISC-V-Code gilt `x0 = 0`. `addi rd, rs, n` schreibt `rs + n` nach `rd`; `add` addiert zwei Register, `sub` zieht das zweite Register vom ersten ab. `bne r1, r2, L` springt zu `L`, wenn die Registerwerte verschieden sind. Ein Sprung zu einem Label führt die Ausführung dort fort; Instruktionen vor dem Label werden übersprungen, Instruktionen ab dem Label werden ausgeführt.\n\nWelchen Wert enthält `s0` nach Ausführung des Codes?\n\n```asm\naddi s3, x0, 4\naddi s4, x0, 7\naddi s0, x0, 20\naddi s1, x0, 6\nbne  s3, s4, L1\nadd  s0, s0, s1\nL1:\nsub  s0, s0, s3\n```",
           "options": [
             {
               "id": "a",
-              "text": "2"
+              "text": "4"
             },
             {
               "id": "b",
-              "text": "5"
+              "text": "26"
             },
             {
               "id": "c",
-              "text": "13"
+              "text": "16"
             },
             {
               "id": "d",
-              "text": "8"
+              "text": "22"
             }
           ],
           "correct": [
-            "d"
+            "c"
           ],
-          "explanation": "`s3` und `s4` sind gleich, daher wird die Addition ausgeführt: $s0=10+3=13$. Danach folgt die Subtraktion bei `L1`: $13-5=8$.",
+          "explanation": "`s3` und `s4` enthalten 4 und 7. Weil sie verschieden sind, springt `bne` zu `L1` und überspringt die Addition. Die Subtraktion am Label wird ausgeführt: `s0 = 20 − 4 = 16`.",
           "source": {
             "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO4.md",
             "heading": "Bedingter Sprung (*Branch*)"
           },
-          "difficulty": 4,
+          "difficulty": 2,
           "concepts": [
-            "Sprünge und Branches"
+            "bedingter Sprung",
+            "bne",
+            "Sprungmarken",
+            "Assembler-Ausführung"
           ]
         },
         {
@@ -1404,17 +1407,17 @@
           ]
         },
         {
-          "id": "era-04-l4-q05",
+          "id": "era-04-l4-q05-r1",
           "type": "multi",
-          "prompt": "Ein 4-Byte-Wert `0x10325476` beginnt bei Adresse 1000. Welche Aussagen treffen bei Little Endian zu? Wähle alle richtigen Aussagen; mehrere Antworten können richtig sein.",
+          "prompt": "Ein 32-Bit-Wert ist `0xA1B2C3D4`. Seine Bytes sind vom höchstwertigen zum niederwertigsten Byte `0xA1`, `0xB2`, `0xC3`, `0xD4`. Jede Speicheradresse bezeichnet ein Byte. Bei Little Endian steht das niederwertigste Byte an der niedrigsten Adresse. Der Wert beginnt bei Adresse 2048. Ein 4-Byte-Datum an Adresse $A$ ist ausgerichtet, wenn $A \\bmod 4 = 0$. Welche Aussagen treffen zu? Wähle alle richtigen Aussagen.",
           "options": [
             {
               "id": "a",
-              "text": "Adresse 1000 ist für ein 4-Byte-Datum ausgerichtet."
+              "text": "Adresse 2048 ist für ein 4-Byte-Datum ausgerichtet."
             },
             {
               "id": "b",
-              "text": "An Adresse 1002 steht `0x10`."
+              "text": "An Adresse 2050 steht `0xA1`."
             },
             {
               "id": "c",
@@ -1422,11 +1425,11 @@
             },
             {
               "id": "d",
-              "text": "An Adresse 1000 steht `0x76`."
+              "text": "An Adresse 2048 steht `0xD4`."
             },
             {
               "id": "e",
-              "text": "An Adresse 1001 steht `0x54`."
+              "text": "An Adresse 2049 steht `0xC3`."
             }
           ],
           "correct": [
@@ -1434,15 +1437,17 @@
             "d",
             "e"
           ],
-          "explanation": "Little Endian legt die Bytes als `76`, `54`, `32`, `10` ab. Außerdem gilt $1000\\bmod4=0$, daher ist die Startadresse ausgerichtet.",
+          "explanation": "Bei Little Endian liegen die Bytes ab Adresse 2048 in der Reihenfolge `0xD4`, `0xC3`, `0xB2`, `0xA1`. Somit stehen `0xC3` an Adresse 2049 und `0xD4` an Adresse 2048; das höchstwertige Byte liegt an Adresse 2051. Außerdem ist 2048 durch 4 teilbar.",
           "source": {
             "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO4.md",
             "heading": "Little Endian und Big Endian"
           },
-          "difficulty": 5,
+          "difficulty": 2,
           "concepts": [
-            "Little Endian und Big Endian",
-            "Alignment"
+            "Little Endian",
+            "Byte-Reihenfolge",
+            "Speicheradressen",
+            "Ausrichtung"
           ]
         },
         {

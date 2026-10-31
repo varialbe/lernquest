@@ -968,9 +968,14 @@
           ]
         },
         {
-          "id": "era-06-l3-q04",
+          "id": "era-06-l3-q04-r1",
           "type": "single",
-          "prompt": "Welche Aussage beschreibt den freien Bereich zwischen Stack und Heap im dargestellten Modell korrekt?",
+          "prompt": "Im Speicherlayout unten stehen hohe Adressen oben und Adresse 0 unten. Welche Aussage beschreibt den freien Bereich zwischen Stack und Heap korrekt?",
+          "context": {
+            "type": "mermaid",
+            "content": "flowchart TB\n  H[Hohe Adressen] --> S[Stack wächst zu kleineren Adressen] --> F[Freier Bereich] --> HE[Heap wächst zu höheren Adressen] --> D[Static Data: globale Variablen] --> T[Text: Programmcode] --> Z[Adresse 0]",
+            "caption": "Schematisches Speicherlayout; die genaue Lage der Grenzen ist nicht maßstabsgetreu."
+          },
           "options": [
             {
               "id": "a",
@@ -986,21 +991,22 @@
             },
             {
               "id": "d",
-              "text": "Der Stack wächst nach oben und der Heap nach unten."
+              "text": "Der Stack wächst zu höheren und der Heap zu kleineren Adressen."
             }
           ],
           "correct": [
             "b"
           ],
-          "explanation": "Im Modell wächst der Stack von hohen Adressen nach unten und der Heap von niedrigeren Adressen nach oben. Die verbleibende Fläche zwischen beiden ist frei.",
+          "explanation": "Der Stack beginnt im hohen Adressbereich und wächst zu kleineren Adressen. Der Heap wächst von niedrigeren Adressen zu höheren. Der freie Bereich liegt zwischen ihren aktuellen Grenzen.",
           "source": {
             "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO6.md",
             "heading": "Typische Speicheraufteilung"
           },
-          "difficulty": 3,
+          "difficulty": 1,
           "concepts": [
             "Speicheraufteilung",
-            "Stack Pointer"
+            "Stack",
+            "Heap"
           ]
         },
         {
@@ -1112,25 +1118,31 @@
           ]
         },
         {
-          "id": "era-06-l3-q08",
+          "id": "era-06-l3-q08-r1",
           "type": "multi",
-          "prompt": "Welche Aussagen erklären die Vorbereitung des `printf`-Aufrufs im Summenprogramm? Mehrere Antworten können richtig sein.",
+          "prompt": "Betrachte den gezeigten Aufruf von `printf`. `call printf` legt die Rücksprungadresse in `ra` ab und darf `ra` damit überschreiben. `a0` und `a1` übergeben die ersten beiden Argumente. `s0` ist callee-saved: Wird es verändert, muss sein ursprünglicher Wert vor der Rückkehr wiederhergestellt werden. Die Schleife addiert für `i = 0` bis `9` jeweils `i` zu `c`. Welche Aussagen über das Programm und die Vorbereitung des Aufrufs sind richtig? Wähle alle zutreffenden Antworten.",
+          "context": {
+            "type": "code",
+            "content": "main:\n    addi sp, sp, -32\n    sd   ra, 24(sp)\n    sd   s0, 16(sp)\n    addi s0, sp, 32\n    # Schleife: c startet bei 0; für i = 0 bis 9 gilt c = c + i\n.Lprint:\n    la   a0, .Lformat\n    lw   a1, -28(s0)       # c\n    call printf\n    ld   ra, 24(sp)\n    ld   s0, 16(sp)\n    addi sp, sp, 32\n    ret",
+            "language": "asm",
+            "caption": "Ausschnitt aus `main`; `ret` steht nach dem Aufruf."
+          },
           "options": [
             {
               "id": "a",
-              "text": "`ret` reserviert vor dem Aufruf einen neuen Stackframe."
+              "text": "`a0` erhält die Adresse des Formatstrings."
             },
             {
               "id": "b",
-              "text": "Die Rücksprungadresse muss gesichert sein, weil `printf` unter anderem `ra` überschreibt."
+              "text": "Die Rücksprungadresse von `main` muss vor dem Aufruf gesichert sein, weil `call printf` `ra` überschreibt."
             },
             {
               "id": "c",
-              "text": "`s0` darf nach einer Veränderung ohne Wiederherstellung verworfen werden."
+              "text": "`ret` reserviert vor dem Aufruf einen neuen Stackframe."
             },
             {
               "id": "d",
-              "text": "`a0` erhält die Adresse des Formatstrings."
+              "text": "Ein verändertes `s0` darf ohne Wiederherstellung verworfen werden."
             },
             {
               "id": "e",
@@ -1138,20 +1150,21 @@
             }
           ],
           "correct": [
+            "a",
             "b",
-            "d",
             "e"
           ],
-          "explanation": "Vor `printf` werden Formatadresse und Ergebnis in `a0` und `a1` gelegt. Da der Aufruf `ra` überschreiben kann, wird die ursprüngliche Rücksprungadresse aus dem Stack wiederhergestellt.",
+          "explanation": "Der Frame wird mit `addi sp, sp, -32` angelegt; `ret` ist der Rücksprung am Ende. `main` sichert sein ursprüngliches `ra`, weil der Aufruf von `printf` es überschreibt. Vor dem Aufruf zeigen `a0` und `a1` auf den Formatstring beziehungsweise enthalten `c = 45`. Das geänderte `s0` muss wiederhergestellt werden.",
           "source": {
             "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO6.md",
             "heading": "3. Ausgabe, Register wiederherstellen und zurückkehren"
           },
-          "difficulty": 4,
+          "difficulty": 3,
           "concepts": [
             "Calling Convention",
+            "Argumentregister",
             "Rücksprungadresse",
-            "RV64-Summenprogramm"
+            "Stackframe"
           ]
         },
         {
@@ -1190,44 +1203,46 @@
           ]
         },
         {
-          "id": "era-06-l3-q10",
+          "id": "era-06-l3-q10-r1",
           "type": "calc",
-          "prompt": "Im Summenprogramm ist `c=0` vor dem ersten Durchlauf. Welchen Wert hat `c` nach dem fünften Schleifenrumpf, wenn `i` nacheinander 0, 1, 2, 3 und 4 ist?",
+          "prompt": "Eine Schleife startet mit `c = 0`. In jedem Schleifenrumpf wird zuerst `c = c + i` ausgeführt. Die fünf Rümpfe laufen nacheinander mit `i = 0, 1, 2, 3, 4`. Welchen Wert hat `c` direkt nach dem fünften Rumpf?",
           "options": [
             {
               "id": "a",
-              "text": "`15`"
+              "text": "15"
             },
             {
               "id": "b",
-              "text": "`5`"
+              "text": "9"
             },
             {
               "id": "c",
-              "text": "`10`"
+              "text": "5"
             },
             {
               "id": "d",
-              "text": "`9`"
+              "text": "10"
             }
           ],
           "correct": [
-            "c"
+            "d"
           ],
-          "explanation": "Nach fünf Durchläufen gilt `c=0+1+2+3+4=10`. Der Wert von `i` nach der anschließenden Erhöhung ist dann 5.",
+          "explanation": "Die Werte werden nacheinander addiert: `c = 0 + 0 + 1 + 2 + 3 + 4 = 10`.",
           "source": {
             "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO6.md",
             "heading": "2. Schleifenbedingung und Schleifenrumpf"
           },
-          "difficulty": 4,
+          "difficulty": 2,
           "concepts": [
-            "RV64-Summenprogramm"
+            "Schleife",
+            "Akkumulation",
+            "Ganzzahlrechnung"
           ]
         },
         {
-          "id": "era-06-l3-q11",
+          "id": "era-06-l3-q11-r1",
           "type": "truefalse",
-          "prompt": "Wenn `i` im zehnten Durchlauf den Wert 9 hat, wird nach der Erhöhung auf 10 bei der nächsten Prüfung noch ein zusätzlicher Schleifendurchlauf ausgeführt.",
+          "prompt": "Ein Programm setzt `n = 10` und `i = 0`. Es führt den Schleifenrumpf aus, solange `i < n` gilt, und erhöht `i` nach jedem Rumpf um 1. Der Rumpf wird mit `i = 9` ausgeführt; danach wird `i` auf `10` erhöht und die Bedingung erneut geprüft. Wird der Rumpf noch einmal ausgeführt?",
           "options": [
             {
               "id": "true",
@@ -1241,14 +1256,15 @@
           "correct": [
             "false"
           ],
-          "explanation": "Nach dem Durchlauf mit `i=9` wird `i` auf 10 erhöht. Die Bedingung `bge 10,10,.Lprint` beendet die Schleife, sodass kein Durchlauf mit `i=10` stattfindet.",
+          "explanation": "Bei der nächsten Prüfung gilt `10 < 10` nicht. Deshalb endet die Schleife, ohne einen weiteren Rumpf mit `i = 10` auszuführen.",
           "source": {
             "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO6.md",
             "heading": "2. Schleifenbedingung und Schleifenrumpf"
           },
-          "difficulty": 3,
+          "difficulty": 2,
           "concepts": [
-            "RV64-Summenprogramm"
+            "Schleifenbedingung",
+            "Schleifenende"
           ]
         }
       ]
@@ -1402,45 +1418,52 @@
           ]
         },
         {
-          "id": "era-06-l4-q05",
+          "id": "era-06-l4-q05-r1",
           "type": "multi",
-          "prompt": "Welche Maßnahmen passen zur Calling Convention und zum Ende von `main` im Summenprogramm? Mehrere Antworten können richtig sein.",
+          "prompt": "Im gezeigten Programm ist `main` der Caller von `printf`. Für diese Frage gilt: `a`- und `t`-Register sind caller-saved und können durch einen Aufruf verändert werden; `s`-Register sind callee-saved und müssen bei Änderung vor der Rückkehr wiederhergestellt werden. `call printf` überschreibt `ra`. Welche Aussagen treffen auf `main` zu? Wähle alle zutreffenden Antworten.",
+          "context": {
+            "type": "code",
+            "content": "main:\n    addi sp, sp, -32\n    sd   ra, 24(sp)\n    sd   s0, 16(sp)\n    addi s0, sp, 32       # verändert s0\n    # ... main ruft printf auf ...\n    ld   ra, 24(sp)\n    ld   s0, 16(sp)\n    addi sp, sp, 32\n    ret",
+            "language": "asm",
+            "caption": "Prolog und Epilog von `main`; der Aufruf von `printf` liegt zwischen den gezeigten Abschnitten."
+          },
           "options": [
             {
               "id": "a",
-              "text": "Ein Wert in `a1` ist automatisch über jeden weiteren Aufruf hinweg geschützt."
+              "text": "Der Wert in `a1` bleibt nach `printf` garantiert erhalten."
             },
             {
               "id": "b",
-              "text": "`main` sichert seine Rücksprungadresse vor dem späteren `printf`-Aufruf."
+              "text": "Vor `ret` gibt `main` den eigenen 32-Byte-Stackframe durch Erhöhen von `sp` frei."
             },
             {
               "id": "c",
-              "text": "Der eigene Stackframe wird vor `ret` durch Erhöhen von `sp` freigegeben."
+              "text": "Ein Wert in `t0` bleibt nach `printf` garantiert unverändert."
             },
             {
               "id": "d",
-              "text": "Ein verändertes `s0` wird vor dem Rücksprung wiederhergestellt."
+              "text": "Weil `main` `s0` verändert, stellt es den zuvor gespeicherten Wert vor `ret` wieder her."
             },
             {
               "id": "e",
-              "text": "Ein Wert in `t0` bleibt nach einem Aufruf garantiert unverändert."
+              "text": "`main` sichert seine beim Eintritt erhaltene Rücksprungadresse vor dem späteren Aufruf von `printf`."
             }
           ],
           "correct": [
             "b",
-            "c",
-            "d"
+            "d",
+            "e"
           ],
-          "explanation": "`ra` und `s0` werden aus dem Stack wiederhergestellt, und `sp` wird um die Framegröße erhöht. `a`- und `t`-Register sind dagegen kein sicherer Ablageort für Werte über einen Aufruf hinweg.",
+          "explanation": "`main` speichert `ra` vor dem Aufruf von `printf`, stellt das veränderte callee-saved Register `s0` wieder her und gibt den Frame mit `sp = sp + 32` frei. `a1` und `t0` sind caller-saved und daher nicht über den Aufruf hinweg garantiert unverändert.",
           "source": {
             "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO6.md",
-            "heading": "3. Ausgabe, Register wiederherstellen und zurückkehren"
+            "heading": "Caller-saved und Callee-saved"
           },
-          "difficulty": 5,
+          "difficulty": 3,
           "concepts": [
             "Calling Convention",
-            "Caller-saved und Callee-saved",
+            "Caller-saved",
+            "Callee-saved",
             "Stackframe"
           ]
         },
@@ -1631,17 +1654,23 @@
           ]
         },
         {
-          "id": "era-06-l4-q11",
+          "id": "era-06-l4-q11-r1",
           "type": "single",
-          "prompt": "Welche Registerbelegung liegt im Summenprogramm unmittelbar vor `call printf` vor?",
+          "prompt": "Ein Programm startet mit `n = 10`, `i = 0` und `c = 0`. Solange `i < n` gilt, addiert es `i` zu `c` und erhöht danach `i` um 1. `.Lformat` bezeichnet die Adresse des Formatstrings. Welche Registerbelegung liegt unmittelbar vor `call printf` vor?",
+          "context": {
+            "type": "code",
+            "content": "# Vor dem Aufruf: n=10, i=0, c=0; solange i<n: c=c+i; i=i+1\nla   a0, .Lformat\nlw   a1, -28(s0)       # c\ncall printf",
+            "language": "asm",
+            "caption": "Ausschnitt unmittelbar vor dem Aufruf; `.Lformat` ist die Formatstring-Adresse."
+          },
           "options": [
             {
               "id": "a",
-              "text": "`a0` enthält die Formatstring-Adresse und `a1` den Wert `45`."
+              "text": "`a0` enthält `45` und `a1` die Rücksprungadresse."
             },
             {
               "id": "b",
-              "text": "`a0` und `a1` enthalten beide die Adresse des Stackframes."
+              "text": "`a0` enthält die Formatstring-Adresse und `a1` den Wert `45`."
             },
             {
               "id": "c",
@@ -1649,21 +1678,22 @@
             },
             {
               "id": "d",
-              "text": "`a0` enthält `45` und `a1` die Rücksprungadresse."
+              "text": "`a0` und `a1` enthalten beide die Adresse des Stackframes."
             }
           ],
           "correct": [
-            "a"
+            "b"
           ],
-          "explanation": "`la a0,.Lformat` legt die Formatstring-Adresse in `a0`, und `lw a1,-28(s0)` lädt das berechnete `c=45` in `a1`. `ra` wird separat im Stack gesichert.",
+          "explanation": "Die Schleife addiert die Werte 0 bis 9, also ist `c = 45`. Unmittelbar vor dem Aufruf lädt `la` die Formatstring-Adresse nach `a0` und `lw` den Wert von `c` nach `a1`.",
           "source": {
             "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO6.md",
             "heading": "3. Ausgabe, Register wiederherstellen und zurückkehren"
           },
-          "difficulty": 5,
+          "difficulty": 2,
           "concepts": [
-            "Calling Convention",
-            "RV64-Summenprogramm"
+            "Argumentregister",
+            "Schleife",
+            "Programmablauf"
           ]
         }
       ]
