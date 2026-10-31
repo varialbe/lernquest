@@ -9,6 +9,7 @@ import { setMuted } from './lib/sound.ts';
 import { ChangePassword, Login, Register } from './pages/Auth.tsx';
 import { Home } from './pages/Home.tsx';
 import { Quiz, type RunSpec } from './pages/Quiz.tsx';
+import { Datenschutz, Impressum } from './pages/Legal.tsx';
 import { initNative, rescheduleReminders } from './lib/native.ts';
 import { applyTheme } from './lib/theme.ts';
 
@@ -62,6 +63,8 @@ export function App() {
   if (!token) {
     return (
       <Switch>
+        <Route path="/impressum" component={Impressum} />
+        <Route path="/datenschutz" component={Datenschutz} />
         <Route path="/register">
           <Register onLogin={login} />
         </Route>
@@ -104,6 +107,8 @@ function Authed({ onLogin, onLogout }: { onLogin: (t: string) => void; onLogout:
     <Suspense fallback={<Spinner />}>
       <Switch>
         <Route path="/" component={Home} />
+        <Route path="/impressum" component={Impressum} />
+        <Route path="/datenschutz" component={Datenschutz} />
         <Route path="/level/:id">{(p) => <Quiz key={p.id} levelId={p.id} />}</Route>
         <Route path="/practice">
           <Quiz key="practice" practice />

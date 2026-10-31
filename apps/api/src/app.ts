@@ -9,7 +9,8 @@ import { passkeyRoutes } from './routes/passkeys.ts';
 import { userRoutes } from './routes/user.ts';
 
 export async function buildApp(db: DB, opts: { logger?: boolean } = {}): Promise<FastifyInstance> {
-  const app = Fastify({ logger: opts.logger ? { level: 'info' } : false, trustProxy: '127.0.0.1', bodyLimit: 256 * 1024 });
+  // Request-Logs ohne IP-Adresse und Header (Datensparsamkeit; IPs stehen nur 14 Tage im Apache-Log)
+  const app = Fastify({ logger: opts.logger ? { level: 'info', serializers: { req: (r: { method: string; url: string }) => ({ method: r.method, url: r.url.replace(/\?.*$/, '') }) } } : false, trustProxy: '127.0.0.1', bodyLimit: 256 * 1024 });
 
   const origins = new Set(['capacitor://localhost', 'http://localhost', 'https://localhost', ...(process.env.WEB_ORIGIN ?? '').split(',').map((s) => s.trim()).filter(Boolean)]);
   await app.register(cors, {

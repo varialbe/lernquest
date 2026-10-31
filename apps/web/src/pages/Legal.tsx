@@ -1,0 +1,171 @@
+import type { ReactNode } from 'react';
+import { Link, useLocation } from 'wouter';
+import { Icon } from '../components/icons.tsx';
+
+const OWNER = { name: 'Mateen Batt', street: 'Neustifter Straße 37', city: '80807 München', email: 'varialbe@varialbe.xyz' };
+const UPDATED = 'Oktober 2026';
+
+function LegalLayout({ title, children }: { title: string; children: ReactNode }) {
+  const [, navigate] = useLocation();
+  return (
+    <div className="min-h-dvh bg-bg">
+      <header className="safe-top sticky top-0 z-20 border-b-2 border-line bg-bg/95 backdrop-blur">
+        <div className="mx-auto flex h-14 max-w-xl items-center gap-2 px-3">
+          <button onClick={() => (history.length > 1 ? history.back() : navigate('/'))} aria-label="Zurück" className="rounded-xl p-1.5 text-muted hover:bg-surface-2">
+            <Icon name="chevronLeft" size={26} weight={2.8} />
+          </button>
+          <h1 className="text-lg font-black">{title}</h1>
+        </div>
+      </header>
+      <main className="legal mx-auto max-w-xl px-5 pb-16 pt-4 text-[0.95rem] font-semibold leading-relaxed text-ink/90">{children}</main>
+    </div>
+  );
+}
+
+const H = ({ children }: { children: ReactNode }) => <h2 className="mb-1.5 mt-6 text-lg font-black text-ink">{children}</h2>;
+const Mail = () => (
+  <a href={`mailto:${OWNER.email}`} className="font-bold text-primary underline">
+    {OWNER.email}
+  </a>
+);
+const Address = () => (
+  <p>
+    {OWNER.name}
+    <br />
+    {OWNER.street}
+    <br />
+    {OWNER.city}
+    <br />
+    E-Mail: <Mail />
+  </p>
+);
+
+export function Impressum() {
+  return (
+    <LegalLayout title="Impressum">
+      <H>Angaben gemäß § 5 DDG</H>
+      <Address />
+      <H>Verantwortlich für den Inhalt nach § 18 Abs. 2 MStV</H>
+      <p>
+        {OWNER.name}, {OWNER.street}, {OWNER.city}
+      </p>
+      <H>Über LernQuest</H>
+      <p>LernQuest ist ein privates, nicht-kommerzielles Lernprojekt für eine geschlossene Gruppe von Studierenden (Registrierung nur mit Einladungscode). Es gibt keine Werbung und keine kostenpflichtigen Angebote.</p>
+      <H>Haftung für Inhalte</H>
+      <p>
+        Die Quizfragen werden automatisiert mit KI aus eigenen Vorlesungsmitschriften erzeugt und maschinell geprüft. Trotz Sorgfalt können Fehler enthalten sein. Die Inhalte ersetzen keine Vorlesung, kein Skript und keine offizielle Prüfungsvorbereitung. Fehlerhafte Fragen
+        kannst du in der App melden.
+      </p>
+      <H>Haftung für Links</H>
+      <p>Für Inhalte verlinkter externer Seiten sind ausschließlich deren Betreiber verantwortlich. Bei Bekanntwerden von Rechtsverletzungen werden entsprechende Links umgehend entfernt.</p>
+      <p className="mt-8 text-sm text-muted">
+        Siehe auch die{' '}
+        <Link href="/datenschutz" className="font-bold text-primary underline">
+          Datenschutzerklärung
+        </Link>
+        .
+      </p>
+    </LegalLayout>
+  );
+}
+
+export function Datenschutz() {
+  return (
+    <LegalLayout title="Datenschutz">
+      <p>Diese Erklärung beschreibt, welche personenbezogenen Daten LernQuest (Web-App unter lern.varialbe.xyz und mateenbatt.de/lernen sowie die iOS-App) verarbeitet, wozu und wie lange.</p>
+
+      <H>1. Verantwortlicher</H>
+      <Address />
+
+      <H>2. Das Wichtigste in Kürze</H>
+      <ul className="list-disc pl-5">
+        <li>Keine Werbung, kein Tracking, keine Analyse-Dienste, keine Cookies.</li>
+        <li>Daten werden nicht verkauft und nur dort weitergegeben, wo es unten ausdrücklich steht.</li>
+        <li>Der Server steht in Deutschland. Schriftarten und alle Inhalte kommen vom eigenen Server.</li>
+      </ul>
+
+      <H>3. Hosting</H>
+      <p>
+        Die App läuft auf einem Server der Contabo GmbH, Aschauer Straße 32a, 81549 München. Contabo verarbeitet die Daten ausschließlich in unserem Auftrag (Art. 28 DSGVO). Rechtsgrundlage: Art. 6 Abs. 1 lit. b und f DSGVO.
+      </p>
+
+      <H>4. Server-Logfiles</H>
+      <p>
+        Beim Aufruf speichert der Webserver automatisch IP-Adresse, Datum und Uhrzeit, aufgerufene Adresse, Statuscode, übertragene Datenmenge, Referrer und Browser-/App-Kennung. Zweck: sicherer und stabiler Betrieb, Abwehr von Angriffen. Rechtsgrundlage: Art. 6 Abs. 1 lit. f
+        DSGVO. Die Logfiles werden nach 14 Tagen automatisch gelöscht.
+      </p>
+
+      <H>5. Benutzerkonto</H>
+      <p>
+        Für die Nutzung brauchst du ein Konto (nur mit Einladungscode). Gespeichert werden Benutzername, Anzeigename, das Passwort ausschließlich als Argon2id-Hash (nie im Klartext), der verwendete Einladungscode und deine Einstellungen (Tagesziel, Farbschema, Ton,
+        Profilrahmen, aktives Pet). Rechtsgrundlage: Art. 6 Abs. 1 lit. b DSGVO (Bereitstellung der App).
+      </p>
+      <p className="mt-2">
+        Für jede Anmeldung wird eine Sitzung angelegt: ein zufälliger Schlüssel (auf dem Server nur als Hash), die Browser-/App-Kennung und Zeitpunkte von Anmeldung und letzter Nutzung. Abgelaufene oder abgemeldete Sitzungen werden gelöscht.
+      </p>
+
+      <H>6. Passkeys</H>
+      <p>
+        Wenn du einen Passkey anlegst, speichern wir nur den öffentlichen Schlüssel, die Kennung des Passkeys, den von dir sichtbaren Namen und Zeitstempel. Der private Schlüssel und deine biometrischen Daten (Face ID, Touch ID) verlassen dein Gerät nie. Passkeys kannst
+        du im Profil jederzeit entfernen.
+      </p>
+
+      <H>7. Lernfortschritt und Spielfunktionen</H>
+      <p>
+        Gespeichert werden deine Antworten, Level-Fortschritt, Wiederholungsplan, XP, Coins, Streak, Pets, Shop-Käufe, Tagesaufgaben, Klausur-Checks, Duelle und Ligaplatzierungen sowie Meldungen zu Fragen inklusive deines optionalen Kommentars. Rechtsgrundlage: Art. 6 Abs. 1 lit.
+        b DSGVO.
+      </p>
+      <p className="mt-2">
+        <strong>Für andere Mitglieder sichtbar</strong> sind dein Anzeigename, dein Pet/Avatar und Profilrahmen, XP, Streak, Ligaplatzierung, freigeschaltete Abzeichen sowie Ergebnisse von Duellen mit dir. Die App ist eine geschlossene Gruppe: Alle Mitglieder sehen sich
+        gegenseitig.
+      </p>
+
+      <H>8. Benachrichtigungen</H>
+      <p>
+        <strong>Web-App:</strong> Nur wenn du Erinnerungen aktivierst, speichern wir die Push-Adresse deines Browsers. Die Nachrichten werden über den Push-Dienst deines Geräteherstellers zugestellt (bei iPhone/Safari: Apple). Dieser erfährt dabei die Push-Adresse und den
+        Nachrichteninhalt (z. B. Streak-Erinnerung, neue Lektion, Duell). Rechtsgrundlage: deine Einwilligung (Art. 6 Abs. 1 lit. a DSGVO), die du in den Einstellungen jederzeit widerrufen kannst.
+      </p>
+      <p className="mt-2">
+        <strong>iOS-App:</strong> Erinnerungen werden lokal auf dem Gerät geplant. Dafür werden keine Daten an uns oder Dritte übertragen.
+      </p>
+
+      <H>9. Lokaler Speicher auf deinem Gerät</H>
+      <p>
+        Die App speichert im lokalen Speicher deines Browsers bzw. der App: den Anmeldeschlüssel, Ton- und Farbeinstellungen, das zuletzt gewählte Modul und offline beantwortete Level, bis sie übertragen sind. Das ist für die Funktion technisch erforderlich (§ 25 Abs. 2 Nr. 2
+        TDDDG). Es werden keine Cookies gesetzt.
+      </p>
+
+      <H>10. iOS-App: Updates und Fehlerberichte</H>
+      <p>
+        Die iOS-App lädt neue Versionen von unserem eigenen Server. Schlägt ein Update oder die Haptik fehl, sendet sie die App-Version und eine kurze technische Fehlermeldung an unseren Server, um den Fehler beheben zu können (Art. 6 Abs. 1 lit. f DSGVO). Es gibt keine
+        Telemetrie an Dritte.
+      </p>
+
+      <H>11. Backups</H>
+      <p>
+        Die Datenbank wird nachts gesichert. Lokale Sicherungen auf dem Server werden nach 14 Tagen gelöscht. Zusätzlich wird eine Sicherung auf dem Server mit <em>age</em> verschlüsselt und erst dann in einem privaten Repository bei GitHub Inc. (USA) abgelegt. GitHub
+        erhält nur verschlüsselte Daten und kann sie nicht lesen. Ältere Versionen bleiben dort verschlüsselt gespeichert. Rechtsgrundlage: Art. 6 Abs. 1 lit. f DSGVO (Schutz vor Datenverlust).
+      </p>
+
+      <H>12. Erstellung der Lerninhalte</H>
+      <p>
+        Die Quizfragen werden aus den Vorlesungsmitschriften des Betreibers mit einem KI-Dienst (OpenAI) erzeugt und geprüft. Dabei werden <strong>keine</strong> Daten von Nutzerinnen und Nutzern übertragen. Betriebsmeldungen der Generierung erhält nur der Betreiber
+        per Telegram, ebenfalls ohne Nutzerdaten.
+      </p>
+
+      <H>13. Speicherdauer und Löschung</H>
+      <p>Kontodaten und Lernfortschritt bleiben gespeichert, solange dein Konto besteht. Wenn du dein Konto löschen lassen möchtest, schreib eine E-Mail an <Mail />. Dann werden alle zugehörigen Daten gelöscht, aus den Backups spätestens mit deren Ablauf.</p>
+
+      <H>14. Deine Rechte</H>
+      <p>
+        Du hast das Recht auf Auskunft (Art. 15 DSGVO), Berichtigung (Art. 16), Löschung (Art. 17), Einschränkung der Verarbeitung (Art. 18), Datenübertragbarkeit (Art. 20) und Widerspruch gegen Verarbeitungen auf Grundlage von Art. 6 Abs. 1 lit. f (Art. 21). Eine
+        Einwilligung kannst du jederzeit mit Wirkung für die Zukunft widerrufen. Eine formlose E-Mail an <Mail /> genügt.
+      </p>
+      <p className="mt-2">
+        Du kannst dich außerdem bei einer Datenschutz-Aufsichtsbehörde beschweren, zum Beispiel beim Bayerischen Landesamt für Datenschutzaufsicht (BayLDA), Promenade 18, 91522 Ansbach.
+      </p>
+
+      <p className="mt-8 text-sm text-muted">Stand: {UPDATED}</p>
+    </LegalLayout>
+  );
+}

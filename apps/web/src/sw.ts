@@ -12,11 +12,13 @@ cleanupOutdatedCaches();
 
 // App-Shell + Assets (Bilder, Fonts, KaTeX, Mermaid-Chunks)
 precacheAndRoute(self.__WB_MANIFEST);
-registerRoute(new NavigationRoute(createHandlerBoundToURL('/index.html'), { denylist: [/^\/api\//] }));
+// Basis-Pfad aus dem Scope ("/" oder "/lernen/")
+const BASE = new URL(self.registration.scope).pathname;
+registerRoute(new NavigationRoute(createHandlerBoundToURL(`${BASE}index.html`), { denylist: [new RegExp(`^${BASE}api/`)] }));
 
 // Bereits geladene Level, Pfad und Profil offline verfügbar halten
 registerRoute(
-  ({ url, request }) => request.method === 'GET' && /^\/api\/(levels\/|path$|me$|config$|shop$|practice$)/.test(url.pathname),
+  ({ url, request }) => request.method === 'GET' && new RegExp(`^${BASE}api/(levels/|path$|me$|config$|shop$|practice$)`).test(url.pathname),
   new NetworkFirst({ cacheName: 'lq-api', networkTimeoutSeconds: 4 }),
 );
 
@@ -32,9 +34,10 @@ self.addEventListener('push', (event) => {
   event.waitUntil(
     self.registration.showNotification(data.title ?? 'LernQuest', {
       body: data.body ?? 'Zeit für eine kleine Lernrunde!',
-      icon: '/app-icons/icon-192.png',
-      badge: '/app-icons/icon-192.png',
-      data: { url: data.url ?? '/' },
+      icon: `${BASE}app-icons/icon-192.png`,
+      badge: `${BASE}app-icons/icon-192.png`,
+      // Server-URLs sind relativ zur App ("/duels") → unter den Basis-Pfad hängen
+      data: { url: `${BASE}${(data.url ?? '/').replace(/^\//, '')}` },
       tag: 'lq-reminder',
     }),
   );
@@ -42,7 +45,7 @@ self.addEventListener('push', (event) => {
 
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
-  const url = (event.notification.data as { url?: string })?.url ?? '/';
+  const url = (event.notification.data as { url?: string })?.url ?? BASE;
   event.waitUntil(
     self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((wins) => {
       const win = wins.find((w) => 'focus' in w);

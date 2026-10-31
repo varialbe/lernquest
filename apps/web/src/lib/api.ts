@@ -38,4 +38,4 @@ export async function api<T>(path: string, opts: { method?: string; body?: unkno
 }
 
 /** Bilder liegen in public/assets; in der iOS-App relativ zum Bundle. */
-export const assetUrl = (name: string) => `/assets/${name}.webp`;
+export const assetUrl = (name: string) => `${import.meta.env.BASE_URL}assets/${name}.webp`;

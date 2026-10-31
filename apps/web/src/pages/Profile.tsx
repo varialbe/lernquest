@@ -157,6 +157,15 @@ function Settings({ me, onLogout, onLogin }: { me: MeResponse; onLogout: () => v
       <button className={`${row} w-full font-bold text-error`} onClick={() => void api('/api/auth/logout', { method: 'POST' }).finally(onLogout)}>
         Abmelden <Icon name="logout" />
       </button>
+      <p className="pt-3 text-center text-xs font-bold text-muted">
+        <Link href="/impressum" className="hover:underline">
+          Impressum
+        </Link>
+        {' · '}
+        <Link href="/datenschutz" className="hover:underline">
+          Datenschutz
+        </Link>
+      </p>
       <Modal open={pwOpen} onClose={() => setPwOpen(false)}>
         <div className="-mx-5 -mb-6 max-h-[80dvh] overflow-y-auto">
           <ChangePassword

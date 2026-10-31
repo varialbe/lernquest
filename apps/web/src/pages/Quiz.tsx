@@ -9,7 +9,7 @@ import { Markdown } from '../components/Markdown.tsx';
 import { QuestionContext } from '../components/QuestionContext.tsx';
 import { Mascot } from '../components/Pet.tsx';
 import { Button, Modal, ProgressBar, Spinner } from '../components/ui.tsx';
-import { api, ApiError } from '../lib/api.ts';
+import { api, ApiError, assetUrl } from '../lib/api.ts';
 import { queueSubmission } from '../lib/offline.ts';
 import { fx } from '../lib/fx.ts';
 import { useConfig } from '../lib/queries.ts';
@@ -430,7 +430,7 @@ export function Quiz({ levelId, practice, run: spec }: { levelId?: string; pract
                 className="flex shrink-0 items-center gap-0.5 font-black text-flame"
                 aria-label={`${combo}er-Combo`}
               >
-                <img src="/assets/item-flame.webp" alt="" className="h-6 w-6" />×{combo}
+                <img src={assetUrl('item-flame')} alt="" className="h-6 w-6" />×{combo}
               </motion.span>
             )}
           </AnimatePresence>

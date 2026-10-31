@@ -110,6 +110,15 @@ export function Login({ onLogin }: { onLogin: (token: string) => void }) {
           Mit Einladungscode registrieren
         </Link>
       </p>
+      <p className="mt-6 text-center text-xs font-bold text-muted">
+        <Link href="/impressum" className="hover:underline">
+          Impressum
+        </Link>
+        {' · '}
+        <Link href="/datenschutz" className="hover:underline">
+          Datenschutz
+        </Link>
+      </p>
     </AuthLayout>
   );
 }
@@ -170,6 +179,15 @@ export function Register({ onLogin }: { onLogin: (token: string) => void }) {
         Schon dabei?{' '}
         <Link href="/login" className="text-primary hover:underline">
           Anmelden
+        </Link>
+      </p>
+      <p className="mt-6 text-center text-xs font-bold text-muted">
+        <Link href="/impressum" className="hover:underline">
+          Impressum
+        </Link>
+        {' · '}
+        <Link href="/datenschutz" className="hover:underline">
+          Datenschutz
         </Link>
       </p>
     </AuthLayout>

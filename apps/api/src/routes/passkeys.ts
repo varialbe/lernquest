@@ -9,16 +9,21 @@ import {
   type RegistrationResponseJSON,
 } from '@simplewebauthn/server';
 import { and, eq } from 'drizzle-orm';
-import type { FastifyInstance } from 'fastify';
+import type { FastifyInstance, FastifyRequest } from 'fastify';
 import { z } from 'zod';
 import type { DB } from '../db/index.ts';
 import { passkeys, users } from '../db/schema.ts';
 import { createSession, requireAuth, toPublicUser } from '../lib/auth.ts';
 import { badRequest, HttpError, notFound } from '../lib/http.ts';
 
-/** Relying Party = die Web-Origin (lern.varialbe.xyz). Die iOS-App (capacitor://localhost) kann ohne Associated Domains keine Passkeys. */
-function rp() {
-  const origin = (process.env.WEB_ORIGIN ?? 'http://localhost:5173').split(',')[0]!.trim();
+/**
+ * Relying Party = die Web-Origin, über die die App gerade läuft (lern.varialbe.xyz oder mateenbatt.de, Liste in WEB_ORIGIN).
+ * Ein Passkey gilt nur für die Domain, auf der er angelegt wurde. Die iOS-App (capacitor://localhost) kann ohne Associated Domains keine Passkeys.
+ */
+function rp(req: FastifyRequest) {
+  const allowed = (process.env.WEB_ORIGIN ?? 'http://localhost:5173').split(',').map((s) => s.trim()).filter((s) => /^https?:\/\//.test(s));
+  const sent = req.headers.origin;
+  const origin = sent && allowed.includes(sent) ? sent : allowed[0]!;
   return { origin, rpID: new URL(origin).hostname };
 }
 
@@ -45,8 +50,8 @@ export function passkeyRoutes(app: FastifyInstance, db: DB) {
   const limit = { config: { rateLimit: { max: 20, timeWindow: '15 minutes' } } };
 
   // ---------- Anmelden ----------
-  app.post('/api/auth/passkey/options', limit, async () => {
-    const { rpID } = rp();
+  app.post('/api/auth/passkey/options', limit, async (req) => {
+    const { rpID } = rp(req);
     const options = await generateAuthenticationOptions({ rpID, userVerification: 'preferred', allowCredentials: [] });
     return { challengeId: keepChallenge(options.challenge), options };
   });
@@ -57,7 +62,7 @@ export function passkeyRoutes(app: FastifyInstance, db: DB) {
     const expectedChallenge = takeChallenge(body.challengeId);
     const pk = db.select().from(passkeys).where(eq(passkeys.id, String(response.id))).get();
     if (!pk) throw new HttpError(401, 'unknown_passkey', 'Dieser Passkey ist nicht (mehr) bei LernQuest hinterlegt.');
-    const { origin, rpID } = rp();
+    const { origin, rpID } = rp(req);
     const v = await verifyAuthenticationResponse({
       response,
       expectedChallenge,
@@ -84,7 +89,7 @@ export function passkeyRoutes(app: FastifyInstance, db: DB) {
   }));
 
   app.post('/api/me/passkeys/options', { ...auth, ...limit }, async (req) => {
-    const { rpID } = rp();
+    const { rpID } = rp(req);
     const existing = db.select({ id: passkeys.id, transports: passkeys.transports }).from(passkeys).where(eq(passkeys.userId, req.user.id)).all();
     const options = await generateRegistrationOptions({
       rpName: 'LernQuest',
@@ -102,7 +107,7 @@ export function passkeyRoutes(app: FastifyInstance, db: DB) {
   app.post('/api/me/passkeys', { ...auth, ...limit }, async (req) => {
     const body = Finish.parse(req.body);
     const expectedChallenge = takeChallenge(body.challengeId, req.user.id);
-    const { origin, rpID } = rp();
+    const { origin, rpID } = rp(req);
     const v = await verifyRegistrationResponse({
       response: body.response as unknown as RegistrationResponseJSON,
       expectedChallenge,
