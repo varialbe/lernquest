@@ -38,12 +38,14 @@ const repairSchema = resolve(config.root, 'pipeline/schemas/repair-output.schema
 // ---------- Prüfskripte ----------
 type VerifyOutcome = { status: 'ok' } | { status: 'none' } | { status: 'fail'; reason: string };
 
-/** Führt ein Prüfskript isoliert aus (python3 -I, Timeout, leeres Arbeitsverzeichnis) und liest „ANSWER: …“. */
+const sandbox = resolve(config.root, 'pipeline/src/sandbox.py');
+
+/** Führt ein Prüfskript isoliert aus (python3 -I über sandbox.py, Timeout, leeres Arbeitsverzeichnis) und liest „ANSWER: …“. */
 export function runVerifyScript(script: string): { answer: string } | { error: string } {
   const dir = mkdtempSync(join(tmpdir(), 'lq-verify-'));
   try {
     writeFileSync(join(dir, 'verify.py'), script);
-    const r = spawnSync(config.pythonBin, ['-I', 'verify.py'], { cwd: dir, timeout: 10_000, encoding: 'utf8', env: { PATH: process.env.PATH ?? '/usr/bin:/bin', LANG: 'C.UTF-8' }, maxBuffer: 1 << 20 });
+    const r = spawnSync(config.pythonBin, ['-I', sandbox, 'verify.py'], { cwd: dir, timeout: 10_000, encoding: 'utf8', env: { PATH: '/usr/bin:/bin', LANG: 'C.UTF-8' }, maxBuffer: 1 << 20 });
     if (r.error) return { error: `Prüfskript nicht ausführbar: ${r.error.message}` };
     if (r.status !== 0) return { error: `Prüfskript-Fehler: ${(r.stderr || '').trim().split('\n').at(-1)?.slice(0, 200) ?? `Exit ${r.status}`}` };
     const line = r.stdout.trim().split('\n').reverse().find((l) => /^ANSWER:/i.test(l.trim()));
