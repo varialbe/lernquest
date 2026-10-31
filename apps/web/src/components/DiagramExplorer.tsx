@@ -187,7 +187,7 @@ export default function DiagramExplorer({ frames, onClose }: { frames: DiagramFr
         <div className="flex h-full w-full items-center justify-center">
           <Stage key={i} frame={frame} onReady={onReady} />
         </div>
-        <p className="pointer-events-none absolute inset-x-0 bottom-2 text-center text-xs font-bold text-muted">Zwei Finger: zoomen · Doppeltipp: zurücksetzen · Knoten antippen: hervorheben</p>
+        <p className="pointer-events-none absolute inset-x-3 bottom-2 mx-auto w-fit rounded-xl bg-bg/85 px-3 py-1 text-center text-xs font-bold text-muted backdrop-blur">Zwei Finger: zoomen · Doppeltipp: zurücksetzen · Knoten antippen: hervorheben</p>
       </div>
 
       {(frame.caption || frames.length > 1) && (
