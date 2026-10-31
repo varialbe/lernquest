@@ -10,14 +10,95 @@ export const APP_VERSION = (import.meta.env.VITE_APP_VERSION as string | undefin
 const STARTED = Date.now();
 
 // ---------- Haptik ----------
-export async function haptic(kind: 'tap' | 'success' | 'error') {
+// iOS-App: Capacitor-Haptics (UIKit-Feedback-Generatoren). Bisher wurde für jeden Tap ein neuer Generator ohne prepare()
+// erzeugt und nach Hintergrund/Mitteilung nie neu initialisiert. Unterbricht iOS die Audio-/Haptik-Sitzung der App
+// (Mitteilungston, Anruf, Kontrollzentrum), bleiben diese Feedbacks danach oft stumm.
+// Jetzt: ein vorbereiteter Selection-Generator, der bei jeder Rückkehr neu angelegt wird, plus Fallback auf vibrate().
+// Browser/PWA: navigator.vibrate gibt es auf dem iPhone nicht – dort löst ab iOS 18 ein verstecktes
+// <input type="checkbox" switch> beim Umschalten das System-Haptik-Feedback aus (nur innerhalb einer Nutzergeste).
+type HapticKind = 'tap' | 'success' | 'error';
+type HapticsApi = typeof import('@capacitor/haptics');
+let hapticsApi: Promise<HapticsApi> | null = null;
+let selectionReady = false;
+let lastHapticFail = 0;
+
+function nativeHaptics() {
+  hapticsApi ??= import('@capacitor/haptics');
+  return hapticsApi;
+}
+
+/** Bei Rückkehr in die App / erster Berührung: Generator neu anlegen und vorbereiten (weckt die Taptic Engine). */
+export function reviveHaptics() {
+  if (isNative) {
+    void nativeHaptics()
+      .then(async ({ Haptics }) => {
+        await Haptics.selectionEnd().catch(() => {});
+        await Haptics.selectionStart();
+        selectionReady = true;
+      })
+      .catch(() => {
+        selectionReady = false;
+      });
+  } else switchEl = null; // WebKit kann das Element nach dem Hintergrund verwerfen → neu anlegen
+}
+
+let switchEl: HTMLLabelElement | null = null;
+const switchSupported = () => typeof document !== 'undefined' && /iP(hone|ad|od)|Macintosh/.test(navigator.userAgent) && 'ontouchend' in document;
+function switchTick(times = 1) {
+  if (!switchEl?.isConnected) {
+    const label = document.createElement('label');
+    label.setAttribute('aria-hidden', 'true');
+    label.style.cssText = 'position:fixed;left:-9999px;top:0;width:1px;height:1px;overflow:hidden;opacity:0;pointer-events:none';
+    const input = document.createElement('input');
+    input.type = 'checkbox';
+    input.setAttribute('switch', '');
+    input.tabIndex = -1;
+    label.appendChild(input);
+    document.body.appendChild(label);
+    switchEl = label;
+  }
+  for (let i = 0; i < times; i++) switchEl.click();
+}
+
+export async function haptic(kind: HapticKind) {
   if (!isNative) {
-    navigator.vibrate?.(kind === 'error' ? [40, 40, 40] : kind === 'success' ? 18 : 6);
+    if (navigator.vibrate) navigator.vibrate(kind === 'error' ? [40, 40, 40] : kind === 'success' ? 18 : 6);
+    else if (switchSupported()) {
+      // synchron, damit es noch innerhalb der Geste passiert
+      try {
+        switchTick(kind === 'error' ? 2 : 1);
+      } catch {
+        /* egal */
+      }
+    }
     return;
   }
-  const { Haptics, ImpactStyle, NotificationType } = await import('@capacitor/haptics');
-  if (kind === 'tap') await Haptics.impact({ style: ImpactStyle.Light });
-  else await Haptics.notification({ type: kind === 'success' ? NotificationType.Success : NotificationType.Error });
+  try {
+    const { Haptics, ImpactStyle, NotificationType } = await nativeHaptics();
+    if (kind === 'tap') {
+      if (!selectionReady) {
+        await Haptics.selectionStart();
+        selectionReady = true;
+      }
+      await Haptics.selectionChanged();
+    } else {
+      await Haptics.notification({ type: kind === 'success' ? NotificationType.Success : NotificationType.Error });
+      if (kind === 'error') await Haptics.impact({ style: ImpactStyle.Medium });
+    }
+  } catch (e) {
+    selectionReady = false;
+    // Fallback: vibrate() startet jedes Mal eine frische Haptik-Engine
+    try {
+      const { Haptics } = await nativeHaptics();
+      await Haptics.vibrate({ duration: kind === 'tap' ? 10 : 30 });
+    } catch {
+      /* keine Haptik verfügbar */
+    }
+    if (Date.now() - lastHapticFail > 60_000) {
+      lastHapticFail = Date.now();
+      void reportUpdateError('haptic', e);
+    }
+  }
 }
 
 // ---------- Live-Updates ----------
@@ -75,8 +156,10 @@ export async function initNative(onResume: () => void) {
   const applyBar = () => void StatusBar.setStyle({ style: dark.matches ? Style.Dark : Style.Light }).catch(() => {});
   applyBar();
   dark.addEventListener('change', applyBar);
+  reviveHaptics();
   void App.addListener('appStateChange', ({ isActive }) => {
     if (!isActive) return;
+    reviveHaptics();
     onResume();
     void checkForUpdate();
   });

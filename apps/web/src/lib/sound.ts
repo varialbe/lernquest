@@ -1,14 +1,82 @@
 /** Kleine synthetische Sounds (WebAudio, keine Dateien) + Haptik (iOS-App) bzw. Vibration. */
-import { haptic } from './native.ts';
+import { haptic, reviveHaptics } from './native.ts';
 
 let ctx: AudioContext | null = null;
 let out: AudioNode | null = null;
-let muted = localStorage.getItem('lq.muted') === '1';
+/** iOS: nach Notification/Hintergrund bleibt der Context „interrupted“ oder spielt stumm weiter → beim nächsten Mal neu aufbauen */
+let stale = false;
+let muted = (() => {
+  try {
+    return localStorage.getItem('lq.muted') === '1';
+  } catch {
+    return false;
+  }
+})();
 
 export const isMuted = () => muted;
 export function setMuted(m: boolean) {
   muted = m;
-  localStorage.setItem('lq.muted', m ? '1' : '0');
+  try {
+    localStorage.setItem('lq.muted', m ? '1' : '0');
+  } catch {
+    /* privater Modus */
+  }
+}
+
+/**
+ * Liefert einen spielbereiten AudioContext. „closed“ oder als stale markiert → neu erzeugen (der alte wird geschlossen),
+ * sonst resume(). Muss möglichst aus einer Nutzergeste heraus laufen, sonst bleibt iOS stumm.
+ */
+export function ensureAudio(): AudioContext | null {
+  try {
+    if (ctx && (stale || ctx.state === 'closed')) {
+      void ctx.close().catch(() => {});
+      ctx = null;
+    }
+    stale = false;
+    if (!ctx) {
+      ctx = new AudioContext({ latencyHint: 'interactive' });
+      out = null;
+      noiseCache.clear();
+      const c = ctx;
+      c.onstatechange = () => {
+        // „interrupted“ (iOS, z. B. Mitteilungston, Anruf) kommt oft nicht von selbst zurück
+        if (c === ctx && (c.state as string) === 'interrupted') stale = true;
+      };
+      // 1 Sample Stille: schaltet die Ausgabe auf iOS innerhalb der Geste sicher frei
+      const b = c.createBuffer(1, 1, c.sampleRate);
+      const src = c.createBufferSource();
+      src.buffer = b;
+      src.connect(c.destination);
+      src.start();
+    }
+    if (ctx.state !== 'running') void ctx.resume().catch(() => {});
+    return ctx;
+  } catch {
+    return null;
+  }
+}
+
+/** Einmal beim Start: Audio + Haptik bei jeder Rückkehr und jeder Berührung wiederbeleben. */
+export function initAudioLifecycle() {
+  const onVisible = () => {
+    if (document.visibilityState === 'hidden') {
+      // beim Zurückkommen frisch aufbauen statt einem hängenden Context zu vertrauen
+      if (ctx) stale = true;
+      return;
+    }
+    reviveHaptics();
+    // ohne Geste nur resume versuchen; neu aufgebaut wird beim nächsten Tippen
+    if (ctx && !stale && ctx.state !== 'running') void ctx.resume().catch(() => {});
+  };
+  const onGesture = () => {
+    if (!muted && (stale || !ctx || ctx.state !== 'running')) ensureAudio();
+  };
+  document.addEventListener('visibilitychange', onVisible);
+  window.addEventListener('pageshow', onVisible);
+  window.addEventListener('focus', onVisible);
+  document.addEventListener('pointerdown', onGesture, { capture: true, passive: true });
+  document.addEventListener('touchend', onGesture, { capture: true, passive: true });
 }
 
 /** Gemeinsamer Ausgang: Kompressor, damit überlagerte Sounds nicht übersteuern. */
@@ -44,16 +112,26 @@ function tone(freq: number, start: number, dur: number, typeOrOpts: OscillatorTy
   o.stop(t0 + dur + 0.02);
 }
 
+/** Rausch-Puffer pro Länge einmal erzeugen und wiederverwenden (gehört zum aktuellen Context) */
+const noiseCache = new Map<number, AudioBuffer>();
+function noiseBuffer(c: AudioContext, dur: number) {
+  let buf = noiseCache.get(dur);
+  if (!buf) {
+    const len = Math.ceil(c.sampleRate * dur);
+    buf = c.createBuffer(1, len, c.sampleRate);
+    const d = buf.getChannelData(0);
+    for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
+    noiseCache.set(dur, buf);
+  }
+  return buf;
+}
+
 /** Kurzes gefiltertes Rauschen (Whoosh, Glitzer) */
 function noise(start: number, dur: number, { from = 800, to = 4000, gain = 0.05, q = 1.2 } = {}) {
   if (!ctx) return;
   const t0 = ctx.currentTime + start;
-  const len = Math.ceil(ctx.sampleRate * dur);
-  const buf = ctx.createBuffer(1, len, ctx.sampleRate);
-  const d = buf.getChannelData(0);
-  for (let i = 0; i < len; i++) d[i] = Math.random() * 2 - 1;
   const src = ctx.createBufferSource();
-  src.buffer = buf;
+  src.buffer = noiseBuffer(ctx, dur);
   const f = ctx.createBiquadFilter();
   f.type = 'bandpass';
   f.Q.value = q;
@@ -69,10 +147,8 @@ function noise(start: number, dur: number, { from = 800, to = 4000, gain = 0.05,
 }
 
 function play(fn: () => void) {
-  if (muted) return;
+  if (muted || !ensureAudio()) return;
   try {
-    ctx ??= new AudioContext();
-    if (ctx.state === 'suspended') void ctx.resume();
     fn();
   } catch {
     /* kein Audio verfügbar */

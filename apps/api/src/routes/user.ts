@@ -69,7 +69,7 @@ export function userRoutes(app: FastifyInstance, db: DB) {
   app.post('/api/app/diag', { config: { rateLimit: { max: 10, timeWindow: '1 hour' } } }, async (req) => {
     const d = z.object({ version: z.string().max(60), stage: z.string().max(20), error: z.string().max(500) }).parse(req.body);
     req.log.warn({ appUpdate: d }, 'Live-Update fehlgeschlagen');
-    db.insert(adminNotifications).values({ level: 'warn', title: `iOS-Live-Update fehlgeschlagen (${d.stage})`, body: `App-Version ${d.version}: ${d.error}` }).run();
+    db.insert(adminNotifications).values({ level: 'warn', title: d.stage === 'haptic' ? 'iOS-Haptik fehlgeschlagen' : `iOS-Live-Update fehlgeschlagen (${d.stage})`, body: `App-Version ${d.version}: ${d.error}` }).run();
     return { ok: true };
   });
 
