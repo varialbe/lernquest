@@ -15,6 +15,9 @@ const queryClient = new QueryClient({
   },
 });
 
+// Safari ignoriert user-scalable=no: Pinch-Zoom der ganzen Seite hier abfangen (Diagramm-Zoom läuft über Pointer-Events)
+document.addEventListener('gesturestart', (e) => e.preventDefault());
+
 // Service Worker nur im Web (nicht in der Capacitor-App)
 if (!('Capacitor' in window)) registerSW({ immediate: true });
 
