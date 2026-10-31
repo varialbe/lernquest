@@ -114,7 +114,8 @@ export function Login({ onLogin }: { onLogin: (token: string) => void }) {
       if (!ok || !alive) return;
       loginWithPasskey(true)
         .then((t) => alive && loginRef.current(t))
-        .catch((e) => alive && !isCancel(e) && setError(passkeyError(e)));
+        // läuft still im Hintergrund – Fehler hier nie anzeigen (z. B. Browser ohne Passkey-Vorschläge)
+        .catch(() => {});
     });
     return () => {
       alive = false;
@@ -171,7 +172,7 @@ export function Login({ onLogin }: { onLogin: (token: string) => void }) {
       <p className="mt-8 text-center text-sm font-bold text-muted">
         Neu hier?{' '}
         <Link href="/register" className="text-primary underline-offset-2 hover:underline">
-          Mit Einladungscode registrieren
+          Konto erstellen
         </Link>
       </p>
       <Copyright className="mt-6" />
