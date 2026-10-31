@@ -11,7 +11,7 @@ flowchart LR
   subgraph VPS["VPS varialbe.xyz"]
     n8n["n8n (Docker)<br/>127.0.0.1:5678<br/>Cron 0 0 * * *"]
     trig["Pipeline-Trigger<br/>127.0.0.1:3461<br/>POST /run · GET /status"]
-    pipe["Pipeline-Lauf<br/>Diff → Obsidian-Parser<br/>→ Codex generate (xhigh)<br/>→ Codex review (high)<br/>→ Zod → content/*.json"]
+    pipe["Pipeline-Lauf<br/>Diff → Obsidian-Parser<br/>→ Codex generate (xhigh)<br/>→ Codex review (high)<br/>→ Blind-Test + Prüfskripte<br/>→ Zod → content/*.json"]
     db[("SQLite (WAL)<br/>data/lernquest.db")]
     api["API (Fastify)<br/>127.0.0.1:3460"]
     apache["Apache2<br/>lern.varialbe.xyz (TLS)"]
@@ -55,6 +55,7 @@ pnpm pipeline run                     # Normalbetrieb (macht n8n jede Nacht)
 pnpm pipeline backfill                # alle Vorlesungen chronologisch nachholen
 pnpm pipeline regenerate "DS/01_Vorlesungen/Diskrete Strukturen VO3.md"
 pnpm pipeline bonus                   # fehlende Praxis-Level nachziehen (oder: bonus ds-03 → nur diese Unit neu)
+pnpm pipeline audit [ds-03 …]         # Blind-Test über bestehende Units, Durchgefallene neu generieren (--no-notify: ohne Telegram)
 pnpm pipeline watchdog                # lief heute schon ein Lauf?
 pnpm pipeline telegram-setup          # einmalig: Chat-ID nach /start an den Bot eintragen
 
@@ -76,6 +77,16 @@ cd apps/web && node scripts/make-icons.mjs   # App-Icons aus assets-src/app-icon
 - Jede verarbeitete Datei wird per **sha256** gemerkt: dieselbe Datei wird nie doppelt verarbeitet, auch nicht nach Umbenennung.
 - Geänderte Dateien werden ignoriert, außer `REGENERATE_ON_MODIFY=true`. Fehlgeschlagene Dateien werden bis zu 3× in späteren Läufen erneut versucht.
 - Ein Codex-Rate-Limit bricht den Lauf sauber ab. Die restlichen Dateien folgen im nächsten Lauf, und Telegram meldet es mit 🚦.
+
+## Selbsttragende Fragen: Kontext, Blind-Test, Prüfskripte
+Wer spielt, sieht nur Frage, Kontext und Optionen, keine Vorlesung. Deshalb:
+- **`context`** (optional, `packages/shared/src/quiz.ts`): `{ type: 'mermaid' | 'code' | 'table', content, language?, caption?, frames? }`, angezeigt über der Frage. `frames` sind Schritte desselben Mermaid-Diagramms (Algorithmus-Zustände). Kontextdiagramme haben höchstens 18 Knoten (Zod, `mermaidNodeCount`); der Prompt verlangt ca. 15.
+- **Prompt-Regeln** stehen einmal in `pipeline/prompts/_self-contained.md` und werden per `{{SELF_CONTAINED}}` in Generator-, Review- und Reparatur-Prompts eingesetzt: alle Daten in Frage/Kontext, keine Verweise auf „das Beispiel aus der Vorlesung“, lieber neue kleine Instanzen, Titel/Konzepte ohne LaTeX.
+- **Qualitäts-Tor** (`pipeline/src/quality.ts`, nach jeder Generierung, abschaltbar mit `QUALITY_GATE=false`):
+  1. **Prüfskripte**: Bei Rechen-/Algorithmus-/Code-Aufgaben liefert Codex ein Python-Skript (`verify`, nicht im Content). Die Pipeline führt es isoliert aus (`python3 -I`, 10 s Timeout) und vergleicht `ANSWER: …` mit der hinterlegten Lösung.
+  2. **Blind-Test**: Ein zweiter Codex-Lauf (`CODEX_BLIND_EFFORT`, Standard `high`) bekommt nur Frage + Kontext + Optionen und löst. „Fehlende Info“ (auch bei unbeschriebenen Vorlesungsszenarien) oder eine andere Antwort = durchgefallen.
+  3. **Reparatur**: Durchgefallene Fragen werden mit Befund neu generiert (`CODEX_EFFORT`), max. 2 Versuche, jeder Ersatz wieder durch 1. und 2. Danach wird verworfen und im Report geloggt. Ersatzfragen bekommen neue IDs (`…-q05-r1`), die alte Frage wird beim Import deaktiviert.
+- `pnpm pipeline audit` macht dasselbe für bestehende Units (3 parallel). Report: `data/reports/audit-*.json`, Log: `data/runs/audit-*.log`.
 
 ## Üben-Tab: Wiederholen, Schwächen, Klausur-Check, Duelle
 Alle drei Rundenarten stellt der **Server** zusammen (`quiz_runs`). Gewertet werden genau diese Fragen, genau einmal (`POST /api/runs/:id/complete`).
@@ -150,12 +161,21 @@ Die Fragen selbst (`content/`) liegen ohnehin versioniert im Haupt-Repo.
 ## Wie ändere ich das Modell?
 In `~/lernquest/.env`:
 ```
-CODEX_MODEL=gpt-5.6-luna      # Modell für Generierung und Review
+CODEX_MODEL=gpt-6-luna        # Modell für Generierung, Review, Blind-Test und Reparatur
 CODEX_EFFORT=xhigh            # Reasoning-Effort Generierung
 CODEX_REVIEW_EFFORT=high      # Reasoning-Effort Review
 CODEX_TIMEOUT_MIN=30
 ```
 Keine Neustarts nötig. Jeder Lauf liest `.env` neu. Das verwendete Modell steht in jeder Unit unter `generator`.
+
+## Passkeys und Passwörter
+- **Passkeys** (WebAuthn, `apps/api/src/routes/passkeys.ts`): Relying Party ist `WEB_ORIGIN` (lern.varialbe.xyz). Anlegen unter Profil → Passkeys, Anmelden per Button oder direkt als Vorschlag im Benutzernamen-Feld. Funktioniert in Safari und der Home-Screen-App.
+- **iOS-App (LiveContainer/Sideloading)**: keine Passkeys und kein „Passwort sichern“-Dialog. Beides bräuchte das Entitlement *Associated Domains* (`webcredentials:lern.varialbe.xyz`) mit einer Team-ID, und das gibt es nur mit bezahltem Developer-Account. Ein Neukompilieren ändert daran nichts. Passwörter lassen sich dort über die QuickType-Leiste aus der Passwörter-App einfügen.
+- Die Formulare haben `autocomplete`-Attribute (`username`, `current-password`, `new-password`), damit die Passwörter-App in Safari/PWA anbietet, das Passwort zu sichern und auszufüllen.
+
+## Sound und Haptik (iOS)
+- `ensureAudio()` (`apps/web/src/lib/sound.ts`): Ein geschlossener oder von iOS unterbrochener AudioContext (`interrupted`, z. B. nach einem Mitteilungston) wird neu erzeugt, sonst `resume()`. Das passiert vor jedem Sound, bei `pointerdown`/`touchend` und bei der Rückkehr in die App.
+- Haptik (`apps/web/src/lib/native.ts`): In der iOS-App läuft sie über Capacitor-Haptics mit einem vorbereiteten Generator, der bei jeder Rückkehr neu angelegt wird. Fallback ist `vibrate()`, Fehler landen als Admin-Hinweis. In Safari/PWA gibt es auf dem iPhone kein `navigator.vibrate`; ab iOS 18 löst ein verstecktes `<input type="checkbox" switch>` das System-Haptik-Feedback aus.
 
 ## Sicherheit
 - Registrierung nur mit Einladungscode, argon2id, Rate-Limits auf Login/Registrierung, widerrufbare Session-Tokens (gehasht in der DB).
