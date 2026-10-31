@@ -1,0 +1,1672 @@
+{
+  "schemaVersion": 1,
+  "id": "era-06",
+  "module": "ERA",
+  "number": 6,
+  "slug": "unterprogramme-und-stackframes",
+  "title": "Unterprogramme und Stackframes",
+  "summary": "Diese Unit behandelt Unterprogrammaufrufe, Rücksprünge und die Registerkonventionen von RISC-V. Sie erklärt, warum verschachtelte Aufrufe einen Stack mit eigenen Stackframes benötigen, wie der Speicher aufgeteilt ist und wie Pseudobefehle sowie Disassembly einzuordnen sind. Abschließend wird ein Summenprogramm von C bis zum RV64-Assembler nachvollzogen.",
+  "concepts": [
+    "Unterprogrammaufruf",
+    "Rücksprungadresse",
+    "Calling Convention",
+    "Caller-saved und Callee-saved",
+    "Stackframe",
+    "Stack und LIFO",
+    "Stack Pointer",
+    "Speicheraufteilung",
+    "Pseudobefehle",
+    "jal und jalr",
+    "Disassembly und objdump",
+    "RV64-Summenprogramm"
+  ],
+  "keyFacts": [
+    "`jal ra, offset` speichert `PC+4` in `ra` und setzt den `PC` auf `PC+offset`.",
+    "`jr ra` springt an die in `ra` gespeicherte Rücksprungadresse.",
+    "Ein verschachtelter `jal` überschreibt `ra`; die bisherige Rücksprungadresse muss vorher gesichert werden.",
+    "`a0` bis `a7` dienen als Argumentregister, `a0` und `a1` zusätzlich als Ergebnisregister.",
+    "Caller-saved-Register dürfen vom Callee verändert werden; Callee-saved-Register muss der Callee bei Veränderung wiederherstellen.",
+    "Die Register `s0` bis `s11` sind Callee-saved, `t0` bis `t6` sowie `a0` bis `a7` sind Caller-saved.",
+    "Stackframes bieten jedem laufenden Unterprogrammaufruf einen eigenen temporären Speicherbereich.",
+    "Unterprogrammaufrufe folgen dem LIFO-Prinzip: Der zuletzt gestartete Aufruf kehrt zuerst zurück.",
+    "Beim Reservieren eines Stackframes wird `sp` kleiner, beim Freigeben wieder größer.",
+    "Das Wachstum des Stacks zu kleineren Adressen ist eine Konvention und keine technische Notwendigkeit.",
+    "Im dargestellten Modell liegen Stack und Heap an entgegengesetzten Seiten des freien Bereichs; globale Variablen liegen in Static Data und Programmcode im Text-Bereich.",
+    "`j label` ist `jal x0, label`, `jr reg` ist `jalr x0, reg, 0`; Schreibzugriffe auf `x0` werden verworfen.",
+    "`objdump -h` zeigt die Abschnittsübersicht, `objdump -d` die Disassembly.",
+    "Im Summenprogramm wird die Schleife zehnmal ausgeführt und berechnet `c=0+1+...+9=45`."
+  ],
+  "tags": [],
+  "links": [],
+  "source": {
+    "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO6.md",
+    "sha256": "225a15da0828339fef200ad573f811048a1c254dc280f9236350c8e609fe7658",
+    "commit": "c01f10e1818d61e8fd05d663cf852d7a59f2e1e4"
+  },
+  "generator": {
+    "model": "gpt-5.6-luna",
+    "effort": "xhigh",
+    "reviewEffort": "high",
+    "promptVersion": "v2",
+    "generatedAt": "2026-10-31T00:47:13.091Z",
+    "review": {
+      "checked": 44,
+      "fixed": 8,
+      "removed": 0,
+      "notes": "Alle 44 Fragen geprüft. Korrigiert wurden ein ungültiges C-Codebeispiel, mehrere Mermaid-Blöcke mit nicht quotierten Knotentexten, eine unpräzise Diagrammfrage sowie die fehlende Kontextangabe zur 32-Bit-Befehlslänge im Disassembly. Distraktoren, Berechnungen, Erklärungen und Quellen wurden fachlich abgeglichen."
+    }
+  },
+  "levels": [
+    {
+      "id": "era-06-l1",
+      "index": 1,
+      "kind": "basics",
+      "title": "Grundlagen",
+      "questions": [
+        {
+          "id": "era-06-l1-q01",
+          "type": "single",
+          "prompt": "Was bezeichnet der Begriff `Caller` bei einem Unterprogrammaufruf?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Das Register mit der Rücksprungadresse"
+            },
+            {
+              "id": "b",
+              "text": "Die aufgerufene Funktion"
+            },
+            {
+              "id": "c",
+              "text": "Die aufrufende Funktion"
+            },
+            {
+              "id": "d",
+              "text": "Das oberste Stackelement"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Der Caller ist die aufrufende Funktion. Die aufgerufene Funktion heißt Callee.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO6.md",
+            "heading": "Unterprogramme: Aufruf und Rücksprung"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Unterprogrammaufruf"
+          ]
+        },
+        {
+          "id": "era-06-l1-q02",
+          "type": "single",
+          "prompt": "Welche Zustandsänderung beschreibt `jal ra, offset` korrekt?",
+          "options": [
+            {
+              "id": "a",
+              "text": "`ra ← PC+offset` und `PC ← PC+4`"
+            },
+            {
+              "id": "b",
+              "text": "`ra ← PC` und `PC ← offset`"
+            },
+            {
+              "id": "c",
+              "text": "`ra` bleibt unverändert und `PC ← ra+offset`"
+            },
+            {
+              "id": "d",
+              "text": "`ra ← PC+4` und `PC ← PC+offset`"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "`jal` speichert die Adresse des nächsten Befehls, also `PC+4`, in `ra` und springt relativ zum aktuellen `PC`.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO6.md",
+            "heading": ": springen und Rücksprungadresse speichern"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Rücksprungadresse",
+            "jal und jalr"
+          ]
+        },
+        {
+          "id": "era-06-l1-q03",
+          "type": "cloze",
+          "prompt": "`jr ra` springt an die in ___ gespeicherte Adresse.",
+          "options": [
+            {
+              "id": "a",
+              "text": "`sp`"
+            },
+            {
+              "id": "b",
+              "text": "`a0`"
+            },
+            {
+              "id": "c",
+              "text": "`ra`"
+            },
+            {
+              "id": "d",
+              "text": "`s0`"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "`jr ra` verwendet den Inhalt von `ra` als Zieladresse und kehrt damit zum Aufrufer zurück.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO6.md",
+            "heading": "Rücksprung mit"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Rücksprungadresse"
+          ]
+        },
+        {
+          "id": "era-06-l1-q04",
+          "type": "multi",
+          "prompt": "Welche Aussagen zur Registerverwendung sind richtig? Mehrere Antworten können richtig sein.",
+          "options": [
+            {
+              "id": "a",
+              "text": "`a0` und `a1` können Rückgabewerte aufnehmen."
+            },
+            {
+              "id": "b",
+              "text": "`s0` bis `s11` sind die Argumentregister."
+            },
+            {
+              "id": "c",
+              "text": "`a0` bis `a7` können Argumente aufnehmen."
+            },
+            {
+              "id": "d",
+              "text": "`t0` bis `t6` sind Callee-saved."
+            },
+            {
+              "id": "e",
+              "text": "`ra` enthält die Rücksprungadresse."
+            }
+          ],
+          "correct": [
+            "a",
+            "c",
+            "e"
+          ],
+          "explanation": "Argumente werden über `a0` bis `a7`, Ergebnisse über `a0` und `a1` und die Rücksprungadresse über `ra` übergeben. `t`- und `s`-Register haben andere Sicherungskonventionen.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO6.md",
+            "heading": "Argumente, Ergebnisse und Calling Convention"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Calling Convention"
+          ]
+        },
+        {
+          "id": "era-06-l1-q05",
+          "type": "truefalse",
+          "prompt": "Wenn ein Callee ein Callee-saved-Register verändert, muss er dessen ursprünglichen Wert vor dem Rücksprung wiederherstellen.",
+          "options": [
+            {
+              "id": "true",
+              "text": "Wahr"
+            },
+            {
+              "id": "false",
+              "text": "Falsch"
+            }
+          ],
+          "correct": [
+            "true"
+          ],
+          "explanation": "Bei Callee-saved-Registern trägt der Callee die Verantwortung für die Wiederherstellung. Bei Caller-saved-Registern muss sich dagegen der Caller selbst um benötigte Werte kümmern.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO6.md",
+            "heading": "Caller-saved und Callee-saved"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Caller-saved und Callee-saved"
+          ]
+        },
+        {
+          "id": "era-06-l1-q06",
+          "type": "single",
+          "prompt": "Warum reicht eine feste Speicheradresse für lokale Daten eines Unterprogramms nicht aus?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Weil Register grundsätzlich keine Werte speichern können."
+            },
+            {
+              "id": "b",
+              "text": "Weil wiederholte oder rekursive Aufrufe eigene Bereiche benötigen und sich sonst überschreiben könnten."
+            },
+            {
+              "id": "c",
+              "text": "Weil globale Variablen nur im Stack liegen dürfen."
+            },
+            {
+              "id": "d",
+              "text": "Weil jeder Sprung automatisch den gesamten Speicher löscht."
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "Bei mehreren gleichzeitig aktiven Aufrufen braucht jeder Aufruf seinen eigenen Bereich. Ein gemeinsamer fester Bereich würde lokale Daten oder Rücksprungadressen überschreiben.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO6.md",
+            "heading": "Warum zusätzlicher Speicher nötig ist"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Stackframe",
+            "Unterprogrammaufruf"
+          ]
+        },
+        {
+          "id": "era-06-l1-q07",
+          "type": "diagram",
+          "prompt": "Welche Rückkehrreihenfolge beschreibt das Diagramm und das LIFO-Prinzip korrekt?\n\n```mermaid\nflowchart LR\n A[\"A läuft\"] --> B[\"B aufrufen\"]\n B --> C[\"C aufrufen\"]\n C --> D[\"C zurück\"]\n D --> E[\"B zurück\"]\n E --> F[\"A weiter\"]\n```",
+          "options": [
+            {
+              "id": "a",
+              "text": "C kehrt zurück, dann A, dann B"
+            },
+            {
+              "id": "b",
+              "text": "C kehrt zurück, dann B, dann A"
+            },
+            {
+              "id": "c",
+              "text": "B kehrt zurück, dann C, dann A"
+            },
+            {
+              "id": "d",
+              "text": "A kehrt zurück, dann B, dann C"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "Der zuletzt gestartete Aufruf C wird zuerst beendet. Danach kehrt B zurück und schließlich läuft A weiter.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO6.md",
+            "heading": "Stack: LIFO statt FIFO"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Stack und LIFO",
+            "Unterprogrammaufruf"
+          ]
+        },
+        {
+          "id": "era-06-l1-q08",
+          "type": "single",
+          "prompt": "Was passiert beim Reservieren eines Stackframes mit dem Stack Pointer `sp`?",
+          "options": [
+            {
+              "id": "a",
+              "text": "`sp` wird um die Framegröße kleiner."
+            },
+            {
+              "id": "b",
+              "text": "`sp` wird durch `ra` ersetzt."
+            },
+            {
+              "id": "c",
+              "text": "`sp` wird auf null gesetzt."
+            },
+            {
+              "id": "d",
+              "text": "`sp` wird um die Framegröße größer."
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "Im dargestellten Modell wächst der Stack zu kleineren Adressen. Deshalb gilt beim Reservieren `sp ← sp - Framegröße`.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO6.md",
+            "heading": "Warum wächst der Stack nach unten?"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Stack Pointer",
+            "Stackframe"
+          ]
+        },
+        {
+          "id": "era-06-l1-q09",
+          "type": "multi",
+          "prompt": "Welche Zuordnungen zur typischen Speicheraufteilung sind richtig? Mehrere Antworten können richtig sein.",
+          "options": [
+            {
+              "id": "a",
+              "text": "Der Text-Bereich enthält Registerwerte temporärer Berechnungen."
+            },
+            {
+              "id": "b",
+              "text": "Der Stack enthält Frames, lokale Daten und Rücksprünge."
+            },
+            {
+              "id": "c",
+              "text": "Static Data enthält globale Variablen."
+            },
+            {
+              "id": "d",
+              "text": "Der Heap enthält den Programmcode."
+            },
+            {
+              "id": "e",
+              "text": "Der Heap enthält dynamisch angelegte Daten."
+            }
+          ],
+          "correct": [
+            "b",
+            "c",
+            "e"
+          ],
+          "explanation": "Stack, Heap und Static Data haben die genannten Aufgaben. Der Programmcode liegt im Text-Bereich; temporäre Registerwerte gehören nicht dorthin.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO6.md",
+            "heading": "Typische Speicheraufteilung"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Speicheraufteilung"
+          ]
+        },
+        {
+          "id": "era-06-l1-q10",
+          "type": "diagram",
+          "prompt": "Welche Aussage passt zur dargestellten Speicheraufteilung?\n\n```mermaid\nflowchart TD\n H[\"Hohe Adressen\"] --> S[\"Stack\"]\n S --> F[\"Freier Bereich\"]\n F --> P[\"Heap\"]\n P --> D[\"Static Data\"]\n D --> T[\"Text\"]\n T --> Z[\"Adresse 0\"]\n```",
+          "options": [
+            {
+              "id": "a",
+              "text": "Static Data wird bei jedem Unterprogrammaufruf neu angelegt."
+            },
+            {
+              "id": "b",
+              "text": "Der Text-Bereich liegt über dem Stack und wächst nach oben."
+            },
+            {
+              "id": "c",
+              "text": "Der Heap enthält ausschließlich Rücksprungadressen."
+            },
+            {
+              "id": "d",
+              "text": "Der Stack liegt im Modell bei hohen Adressen, der Text-Bereich bei niedrigen Adressen."
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Die Skizze ordnet hohe Adressen oben und Adresse 0 unten an. Der Stack liegt oben, während der Text-Bereich unten liegt.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO6.md",
+            "heading": "Typische Speicheraufteilung"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Speicheraufteilung"
+          ]
+        },
+        {
+          "id": "era-06-l1-q11",
+          "type": "single",
+          "prompt": "Welche echten RISC-V-Sprungbefehle liegen den hier behandelten Sprung-Pseudobefehlen zugrunde?",
+          "options": [
+            {
+              "id": "a",
+              "text": "`add` und `addi`"
+            },
+            {
+              "id": "b",
+              "text": "`jal` und `jalr`"
+            },
+            {
+              "id": "c",
+              "text": "`lw` und `sw`"
+            },
+            {
+              "id": "d",
+              "text": "`bge` und `blt`"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "Die Pseudobefehle für direkte und registerbasierte Sprünge werden im Kern durch `jal` beziehungsweise `jalr` umgesetzt.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO6.md",
+            "heading": "Echte Sprungbefehle und Pseudobefehle"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Pseudobefehle",
+            "jal und jalr"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "era-06-l2",
+      "index": 2,
+      "kind": "apply",
+      "title": "Anwenden",
+      "questions": [
+        {
+          "id": "era-06-l2-q01",
+          "type": "calc",
+          "prompt": "Ein Aufruf steht bei `0x00000300`, das Unterprogramm beginnt bei `0x0000051c`. Welcher relative Offset wird für `jal` benötigt?",
+          "options": [
+            {
+              "id": "a",
+              "text": "`0x00000220`"
+            },
+            {
+              "id": "b",
+              "text": "`0x00000204`"
+            },
+            {
+              "id": "c",
+              "text": "`0x0000021c`"
+            },
+            {
+              "id": "d",
+              "text": "`0x0000051c`"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Der Offset ist Zieladresse minus aktuelle PC-Adresse: `0x51c-0x300=0x21c`. Die Rücksprungadresse wäre separat `0x304`.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO6.md",
+            "heading": ": springen und Rücksprungadresse speichern"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "jal und jalr",
+            "Rücksprungadresse"
+          ]
+        },
+        {
+          "id": "era-06-l2-q02",
+          "type": "code_output",
+          "prompt": "Was gibt dieser Code aus?\n\n```c\n#include <stdio.h>\n\nint main(void) {\n    int n = 10;\n    int i = 0;\n    int c = 0;\n\n    for (; i < n; i++) {\n        c = c + i;\n    }\n\n    printf(\"%i\", c);\n    return 0;\n}\n```",
+          "options": [
+            {
+              "id": "a",
+              "text": "`55`"
+            },
+            {
+              "id": "b",
+              "text": "`10`"
+            },
+            {
+              "id": "c",
+              "text": "`9`"
+            },
+            {
+              "id": "d",
+              "text": "`45`"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Die Schleife addiert die Werte von 0 bis 9: `0+1+...+9=45`. Der Wert 10 wird wegen `i<n` nicht mehr addiert.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO6.md",
+            "heading": "Ausgangspunkt in C"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "RV64-Summenprogramm"
+          ]
+        },
+        {
+          "id": "era-06-l2-q03",
+          "type": "single",
+          "prompt": "Eine Funktion benötigt den Wert in `t0` nach einem Unterprogrammaufruf. Was muss sie bei der Caller-saved-Konvention tun?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Nichts tun, weil der Callee `t0` nicht verändern darf."
+            },
+            {
+              "id": "b",
+              "text": "Den Wert vor dem Aufruf selbst sichern."
+            },
+            {
+              "id": "c",
+              "text": "Den Wert nur in `a0` umbenennen."
+            },
+            {
+              "id": "d",
+              "text": "Den Wert in `ra` ablegen und `ra` nicht sichern."
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "Ein Caller-saved-Register darf vom Callee verändert werden. Der Caller muss einen weiterhin benötigten Wert daher vor dem Aufruf sichern.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO6.md",
+            "heading": "Caller-saved und Callee-saved"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Caller-saved und Callee-saved"
+          ]
+        },
+        {
+          "id": "era-06-l2-q04",
+          "type": "cloze",
+          "prompt": "Beim Reservieren eines Stackframes gilt `sp ← sp ___ Framegröße`.",
+          "options": [
+            {
+              "id": "a",
+              "text": "`*`"
+            },
+            {
+              "id": "b",
+              "text": "`-`"
+            },
+            {
+              "id": "c",
+              "text": "`/`"
+            },
+            {
+              "id": "d",
+              "text": "`+`"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "Der Stack wächst zu kleineren Adressen. Deshalb wird die Framegröße vom Stack Pointer abgezogen.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO6.md",
+            "heading": "Warum wächst der Stack nach unten?"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Stack Pointer",
+            "Stackframe"
+          ]
+        },
+        {
+          "id": "era-06-l2-q05",
+          "type": "calc",
+          "prompt": "Der aktuelle Stack Pointer sei `sp=0x1000`. Ein 32-Byte-Stackframe wird reserviert. Welchen Wert hat `sp` danach?",
+          "options": [
+            {
+              "id": "a",
+              "text": "`0x0fc0`"
+            },
+            {
+              "id": "b",
+              "text": "`0x1004`"
+            },
+            {
+              "id": "c",
+              "text": "`0x1020`"
+            },
+            {
+              "id": "d",
+              "text": "`0x0fe0`"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "32 Byte entsprechen `0x20`. Beim Reservieren gilt `0x1000-0x20=0x0fe0`; ein Addieren würde die Wachstumsrichtung verwechseln.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO6.md",
+            "heading": "1. Stackframe anlegen und Variablen initialisieren"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Stack Pointer",
+            "Stackframe"
+          ]
+        },
+        {
+          "id": "era-06-l2-q06",
+          "type": "single",
+          "prompt": "Welche echte Anweisung kann `mv t0, t1` als Pseudobefehl ersetzen?",
+          "options": [
+            {
+              "id": "a",
+              "text": "`add t1, t0, x0`"
+            },
+            {
+              "id": "b",
+              "text": "`sub t0, t1, x0`"
+            },
+            {
+              "id": "c",
+              "text": "`add t0, t1, x0`"
+            },
+            {
+              "id": "d",
+              "text": "`addi t0, t1, 1`"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "`add t0,t1,x0` kopiert `t1`, weil `x0` immer null enthält. Die anderen Varianten verändern den Wert oder die Zielrichtung.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO6.md",
+            "heading": "Noch einmal"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Pseudobefehle"
+          ]
+        },
+        {
+          "id": "era-06-l2-q07",
+          "type": "multi",
+          "prompt": "Welche Aussagen zu `objdump` und Disassembly sind richtig? Mehrere Antworten können richtig sein.",
+          "options": [
+            {
+              "id": "a",
+              "text": "`objdump -h count` zeigt eine Header- und Abschnittsübersicht."
+            },
+            {
+              "id": "b",
+              "text": "`objdump -d count` zeigt die Disassembly."
+            },
+            {
+              "id": "c",
+              "text": "Disassembly ist eine lesbare Deutung codierter Maschinenbefehle."
+            },
+            {
+              "id": "d",
+              "text": "`-h` führt alle Befehle der Datei aus."
+            },
+            {
+              "id": "e",
+              "text": "`-d` fügt die Assemblerdarstellung als zusätzlichen Text neben den Maschinenbefehlen in den RAM ein."
+            }
+          ],
+          "correct": [
+            "a",
+            "b",
+            "c"
+          ],
+          "explanation": "`-h` zeigt die Abschnitte, `-d` decodiert Programmbefehle, und die Assemblerdarstellung ist eine Interpretation der Codierung. Sie liegt nicht zusätzlich als Text im RAM.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO6.md",
+            "heading": "Binärdatei mit           ansehen"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Disassembly und objdump"
+          ]
+        },
+        {
+          "id": "era-06-l2-q08",
+          "type": "single",
+          "prompt": "Wofür wird beim Kompilieren die Option `-march` verwendet?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Zur Auswahl des Stackframe-Inhalts"
+            },
+            {
+              "id": "b",
+              "text": "Zur Angabe der Ziel-ISA beziehungsweise Zielarchitektur"
+            },
+            {
+              "id": "c",
+              "text": "Zur Anzeige der Heapgröße"
+            },
+            {
+              "id": "d",
+              "text": "Zur Festlegung des Rückgabewerts von `main`"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "Mit `-march` wird angegeben, für welche Zielarchitektur beziehungsweise ISA der Compiler Befehle erzeugen soll.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO6.md",
+            "heading": "Zielarchitektur beim Kompilieren"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Disassembly und objdump"
+          ]
+        },
+        {
+          "id": "era-06-l2-q09",
+          "type": "diagram",
+          "prompt": "Welche Situation folgt im Ablauf direkt auf den Aufruf von C?\n\n```mermaid\nflowchart LR\n A[\"A läuft\"] --> B[\"B aufrufen\"]\n B --> C[\"C aufrufen\"]\n C --> D[\"C kehrt zurück und gibt seinen Frame frei\"]\n D --> E[\"B zurück\"]\n E --> F[\"A weiter\"]\n```",
+          "options": [
+            {
+              "id": "a",
+              "text": "B wird erneut aufgerufen, bevor C endet"
+            },
+            {
+              "id": "b",
+              "text": "Der Heap wird als Rücksprungadresse verwendet"
+            },
+            {
+              "id": "c",
+              "text": "C kehrt zurück und gibt seinen Frame frei"
+            },
+            {
+              "id": "d",
+              "text": "A reserviert einen zweiten Frame für B"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Nach dem Aufruf von C wird zuerst C beendet und sein eigener Stackframe freigegeben. Erst danach kann B zurückkehren.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO6.md",
+            "heading": "Stack: LIFO statt FIFO"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Stack und LIFO",
+            "Stackframe"
+          ]
+        },
+        {
+          "id": "era-06-l2-q10",
+          "type": "calc",
+          "prompt": "Die Schleife startet mit `i=0` und läuft solange `i<10`. Wie oft wird ihr Rumpf ausgeführt?",
+          "options": [
+            {
+              "id": "a",
+              "text": "0-mal"
+            },
+            {
+              "id": "b",
+              "text": "11-mal"
+            },
+            {
+              "id": "c",
+              "text": "9-mal"
+            },
+            {
+              "id": "d",
+              "text": "10-mal"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Der Rumpf läuft für `i=0,1,...,9`, also zehnmal. Nach der Erhöhung auf 10 beendet `bge` die Schleife.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO6.md",
+            "heading": "2. Schleifenbedingung und Schleifenrumpf"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "RV64-Summenprogramm"
+          ]
+        },
+        {
+          "id": "era-06-l2-q11",
+          "type": "truefalse",
+          "prompt": "`j label` speichert die Rücksprungadresse in `ra`.",
+          "options": [
+            {
+              "id": "true",
+              "text": "Wahr"
+            },
+            {
+              "id": "false",
+              "text": "Falsch"
+            }
+          ],
+          "correct": [
+            "false"
+          ],
+          "explanation": "`j label` ist `jal x0,label`. Der Sprung wird ausgeführt, aber der Schreibzugriff auf `x0` verworfen, sodass keine Rücksprungadresse erhalten bleibt.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO6.md",
+            "heading": "Echte Sprungbefehle und Pseudobefehle"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Pseudobefehle",
+            "jal und jalr"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "era-06-l3",
+      "index": 3,
+      "kind": "deepen",
+      "title": "Vertiefen",
+      "questions": [
+        {
+          "id": "era-06-l3-q01",
+          "type": "multi",
+          "prompt": "Welche Aussagen erklären die Notwendigkeit eigener Stackbereiche bei verschachtelten oder rekursiven Aufrufen? Mehrere Antworten können richtig sein.",
+          "options": [
+            {
+              "id": "a",
+              "text": "Ein innerer `jal` überschreibt die bisherige Rücksprungadresse in `ra`."
+            },
+            {
+              "id": "b",
+              "text": "Rekursion benötigt niemals zusätzliche Rücksprungadressen."
+            },
+            {
+              "id": "c",
+              "text": "Eine feste globale Adresse verhindert zuverlässig Überschreibungen."
+            },
+            {
+              "id": "d",
+              "text": "Jeder gleichzeitig aktive Aufruf benötigt seinen eigenen reservierten Bereich."
+            },
+            {
+              "id": "e",
+              "text": "Die Rückkehrreihenfolge der Aufrufe entspricht LIFO."
+            }
+          ],
+          "correct": [
+            "a",
+            "d",
+            "e"
+          ],
+          "explanation": "Eigene Frames schützen lokale Daten und Rücksprungadressen. Wegen der verschachtelten Rückkehr gilt LIFO; ein innerer `jal` kann `ra` überschreiben.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO6.md",
+            "heading": "Warum zusätzlicher Speicher nötig ist"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Stackframe",
+            "Stack und LIFO",
+            "Rücksprungadresse"
+          ]
+        },
+        {
+          "id": "era-06-l3-q02",
+          "type": "truefalse",
+          "prompt": "Dass der Stack zu kleineren Speicheradressen wächst, ist eine zwingende technische Eigenschaft jeder Rechnerarchitektur.",
+          "options": [
+            {
+              "id": "true",
+              "text": "Wahr"
+            },
+            {
+              "id": "false",
+              "text": "Falsch"
+            }
+          ],
+          "correct": [
+            "false"
+          ],
+          "explanation": "Die Wachstumsrichtung ist hier eine Konvention. In diesem Modell wird beim Reservieren `sp` kleiner, aber grundsätzlich könnte die Anordnung anders gewählt werden.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO6.md",
+            "heading": "Warum wächst der Stack nach unten?"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Stack Pointer",
+            "Speicheraufteilung"
+          ]
+        },
+        {
+          "id": "era-06-l3-q03",
+          "type": "single",
+          "prompt": "Eine Funktion verändert `s0` und kehrt anschließend zurück. Welche Regel gilt?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Sie muss `s0` in `a0` kopieren, aber nicht wiederherstellen."
+            },
+            {
+              "id": "b",
+              "text": "Sie darf `s0` verändern, weil alle `s`-Register Caller-saved sind."
+            },
+            {
+              "id": "c",
+              "text": "Sie muss nur `t0` wiederherstellen."
+            },
+            {
+              "id": "d",
+              "text": "Sie muss den ursprünglichen Wert von `s0` wiederherstellen."
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "`s0` gehört zu den Callee-saved-Registern. Verändert der Callee es, muss er den alten Wert vor dem Rücksprung wiederherstellen.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO6.md",
+            "heading": "Caller-saved und Callee-saved"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Caller-saved und Callee-saved"
+          ]
+        },
+        {
+          "id": "era-06-l3-q04",
+          "type": "single",
+          "prompt": "Welche Aussage beschreibt den freien Bereich zwischen Stack und Heap im dargestellten Modell korrekt?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Der freie Bereich gehört ausschließlich zum Text-Segment."
+            },
+            {
+              "id": "b",
+              "text": "Stack und Heap können von entgegengesetzten Seiten in diesen Bereich hineinwachsen."
+            },
+            {
+              "id": "c",
+              "text": "Der freie Bereich enthält nur globale Variablen."
+            },
+            {
+              "id": "d",
+              "text": "Der Stack wächst nach oben und der Heap nach unten."
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "Im Modell wächst der Stack von hohen Adressen nach unten und der Heap von niedrigeren Adressen nach oben. Die verbleibende Fläche zwischen beiden ist frei.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO6.md",
+            "heading": "Typische Speicheraufteilung"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Speicheraufteilung",
+            "Stack Pointer"
+          ]
+        },
+        {
+          "id": "era-06-l3-q05",
+          "type": "calc",
+          "prompt": "Ein `jal` steht bei `PC=0x100` und verwendet `offset=0x20`. Welche Zieladresse erhält der `PC`?",
+          "options": [
+            {
+              "id": "a",
+              "text": "`0x20`"
+            },
+            {
+              "id": "b",
+              "text": "`0x120`"
+            },
+            {
+              "id": "c",
+              "text": "`0x104`"
+            },
+            {
+              "id": "d",
+              "text": "`0x0e0`"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "Die Sprungadresse ist `PC+offset`, also `0x100+0x20=0x120`. Die Rücksprungadresse würde separat auf `0x104` gesetzt.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO6.md",
+            "heading": ": springen und Rücksprungadresse speichern"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "jal und jalr",
+            "Rücksprungadresse"
+          ]
+        },
+        {
+          "id": "era-06-l3-q06",
+          "type": "cloze",
+          "prompt": "`jr ra` entspricht hier dem echten Befehl `jalr x0, ra, ___`.",
+          "options": [
+            {
+              "id": "a",
+              "text": "`sp`"
+            },
+            {
+              "id": "b",
+              "text": "`0`"
+            },
+            {
+              "id": "c",
+              "text": "`ra`"
+            },
+            {
+              "id": "d",
+              "text": "`4`"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "`jr reg` ist die Kurzform von `jalr x0, reg, 0`. Mit `x0` wird keine neue Rücksprungadresse gespeichert.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO6.md",
+            "heading": "Echte Sprungbefehle und Pseudobefehle"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Pseudobefehle",
+            "jal und jalr"
+          ]
+        },
+        {
+          "id": "era-06-l3-q07",
+          "type": "diagram",
+          "prompt": "Welche Beschreibung passt zum Ablauf eines Stackframes?\n\n```mermaid\nflowchart LR\n A[\"sp vor Aufruf\"] --> B[\"sp = sp - Framegröße\"]\n B --> C[\"ra und s0 sichern\"]\n C --> D[\"lokale Daten nutzen\"]\n D --> E[\"ra und s0 laden\"]\n E --> F[\"sp = sp + Framegröße\"]\n```",
+          "options": [
+            {
+              "id": "a",
+              "text": "Lokale Daten werden ausschließlich im Text-Bereich gespeichert."
+            },
+            {
+              "id": "b",
+              "text": "`sp` wird vor der Nutzung größer und nach der Freigabe kleiner."
+            },
+            {
+              "id": "c",
+              "text": "Der Bereich wird nur beim Programmstart reserviert und nie freigegeben."
+            },
+            {
+              "id": "d",
+              "text": "Der Bereich wird reserviert, genutzt, wiederhergestellt und anschließend freigegeben."
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Ein Stackframe entsteht beim Aufruf, enthält gesicherte Register und lokale Daten und wird beim Rücksprung wieder freigegeben. Dabei sinkt `sp` zunächst und steigt später wieder.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO6.md",
+            "heading": "1. Stackframe anlegen und Variablen initialisieren"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Stackframe",
+            "Stack Pointer"
+          ]
+        },
+        {
+          "id": "era-06-l3-q08",
+          "type": "multi",
+          "prompt": "Welche Aussagen erklären die Vorbereitung des `printf`-Aufrufs im Summenprogramm? Mehrere Antworten können richtig sein.",
+          "options": [
+            {
+              "id": "a",
+              "text": "`ret` reserviert vor dem Aufruf einen neuen Stackframe."
+            },
+            {
+              "id": "b",
+              "text": "Die Rücksprungadresse muss gesichert sein, weil `printf` unter anderem `ra` überschreibt."
+            },
+            {
+              "id": "c",
+              "text": "`s0` darf nach einer Veränderung ohne Wiederherstellung verworfen werden."
+            },
+            {
+              "id": "d",
+              "text": "`a0` erhält die Adresse des Formatstrings."
+            },
+            {
+              "id": "e",
+              "text": "`a1` erhält den berechneten Wert von `c`."
+            }
+          ],
+          "correct": [
+            "b",
+            "d",
+            "e"
+          ],
+          "explanation": "Vor `printf` werden Formatadresse und Ergebnis in `a0` und `a1` gelegt. Da der Aufruf `ra` überschreiben kann, wird die ursprüngliche Rücksprungadresse aus dem Stack wiederhergestellt.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO6.md",
+            "heading": "3. Ausgabe, Register wiederherstellen und zurückkehren"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Calling Convention",
+            "Rücksprungadresse",
+            "RV64-Summenprogramm"
+          ]
+        },
+        {
+          "id": "era-06-l3-q09",
+          "type": "single",
+          "prompt": "Warum verwendet das ergänzte RV64-Summenprogramm `addw` und `addiw` für die lokalen `int`-Werte?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Weil `add` nur für Gleitkommazahlen zuständig ist."
+            },
+            {
+              "id": "b",
+              "text": "Weil `addiw` die Rücksprungadresse speichert."
+            },
+            {
+              "id": "c",
+              "text": "Weil die Werte als 32-Bit-Ganzzahlen verarbeitet werden sollen."
+            },
+            {
+              "id": "d",
+              "text": "Weil `addw` automatisch einen Stackframe reserviert."
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Im RV64-Beispiel sind die C-`int`-Werte 32 Bit breit. `addw` und `addiw` führen deshalb die Addition als 32-Bit-Ganzzahloperation aus.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO6.md",
+            "heading": "2. Schleifenbedingung und Schleifenrumpf"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "RV64-Summenprogramm"
+          ]
+        },
+        {
+          "id": "era-06-l3-q10",
+          "type": "calc",
+          "prompt": "Im Summenprogramm ist `c=0` vor dem ersten Durchlauf. Welchen Wert hat `c` nach dem fünften Schleifenrumpf, wenn `i` nacheinander 0, 1, 2, 3 und 4 ist?",
+          "options": [
+            {
+              "id": "a",
+              "text": "`15`"
+            },
+            {
+              "id": "b",
+              "text": "`5`"
+            },
+            {
+              "id": "c",
+              "text": "`10`"
+            },
+            {
+              "id": "d",
+              "text": "`9`"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Nach fünf Durchläufen gilt `c=0+1+2+3+4=10`. Der Wert von `i` nach der anschließenden Erhöhung ist dann 5.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO6.md",
+            "heading": "2. Schleifenbedingung und Schleifenrumpf"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "RV64-Summenprogramm"
+          ]
+        },
+        {
+          "id": "era-06-l3-q11",
+          "type": "truefalse",
+          "prompt": "Wenn `i` im zehnten Durchlauf den Wert 9 hat, wird nach der Erhöhung auf 10 bei der nächsten Prüfung noch ein zusätzlicher Schleifendurchlauf ausgeführt.",
+          "options": [
+            {
+              "id": "true",
+              "text": "Wahr"
+            },
+            {
+              "id": "false",
+              "text": "Falsch"
+            }
+          ],
+          "correct": [
+            "false"
+          ],
+          "explanation": "Nach dem Durchlauf mit `i=9` wird `i` auf 10 erhöht. Die Bedingung `bge 10,10,.Lprint` beendet die Schleife, sodass kein Durchlauf mit `i=10` stattfindet.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO6.md",
+            "heading": "2. Schleifenbedingung und Schleifenrumpf"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "RV64-Summenprogramm"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "era-06-l4",
+      "index": 4,
+      "kind": "boss",
+      "title": "Boss",
+      "questions": [
+        {
+          "id": "era-06-l4-q01",
+          "type": "single",
+          "prompt": "Im Disassembly des mit `-march=rv64imafd` ohne abschließendes `c` erzeugten Programms stehen aufeinanderfolgende Befehle bei `0x100`, `0x104` und `0x108`. Welche Deutung passt zu dieser Folge?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Die `.text`-Sektion enthält keine Maschinenbefehle."
+            },
+            {
+              "id": "b",
+              "text": "Die Adressen bezeichnen ausschließlich 32-Bit-Datenwörter, nicht Befehle."
+            },
+            {
+              "id": "c",
+              "text": "Die Befehle sind jeweils 32 Bit breit und liegen daher vier Bytes auseinander."
+            },
+            {
+              "id": "d",
+              "text": "Die Assemblerdarstellungen liegen als zusätzlicher Text neben den Befehlen im RAM."
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Im gezeigten Disassembly ohne das abschließende `c` sind die Befehle durchgängig 32 Bit breit. Daher steigt die Adresse des nächsten Befehls um vier Bytes; die Disassembly ist nur die lesbare Darstellung der codierten Befehle.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO6.md",
+            "heading": "Zielarchitektur beim Kompilieren"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Disassembly und objdump"
+          ]
+        },
+        {
+          "id": "era-06-l4-q02",
+          "type": "calc",
+          "prompt": "In einem RV64-Stackframe sei der alte `sp` gleich `0x800`. Nach `addi sp, sp, -32` wird `sd ra, 24(sp)` ausgeführt. Welche Byteadressen belegt der gespeicherte 8-Byte-Wert?",
+          "options": [
+            {
+              "id": "a",
+              "text": "`0x7f8` bis `0x7ff`"
+            },
+            {
+              "id": "b",
+              "text": "`0x818` bis `0x81f`"
+            },
+            {
+              "id": "c",
+              "text": "`0x7e8` bis `0x7ef`"
+            },
+            {
+              "id": "d",
+              "text": "`0x7f0` bis `0x7f7`"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "Nach der Reservierung ist `sp=0x7e0`; die effektive Adresse ist `0x7e0+24=0x7f8`. Ein 64-Bit-Wert belegt acht aufeinanderfolgende Byteadressen bis `0x7ff`.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO4.md",
+            "heading": null
+          },
+          "difficulty": 5,
+          "concepts": [
+            "Stackframe",
+            "Stack Pointer"
+          ]
+        },
+        {
+          "id": "era-06-l4-q03",
+          "type": "single",
+          "prompt": "Warum kopiert `add t0, t1, x0` den Wert von `t1` nach `t0`?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Weil Schreibzugriffe auf `t0` verworfen werden."
+            },
+            {
+              "id": "b",
+              "text": "Weil `add` nur den zweiten Operanden betrachtet."
+            },
+            {
+              "id": "c",
+              "text": "Weil `x0` automatisch die Adresse von `t1` enthält."
+            },
+            {
+              "id": "d",
+              "text": "Weil `x0` immer null liefert und die Addition damit den Wert von `t1` unverändert übernimmt."
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Das Nullregister `x0` liefert immer 0. Daher berechnet der Befehl `t1+0` und schreibt dieses Ergebnis nach `t0`; genau dies nutzt der Pseudobefehl `mv` aus.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO5.md",
+            "heading": null
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Pseudobefehle"
+          ]
+        },
+        {
+          "id": "era-06-l4-q04",
+          "type": "single",
+          "prompt": "Funktion A ruft B auf, und B ruft unmittelbar danach C mit `jal` auf. Was muss B vor dem Aufruf von C tun, wenn B später zu A zurückkehren soll?",
+          "options": [
+            {
+              "id": "a",
+              "text": "`ra` auf null setzen und den Stackframe von A freigeben."
+            },
+            {
+              "id": "b",
+              "text": "Bs aktuelle Rücksprungadresse aus `ra` in seinem Stackframe sichern."
+            },
+            {
+              "id": "c",
+              "text": "C die Rücksprungadresse ausschließlich über `a0` übergeben."
+            },
+            {
+              "id": "d",
+              "text": "Den Wert von `x0` im Stack sichern, weil `x0` überschrieben wird."
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "Der `jal`-Aufruf von C schreibt eine neue Rücksprungadresse nach `ra`. B muss deshalb seine bisherige Adresse vor diesem Aufruf sichern und später wieder laden.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO6.md",
+            "heading": "Warum zusätzlicher Speicher nötig ist"
+          },
+          "difficulty": 5,
+          "concepts": [
+            "Rücksprungadresse",
+            "Stackframe"
+          ]
+        },
+        {
+          "id": "era-06-l4-q05",
+          "type": "multi",
+          "prompt": "Welche Maßnahmen passen zur Calling Convention und zum Ende von `main` im Summenprogramm? Mehrere Antworten können richtig sein.",
+          "options": [
+            {
+              "id": "a",
+              "text": "Ein Wert in `a1` ist automatisch über jeden weiteren Aufruf hinweg geschützt."
+            },
+            {
+              "id": "b",
+              "text": "`main` sichert seine Rücksprungadresse vor dem späteren `printf`-Aufruf."
+            },
+            {
+              "id": "c",
+              "text": "Der eigene Stackframe wird vor `ret` durch Erhöhen von `sp` freigegeben."
+            },
+            {
+              "id": "d",
+              "text": "Ein verändertes `s0` wird vor dem Rücksprung wiederhergestellt."
+            },
+            {
+              "id": "e",
+              "text": "Ein Wert in `t0` bleibt nach einem Aufruf garantiert unverändert."
+            }
+          ],
+          "correct": [
+            "b",
+            "c",
+            "d"
+          ],
+          "explanation": "`ra` und `s0` werden aus dem Stack wiederhergestellt, und `sp` wird um die Framegröße erhöht. `a`- und `t`-Register sind dagegen kein sicherer Ablageort für Werte über einen Aufruf hinweg.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO6.md",
+            "heading": "3. Ausgabe, Register wiederherstellen und zurückkehren"
+          },
+          "difficulty": 5,
+          "concepts": [
+            "Calling Convention",
+            "Caller-saved und Callee-saved",
+            "Stackframe"
+          ]
+        },
+        {
+          "id": "era-06-l4-q06",
+          "type": "calc",
+          "prompt": "Der alte `sp` sei `0x1000`. Nach einem 32-Byte-Frame gilt `s0=sp+32`. Welche Adresse enthält im Beispiel die lokale Variable `n` bei `-20(s0)`?",
+          "options": [
+            {
+              "id": "a",
+              "text": "`0x0fec`"
+            },
+            {
+              "id": "b",
+              "text": "`0x100c`"
+            },
+            {
+              "id": "c",
+              "text": "`0x0fdc`"
+            },
+            {
+              "id": "d",
+              "text": "`0x0ff4`"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "Nach der Reservierung ist `sp=0x0fe0`, daher wird `s0=0x1000`. Die Adresse von `n` ist `0x1000-20=0x0fec`; die negative Displacement-Angabe wird von `s0` abgezogen.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO6.md",
+            "heading": "1. Stackframe anlegen und Variablen initialisieren"
+          },
+          "difficulty": 5,
+          "concepts": [
+            "Stackframe",
+            "RV64-Summenprogramm"
+          ]
+        },
+        {
+          "id": "era-06-l4-q07",
+          "type": "single",
+          "prompt": "Im Summenprogramm wird bei `i=10` die Anweisung `bge t0, t1, .Lprint` ausgeführt, wobei `t0=i` und `t1=n=10` gilt. Was passiert?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Der Schleifenrumpf wird mit `i=10` ein weiteres Mal ausgeführt."
+            },
+            {
+              "id": "b",
+              "text": "`i` wird automatisch auf 0 zurückgesetzt."
+            },
+            {
+              "id": "c",
+              "text": "Der Sprung zu `.Lprint` wird ausgeführt und die Schleife endet."
+            },
+            {
+              "id": "d",
+              "text": "Der Stackframe wird sofort ohne Ausgabe freigegeben."
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "`bge` springt bei `t0>=t1`. Da `10>=10` gilt, wird der Rumpf übersprungen und die Ausgabe vorbereitet.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO6.md",
+            "heading": "2. Schleifenbedingung und Schleifenrumpf"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "RV64-Summenprogramm"
+          ]
+        },
+        {
+          "id": "era-06-l4-q08",
+          "type": "multi",
+          "prompt": "Welche Aussagen zu `j`, `jr` und dem Nullregister sind richtig? Mehrere Antworten können richtig sein.",
+          "options": [
+            {
+              "id": "a",
+              "text": "`j label` entspricht `jal x0, label`."
+            },
+            {
+              "id": "b",
+              "text": "`jr reg` entspricht `jalr x0, reg, 0`."
+            },
+            {
+              "id": "c",
+              "text": "`j label` bewahrt automatisch die Rücksprungadresse auf."
+            },
+            {
+              "id": "d",
+              "text": "`jr ra` speichert vor dem Rücksprung eine neue Adresse in `ra`."
+            },
+            {
+              "id": "e",
+              "text": "Schreibzugriffe auf `x0` werden verworfen."
+            }
+          ],
+          "correct": [
+            "a",
+            "b",
+            "e"
+          ],
+          "explanation": "Beide Pseudobefehle verwenden `x0` als Zielregister, wenn keine neue Rücksprungadresse gespeichert werden soll. Da `x0` unveränderlich null bleibt, werden diese Schreibzugriffe verworfen.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO6.md",
+            "heading": "Echte Sprungbefehle und Pseudobefehle"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Pseudobefehle",
+            "jal und jalr"
+          ]
+        },
+        {
+          "id": "era-06-l4-q09",
+          "type": "single",
+          "prompt": "Welche Reihenfolge stellt am Ende von `main` den eigenen Aufruf korrekt fertig?",
+          "options": [
+            {
+              "id": "a",
+              "text": "`ret`, `addi sp,sp,32`, `ld ra`, `ld s0`, `li a0,0`"
+            },
+            {
+              "id": "b",
+              "text": "`addi sp,sp,32`, `ret`, `ld ra`, `ld s0`, `li a0,0`"
+            },
+            {
+              "id": "c",
+              "text": "`li a0,0`, `ld ra`, `ld s0`, `addi sp,sp,32`, `ret`"
+            },
+            {
+              "id": "d",
+              "text": "`ld ra`, `ret`, `ld s0`, `addi sp,sp,32`, `li a0,0`"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Zuerst wird der Rückgabewert gesetzt, dann werden die gesicherten Register geladen, der Stackframe freigegeben und schließlich mit `ret` zurückgesprungen.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO6.md",
+            "heading": "3. Ausgabe, Register wiederherstellen und zurückkehren"
+          },
+          "difficulty": 5,
+          "concepts": [
+            "Rücksprungadresse",
+            "Stackframe",
+            "RV64-Summenprogramm"
+          ]
+        },
+        {
+          "id": "era-06-l4-q10",
+          "type": "diagram",
+          "prompt": "Welche Situation liegt direkt vor, nachdem C zurückgekehrt ist?\n\n```mermaid\nflowchart TB\n A[\"A aktiv\"] --> B[\"B-Frame aktiv\"]\n B --> C[\"C-Frame aktiv\"]\n C --> D[\"C zurück; C-Frame freigegeben\"]\n D --> E[\"B-Frame aktiv\"]\n```",
+          "options": [
+            {
+              "id": "a",
+              "text": "Der A-Frame ist freigegeben, C bleibt aktiv."
+            },
+            {
+              "id": "b",
+              "text": "B wird beendet, bevor C seinen Frame freigibt."
+            },
+            {
+              "id": "c",
+              "text": "Alle drei Frames sind freigegeben und A ist beendet."
+            },
+            {
+              "id": "d",
+              "text": "Der C-Frame ist freigegeben, während B- und A-Aufruf noch aktiv sind."
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Bei der Rückkehr von C wird zuerst Cs eigener Frame freigegeben. B und A sind weiterhin aktive Aufrufe und behalten ihre Frames.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO6.md",
+            "heading": "Stack: LIFO statt FIFO"
+          },
+          "difficulty": 5,
+          "concepts": [
+            "Stack und LIFO",
+            "Stackframe"
+          ]
+        },
+        {
+          "id": "era-06-l4-q11",
+          "type": "single",
+          "prompt": "Welche Registerbelegung liegt im Summenprogramm unmittelbar vor `call printf` vor?",
+          "options": [
+            {
+              "id": "a",
+              "text": "`a0` enthält die Formatstring-Adresse und `a1` den Wert `45`."
+            },
+            {
+              "id": "b",
+              "text": "`a0` und `a1` enthalten beide die Adresse des Stackframes."
+            },
+            {
+              "id": "c",
+              "text": "`a0` enthält den alten Wert von `s0` und `a1` den Wert von `sp`."
+            },
+            {
+              "id": "d",
+              "text": "`a0` enthält `45` und `a1` die Rücksprungadresse."
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "`la a0,.Lformat` legt die Formatstring-Adresse in `a0`, und `lw a1,-28(s0)` lädt das berechnete `c=45` in `a1`. `ra` wird separat im Stack gesichert.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO6.md",
+            "heading": "3. Ausgabe, Register wiederherstellen und zurückkehren"
+          },
+          "difficulty": 5,
+          "concepts": [
+            "Calling Convention",
+            "RV64-Summenprogramm"
+          ]
+        }
+      ]
+    }
+  ]
+}
