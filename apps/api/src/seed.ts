@@ -12,7 +12,7 @@ import { completeLevel, completePractice } from './lib/game.ts';
 import { addStarterPet, equip, purchase } from './lib/shop.ts';
 
 /**
- * Legt Admin `mateen` und `testuser` an (zufällige Passwörter → CREDENTIALS.local.md) und gibt dem Testuser
+ * Legt Admin `admin` und `testuser` an (zufällige Passwörter → CREDENTIALS.local.md) und gibt dem Testuser
  * etwas Fortschritt, Coins, Streak und Pets, damit alle Screens befüllt sind. Idempotent: bestehende Accounts bleiben.
  */
 const db = getDb();
@@ -29,7 +29,8 @@ async function ensureUser(username: string, displayName: string, role: 'user' | 
   return { user, created: true };
 }
 
-const admin = await ensureUser('mateen', 'Mateen', 'admin');
+// eigener Admin-Account; Spieler (auch du) sind normale Nutzer und spielen den Lernpfad Schritt für Schritt
+const admin = await ensureUser('admin', 'Admin', 'admin');
 if (admin.created) addStarterPet(db, admin.user.id, 'bit');
 const test = await ensureUser('testuser', 'Testi', 'user');
 

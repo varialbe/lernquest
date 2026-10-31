@@ -12,7 +12,7 @@
 - Phase 6 ✔: Capacitor-iOS (SPM), Workflow `ios-ipa.yml` (manuell oder Tag `v*`). Testlauf am 31.10. grün: unsignierte IPA 9,3 MB (Info.plist, AppIcon, Web-Build inkl. Assets, API-Basis `https://lern.varialbe.xyz`). Sideloading: `docs/ios-sideloading.md`.
 - Phase 5 ✔: https://lern.varialbe.xyz live. Eigene vhosts `lernquest.conf` + `lernquest-le-ssl.conf`, Zertifikat per webroot (Renew-Hook nur für dieses Zertifikat), Brotli, HSTS, CSP, Cache-Header. Backup-Timer 03:30 → `~/backups/lernquest` (14 Tage). Apache-Backup vor der Änderung: `~/backups/apache2-before-lernquest-*.tgz`. `/ai/` weiterhin 200.
 - Phase 4 ✔: Frontend inkl. Praxis-Tab und Schätz-Regler. 51 generierte Grafiken (Maskottchen Lumo in 6 Posen, 8 Pets × 3 Stufen, Accessoires, Items, Badges) per Kontaktabzug geprüft, App-Icons (PWA, maskable, Apple-Touch, iOS). Playwright: 10 Screenshot-Tests hell/dunkel (inkl. Praxis + Regler, kein horizontaler Overflow) und E2E-Flow grün.
-- Phase 3 ✔: API (Fastify, 127.0.0.1:3460) als `lernquest-api`. 31 API-Tests grün. Seed: Admin `mateen`, `testuser`, Einladungscode (Zugang in `CREDENTIALS.local.md`).
+- Phase 3 ✔: API (Fastify, 127.0.0.1:3460) als `lernquest-api`. 31 API-Tests grün. Seed: Admin `admin`, `testuser`, Einladungscode (am 31.10. `mateen` zum normalen Spieler gemacht) (Zugang in `CREDENTIALS.local.md`).
 - Phase 2 ✔: n8n 2.45.7 (127.0.0.1:5678), Workflow „LernQuest Nightly“ aktiv (00:00 Europe/Berlin).
 - Phase 1 ✔: Pipeline inkl. Obsidian-Parser, Konzeptgraph, Praxis-Level, Telegram-Reports, Watchdog (00:30). 19 Pipeline- + 12 Shared-Tests grün.
 - Phase 0 ✔
