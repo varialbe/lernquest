@@ -3,7 +3,7 @@ import { importUnit } from '../src/content/import.ts';
 import { openDb, type DB } from '../src/db/index.ts';
 import { invites } from '../src/db/schema.ts';
 
-export function makeUnit(module: 'DS' | 'EIP' | 'ERA', number: number, opts: { questions?: number; variant?: string } = {}): Unit {
+export function makeUnit(module: 'DS' | 'EIP' | 'ERA', number: number, opts: { questions?: number; variant?: string; bonus?: boolean } = {}): Unit {
   const id = `${module.toLowerCase()}-${String(number).padStart(2, '0')}`;
   const n = opts.questions ?? 8;
   return {
@@ -20,12 +20,26 @@ export function makeUnit(module: 'DS' | 'EIP' | 'ERA', number: number, opts: { q
     links: [],
     source: { file: `${module}/01_Vorlesungen/VO${number}.md`, sha256: 'a'.repeat(64), commit: 'abc' },
     generator: { model: 'm', effort: 'x', reviewEffort: 'h', promptVersion: 'v2', generatedAt: '2026-10-31T00:00:00Z', review: { checked: 0, fixed: 0, removed: 0, notes: '' } },
-    levels: LEVEL_KINDS.map((kind, li) => ({
+    levels: [...LEVEL_KINDS, ...(opts.bonus ? (['bonus'] as const) : [])].map((kind, li) => ({
       id: `${id}-l${li + 1}`,
       index: li + 1,
       kind,
       title: kind,
-      questions: Array.from({ length: n }, (_, qi) => ({
+      questions: Array.from({ length: n }, (_, qi) =>
+        kind === 'bonus' && qi === 0
+          ? {
+              id: `${id}-l${li + 1}-q01`,
+              type: 'estimate' as const,
+              prompt: 'Wie viele Teilmengen hat eine 6-elementige Menge?',
+              options: [],
+              correct: [],
+              slider: { min: 0, max: 100, step: 1, answer: 64, tolerance: 0, unit: null, scale: 'linear' as const },
+              explanation: 'Es sind 2^6 = 64.',
+              source: { file: `${module}/01_Vorlesungen/VO${number}.md`, heading: null },
+              difficulty: 2,
+              concepts: ['K'],
+            }
+          : {
         id: `${id}-l${li + 1}-q${String(qi + 1).padStart(2, '0')}`,
         type: 'single' as const,
         prompt: `Frage ${qi + 1}${opts.variant ?? ''}?`,
@@ -39,7 +53,8 @@ export function makeUnit(module: 'DS' | 'EIP' | 'ERA', number: number, opts: { q
         source: { file: `${module}/01_Vorlesungen/VO${number}.md`, heading: 'Intro' },
         difficulty: 2,
         concepts: ['K'],
-      })),
+            },
+      ),
     })),
   };
 }

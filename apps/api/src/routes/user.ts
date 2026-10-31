@@ -27,7 +27,7 @@ import {
   toPublicUser,
   verifyPassword,
 } from '../lib/auth.ts';
-import { buildPath, completeLevel, completePractice, getLevel, meResponse, practiceSet, unlockedAchievements, userStats } from '../lib/game.ts';
+import { buildDiscover, buildPath, completeLevel, completePractice, getLevel, meResponse, practiceSet, unlockedAchievements, userStats } from '../lib/game.ts';
 import { badRequest, conflict, HttpError, notFound } from '../lib/http.ts';
 import { calendar, leaderboard } from '../lib/league.ts';
 import { pushEnabled } from '../lib/push.ts';
@@ -114,6 +114,7 @@ export function userRoutes(app: FastifyInstance, db: DB) {
 
   // ---------- Lernen ----------
   app.get('/api/path', auth, async (req) => buildPath(db, req.user));
+  app.get('/api/discover', auth, async (req) => buildDiscover(db, req.user));
   app.get<{ Params: { id: string } }>('/api/levels/:id', auth, async (req) => getLevel(db, req.user, req.params.id));
   app.post<{ Params: { id: string } }>('/api/levels/:id/complete', auth, async (req) => {
     const body = CompleteLevelReq.parse(req.body);

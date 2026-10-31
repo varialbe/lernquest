@@ -205,3 +205,28 @@ describe('leaderboards', () => {
     expect(leaderboard(db, ids[0]!, 'alltime', monday).entries[0]!.username).toBe('user1');
   });
 });
+
+describe('praxis area (bonus levels with estimate questions)', () => {
+  it('is separate from the path, unlocks after basics and grades slider answers server-side', async () => {
+    const unit = makeUnit('DS', 1, { bonus: true });
+    importUnit(db, unit);
+    const { token } = (await register('nina')).json();
+    const path = (await app.inject({ url: '/api/path', headers: authed(token) })).json();
+    expect(path.modules[0].units[0].levels).toHaveLength(4); // Bonus nicht im Pfad
+    let disc = (await app.inject({ url: '/api/discover', headers: authed(token) })).json();
+    expect(disc.modules[0].items[0]).toMatchObject({ id: 'ds-01-l5', kind: 'bonus', status: 'locked' });
+    expect((await app.inject({ url: '/api/levels/ds-01-l5', headers: authed(token) })).statusCode).toBe(403);
+
+    await app.inject({ method: 'POST', url: '/api/levels/ds-01-l1/complete', headers: authed(token), payload: { answers: answersFor(unit, 0) } });
+    disc = (await app.inject({ url: '/api/discover', headers: authed(token) })).json();
+    expect(disc.modules[0].items[0].status).toBe('open');
+
+    const answers = unit.levels[4]!.questions.map((q) => ({ questionId: q.id, selected: q.type === 'estimate' ? ['63'] : ['b'] }));
+    const r = (await app.inject({ method: 'POST', url: '/api/levels/ds-01-l5/complete', headers: authed(token), payload: { answers } })).json();
+    expect(r).toMatchObject({ correctFirstTry: 7, total: 8 }); // 63 ≠ 64 (Toleranz 0)
+    expect(db.select().from(reviewItems).all().map((x) => x.questionId)).toEqual(['ds-01-l5-q01']);
+    // der Lernpfad hängt nicht vom Praxis-Level ab
+    const after = (await app.inject({ url: '/api/path', headers: authed(token) })).json();
+    expect(after.modules[0].units[0].levels[1].status).toBe('open');
+  });
+});

@@ -7,12 +7,14 @@ import {
   LEITNER_MAX_BOX,
   MODULE_INFO,
   MODULES,
-  isCorrect,
+  BONUS_KIND,
+  checkAnswer,
   petStage,
   type LevelNode,
   type LevelStatus,
   type MeResponse,
   type ModuleId,
+  type DiscoverResponse,
   type PathResponse,
   type Question,
   type RewardResponse,
@@ -80,7 +82,8 @@ const progressMap = (db: AnyDb, userId: number): ProgressMap =>
 
 export function buildPath(db: AnyDb, u: AuthUser, now = Date.now()): PathResponse {
   const allUnits = db.select().from(units).orderBy(asc(units.module), asc(units.number)).all();
-  const allLevels = db.select().from(levels).orderBy(asc(levels.idx)).all();
+  // Praxis-Level gehören nicht zum sequentiellen Lernpfad (eigener Bereich, siehe buildDiscover)
+  const allLevels = db.select().from(levels).orderBy(asc(levels.idx)).all().filter((l) => l.kind !== BONUS_KIND);
   const counts = new Map(
     db
       .select({ levelId: questions.levelId, n: sql<number>`count(*)` })
@@ -140,8 +143,59 @@ export function buildPath(db: AnyDb, u: AuthUser, now = Date.now()): PathRespons
   return { modules };
 }
 
+/** Praxis-Bereich: pro Unit ein Bonus-Level, frei, sobald das Grundlagen-Level der Unit geschafft ist. */
+export function buildDiscover(db: AnyDb, u: AuthUser, now = Date.now()): DiscoverResponse {
+  const path = buildPath(db, u, now);
+  const bonus = db.select().from(levels).where(eq(levels.kind, BONUS_KIND)).all();
+  const byUnit = new Map(bonus.map((l) => [l.unitId, l]));
+  const counts = new Map(
+    db
+      .select({ levelId: questions.levelId, n: sql<number>`count(*)` })
+      .from(questions)
+      .where(and(eq(questions.active, true), inArray(questions.levelId, bonus.length ? bonus.map((b) => b.id) : [''])))
+      .groupBy(questions.levelId)
+      .all()
+      .map((r) => [r.levelId, r.n]),
+  );
+  const prog = progressMap(db, u.id);
+  const unlockAll = u.role === 'admin' || u.unlockAll;
+  const newSince = berlinMidnight(addDays(berlinDay(now), -1));
+  return {
+    modules: path.modules.map((m) => ({
+      id: m.id,
+      name: m.name,
+      color: m.color,
+      items: m.units.flatMap((un) => {
+        const l = byUnit.get(un.id);
+        if (!l) return [];
+        const p = prog.get(l.id);
+        const done = !!p && p.completions > 0;
+        const basicsDone = un.levels[0]?.status === 'done' || un.levels[0]?.status === 'gold';
+        const status: LevelStatus = done ? (p!.stars >= 3 ? 'gold' : 'done') : unlockAll || basicsDone ? 'open' : 'locked';
+        return [
+          {
+            id: l.id,
+            index: l.idx,
+            kind: BONUS_KIND,
+            title: l.title,
+            questionCount: counts.get(l.id) ?? 0,
+            status,
+            stars: p?.stars ?? 0,
+            bestAccuracy: p ? p.bestAccuracy / 1000 : null,
+            unitId: un.id,
+            unitNumber: un.number,
+            unitTitle: un.title,
+            isNew: !done && (db.select({ c: units.updatedAt }).from(units).where(eq(units.id, un.id)).get()?.c ?? 0) >= newSince && status === 'open',
+          },
+        ];
+      }),
+    })),
+  };
+}
+
 function levelStatus(db: AnyDb, u: AuthUser, levelId: string): LevelStatus | undefined {
   for (const m of buildPath(db, u).modules) for (const un of m.units) for (const l of un.levels) if (l.id === levelId) return l.status;
+  for (const m of buildDiscover(db, u).modules) for (const l of m.items) if (l.id === levelId) return l.status;
   return undefined;
 }
 
@@ -222,7 +276,7 @@ export function completeLevel(db: DB, u: AuthUser, levelId: string, submitted: {
   const result = db.transaction((tx) => {
     let correct = 0;
     for (const [qid, sel] of answered) {
-      const ok = isCorrect(byId.get(qid)!.correct, sel);
+      const ok = checkAnswer(byId.get(qid)!, sel);
       if (ok) correct++;
       tx.insert(answers).values({ userId: u.id, questionId: qid, correct: ok, context: 'level', createdAt: now }).run();
       if (!ok) {
@@ -307,7 +361,7 @@ export function completePractice(db: DB, u: AuthUser, submitted: { questionId: s
       const r = items.get(s.questionId);
       if (!r || seen.has(s.questionId)) continue;
       seen.add(s.questionId);
-      const ok = isCorrect((r.data as Question).correct, s.selected);
+      const ok = checkAnswer(r.data as Question, s.selected);
       if (ok) correct++;
       tx.insert(answers).values({ userId: u.id, questionId: s.questionId, correct: ok, context: 'practice', createdAt: now }).run();
       const next = leitnerNext(r.item.box, ok, day, LEITNER_INTERVALS, LEITNER_MAX_BOX);
@@ -370,7 +424,7 @@ export function unlockedAchievements(db: AnyDb, userId: number): string[] {
   const moduleDone = MODULES.some((m) => {
     const us = allUnits.filter((x) => x.module === m);
     if (!us.length) return false;
-    const lv = [...s.levelsByUnit.values()].filter((l) => us.some((x) => x.id === l.unitId));
+    const lv = [...s.levelsByUnit.values()].filter((l) => l.kind !== BONUS_KIND && us.some((x) => x.id === l.unitId));
     return lv.length > 0 && lv.every((l) => s.doneLevelIds.has(l.id));
   });
   const checks: Record<string, boolean> = {
