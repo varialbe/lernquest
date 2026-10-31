@@ -172,6 +172,15 @@ CODEX_TIMEOUT_MIN=30
 ```
 Keine Neustarts nötig. Jeder Lauf liest `.env` neu. Das verwendete Modell steht in jeder Unit unter `generator`.
 
+## Sicherheit (Audit 31.10.2026)
+- **SQL-Injection**: nur Drizzle-Queries bzw. `sql`-Templates mit Parametern, kein String-Bau. Test: `apps/api/test/security.test.ts`.
+- **Zugriffsschutz**: jede Route außer der Liste `PUBLIC` im Sicherheitstest braucht Anmeldung, jede `/api/admin/*`-Route die Admin-Rolle – der Test geht alle registrierten Routen automatisch durch (neue Route ohne Schutz → Test rot).
+- **XSS**: React escaped alles; `dangerouslySetInnerHTML` nur für KaTeX (ohne `trust`), Mermaid (`securityLevel: 'strict'`) und ein festes SVG. Mails escapen Namen. Strenge CSP (`script-src 'self'`), `X-Frame-Options: DENY`.
+- **Mail-Links**: Reset-/Bestätigungslinks nur auf Domains aus `WEB_ORIGIN` (kein Host-Header-Poisoning).
+- **KI-Prüfskripte** (`pipeline/src/sandbox.py`): Limits für Speicher/CPU/Dateien, Audit-Hook blockiert Netzwerk, Prozesse, ctypes, Schreiben und Lesen außerhalb von Python/Arbeitsordner, leere Umgebung (keine Secrets). Test: `pipeline/test/sandbox.test.ts`. Kein Container – bwrap ginge nur mit gelockerter User-Namespace-Sperre.
+- **Abhängigkeiten**: `pnpm audit --prod` sauber (katex per `pnpm.overrides`).
+- **Server**: `data/` und `~/backups/lernquest` nur für `varialbe` (700/600). fail2ban-Jails `sshd`, `postfix-sasl`, `dovecot` (`/etc/fail2ban/jail.d/mail.local`, Sperre 1 Tag, steigend).
+
 ## Konten, Google, E-Mails
 - **Registrieren** mit Benutzername + E-Mail + Passwort oder **mit Google**. Einladungscode ist optional (zeigt dem Admin nur, wer wen eingeladen hat). Datenschutz-Bestätigung ist Pflicht, Zeitpunkt wird gespeichert.
 - **Anmelden** mit Benutzername oder E-Mail, Passkey oder Google. „Passwort vergessen?“ schickt einen Link (1 h gültig, einmalig).
