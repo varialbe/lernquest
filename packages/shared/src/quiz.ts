@@ -11,18 +11,22 @@ export const MODULE_INFO: Record<ModuleId, { name: string; short: string; color:
   ERA: { name: 'Einführung in die Rechnerarchitektur', short: 'ERA', color: '#f97316' },
 };
 
-export const QUESTION_TYPES = ['single', 'multi', 'truefalse', 'cloze', 'code_output', 'calc', 'diagram'] as const;
+export const QUESTION_TYPES = ['single', 'multi', 'truefalse', 'cloze', 'code_output', 'calc', 'diagram', 'estimate'] as const;
 export const QuestionType = z.enum(QUESTION_TYPES);
 export type QuestionType = z.infer<typeof QuestionType>;
 
+/** Die vier Level des Lernpfads (sequentiell). */
 export const LEVEL_KINDS = ['basics', 'apply', 'deepen', 'boss'] as const;
-export const LevelKind = z.enum(LEVEL_KINDS);
+/** Optionales 5. Level „Praxis“: Transfer in die echte Welt + Schätzfragen, eigener Bereich in der App. */
+export const BONUS_KIND = 'bonus' as const;
+export const LevelKind = z.enum([...LEVEL_KINDS, BONUS_KIND]);
 export type LevelKind = z.infer<typeof LevelKind>;
 export const LEVEL_TITLES: Record<LevelKind, string> = {
   basics: 'Grundlagen',
   apply: 'Anwenden',
   deepen: 'Vertiefen',
   boss: 'Boss',
+  bonus: 'Praxis',
 };
 
 export const Option = z.object({
@@ -37,6 +41,32 @@ export const Source = z.object({
 });
 export type Source = z.infer<typeof Source>;
 
+/** Schieberegler für Schätz-/Zahlenfragen (type `estimate`). Richtig, wenn |Wert − answer| ≤ tolerance. */
+export const Slider = z
+  .object({
+    min: z.number(),
+    max: z.number(),
+    step: z.number().positive(),
+    answer: z.number(),
+    tolerance: z.number().min(0),
+    unit: z.string().max(24).nullable(),
+    scale: z.enum(['linear', 'log']),
+  })
+  .superRefine((s, ctx) => {
+    if (!(s.min < s.max)) ctx.addIssue({ code: 'custom', message: 'slider: min < max' });
+    if (s.answer < s.min || s.answer > s.max) ctx.addIssue({ code: 'custom', message: 'slider: answer außerhalb [min, max]' });
+    if (s.tolerance > (s.max - s.min) / 3) ctx.addIssue({ code: 'custom', message: 'slider: Toleranz zu groß (Raten wäre zu leicht)' });
+    if (s.scale === 'linear') {
+      if ((s.max - s.min) / s.step > 400) ctx.addIssue({ code: 'custom', message: 'slider: zu viele Schritte für einen linearen Regler' });
+      const k = (s.answer - s.min) / s.step;
+      if (s.tolerance < s.step / 2 && Math.abs(k - Math.round(k)) > 1e-9) ctx.addIssue({ code: 'custom', message: 'slider: answer mit diesem step nicht erreichbar' });
+    } else {
+      if (s.min <= 0) ctx.addIssue({ code: 'custom', message: 'slider: log-Skala braucht min > 0' });
+      if (s.tolerance < s.answer * 0.05) ctx.addIssue({ code: 'custom', message: 'slider: log-Skala braucht Toleranz ≥ 5 % der Antwort' });
+    }
+  });
+export type Slider = z.infer<typeof Slider>;
+
 /** Eine Frage, wie sie im content/-JSON liegt. */
 export const Question = z
   .object({
@@ -44,14 +74,24 @@ export const Question = z
     type: QuestionType,
     /** Markdown, LaTeX in $…$, Code in ```-Fences. Bei cloze markiert ___ die Lücke, bei diagram steht ein ```mermaid-Block im Prompt. */
     prompt: z.string().min(5).max(4000),
-    options: z.array(Option).min(2).max(6),
-    correct: z.array(z.string()).min(1),
+    /** leer bei `estimate` */
+    options: z.array(Option).max(6),
+    correct: z.array(z.string()),
+    /** nur bei `estimate` */
+    slider: Slider.optional(),
     explanation: z.string().min(5).max(1500),
     source: Source,
     difficulty: z.number().int().min(1).max(5),
     concepts: z.array(z.string().min(1).max(80)).min(1).max(6),
   })
   .superRefine((q, ctx) => {
+    if (q.type === 'estimate') {
+      if (!q.slider) ctx.addIssue({ code: 'custom', message: 'estimate braucht einen slider' });
+      if (q.options.length || q.correct.length) ctx.addIssue({ code: 'custom', message: 'estimate hat keine Optionen' });
+      return;
+    }
+    if (q.slider) ctx.addIssue({ code: 'custom', message: 'slider nur bei estimate' });
+    if (q.options.length < 2) ctx.addIssue({ code: 'custom', message: 'mindestens 2 Optionen' });
     const ids = q.options.map((o) => o.id);
     if (new Set(ids).size !== ids.length) ctx.addIssue({ code: 'custom', message: 'Doppelte Options-IDs' });
     const texts = q.options.map((o) => o.text.trim().toLowerCase());
@@ -84,7 +124,7 @@ export type Question = z.infer<typeof Question>;
 
 export const Level = z.object({
   id: z.string().regex(/^[a-z0-9-]+$/),
-  index: z.number().int().min(1).max(4),
+  index: z.number().int().min(1).max(5),
   kind: LevelKind,
   title: z.string().min(1).max(80),
   questions: z.array(Question).min(8).max(12),
@@ -116,11 +156,13 @@ export const Unit = z
       generatedAt: z.string(),
       review: z.object({ checked: z.number().int(), fixed: z.number().int(), removed: z.number().int(), notes: z.string() }),
     }),
-    levels: z.array(Level).length(4),
+    /** 4 Pfad-Level + optional das Praxis-Level als 5. */
+    levels: z.array(Level).min(4).max(5),
   })
   .superRefine((u, ctx) => {
     u.levels.forEach((l, i) => {
-      if (l.index !== i + 1 || l.kind !== LEVEL_KINDS[i]) ctx.addIssue({ code: 'custom', message: `Level ${i + 1} falsch sortiert` });
+      const kind = i < 4 ? LEVEL_KINDS[i] : BONUS_KIND;
+      if (l.index !== i + 1 || l.kind !== kind) ctx.addIssue({ code: 'custom', message: `Level ${i + 1} falsch sortiert` });
     });
     const qids = u.levels.flatMap((l) => l.questions.map((q) => q.id));
     if (new Set(qids).size !== qids.length) ctx.addIssue({ code: 'custom', message: 'Doppelte Fragen-IDs' });
@@ -137,6 +179,18 @@ export function headingAnchor(heading: string): string {
 }
 
 export const unitId = (module: ModuleId, number: number) => `${module.toLowerCase()}-${String(number).padStart(2, '0')}`;
+
+/**
+ * Wertet eine Antwort aus. Bei `estimate` ist `selected` = [Zahl als String].
+ * Server und Client nutzen dieselbe Funktion; gewertet wird nur auf dem Server.
+ */
+export function checkAnswer(q: Pick<Question, 'type' | 'correct' | 'slider'>, selected: readonly string[]): boolean {
+  if (q.type === 'estimate') {
+    const v = Number(selected[0]);
+    return !!q.slider && selected.length === 1 && Number.isFinite(v) && Math.abs(v - q.slider.answer) <= q.slider.tolerance + 1e-9;
+  }
+  return isCorrect(q.correct, selected);
+}
 
 /** Prüft eine Antwortauswahl gegen die korrekten Options-IDs (Mengenvergleich). */
 export function isCorrect(correct: readonly string[], selected: readonly string[]): boolean {

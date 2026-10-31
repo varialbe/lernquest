@@ -99,6 +99,8 @@ export type UnitNode = {
 };
 export type ModuleNode = { id: ModuleId; name: string; color: string; units: UnitNode[]; progress: number };
 export type PathResponse = { modules: ModuleNode[] };
+export type DiscoverItem = LevelNode & { unitId: string; unitNumber: number; unitTitle: string; isNew: boolean };
+export type DiscoverResponse = { modules: { id: ModuleId; name: string; color: string; items: DiscoverItem[] }[] };
 
 export type ClientQuestion = Omit<Question, 'source'> & { source: Question['source'] };
 export type LevelResponse = {
