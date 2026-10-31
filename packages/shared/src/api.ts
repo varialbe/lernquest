@@ -10,8 +10,15 @@ export const Username = z
   .regex(/^[a-zA-Z0-9_.-]+$/, 'Nur Buchstaben, Zahlen, _ . -');
 export const Password = z.string().min(8, 'Mindestens 8 Zeichen').max(200);
 
+/** leeres Feld = nicht angegeben */
+const optionalText = (max: number) => z.string().trim().max(max).optional().transform((v) => v || undefined);
+export const Email = z.string().trim().toLowerCase().email('Bitte eine gültige E-Mail-Adresse angeben').max(120);
 export const RegisterReq = z.object({
-  inviteCode: z.string().trim().min(4).max(64),
+  /** optional: nur damit der Admin sieht, über wen jemand gekommen ist */
+  inviteCode: optionalText(64),
+  email: optionalText(120).pipe(Email.optional()),
+  newsletter: z.boolean().optional(),
+  acceptPrivacy: z.boolean().refine((v) => v, 'Bitte bestätige die Datenschutzerklärung.'),
   username: Username,
   displayName: z.string().trim().min(1).max(40),
   password: Password,
@@ -42,6 +49,8 @@ export const SettingsReq = z.object({
   frame: z.string().max(40).nullable().optional(),
   activePet: z.string().max(40).optional(),
   soundOn: z.boolean().optional(),
+  newsletter: z.boolean().optional(),
+  email: Email.nullable().optional(),
 });
 export const EquipReq = z.object({ petId: z.string(), accessory: z.string().nullable() });
 export const RunSubmitReq = z.object({
@@ -78,7 +87,7 @@ export type MeResponse = {
     weekXp: number;
     dueReviews: number;
   };
-  settings: { theme: string; frame: string | null; soundOn: boolean; activePet: string | null };
+  settings: { theme: string; frame: string | null; soundOn: boolean; activePet: string | null; newsletter: boolean; email: string | null };
   pets: PetState[];
   inventory: string[];
 };

@@ -6,6 +6,7 @@ import { Mascot, PetImage } from '../components/Pet.tsx';
 import { Button } from '../components/ui.tsx';
 import { Icon } from '../components/icons.tsx';
 import { api } from '../lib/api.ts';
+import { Copyright } from './Legal.tsx';
 import { autofillAvailable, cancelPasskeyAutofill, isCancel, loginWithPasskey, passkeyError, passkeysSupported } from '../lib/passkey.ts';
 
 function Field({ label, hint, ...rest }: React.InputHTMLAttributes<HTMLInputElement> & { label: string; hint?: string }) {
@@ -110,21 +111,16 @@ export function Login({ onLogin }: { onLogin: (token: string) => void }) {
           Mit Einladungscode registrieren
         </Link>
       </p>
-      <p className="mt-6 text-center text-xs font-bold text-muted">
-        <Link href="/impressum" className="hover:underline">
-          Impressum
-        </Link>
-        {' · '}
-        <Link href="/datenschutz" className="hover:underline">
-          Datenschutz
-        </Link>
-      </p>
+      <Copyright className="mt-6" />
     </AuthLayout>
   );
 }
 
 export function Register({ onLogin }: { onLogin: (token: string) => void }) {
-  const [f, setF] = useState({ inviteCode: new URLSearchParams(location.search).get('code') ?? '', username: '', displayName: '', password: '' });
+  const presetCode = new URLSearchParams(location.search).get('code') ?? '';
+  const [f, setF] = useState({ inviteCode: presetCode, username: '', displayName: '', password: '', email: '' });
+  const [newsletter, setNewsletter] = useState(false);
+  const [privacy, setPrivacy] = useState(false);
   const [pet, setPet] = useState(STARTER_PETS[0]!);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -134,7 +130,10 @@ export function Register({ onLogin }: { onLogin: (token: string) => void }) {
     setBusy(true);
     setError(null);
     try {
-      const r = await api<{ token: string; user: PublicUser }>('/api/auth/register', { method: 'POST', body: { ...f, starterPet: pet } });
+      const r = await api<{ token: string; user: PublicUser }>('/api/auth/register', {
+        method: 'POST',
+        body: { ...f, email: newsletter ? f.email : undefined, newsletter, acceptPrivacy: privacy, starterPet: pet },
+      });
       onLogin(r.token);
     } catch (err) {
       setError((err as Error).message);
@@ -143,9 +142,8 @@ export function Register({ onLogin }: { onLogin: (token: string) => void }) {
     }
   };
   return (
-    <AuthLayout title="Willkommen!" subtitle="LernQuest ist eine geschlossene Gruppe – du brauchst einen Einladungscode." pose="cheer">
+    <AuthLayout title="Willkommen!" subtitle="Leg dir ein Konto an und such dir dein erstes Pet aus." pose="cheer">
       <form onSubmit={submit} className="space-y-4">
-        <Field label="Einladungscode" name="invite" autoComplete="off" placeholder="LQ-XXXX-XXXX" autoCapitalize="characters" value={f.inviteCode} onChange={set('inviteCode')} required />
         <Field label="Benutzername" id="username" name="username" autoComplete="username" autoCapitalize="none" autoCorrect="off" spellCheck={false} value={f.username} onChange={set('username')} hint="3–24 Zeichen: Buchstaben, Zahlen, _ . -" required />
         <Field label="Anzeigename" name="nickname" autoComplete="nickname" value={f.displayName} onChange={set('displayName')} placeholder="So sehen dich die anderen" required />
         <Field label="Passwort" id="new-password" name="new-password" type="password" autoComplete="new-password" value={f.password} onChange={set('password')} hint="Mindestens 8 Zeichen" required />
@@ -170,8 +168,32 @@ export function Register({ onLogin }: { onLogin: (token: string) => void }) {
             })}
           </div>
         </div>
+        <details className="group rounded-2xl border-2 border-line bg-surface px-4 py-3" open={!!presetCode}>
+          <summary className="flex cursor-pointer list-none items-center justify-between text-sm font-extrabold text-muted">
+            Einladungscode (optional)
+            <Icon name="chevronRight" size={18} className="transition-transform group-open:rotate-90" />
+          </summary>
+          <div className="mt-3">
+            <Field label="Code von der Person, die dich eingeladen hat" name="invite" autoComplete="off" placeholder="LQ-XXXX-XXXX" autoCapitalize="characters" value={f.inviteCode} onChange={set('inviteCode')} />
+          </div>
+        </details>
+        <label className="flex cursor-pointer items-start gap-3 px-1 text-sm font-bold">
+          <input type="checkbox" className="mt-0.5 h-5 w-5 shrink-0 accent-[var(--c-primary)]" checked={newsletter} onChange={(e) => setNewsletter(e.target.checked)} />
+          <span>Newsletter abonnieren (gelegentlich Neuigkeiten zu LernQuest, jederzeit abbestellbar)</span>
+        </label>
+        {newsletter && <Field label="E-Mail für den Newsletter" name="email" type="email" autoComplete="email" value={f.email} onChange={set('email')} required />}
+        <label className="flex cursor-pointer items-start gap-3 px-1 text-sm font-bold">
+          <input type="checkbox" className="mt-0.5 h-5 w-5 shrink-0 accent-[var(--c-primary)]" checked={privacy} onChange={(e) => setPrivacy(e.target.checked)} required />
+          <span>
+            Ich habe die{' '}
+            <Link href="/datenschutz" className="text-primary underline">
+              Datenschutzerklärung
+            </Link>{' '}
+            gelesen und bin einverstanden.
+          </span>
+        </label>
         <ErrorBox msg={error} />
-        <Button type="submit" full disabled={busy}>
+        <Button type="submit" full disabled={busy || !privacy}>
           {busy ? 'Einen Moment …' : 'Los geht’s'}
         </Button>
       </form>
@@ -181,15 +203,7 @@ export function Register({ onLogin }: { onLogin: (token: string) => void }) {
           Anmelden
         </Link>
       </p>
-      <p className="mt-6 text-center text-xs font-bold text-muted">
-        <Link href="/impressum" className="hover:underline">
-          Impressum
-        </Link>
-        {' · '}
-        <Link href="/datenschutz" className="hover:underline">
-          Datenschutz
-        </Link>
-      </p>
+      <Copyright className="mt-6" />
     </AuthLayout>
   );
 }

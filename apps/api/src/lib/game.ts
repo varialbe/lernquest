@@ -69,7 +69,7 @@ export function meResponse(db: DB, u: AuthUser, now = Date.now()): MeResponse {
       weekXp: weekXp(db, u.id, now),
       dueReviews: dueReviews(db, u.id, day),
     },
-    settings: { theme: u.theme, frame: u.frame, soundOn: u.soundOn, activePet: u.activePet },
+    settings: { theme: u.theme, frame: u.frame, soundOn: u.soundOn, activePet: u.activePet, newsletter: u.newsletter, email: u.email },
     pets: pets.map((p) => ({ petId: p.petId, xp: p.xp, stage: petStage(p.xp), accessory: p.accessory })),
     inventory: inv.map((i) => i.itemId),
   };

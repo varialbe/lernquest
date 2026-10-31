@@ -9,7 +9,7 @@ import { Button, Card, Modal, Pill, Segmented, Spinner, Toast } from '../compone
 import { api } from '../lib/api.ts';
 
 type Run = { id: string; mode: string; status: string; startedAt: number; finishedAt: number | null; summary: string | null };
-type AdminUser = { id: number; username: string; displayName: string; role: string; disabled: boolean; unlockAll: boolean; xp: number; coins: number; streak: number; lastActiveDay: string | null };
+type AdminUser = { id: number; username: string; displayName: string; role: string; disabled: boolean; unlockAll: boolean; xp: number; coins: number; streak: number; lastActiveDay: string | null; invitedWith: string | null; newsletter: boolean; email: string | null };
 type Invite = { code: string; note: string | null; maxUses: number; uses: number; revoked: boolean; expiresAt: number | null; createdAt: number };
 type Report = { report: { id: number; questionId: string; reason: string; comment: string | null; status: string; createdAt: number }; username: string | null; question: Question | null; active: boolean | null };
 type Note = { id: number; level: string; title: string; body: string; read: boolean; createdAt: number };
@@ -115,6 +115,8 @@ function UsersTab({ flash }: { flash: (m: string) => void }) {
               </p>
               <p className="text-xs font-bold text-muted">
                 {u.xp} XP · {u.coins} Coins · 🔥 {u.streak} · zuletzt {u.lastActiveDay ?? '–'}
+                {u.invitedWith ? ` · via ${u.invitedWith}` : ''}
+                {u.newsletter ? ` · 📧 ${u.email}` : ''}
               </p>
             </div>
             <div className="flex shrink-0 gap-1">

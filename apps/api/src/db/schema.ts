@@ -26,6 +26,13 @@ export const users = sqliteTable('users', {
   soundOn: integer('sound_on', { mode: 'boolean' }).notNull().default(true),
   activePet: text('active_pet'),
   invitedWith: text('invited_with'),
+  /** optional, nur für den Newsletter */
+  email: text('email'),
+  newsletter: integer('newsletter', { mode: 'boolean' }).notNull().default(false),
+  /** Zeitpunkt der Newsletter-Einwilligung (Nachweis) */
+  newsletterAt: integer('newsletter_at'),
+  /** Datenschutzerklärung bei der Registrierung bestätigt */
+  privacyAcceptedAt: integer('privacy_accepted_at'),
   createdAt: ts('created_at'),
 });
 

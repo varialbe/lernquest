@@ -21,7 +21,7 @@ beforeEach(async () => {
 });
 
 async function register(username: string, inviteCode = 'LQ-TEST-CODE') {
-  const res = await app.inject({ method: 'POST', url: '/api/auth/register', payload: { inviteCode, username, displayName: username, password: 'geheim1234', starterPet: 'knoten' } });
+  const res = await app.inject({ method: 'POST', url: '/api/auth/register', payload: { inviteCode, username, displayName: username, password: 'geheim1234', acceptPrivacy: true, starterPet: 'knoten' } });
   return res;
 }
 const authed = (token: string) => ({ authorization: `Bearer ${token}` });
@@ -44,7 +44,7 @@ describe('auth', () => {
   });
   it('logs in, accesses /me and logs out (token revoked)', async () => {
     await register('carl');
-    const login = await app.inject({ method: 'POST', url: '/api/auth/login', payload: { username: 'CARL', password: 'geheim1234' } });
+    const login = await app.inject({ method: 'POST', url: '/api/auth/login', payload: { username: 'CARL', password: 'geheim1234', acceptPrivacy: true } });
     expect(login.statusCode).toBe(200);
     const { token } = login.json();
     const me = await app.inject({ url: '/api/me', headers: authed(token) });
@@ -57,7 +57,7 @@ describe('auth', () => {
     await register('dora');
     expect((await app.inject({ method: 'POST', url: '/api/auth/login', payload: { username: 'dora', password: 'falsch123' } })).statusCode).toBe(401);
     db.update(users).set({ disabled: true }).where(eq(users.username, 'dora')).run();
-    expect((await app.inject({ method: 'POST', url: '/api/auth/login', payload: { username: 'dora', password: 'geheim1234' } })).statusCode).toBe(403);
+    expect((await app.inject({ method: 'POST', url: '/api/auth/login', payload: { username: 'dora', password: 'geheim1234', acceptPrivacy: true } })).statusCode).toBe(403);
   });
   it('rate-limits login attempts', async () => {
     const codes: number[] = [];

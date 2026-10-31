@@ -43,6 +43,9 @@ export function adminRoutes(app: FastifyInstance, db: DB) {
         streak: users.streak,
         lastActiveDay: users.lastActiveDay,
         createdAt: users.createdAt,
+        invitedWith: users.invitedWith,
+        newsletter: users.newsletter,
+        email: users.email,
       })
       .from(users)
       .orderBy(users.id)

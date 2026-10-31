@@ -12,6 +12,7 @@ import { useConfig, useMe, useMeMutation, useProfile } from '../lib/queries.ts';
 import { ChangePassword } from './Auth.tsx';
 import { moduleColor } from '../lib/theme.ts';
 import { PasskeySettings } from '../components/PasskeySettings.tsx';
+import { Copyright } from './Legal.tsx';
 
 function StatBox({ img, value, label }: { img: string; value: React.ReactNode; label: string }) {
   return (
@@ -50,6 +51,50 @@ function Calendar({ days }: { days: { day: string; xp: number }[] }) {
           ),
         )}
       </div>
+    </div>
+  );
+}
+
+/** Newsletter an/aus; zum Einschalten braucht es eine E-Mail-Adresse */
+function NewsletterRow({ me, row, save, flash }: { me: MeResponse; row: string; save: (b: Record<string, unknown>) => Promise<unknown>; flash: (m: string) => void }) {
+  const [email, setEmail] = useState(me.settings.email ?? '');
+  const [asking, setAsking] = useState(false);
+  const on = me.settings.newsletter;
+  const toggle = async (next: boolean, mail?: string) => {
+    try {
+      await save(next ? { newsletter: true, ...(mail ? { email: mail } : {}) } : { newsletter: false, email: null });
+      flash(next ? 'Newsletter abonniert 📧' : 'Newsletter abbestellt');
+      setAsking(false);
+    } catch (e) {
+      flash((e as Error).message);
+    }
+  };
+  return (
+    <div className="py-3">
+      <div className={`${row} py-0`}>
+        <span className="font-bold">Newsletter</span>
+        <button
+          role="switch"
+          aria-checked={on}
+          onClick={() => (on ? void toggle(false) : me.settings.email ? void toggle(true) : setAsking(true))}
+          className={`relative h-8 w-14 rounded-full transition-colors ${on ? 'bg-primary' : 'bg-line-strong'}`}
+        >
+          <span className={`absolute top-1 h-6 w-6 rounded-full bg-white shadow transition-all ${on ? 'left-7' : 'left-1'}`} />
+        </button>
+      </div>
+      {asking && (
+        <form
+          className="mt-2 flex gap-2"
+          onSubmit={(e) => {
+            e.preventDefault();
+            void toggle(true, email);
+          }}
+        >
+          <input type="email" required autoComplete="email" placeholder="deine@mail.de" value={email} onChange={(e) => setEmail(e.target.value)} className="min-w-0 flex-1 rounded-xl border-2 border-line bg-surface-2 px-3 py-1.5 font-bold outline-none focus:border-primary" />
+          <button className="rounded-xl bg-primary px-3 font-black text-white">OK</button>
+        </form>
+      )}
+      {on && me.settings.email && <p className="mt-1 text-xs font-semibold text-muted">an {me.settings.email}</p>}
     </div>
   );
 }
@@ -145,6 +190,7 @@ function Settings({ me, onLogout, onLogin }: { me: MeResponse; onLogout: () => v
         <span className="font-bold">App-Version</span>
         <span className="font-mono text-xs font-bold text-muted">{APP_VERSION}</span>
       </div>
+      <NewsletterRow me={me} row={row} save={(b) => save.mutateAsync(b)} flash={flash} />
       <PasskeySettings row={row} flash={flash} />
       <button className={`${row} w-full font-bold`} onClick={() => setPwOpen(true)}>
         Passwort ändern <Icon name="chevronRight" className="text-muted" />
@@ -157,15 +203,7 @@ function Settings({ me, onLogout, onLogin }: { me: MeResponse; onLogout: () => v
       <button className={`${row} w-full font-bold text-error`} onClick={() => void api('/api/auth/logout', { method: 'POST' }).finally(onLogout)}>
         Abmelden <Icon name="logout" />
       </button>
-      <p className="pt-3 text-center text-xs font-bold text-muted">
-        <Link href="/impressum" className="hover:underline">
-          Impressum
-        </Link>
-        {' · '}
-        <Link href="/datenschutz" className="hover:underline">
-          Datenschutz
-        </Link>
-      </p>
+      <Copyright className="pt-3" />
       <Modal open={pwOpen} onClose={() => setPwOpen(false)}>
         <div className="-mx-5 -mb-6 max-h-[80dvh] overflow-y-auto">
           <ChangePassword

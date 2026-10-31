@@ -77,17 +77,32 @@ export function userRoutes(app: FastifyInstance, db: DB) {
   app.post('/api/auth/register', authLimit, async (req) => {
     const body = RegisterReq.parse(req.body);
     const username = body.username.toLowerCase();
-    const code = body.inviteCode.trim().toUpperCase();
+    // Einladungscode ist optional – er zeigt dem Admin nur, über wen jemand gekommen ist
+    const code = body.inviteCode?.toUpperCase();
+    if (body.newsletter && !body.email) throw badRequest('email_required', 'Für den Newsletter brauchen wir deine E-Mail-Adresse.');
     const passwordHash = await hashPassword(body.password);
+    const now = Date.now();
     const user = db.transaction((tx) => {
-      const inv = tx.select().from(invites).where(eq(invites.code, code)).get();
-      if (!inv || inv.revoked || inv.uses >= inv.maxUses || (inv.expiresAt && inv.expiresAt < Date.now())) {
-        throw badRequest('invalid_invite', 'Einladungscode ungültig oder schon verbraucht.');
+      if (code) {
+        const inv = tx.select().from(invites).where(eq(invites.code, code)).get();
+        if (!inv || inv.revoked) throw badRequest('invalid_invite', 'Diesen Einladungscode gibt es nicht – lass das Feld einfach leer.');
+        tx.update(invites).set({ uses: sql`${invites.uses} + 1` }).where(eq(invites.code, code)).run();
       }
       if (tx.select().from(users).where(eq(users.username, username)).get()) throw conflict('username_taken', 'Benutzername ist schon vergeben.');
-      const u = tx.insert(users).values({ username, displayName: body.displayName, passwordHash, invitedWith: code }).returning().get();
-      tx.update(invites).set({ uses: sql`${invites.uses} + 1` }).where(eq(invites.code, code)).run();
-      return u;
+      return tx
+        .insert(users)
+        .values({
+          username,
+          displayName: body.displayName,
+          passwordHash,
+          invitedWith: code ?? null,
+          email: body.email ?? null,
+          newsletter: !!body.newsletter,
+          newsletterAt: body.newsletter ? now : null,
+          privacyAcceptedAt: now,
+        })
+        .returning()
+        .get();
     });
     addStarterPet(db, user.id, body.starterPet);
     const token = createSession(db, user.id, req.headers['user-agent']);
@@ -134,6 +149,12 @@ export function userRoutes(app: FastifyInstance, db: DB) {
     if (s.frame !== undefined) patch.frame = s.frame;
     if (s.activePet !== undefined) patch.activePet = s.activePet;
     if (s.soundOn !== undefined) patch.soundOn = s.soundOn;
+    if (s.email !== undefined) patch.email = s.email;
+    if (s.newsletter !== undefined) {
+      if (s.newsletter && !(s.email ?? req.user.email)) throw badRequest('email_required', 'Für den Newsletter brauchen wir deine E-Mail-Adresse.');
+      patch.newsletter = s.newsletter;
+      patch.newsletterAt = s.newsletter ? Date.now() : null;
+    }
     if (Object.keys(patch).length) db.update(users).set(patch).where(eq(users.id, req.user.id)).run();
     return meResponse(db, db.select().from(users).where(eq(users.id, req.user.id)).get()!);
   });

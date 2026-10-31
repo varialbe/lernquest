@@ -5,6 +5,22 @@ import { Icon } from '../components/icons.tsx';
 const OWNER = { name: 'Mateen Batt', street: 'Neustifter Straße 37', city: '80807 München', email: 'varialbe@varialbe.xyz' };
 const UPDATED = 'Oktober 2026';
 
+/** © unten auf Login, Profil und den Rechtsseiten */
+export function Copyright({ className = '' }: { className?: string }) {
+  return (
+    <p className={`text-center text-xs font-bold text-muted ${className}`}>
+      © {Math.max(2026, new Date().getFullYear())} {OWNER.name} ·{' '}
+      <Link href="/impressum" className="hover:underline">
+        Impressum
+      </Link>
+      {' · '}
+      <Link href="/datenschutz" className="hover:underline">
+        Datenschutz
+      </Link>
+    </p>
+  );
+}
+
 function LegalLayout({ title, children }: { title: string; children: ReactNode }) {
   const [, navigate] = useLocation();
   return (
@@ -17,7 +33,10 @@ function LegalLayout({ title, children }: { title: string; children: ReactNode }
           <h1 className="text-lg font-black">{title}</h1>
         </div>
       </header>
-      <main className="legal mx-auto max-w-xl px-5 pb-16 pt-4 text-[0.95rem] font-semibold leading-relaxed text-ink/90">{children}</main>
+      <main className="legal mx-auto max-w-xl px-5 pb-16 pt-4 text-[0.95rem] font-semibold leading-relaxed text-ink/90">
+        {children}
+        <Copyright className="mt-10" />
+      </main>
     </div>
   );
 }
@@ -50,7 +69,7 @@ export function Impressum() {
         {OWNER.name}, {OWNER.street}, {OWNER.city}
       </p>
       <H>Über LernQuest</H>
-      <p>LernQuest ist ein privates, nicht-kommerzielles Lernprojekt für eine geschlossene Gruppe von Studierenden (Registrierung nur mit Einladungscode). Es gibt keine Werbung und keine kostenpflichtigen Angebote.</p>
+      <p>LernQuest ist ein privates, nicht-kommerzielles Lernprojekt für Studierende. Es gibt keine Werbung und keine kostenpflichtigen Angebote.</p>
       <H>Haftung für Inhalte</H>
       <p>
         Die Quizfragen werden automatisiert mit KI aus eigenen Vorlesungsmitschriften erzeugt und maschinell geprüft. Trotz Sorgfalt können Fehler enthalten sein. Die Inhalte ersetzen keine Vorlesung, kein Skript und keine offizielle Prüfungsvorbereitung. Fehlerhafte Fragen
@@ -97,14 +116,20 @@ export function Datenschutz() {
 
       <H>5. Benutzerkonto</H>
       <p>
-        Für die Nutzung brauchst du ein Konto (nur mit Einladungscode). Gespeichert werden Benutzername, Anzeigename, das Passwort ausschließlich als Argon2id-Hash (nie im Klartext), der verwendete Einladungscode und deine Einstellungen (Tagesziel, Farbschema, Ton,
-        Profilrahmen, aktives Pet). Rechtsgrundlage: Art. 6 Abs. 1 lit. b DSGVO (Bereitstellung der App).
+        Für die Nutzung brauchst du ein Konto. Gespeichert werden Benutzername, Anzeigename, das Passwort ausschließlich als Argon2id-Hash (nie im Klartext), der Zeitpunkt, zu dem du diese Datenschutzerklärung bestätigt hast, und deine Einstellungen (Tagesziel,
+        Farbschema, Ton, Profilrahmen, aktives Pet). Gibst du freiwillig einen Einladungscode an, speichern wir ihn, damit der Betreiber sieht, über wen du gekommen bist. Rechtsgrundlage: Art. 6 Abs. 1 lit. b DSGVO (Bereitstellung der App).
       </p>
       <p className="mt-2">
         Für jede Anmeldung wird eine Sitzung angelegt: ein zufälliger Schlüssel (auf dem Server nur als Hash), die Browser-/App-Kennung und Zeitpunkte von Anmeldung und letzter Nutzung. Abgelaufene oder abgemeldete Sitzungen werden gelöscht.
       </p>
 
-      <H>6. Passkeys</H>
+      <H>6. Newsletter (freiwillig)</H>
+      <p>
+        Nur wenn du bei der Registrierung oder im Profil „Newsletter abonnieren“ wählst, speichern wir deine E-Mail-Adresse und den Zeitpunkt deiner Einwilligung, um dir gelegentlich Neuigkeiten zu LernQuest zu schicken. Rechtsgrundlage: deine Einwilligung (Art. 6 Abs. 1
+        lit. a DSGVO). Du kannst den Newsletter jederzeit im Profil abbestellen oder per E-Mail widerrufen. Danach wird die Adresse gelöscht, sofern du sie nicht für etwas anderes hinterlegt hast.
+      </p>
+
+      <H>6a. Passkeys</H>
       <p>
         Wenn du einen Passkey anlegst, speichern wir nur den öffentlichen Schlüssel, die Kennung des Passkeys, den von dir sichtbaren Namen und Zeitstempel. Der private Schlüssel und deine biometrischen Daten (Face ID, Touch ID) verlassen dein Gerät nie. Passkeys kannst
         du im Profil jederzeit entfernen.
@@ -116,7 +141,7 @@ export function Datenschutz() {
         b DSGVO.
       </p>
       <p className="mt-2">
-        <strong>Für andere Mitglieder sichtbar</strong> sind dein Anzeigename, dein Pet/Avatar und Profilrahmen, XP, Streak, Ligaplatzierung, freigeschaltete Abzeichen sowie Ergebnisse von Duellen mit dir. Die App ist eine geschlossene Gruppe: Alle Mitglieder sehen sich
+        <strong>Für andere Mitglieder sichtbar</strong> sind dein Anzeigename, dein Pet/Avatar und Profilrahmen, XP, Streak, Ligaplatzierung, freigeschaltete Abzeichen sowie Ergebnisse von Duellen mit dir. Alle Mitglieder sehen sich
         gegenseitig.
       </p>
 
