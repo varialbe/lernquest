@@ -35,9 +35,22 @@ export async function buildApp(db: DB, opts: { logger?: boolean } = {}): Promise
     return reply.code(500).send({ error: 'internal', message: 'Interner Fehler' });
   });
 
+  // Liste aller Routen (für den Sicherheitstest: jede nicht-öffentliche Route braucht Anmeldung)
+  const routes: { method: string; url: string }[] = [];
+  app.addHook('onRoute', (r) => {
+    for (const m of [r.method].flat()) if (m !== 'HEAD' && m !== 'OPTIONS') routes.push({ method: m, url: r.url });
+  });
+  app.decorate('routeList', routes);
+
   userRoutes(app, db);
   passkeyRoutes(app, db);
   accountRoutes(app, db);
   adminRoutes(app, db);
   return app;
+}
+
+declare module 'fastify' {
+  interface FastifyInstance {
+    routeList: { method: string; url: string }[];
+  }
 }
