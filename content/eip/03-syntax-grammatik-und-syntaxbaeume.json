@@ -1,0 +1,1714 @@
+{
+  "schemaVersion": 1,
+  "id": "eip-03",
+  "module": "EIP",
+  "number": 3,
+  "slug": "syntax-grammatik-und-syntaxbaeume",
+  "title": "Syntax, Grammatik und Syntaxbäume",
+  "summary": "Die Unit unterscheidet Syntax und Semantik und zeigt, wie Token-Regeln, reguläre Ausdrücke und EBNF-Grammatiken Programme beschreiben. Aus Tokens entstehen durch rekursive Regeln verschachtelte Programmfragmente und Syntaxbäume. Vorrangregeln und die Zuordnung von `else` lösen typische Mehrdeutigkeiten beim Parsing.",
+  "concepts": [
+    "Syntax",
+    "Semantik",
+    "Token",
+    "reguläre Ausdrücke",
+    "EBNF",
+    "BNF",
+    "Grammatikregel",
+    "Syntaxbaum",
+    "Parsing",
+    "Mehrdeutigkeit",
+    "Operatorvorrang",
+    "else-Zuordnung"
+  ],
+  "keyFacts": [
+    "Syntax legt formal fest, welche Wörter und Sätze einer Sprache zulässig sind.",
+    "Semantik ordnet einem syntaktisch beschriebenen Programm eine Bedeutung zu.",
+    "Ein Token ist eine nach Zeichenregeln erkannte Einheit, zum Beispiel ein Schlüsselwort, ein Name, eine Zahl oder ein Sonderzeichen.",
+    "Reservierte Wörter haben eine feste Rolle und dürfen nicht zugleich als Variablennamen verwendet werden.",
+    "Die Namensregel `name ::= letter (letter | digit)*` verlangt zuerst einen Buchstaben und danach beliebig viele Buchstaben oder Ziffern.",
+    "In dieser Namensregel bedeutet `|` Alternative und `*` null oder mehr Wiederholungen.",
+    "Reguläre Ausdrücke beschreiben vor allem Formen von Tokenfolgen, etwa Namen oder Zahlen-Tokens.",
+    "EBNF-Regeln haben die Form `A ::= Ausdruck`; links steht eine syntaktische Kategorie, rechts ihr Aufbau.",
+    "In EBNF bedeutet `?` Optionalität, `*` null oder mehr Wiederholungen und `(...)` Gruppierung.",
+    "BNF ist die Grundform mit Produktionsregeln und Alternativen; EBNF ergänzt kompakte Schreibweisen für Gruppierung, Wiederholung und Optionalität.",
+    "Ein `program` besteht im vereinfachten MiniJava-Modell aus null oder mehr Deklarationen und danach null oder mehr Anweisungen.",
+    "Eine Deklaration enthält einen Typ, mindestens einen Namen, optional weitere komma-getrennte Namen und anschließend ein Semikolon.",
+    "Die leere Anweisung `;` tut nichts; ein Block `{ stmt* }` enthält null oder mehr Anweisungen.",
+    "Parsing wendet Grammatikregeln auf eine Tokenfolge an und baut daraus einen Syntaxbaum.",
+    "Bei `x + y * z` bindet `*` nach der üblichen Java-Prioritätsregel stärker als `+` und `-`.",
+    "Bei verschachtelten `if`-Anweisungen gehört `else` zum nächsten noch nicht mit `else` verbundenen `if`."
+  ],
+  "tags": [],
+  "links": [],
+  "source": {
+    "file": "EIP/01_Vorlesungen/EIP VO3.md",
+    "sha256": "bffaf7c700134f3f11a4252b1f217b5c11fd732c888b698888624d351084a060",
+    "commit": "c01f10e1818d61e8fd05d663cf852d7a59f2e1e4"
+  },
+  "generator": {
+    "model": "gpt-5.6-luna",
+    "effort": "xhigh",
+    "reviewEffort": "high",
+    "promptVersion": "v2",
+    "generatedAt": "2026-10-31T00:37:21.662Z",
+    "review": {
+      "checked": 45,
+      "fixed": 1,
+      "removed": 0,
+      "notes": "Alle 45 Fragen geprüft. Der Syntaxbaum der Boss-Frage zur else-Zuordnung wurde zur eindeutigen verschachtelten Struktur korrigiert. Antworten, Distraktoren, Erklärungen, LaTeX, Cloze-Lücken, Mermaid-Syntax und Quellenangaben sind ansonsten materialgedeckt."
+    }
+  },
+  "levels": [
+    {
+      "id": "eip-03-l1",
+      "index": 1,
+      "kind": "basics",
+      "title": "Grundlagen",
+      "questions": [
+        {
+          "id": "eip-03-l1-q01",
+          "type": "single",
+          "prompt": "Was beschreibt die Syntax einer Programmiersprache?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Welche Anforderungen ein Programm lösen soll"
+            },
+            {
+              "id": "b",
+              "text": "Welche mathematische Bedeutung jedes Programm berechnet"
+            },
+            {
+              "id": "c",
+              "text": "Welche Wörter und Sätze formal zulässig sind"
+            },
+            {
+              "id": "d",
+              "text": "Wie schnell ein Programm ausgeführt wird"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Syntax legt die zulässige Form von Wörtern und Sätzen fest. Die Bedeutung eines Programms gehört zur Semantik.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO3.md",
+            "heading": "Syntax und Semantik"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Syntax",
+            "Semantik"
+          ]
+        },
+        {
+          "id": "eip-03-l1-q02",
+          "type": "multi",
+          "prompt": "Wähle alle richtigen Aussagen über Tokens. Mehrere Antworten können richtig sein.",
+          "options": [
+            {
+              "id": "a",
+              "text": "`if` kann trotz seiner Buchstabenform zugleich ein beliebiger Variablenname sein."
+            },
+            {
+              "id": "b",
+              "text": "Sonderzeichen wie `;` können Programmteile trennen oder verbinden."
+            },
+            {
+              "id": "c",
+              "text": "Eine Zahl kann als Token erkannt werden."
+            },
+            {
+              "id": "d",
+              "text": "Ein Token ist eine nach Zeichenregeln erkannte Einheit."
+            },
+            {
+              "id": "e",
+              "text": "Tokens sind bereits vollständige Syntaxbäume."
+            }
+          ],
+          "correct": [
+            "b",
+            "c",
+            "d"
+          ],
+          "explanation": "Tokens sind erkannte Einheiten wie Schlüsselwörter, Zahlen, Namen oder Sonderzeichen. Reservierte Wörter wie `if` dürfen nicht zugleich Variablennamen sein; ein Syntaxbaum entsteht erst beim Parsing.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO3.md",
+            "heading": "Syntax und Semantik"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Token",
+            "Syntaxbaum"
+          ]
+        },
+        {
+          "id": "eip-03-l1-q03",
+          "type": "truefalse",
+          "prompt": "Ein syntaktisch gültiges Programm muss die beabsichtigte Aufgabe korrekt lösen.",
+          "options": [
+            {
+              "id": "true",
+              "text": "Wahr"
+            },
+            {
+              "id": "false",
+              "text": "Falsch"
+            }
+          ],
+          "correct": [
+            "false"
+          ],
+          "explanation": "Syntax sagt nur, ob die Form zulässig ist. Ein syntaktisch gültiges `write(2 + 2);` kann trotzdem die falsche Aufgabe lösen.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO3.md",
+            "heading": "Syntax und Semantik"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Syntax",
+            "Semantik"
+          ]
+        },
+        {
+          "id": "eip-03-l1-q04",
+          "type": "cloze",
+          "prompt": "In der Regel `name ::= letter (letter | digit)*` steht `|` für ___.",
+          "options": [
+            {
+              "id": "a",
+              "text": "eine optionale Wiederholung"
+            },
+            {
+              "id": "b",
+              "text": "eine Alternative"
+            },
+            {
+              "id": "c",
+              "text": "das Ende einer Regel"
+            },
+            {
+              "id": "d",
+              "text": "ein festes Token"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "Der senkrechte Strich kennzeichnet eine Alternative: Bei jeder Wiederholung kann ein Buchstabe oder eine Ziffer gewählt werden.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO3.md",
+            "heading": "Namen und reguläre Ausdrücke"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "reguläre Ausdrücke",
+            "Grammatikregel"
+          ]
+        },
+        {
+          "id": "eip-03-l1-q05",
+          "type": "single",
+          "prompt": "Welche Zeichenfolge erfüllt die angegebene Namensregel unter der Beispielkonvention `letter = A–Z oder a–z` und `digit = 0–9`?",
+          "options": [
+            {
+              "id": "a",
+              "text": "`if`"
+            },
+            {
+              "id": "b",
+              "text": "`a_b`"
+            },
+            {
+              "id": "c",
+              "text": "`7a`"
+            },
+            {
+              "id": "d",
+              "text": "`a7B`"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "`a7B` beginnt mit einem Buchstaben und enthält danach nur Buchstaben oder Ziffern. `7a` beginnt mit einer Ziffer, `_` ist nicht enthalten und `if` ist reserviert.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO3.md",
+            "heading": "Namen und reguläre Ausdrücke"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "reguläre Ausdrücke",
+            "Token"
+          ]
+        },
+        {
+          "id": "eip-03-l1-q06",
+          "type": "multi",
+          "prompt": "Wähle alle richtigen Aussagen über EBNF. Mehrere Antworten können richtig sein.",
+          "options": [
+            {
+              "id": "a",
+              "text": "`?` bedeutet, dass der vorherige Teil null oder mehrmals wiederholt wird."
+            },
+            {
+              "id": "b",
+              "text": "`::=` trennt die syntaktische Kategorie von ihrer Beschreibung."
+            },
+            {
+              "id": "c",
+              "text": "`*` bedeutet null oder mehr Wiederholungen des vorherigen Teils."
+            },
+            {
+              "id": "d",
+              "text": "`(...)` fasst Teile zusammen."
+            }
+          ],
+          "correct": [
+            "b",
+            "c",
+            "d"
+          ],
+          "explanation": "`::=` leitet die Regelbeschreibung ein, Klammern gruppieren und `*` erlaubt null oder mehr Wiederholungen. Optionalität wird mit `?` notiert.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO3.md",
+            "heading": "EBNF kompakt"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "EBNF",
+            "Grammatikregel"
+          ]
+        },
+        {
+          "id": "eip-03-l1-q07",
+          "type": "truefalse",
+          "prompt": "Die EBNF-Regel `type ::= \"int\"` erlaubt als `type` auch das Token `float`.",
+          "options": [
+            {
+              "id": "true",
+              "text": "Wahr"
+            },
+            {
+              "id": "false",
+              "text": "Falsch"
+            }
+          ],
+          "correct": [
+            "false"
+          ],
+          "explanation": "Die Regel enthält genau das feste Token `int`. Andere Typnamen werden durch diese Regel nicht erzeugt.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO3.md",
+            "heading": "EBNF kompakt"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "EBNF",
+            "Token"
+          ]
+        },
+        {
+          "id": "eip-03-l1-q08",
+          "type": "single",
+          "prompt": "Was ist die Aufgabe des Parsings?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Es legt fest, welche Zeichenklassen `letter` und `digit` enthalten."
+            },
+            {
+              "id": "b",
+              "text": "Es führt automatisch jede Anweisung aus."
+            },
+            {
+              "id": "c",
+              "text": "Es wendet Grammatikregeln auf eine Tokenfolge an und baut einen Syntaxbaum."
+            },
+            {
+              "id": "d",
+              "text": "Es ersetzt alle Namen durch Zahlen."
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Parsing strukturiert eine Tokenfolge mithilfe der Grammatik und erzeugt daraus einen Syntaxbaum. Die Ausführung ist davon zu unterscheiden.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO3.md",
+            "heading": "Mehrdeutigkeit und Parsing"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Parsing",
+            "Syntaxbaum"
+          ]
+        },
+        {
+          "id": "eip-03-l1-q09",
+          "type": "single",
+          "prompt": "Welche Gruppierung verwendet die übliche Prioritätsregel für `x + y * z`?",
+          "options": [
+            {
+              "id": "a",
+              "text": "`(x + y) * z`"
+            },
+            {
+              "id": "b",
+              "text": "`x + (y * z)`"
+            },
+            {
+              "id": "c",
+              "text": "`(x + y * z)`"
+            },
+            {
+              "id": "d",
+              "text": "`x * (y + z)`"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "`*` bindet stärker als `+` und `-`. Deshalb wird der Ausdruck als `x + (y * z)` gruppiert.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO3.md",
+            "heading": "Mehrdeutigkeit und Parsing"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Mehrdeutigkeit",
+            "Operatorvorrang"
+          ]
+        },
+        {
+          "id": "eip-03-l1-q10",
+          "type": "cloze",
+          "prompt": "Bei verschachtelten `if`-Anweisungen gehört ein `else` zum nächsten noch nicht mit `else` verbundenen ___.",
+          "options": [
+            {
+              "id": "a",
+              "text": "Block"
+            },
+            {
+              "id": "b",
+              "text": "`if`"
+            },
+            {
+              "id": "c",
+              "text": "`while`"
+            },
+            {
+              "id": "d",
+              "text": "Ausdruck"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "Die `else`-Konvention ordnet das `else` dem innersten noch offenen `if` zu. Geschweifte Klammern können die gewünschte Gruppierung explizit machen.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO3.md",
+            "heading": "Mehrdeutigkeit und Parsing"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Mehrdeutigkeit",
+            "else-Zuordnung"
+          ]
+        },
+        {
+          "id": "eip-03-l1-q11",
+          "type": "diagram",
+          "prompt": "Welche Tokenfolge entsteht beim Lesen der rechteckigen Blätter von links nach rechts?\n\n```mermaid\nflowchart TD\n    A((expr)) --> L((expr))\n    A --> Plus[\"+\"]\n    A --> B((expr))\n    L --> X[\"x\"]\n    B --> BL((expr))\n    B --> Mul[\"*\"]\n    B --> BR((expr))\n    BL --> Y[\"y\"]\n    BR --> Z[\"z\"]\n```",
+          "options": [
+            {
+              "id": "a",
+              "text": "`y * z + x`"
+            },
+            {
+              "id": "b",
+              "text": "`x + y * z`"
+            },
+            {
+              "id": "c",
+              "text": "`x + z * y`"
+            },
+            {
+              "id": "d",
+              "text": "`x * y + z`"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "Die Blätter werden links nach rechts als `x`, `+`, `y`, `*`, `z` gelesen. Der Baum stellt dabei die Gruppierung `x + (y * z)` dar.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO3.md",
+            "heading": "Mehrdeutigkeit und Parsing"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Syntaxbaum",
+            "Operatorvorrang"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "eip-03-l2",
+      "index": 2,
+      "kind": "apply",
+      "title": "Anwenden",
+      "questions": [
+        {
+          "id": "eip-03-l2-q01",
+          "type": "single",
+          "prompt": "Welche der folgenden Zeichenfolgen ist nach der Beispielkonvention ein Name, aber kein reserviertes Wort?",
+          "options": [
+            {
+              "id": "a",
+              "text": "`int2`"
+            },
+            {
+              "id": "b",
+              "text": "`7a`"
+            },
+            {
+              "id": "c",
+              "text": "`int`"
+            },
+            {
+              "id": "d",
+              "text": "`if`"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "`int2` beginnt mit einem Buchstaben, enthält danach eine Ziffer und ist nicht als reserviertes Wort aufgeführt. `if` und `int` sind reserviert; `7a` beginnt falsch.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO3.md",
+            "heading": "Namen und reguläre Ausdrücke"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Token",
+            "reguläre Ausdrücke"
+          ]
+        },
+        {
+          "id": "eip-03-l2-q02",
+          "type": "calc",
+          "prompt": "Welche der folgenden Zeichenfolgen passt zum regulären Ausdruck `(letter letter)*`?",
+          "options": [
+            {
+              "id": "a",
+              "text": "`abcd`"
+            },
+            {
+              "id": "b",
+              "text": "`a1bc`"
+            },
+            {
+              "id": "c",
+              "text": "`a`"
+            },
+            {
+              "id": "d",
+              "text": "`abc`"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "Das Muster wiederholt ein Paar aus genau zwei Buchstaben. `abcd` enthält zwei Paare; `abc` und `a` haben eine ungerade Buchstabenanzahl, `a1bc` enthält keine reine Buchstabenfolge.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO3.md",
+            "heading": "Namen und reguläre Ausdrücke"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "reguläre Ausdrücke"
+          ]
+        },
+        {
+          "id": "eip-03-l2-q03",
+          "type": "multi",
+          "prompt": "Wähle alle Zeichenfolgen, die zum Muster `letter* test letter*` passen. Mehrere Antworten können richtig sein.",
+          "options": [
+            {
+              "id": "a",
+              "text": "`tes`"
+            },
+            {
+              "id": "b",
+              "text": "`a_test`"
+            },
+            {
+              "id": "c",
+              "text": "`test`"
+            },
+            {
+              "id": "d",
+              "text": "`atest`"
+            },
+            {
+              "id": "e",
+              "text": "`testb`"
+            }
+          ],
+          "correct": [
+            "c",
+            "d",
+            "e"
+          ],
+          "explanation": "Vor und nach dem festen Text `test` dürfen beliebig viele Buchstaben stehen, auch null. `tes` enthält den festen Text nicht vollständig und `_` ist kein Buchstabe.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO3.md",
+            "heading": "Namen und reguläre Ausdrücke"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "reguläre Ausdrücke"
+          ]
+        },
+        {
+          "id": "eip-03-l2-q04",
+          "type": "cloze",
+          "prompt": "In der passenden Zeichenfolge `$0417` steht für `digit*` die Folge ___.",
+          "options": [
+            {
+              "id": "a",
+              "text": "`0417`"
+            },
+            {
+              "id": "b",
+              "text": "`0`"
+            },
+            {
+              "id": "c",
+              "text": "keine Ziffer"
+            },
+            {
+              "id": "d",
+              "text": "`04`"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Das feste Suffix `17` steht bereits am Ende. Daher erzeugt `digit*` in `$0417` die beiden Ziffern `04`.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO3.md",
+            "heading": "Namen und reguläre Ausdrücke"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "reguläre Ausdrücke"
+          ]
+        },
+        {
+          "id": "eip-03-l2-q05",
+          "type": "single",
+          "prompt": "Welche Deklaration wird von `decl ::= type name (\",\" name)* \";\"` erzeugt?",
+          "options": [
+            {
+              "id": "a",
+              "text": "`int x;`"
+            },
+            {
+              "id": "b",
+              "text": "`x int;`"
+            },
+            {
+              "id": "c",
+              "text": "`int x,;`"
+            },
+            {
+              "id": "d",
+              "text": "`int;`"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "`type` wird zu `int`, danach folgt mindestens ein `name` und anschließend das Semikolon. Weitere Namen wären nur als vollständige `, name`-Paare erlaubt.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO3.md",
+            "heading": "EBNF kompakt"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "EBNF",
+            "Grammatikregel"
+          ]
+        },
+        {
+          "id": "eip-03-l2-q06",
+          "type": "multi",
+          "prompt": "Wähle alle Programmfragmente, die als `stmt` im vereinfachten MiniJava-Modell auftreten können. Mehrere Antworten können richtig sein.",
+          "options": [
+            {
+              "id": "a",
+              "text": "`write(x + 1);`"
+            },
+            {
+              "id": "b",
+              "text": "`;`"
+            },
+            {
+              "id": "c",
+              "text": "`{ write(1); write(0); }`"
+            },
+            {
+              "id": "d",
+              "text": "`x = readInt();`"
+            },
+            {
+              "id": "e",
+              "text": "`int x;`"
+            }
+          ],
+          "correct": [
+            "a",
+            "b",
+            "c",
+            "d"
+          ],
+          "explanation": "Die ersten vier Alternativen sind leere Anweisung, Block, Eingabe und Ausgabe. `int x;` ist eine Deklaration und wird durch `decl`, nicht durch `stmt`, beschrieben.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO3.md",
+            "heading": "Von Tokens zu Programmfragmenten"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Grammatikregel",
+            "Token"
+          ]
+        },
+        {
+          "id": "eip-03-l2-q07",
+          "type": "code_output",
+          "prompt": "Was gibt dieser Code aus?\n\n```java\nwrite(1 + 2);\nwrite(0);\n```",
+          "options": [
+            {
+              "id": "a",
+              "text": "`0` und danach `3`"
+            },
+            {
+              "id": "b",
+              "text": "Nichts, weil `write` nur Variablen ausgeben kann"
+            },
+            {
+              "id": "c",
+              "text": "`1` und danach `2`"
+            },
+            {
+              "id": "d",
+              "text": "`3` und danach `0`"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Der erste Ausdruck `1 + 2` ergibt `3`, danach wird `0` ausgegeben. Beide Anweisungen entsprechen der `write(expr);`-Alternative.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO3.md",
+            "heading": "Von Tokens zu Programmfragmenten"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "EBNF",
+            "Semantik"
+          ]
+        },
+        {
+          "id": "eip-03-l2-q08",
+          "type": "single",
+          "prompt": "Welche Folge beschreibt die Regel `program ::= decl* stmt*` korrekt?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Nur Deklarationen, aber keine Anweisungen"
+            },
+            {
+              "id": "b",
+              "text": "Zuerst beliebig viele Deklarationen, danach beliebig viele Anweisungen"
+            },
+            {
+              "id": "c",
+              "text": "Beliebig viele Anweisungen, danach genau eine Deklaration"
+            },
+            {
+              "id": "d",
+              "text": "Genau eine Deklaration und genau eine Anweisung"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "Beide Sternchen erlauben null oder mehr Vorkommen. Die Reihenfolge der Regel verlangt jedoch zuerst die Deklarationen und danach die Anweisungen.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO3.md",
+            "heading": "EBNF kompakt"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "EBNF",
+            "Grammatikregel"
+          ]
+        },
+        {
+          "id": "eip-03-l2-q09",
+          "type": "diagram",
+          "prompt": "Welcher Knoten beschreibt in diesem Syntaxbaum die Bedingung `x > 0`?\n\n```mermaid\nflowchart TD\n    S((stmt)) --> IF[\"if\"]\n    S --> LP[\"(\"]\n    S --> C((cond))\n    S --> RP[\")\"]\n    S --> W1[\"△ stmt: write(1);\"]\n    S --> ELSE[\"else\"]\n    S --> W0[\"△ stmt: write(0);\"]\n    C --> E1((expr))\n    C --> GT[\">\"]\n    C --> E0((expr))\n    E1 --> X[\"x\"]\n    E0 --> ZERO[\"0\"]\n```",
+          "options": [
+            {
+              "id": "a",
+              "text": "Der Knoten `ELSE`"
+            },
+            {
+              "id": "b",
+              "text": "Der Knoten `S` mit dem Token `if`"
+            },
+            {
+              "id": "c",
+              "text": "Der Knoten `C` mit den Kindern `E1`, `>` und `E0`"
+            },
+            {
+              "id": "d",
+              "text": "Der Knoten `W1`"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "`C` ist die `cond`-Kategorie und wird in zwei `expr`-Knoten sowie den Vergleichsoperator `>` zerlegt. Die übrigen genannten Knoten gehören zum äußeren Zweig oder zu den Anweisungen.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO3.md",
+            "heading": "Mehrdeutigkeit und Parsing"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Syntaxbaum",
+            "Parsing"
+          ]
+        },
+        {
+          "id": "eip-03-l2-q10",
+          "type": "truefalse",
+          "prompt": "In `x = -3;` wird `-3` im vereinfachten Modell durch eine unäre Negation eines Ausdrucks beschrieben.",
+          "options": [
+            {
+              "id": "true",
+              "text": "Wahr"
+            },
+            {
+              "id": "false",
+              "text": "Falsch"
+            }
+          ],
+          "correct": [
+            "true"
+          ],
+          "explanation": "Die Ausdrucksregel enthält die Alternative `\"-\" expr`. Damit ist das Minus hier ein unärer Operator vor dem Ausdruck `3`.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO3.md",
+            "heading": "Von Tokens zu Programmfragmenten"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Grammatikregel",
+            "EBNF"
+          ]
+        },
+        {
+          "id": "eip-03-l2-q11",
+          "type": "single",
+          "prompt": "Welche Gruppierung entspricht der angegebenen Prioritätsregel für `a - b * c`?",
+          "options": [
+            {
+              "id": "a",
+              "text": "`(a - b) * c`"
+            },
+            {
+              "id": "b",
+              "text": "`(a * b) - c`"
+            },
+            {
+              "id": "c",
+              "text": "`a - (b * c)`"
+            },
+            {
+              "id": "d",
+              "text": "`a - (b - c)`"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "`*` bindet stärker als `-`. Deshalb wird zuerst `b * c` gruppiert und anschließend von `a` subtrahiert.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO3.md",
+            "heading": "Mehrdeutigkeit und Parsing"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Operatorvorrang",
+            "Mehrdeutigkeit"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "eip-03-l3",
+      "index": 3,
+      "kind": "deepen",
+      "title": "Vertiefen",
+      "questions": [
+        {
+          "id": "eip-03-l3-q01",
+          "type": "multi",
+          "prompt": "Wähle alle korrekten Zuordnungen der vier Bestandteile einer Sprachbeschreibung. Mehrere Antworten können richtig sein.",
+          "options": [
+            {
+              "id": "a",
+              "text": "Token-Regeln — welche Zeichenfolgen Namen bilden können"
+            },
+            {
+              "id": "b",
+              "text": "Grammatik-Regeln — wie Tokens zu Deklarationen, Anweisungen oder Ausdrücken zusammengesetzt werden"
+            },
+            {
+              "id": "c",
+              "text": "Reservierte Wörter — Wörter mit fester Rolle"
+            },
+            {
+              "id": "d",
+              "text": "Kontextbedingungen — ausschließlich die Schreibweise einzelner Ziffern"
+            }
+          ],
+          "correct": [
+            "a",
+            "b",
+            "c"
+          ],
+          "explanation": "Reservierte Wörter, Token-Regeln und Grammatik-Regeln haben die genannten Aufgaben. Kontextbedingungen betreffen zusätzliche Anforderungen im Zusammenhang, etwa eine vorherige Deklaration.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO3.md",
+            "heading": "Syntax und Semantik"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Syntax",
+            "Token",
+            "Grammatikregel"
+          ]
+        },
+        {
+          "id": "eip-03-l3-q02",
+          "type": "truefalse",
+          "prompt": "Nach der Beispiel-Namensregel ist `if` formal ein passendes Muster, darf aber wegen seiner Reservierung nicht als Variablenname verwendet werden.",
+          "options": [
+            {
+              "id": "true",
+              "text": "Wahr"
+            },
+            {
+              "id": "false",
+              "text": "Falsch"
+            }
+          ],
+          "correct": [
+            "true"
+          ],
+          "explanation": "Die Zeichenfolge `if` besteht aus Buchstaben und passt daher zum Muster. Die zusätzliche Regel für reservierte Wörter schließt sie trotzdem als Variablennamen aus.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO3.md",
+            "heading": "Namen und reguläre Ausdrücke"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Token",
+            "reguläre Ausdrücke"
+          ]
+        },
+        {
+          "id": "eip-03-l3-q03",
+          "type": "calc",
+          "prompt": "Welche vollständige Zeichenfolge ist ein passendes Beispiel für `$ digit* 17`, bei dem `digit*` genau zwei Ziffern erzeugt?",
+          "options": [
+            {
+              "id": "a",
+              "text": "`$0417`"
+            },
+            {
+              "id": "b",
+              "text": "`$04 17`"
+            },
+            {
+              "id": "c",
+              "text": "`$17`"
+            },
+            {
+              "id": "d",
+              "text": "`$17$`"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "Bei `$0417` erzeugt `digit*` die zwei Ziffern `04`; danach folgt das feste Suffix `17`. `$17` verwendet dagegen null zusätzliche Ziffern.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO3.md",
+            "heading": "Namen und reguläre Ausdrücke"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "reguläre Ausdrücke"
+          ]
+        },
+        {
+          "id": "eip-03-l3-q04",
+          "type": "single",
+          "prompt": "Welche Aussage erklärt den Unterschied zwischen BNF und EBNF am besten?",
+          "options": [
+            {
+              "id": "a",
+              "text": "BNF beschreibt nur Tokens, EBNF nur reservierte Wörter."
+            },
+            {
+              "id": "b",
+              "text": "BNF ist die Grundform; EBNF ergänzt kompakte Schreibweisen für Gruppierung, Wiederholung und Optionalität."
+            },
+            {
+              "id": "c",
+              "text": "BNF ist eine Ausführungssemantik, EBNF eine Programmiersprache."
+            },
+            {
+              "id": "d",
+              "text": "BNF und EBNF unterscheiden sich ausschließlich durch die verwendeten Buchstaben."
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "BNF verwendet Produktionsregeln und Alternativen. EBNF erlaubt zusätzlich kompakte Notationen wie `(...)`, `*` und `?`, die in BNF durch zusätzliche Regeln ausgedrückt werden müssten.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO3.md",
+            "heading": "EBNF kompakt"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "BNF",
+            "EBNF"
+          ]
+        },
+        {
+          "id": "eip-03-l3-q05",
+          "type": "cloze",
+          "prompt": "In `decl ::= type name (\",\" name)* \";\"` ist die Wiederholung `(\",\" name)*` dafür zuständig, dass ___.",
+          "options": [
+            {
+              "id": "a",
+              "text": "der Typ mehrfach vor jedem Namen stehen muss"
+            },
+            {
+              "id": "b",
+              "text": "das abschließende Semikolon optional wird"
+            },
+            {
+              "id": "c",
+              "text": "der erste Name entfallen darf"
+            },
+            {
+              "id": "d",
+              "text": "weitere Namen jeweils mit vorangestelltem Komma folgen können"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Das wiederholte Teilstück besteht jeweils aus einem Komma und einem weiteren Namen. Der erste `name` außerhalb der Gruppe bleibt weiterhin verpflichtend, und `;` bleibt fest vorgeschrieben.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO3.md",
+            "heading": "EBNF kompakt"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "EBNF",
+            "Grammatikregel"
+          ]
+        },
+        {
+          "id": "eip-03-l3-q06",
+          "type": "multi",
+          "prompt": "Wähle alle Aussagen, die sich direkt aus `expr ::= number | name | \"(\" expr \")\" | \"-\" expr | expr binop expr` ergeben. Mehrere Antworten können richtig sein.",
+          "options": [
+            {
+              "id": "a",
+              "text": "Ein Ausdruck kann ein Name sein."
+            },
+            {
+              "id": "b",
+              "text": "Ein Ausdruck kann durch Klammern einen weiteren Ausdruck enthalten."
+            },
+            {
+              "id": "c",
+              "text": "Ein Ausdruck kann eine Zahl sein."
+            },
+            {
+              "id": "d",
+              "text": "Jeder Ausdruck muss mit einem Semikolon enden."
+            },
+            {
+              "id": "e",
+              "text": "Ein Ausdruck kann aus zwei Ausdrücken mit einem binären Operator bestehen."
+            }
+          ],
+          "correct": [
+            "a",
+            "b",
+            "c",
+            "e"
+          ],
+          "explanation": "Die ersten vier Aussagen entsprechen den Alternativen der `expr`-Regel. Ein Semikolon gehört nicht allgemein zu `expr`, sondern etwa zur Anweisungsregel `write(expr);`.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO3.md",
+            "heading": "Von Tokens zu Programmfragmenten"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Grammatikregel",
+            "EBNF"
+          ]
+        },
+        {
+          "id": "eip-03-l3-q07",
+          "type": "code_output",
+          "prompt": "Was gibt dieser Code aus, wenn `readInt()` den Wert `4` liefert?\n\n```java\nx = readInt();\nwrite(x + 1);\n```",
+          "options": [
+            {
+              "id": "a",
+              "text": "`x + 1`"
+            },
+            {
+              "id": "b",
+              "text": "Nichts, weil eine Eingabe nicht zugewiesen werden darf"
+            },
+            {
+              "id": "c",
+              "text": "`4`"
+            },
+            {
+              "id": "d",
+              "text": "`5`"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "`readInt()` liefert `4`, dieser Wert wird `x` zugewiesen und anschließend ergibt `x + 1` den Wert `5`. Die beiden Zeilen entsprechen Eingabezuweisung und Ausgabe eines Ausdrucks.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO3.md",
+            "heading": "Von Tokens zu Programmfragmenten"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "EBNF",
+            "Semantik"
+          ]
+        },
+        {
+          "id": "eip-03-l3-q08",
+          "type": "diagram",
+          "prompt": "Welche Aussage beschreibt den folgenden Syntaxbaum korrekt?\n\n```mermaid\nflowchart TD\n    A((expr)) --> L((expr))\n    A --> Plus[\"+\"]\n    A --> B((expr))\n    L --> X[\"x\"]\n    B --> BL((expr))\n    B --> Mul[\"*\"]\n    B --> BR((expr))\n    BL --> Y[\"y\"]\n    BR --> Z[\"z\"]\n```",
+          "options": [
+            {
+              "id": "a",
+              "text": "Der Baum enthält keine rekursive Anwendung der `expr`-Regel."
+            },
+            {
+              "id": "b",
+              "text": "Die Blätter ergeben beim Lesen von links nach rechts `x * y + z`."
+            },
+            {
+              "id": "c",
+              "text": "Die Wurzel beschreibt `x + (y * z)`."
+            },
+            {
+              "id": "d",
+              "text": "Die Wurzel beschreibt `(x + y) * z`."
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Die Wurzel verbindet den linken Ausdruck `x`, das Plus und den rechten Ausdruck `y * z`. Die verschachtelten `expr`-Knoten machen die Prioritätsstruktur sichtbar.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO3.md",
+            "heading": "Mehrdeutigkeit und Parsing"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Syntaxbaum",
+            "Operatorvorrang",
+            "Parsing"
+          ]
+        },
+        {
+          "id": "eip-03-l3-q09",
+          "type": "single",
+          "prompt": "Welche Struktur wird durch `cond ::= \"true\" | \"false\" | \"!\" cond | \"(\" cond \")\" | expr comp expr | cond bbinop cond` nicht unmittelbar beschrieben?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Eine Bedingung als `true`"
+            },
+            {
+              "id": "b",
+              "text": "Eine Deklaration wie `int x;`"
+            },
+            {
+              "id": "c",
+              "text": "Ein Vergleich zweier Ausdrücke"
+            },
+            {
+              "id": "d",
+              "text": "Eine negierte Bedingung wie `!cond`"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "Die `cond`-Regel beschreibt Wahrheitswerte, Negation, Klammerung, Vergleiche und logische Verknüpfungen. Eine Deklaration gehört zur `decl`-Regel.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO3.md",
+            "heading": "Von Tokens zu Programmfragmenten"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Grammatikregel",
+            "EBNF"
+          ]
+        },
+        {
+          "id": "eip-03-l3-q10",
+          "type": "truefalse",
+          "prompt": "Die beiden Ausdrücke `(x + y) * z` und `x + (y * z)` sind ohne Vorrangregel dieselbe syntaktische Struktur.",
+          "options": [
+            {
+              "id": "true",
+              "text": "Wahr"
+            },
+            {
+              "id": "false",
+              "text": "Falsch"
+            }
+          ],
+          "correct": [
+            "false"
+          ],
+          "explanation": "Sie sind zwei unterschiedliche Gruppierungen und führen zu unterschiedlichen Syntaxbäumen. Eine Vorrangregel wählt im gegebenen Beispiel `x + (y * z)` aus.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO3.md",
+            "heading": "Mehrdeutigkeit und Parsing"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Mehrdeutigkeit",
+            "Syntaxbaum",
+            "Operatorvorrang"
+          ]
+        },
+        {
+          "id": "eip-03-l3-q11",
+          "type": "single",
+          "prompt": "Warum kann ein `else` in einem verschachtelten `if` ohne geschweifte Klammern mehrdeutig wirken?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Weil ein Block immer zwei `else` enthalten muss."
+            },
+            {
+              "id": "b",
+              "text": "Weil mehrere `if`-Anweisungen als möglicher Bezug noch offen sein können."
+            },
+            {
+              "id": "c",
+              "text": "Weil `else` nur in Ausdrücken vorkommt."
+            },
+            {
+              "id": "d",
+              "text": "Weil `else` kein Token ist."
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "Bei verschachtelten `if`-Anweisungen kann ein `else` grundsätzlich zum äußeren oder inneren `if` gelesen werden. Die Konvention ordnet es dem nächsten noch offenen `if` zu.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO3.md",
+            "heading": "Mehrdeutigkeit und Parsing"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Mehrdeutigkeit",
+            "else-Zuordnung"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "eip-03-l4",
+      "index": 4,
+      "kind": "boss",
+      "title": "Boss",
+      "questions": [
+        {
+          "id": "eip-03-l4-q01",
+          "type": "single",
+          "prompt": "Ein Parser erhält `int 7zahl;`. Welche Begründung trifft für das vereinfachte Modell zu?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Die Deklaration ist ungültig, weil der Name mit einer Ziffer beginnt."
+            },
+            {
+              "id": "b",
+              "text": "Die Deklaration ist gültig, weil Ziffern an jeder Stelle eines Namens erlaubt sind."
+            },
+            {
+              "id": "c",
+              "text": "Die Deklaration ist gültig, weil `int` ein Typ und `7zahl` ein beliebiger Text ist."
+            },
+            {
+              "id": "d",
+              "text": "Die Deklaration ist ungültig, weil `int` kein reserviertes Wort ist."
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "Die `name`-Regel verlangt als erstes Zeichen einen Buchstaben. Ziffern sind erst in den Wiederholungen danach erlaubt; `int` ist außerdem ein reserviertes Typ-Token.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO3.md",
+            "heading": "Namen und reguläre Ausdrücke"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Syntax",
+            "Token",
+            "reguläre Ausdrücke"
+          ]
+        },
+        {
+          "id": "eip-03-l4-q02",
+          "type": "multi",
+          "prompt": "Wähle alle Aussagen, die die Verarbeitung von `x = readInt();` im vereinfachten Modell korrekt verbinden. Mehrere Antworten können richtig sein.",
+          "options": [
+            {
+              "id": "a",
+              "text": "`x` muss als Name erkannt werden."
+            },
+            {
+              "id": "b",
+              "text": "`readInt` ist in der entsprechenden `stmt`-Alternative ein festes Token."
+            },
+            {
+              "id": "c",
+              "text": "Die Regel verlangt hinter `readInt` einen Ausdruck zwischen den Klammern."
+            },
+            {
+              "id": "d",
+              "text": "Die Klammern `()` und das Semikolon gehören zur beschriebenen Form."
+            },
+            {
+              "id": "e",
+              "text": "Die Zeile ist eine `decl`, weil sie einen Namen enthält."
+            }
+          ],
+          "correct": [
+            "a",
+            "b",
+            "d"
+          ],
+          "explanation": "Die Alternative lautet `name = \"readInt\" \"(\" \")\" \";\"`: Sie enthält einen Namen, das feste Token `readInt`, leere Klammern und `;`. Es ist eine Eingabe-Anweisung, keine Deklaration und nimmt hier keinen Ausdruck in den Klammern auf.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO3.md",
+            "heading": "Von Tokens zu Programmfragmenten"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Grammatikregel",
+            "Token",
+            "EBNF"
+          ]
+        },
+        {
+          "id": "eip-03-l4-q03",
+          "type": "diagram",
+          "prompt": "Welche Zuordnung des `else` folgt aus der dargestellten Struktur, wenn das `else` direkt nach der inneren Anweisung steht?\n\n```mermaid\nflowchart TD\n    OUT((stmt)) --> IF1[\"if (a)\"]\n    IF1 --> IN((stmt))\n    IN --> IF2[\"if (b)\"]\n    IF2 --> W1[\"write(1);\"]\n    IN --> ELSE[\"else\"]\n    IN --> W0[\"write(0);\"]\n```",
+          "options": [
+            {
+              "id": "a",
+              "text": "Das `else` gehört zum äußeren `if (a)`."
+            },
+            {
+              "id": "b",
+              "text": "Das `else` gehört zu `write(1);`."
+            },
+            {
+              "id": "c",
+              "text": "Das `else` wird als Teil der Bedingung `b` geparst."
+            },
+            {
+              "id": "d",
+              "text": "Das `else` gehört zum inneren `if (b)`."
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Die Java-Konvention bindet `else` an das nächste noch offene `if`. In der gezeigten Struktur ist das das innere `if (b)`.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO3.md",
+            "heading": "Mehrdeutigkeit und Parsing"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "else-Zuordnung",
+            "Parsing",
+            "Mehrdeutigkeit"
+          ]
+        },
+        {
+          "id": "eip-03-l4-q04",
+          "type": "calc",
+          "prompt": "Welche Baumstruktur entsteht nach der Prioritätsregel für `x + y * z`?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Die Wurzel ist `+`, rechts davon steht nur `y` und `z` ist außerhalb des Baums."
+            },
+            {
+              "id": "b",
+              "text": "Die Wurzel ist `-`, weil `-` stärker als `*` bindet."
+            },
+            {
+              "id": "c",
+              "text": "Die Wurzel ist `+`, links davon steht `x` und rechts `y * z`."
+            },
+            {
+              "id": "d",
+              "text": "Die Wurzel ist `*`, links davon steht `x + y`."
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Weil `*` stärker bindet, bildet `y * z` den rechten Teilbaum der `+`-Wurzel. Alle Tokens bleiben im Baum; ein Minus kommt im Ausdruck gar nicht vor.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO3.md",
+            "heading": "Mehrdeutigkeit und Parsing"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Syntaxbaum",
+            "Operatorvorrang",
+            "Parsing"
+          ]
+        },
+        {
+          "id": "eip-03-l4-q05",
+          "type": "code_output",
+          "prompt": "Was gibt dieser Code aus?\n\n```java\nx = -3;\nwrite(x + 1);\n```",
+          "options": [
+            {
+              "id": "a",
+              "text": "Der Code ist syntaktisch ungültig, weil unäre Negation nicht erlaubt ist."
+            },
+            {
+              "id": "b",
+              "text": "`3`"
+            },
+            {
+              "id": "c",
+              "text": "`-2`"
+            },
+            {
+              "id": "d",
+              "text": "`-4`"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "`x = -3` weist `x` den Wert `-3` zu. Danach berechnet `x + 1` den Wert `-2`; die Grammatik enthält ausdrücklich die unäre Form `\"-\" expr`.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO3.md",
+            "heading": "Von Tokens zu Programmfragmenten"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Grammatikregel",
+            "Semantik"
+          ]
+        },
+        {
+          "id": "eip-03-l4-q06",
+          "type": "truefalse",
+          "prompt": "Wenn eine Grammatik für dieselbe Tokenfolge mehrere Syntaxbäume zulässt, kann eine zusätzliche Konvention wie Operatorvorrang die Auswahl eines Baums festlegen.",
+          "options": [
+            {
+              "id": "true",
+              "text": "Wahr"
+            },
+            {
+              "id": "false",
+              "text": "Falsch"
+            }
+          ],
+          "correct": [
+            "true"
+          ],
+          "explanation": "Mehrdeutigkeit bedeutet gerade, dass mehrere Bäume möglich sind. Vorrangregeln oder eine `else`-Konvention bestimmen dann die beabsichtigte Struktur.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO3.md",
+            "heading": "Mehrdeutigkeit und Parsing"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Mehrdeutigkeit",
+            "Parsing",
+            "Syntaxbaum"
+          ]
+        },
+        {
+          "id": "eip-03-l4-q07",
+          "type": "single",
+          "prompt": "Ein Student ersetzt die Anforderung „Gib $2\\cdot2+1$ aus“ durch `write(2 + 2);`, weil der Code syntaktisch zulässig ist. Welche Diagnose ist korrekt?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Syntax und Semantik sind beide automatisch korrekt."
+            },
+            {
+              "id": "b",
+              "text": "Die Syntax kann gültig sein, obwohl die berechnete Antwort die Anforderung verfehlt."
+            },
+            {
+              "id": "c",
+              "text": "Eine Anforderung ist Teil der EBNF-Regel für `write`."
+            },
+            {
+              "id": "d",
+              "text": "Die Syntax ist ungültig, aber die Semantik stimmt."
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "`write(2 + 2);` hat eine zulässige Form, berechnet aber `4` statt `5`. Das trennt syntaktische Gültigkeit von der Bedeutung beziehungsweise der Erfüllung der Aufgabe.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO3.md",
+            "heading": "Syntax und Semantik"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Syntax",
+            "Semantik"
+          ]
+        },
+        {
+          "id": "eip-03-l4-q08",
+          "type": "multi",
+          "prompt": "Wähle alle Eigenschaften, die ein gültiges Fragment `int x, y;` nach der angegebenen `decl`-Regel erklären. Mehrere Antworten können richtig sein.",
+          "options": [
+            {
+              "id": "a",
+              "text": "Die Deklaration enthält zwei Typen, einen pro Namen."
+            },
+            {
+              "id": "b",
+              "text": "`int` erfüllt `type ::= \"int\"`."
+            },
+            {
+              "id": "c",
+              "text": "`x` erfüllt den ersten verpflichtenden `name`."
+            },
+            {
+              "id": "d",
+              "text": "Das Semikolon ist optional, weil `*` davorsteht."
+            },
+            {
+              "id": "e",
+              "text": "`, y` ist eine mögliche Wiederholung von `(\",\" name)*`."
+            }
+          ],
+          "correct": [
+            "b",
+            "c",
+            "e"
+          ],
+          "explanation": "Die Regel verlangt den Typ `int`, mindestens einen Namen und erlaubt danach weitere `, name`-Paare. Das abschließende `;` ist fest vorgeschrieben; für beide Namen wird nur ein Typ notiert.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO3.md",
+            "heading": "EBNF kompakt"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "EBNF",
+            "Grammatikregel"
+          ]
+        },
+        {
+          "id": "eip-03-l4-q09",
+          "type": "single",
+          "prompt": "Welche Kombination ordnet die Beschreibungsebenen für `x = readInt();` am vollständigsten zu?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Token-Regeln erkennen `x`, `readInt`, `(`, `)`, `;`; eine Grammatikregel ordnet sie als Eingabe-Anweisung; die Semantik beschreibt die Wertzuweisung."
+            },
+            {
+              "id": "b",
+              "text": "Die Semantik erkennt die Zeichen, die Token-Regeln ordnen zu einer Anweisung."
+            },
+            {
+              "id": "c",
+              "text": "Nur die reservierten Wörter sind relevant; Grammatik und Kontext spielen keine Rolle."
+            },
+            {
+              "id": "d",
+              "text": "Die Grammatik legt allein fest, welchen Eingabewert `readInt()` liefert."
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "Die Zeichenfolge wird zunächst in Tokens erkannt, anschließend durch eine `stmt`-Alternative strukturiert und schließlich semantisch als Eingabe mit Zuweisung verstanden. Form und Bedeutung sind unterschiedliche Ebenen.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO3.md",
+            "heading": "Syntax und Semantik"
+          },
+          "difficulty": 5,
+          "concepts": [
+            "Syntax",
+            "Semantik",
+            "Token"
+          ]
+        },
+        {
+          "id": "eip-03-l4-q10",
+          "type": "single",
+          "prompt": "Bei einer einmaligen Auswahl der schnellsten geeigneten Route wird die Liste gespeichert und einmal durchlaufen. Welche Laufzeit passt zu dieser Vorgehensweise?",
+          "options": [
+            {
+              "id": "a",
+              "text": "$\\Theta(n^2)$"
+            },
+            {
+              "id": "b",
+              "text": "$\\Theta(1)$"
+            },
+            {
+              "id": "c",
+              "text": "$\\Theta(n)$"
+            },
+            {
+              "id": "d",
+              "text": "$\\Theta(\\log n)$"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Die Liste wird einmal durchgegangen und jede Route wird einmal geprüft. Dadurch wächst die Laufzeit linear mit der Anzahl $n$ der Routen.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO1.md",
+            "heading": null
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Syntax",
+            "Grammatikregel"
+          ]
+        },
+        {
+          "id": "eip-03-l4-q11",
+          "type": "code_output",
+          "prompt": "Welchen Wert gibt dieser Code aus, wenn `a = 6` und `b = 4` gelten und der beschriebene euklidische Algorithmus verwendet wird?\n\n```text\nwhile a != b\n    if a > b\n        a = a - b\n    else\n        b = b - a\nwrite(a);\n```",
+          "options": [
+            {
+              "id": "a",
+              "text": "`4`"
+            },
+            {
+              "id": "b",
+              "text": "`6`"
+            },
+            {
+              "id": "c",
+              "text": "`2`"
+            },
+            {
+              "id": "d",
+              "text": "`1`"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Die Werte entwickeln sich von `(6,4)` zu `(2,4)`, dann zu `(2,2)`. Am Rekursionsanker beziehungsweise Abbruch gilt `a = b = 2`, daher wird `2` ausgegeben.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO2.md",
+            "heading": null
+          },
+          "difficulty": 5,
+          "concepts": [
+            "Semantik",
+            "Grammatikregel"
+          ]
+        },
+        {
+          "id": "eip-03-l4-q12",
+          "type": "single",
+          "prompt": "Eine Variable wird in einem Programmfragment benutzt, ohne zuvor deklariert worden zu sein. Welche Art von Regel ist dadurch verletzt?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Die `else`-Zuordnung"
+            },
+            {
+              "id": "b",
+              "text": "Die Regel für `letter` und `digit`"
+            },
+            {
+              "id": "c",
+              "text": "Die Vorrangregel für `*`"
+            },
+            {
+              "id": "d",
+              "text": "Eine Kontextbedingung"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Die Mitschrift nennt als Kontextbedingung, dass eine Variable vor ihrer Benutzung deklariert sein muss. Diese Bedingung geht über die reine Token- und Grammatikform hinaus.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO3.md",
+            "heading": "Syntax und Semantik"
+          },
+          "difficulty": 5,
+          "concepts": [
+            "Syntax",
+            "Grammatikregel"
+          ]
+        }
+      ]
+    }
+  ]
+}
