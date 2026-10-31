@@ -11,6 +11,7 @@
 
 ## Stand
 - Phase 0 ✔
+- Phase 2 ✔ – n8n 2.45.7 läuft (127.0.0.1:5678, ~450 MB), Owner angelegt (Zugang in `CREDENTIALS.local.md`), Workflow „LernQuest Nightly“ importiert + aktiv.
 - Phase 1 ✔ – Pipeline inkl. Obsidian-Parser, Konzeptgraph, Telegram-Reports, Watchdog. 17 Pipeline- + 8 Shared-Tests grün. Echtlauf DS VO1: 44 Fragen in 3:38 min (alle mit gültiger Überschrift, 3 Diagramm-Fragen). Dienst `lernquest-pipeline` aktiv (≈100 MB RSS), Timer `lernquest-watchdog.timer` (00:30) aktiv.
 
 ## Entscheidungen
@@ -29,4 +30,4 @@
 - **n8n mit `network_mode: host`** und `N8N_LISTEN_ADDRESS=127.0.0.1` statt `host-gateway`: so muss der Pipeline-Trigger nur auf 127.0.0.1 lauschen.
 
 ## Nächster Schritt
-- Phase 2: n8n starten, Owner anlegen, Workflow importieren/aktivieren, Testlauf über manuellen Trigger.
+- Phase 3: Backend. (Backfill läuft in tmux `lq-backfill`, Log `data/backfill.log`.) n8n-Testlauf über den manuellen Trigger folgt in Phase 7.

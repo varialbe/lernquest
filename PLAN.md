@@ -23,8 +23,8 @@ Duolingo-artiges Lernquiz, automatisch aus `varialbe/studium` generiert. Läuft 
 
 ## Phasen
 - [x] Phase 0 – Erkunden, Tools installieren (pnpm 10.18, bubblewrap), Plan
-- [ ] Phase 1 – Pipeline (Diff-Erkennung, Obsidian-Parser, Codex Generate + Review, Zod, content/, Git, DB-Import, Report, CLI, Trigger-Dienst)
-- [ ] Phase 2 – n8n (Docker Compose, Workflow „LernQuest Nightly“, Export, Owner-Account)
+- [x] Phase 1 – Pipeline (Diff-Erkennung, Obsidian-Parser, Codex Generate + Review, Zod, content/, Git, DB-Import, Report, CLI, Trigger-Dienst)
+- [x] Phase 2 – n8n (Docker Compose, Workflow „LernQuest Nightly“, Export, Owner-Account)
 - [ ] Phase 3 – Backend (Auth+Invites, Admin, Progress, Unlocks, Leitner, Ökonomie, Pets, Shop, Ligen, Reports, Push, Seed, Tests)
 - [ ] Phase 4 – Frontend (Lernpfad, Quiz inkl. KaTeX/Code/Mermaid, Abschnitts-Links, Abschluss, Pets, Shop, Liga, Profil, Admin, PWA, Assets, Playwright-Screenshots + E2E)
 - [ ] Phase 5 – Deployment (systemd, Apache-vhost, certbot, Header/Kompression, Backup-Timer, Smoke-Tests)

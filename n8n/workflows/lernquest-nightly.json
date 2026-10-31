@@ -1,0 +1,208 @@
+{
+  "id": "lernquestNightly01",
+  "name": "LernQuest Nightly",
+  "active": false,
+  "settings": { "executionOrder": "v1", "timezone": "Europe/Berlin", "saveManualExecutions": true },
+  "nodes": [
+    {
+      "id": "1a1f0c3e-0001-4000-8000-000000000001",
+      "name": "Jede Nacht 00:00",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [0, 0],
+      "parameters": { "rule": { "interval": [{ "field": "cronExpression", "expression": "0 0 * * *" }] } }
+    },
+    {
+      "id": "1a1f0c3e-0002-4000-8000-000000000002",
+      "name": "Manuell testen",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [0, 200],
+      "parameters": {}
+    },
+    {
+      "id": "1a1f0c3e-0003-4000-8000-000000000003",
+      "name": "Lauf starten",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [240, 100],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.PIPELINE_URL }}/run",
+        "sendHeaders": true,
+        "headerParameters": { "parameters": [{ "name": "Authorization", "value": "={{ 'Bearer ' + $env.PIPELINE_TOKEN }}" }] },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "{ \"mode\": \"run\" }",
+        "options": { "response": { "response": { "fullResponse": true, "neverError": true } }, "timeout": 20000 }
+      }
+    },
+    {
+      "id": "1a1f0c3e-0004-4000-8000-000000000004",
+      "name": "Gestartet?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [460, 100],
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "loose", "version": 2 },
+          "conditions": [
+            {
+              "id": "c-started",
+              "leftValue": "={{ [202, 409].includes($json.statusCode) && !!$json.body?.runId }}",
+              "rightValue": true,
+              "operator": { "type": "boolean", "operation": "true", "singleValue": true }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "1a1f0c3e-0005-4000-8000-000000000005",
+      "name": "60 s warten",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [700, 0],
+      "webhookId": "5d1d2c4b-6f0a-4a6e-9a51-3c2b1a000001",
+      "parameters": { "amount": 60, "unit": "seconds" }
+    },
+    {
+      "id": "1a1f0c3e-0006-4000-8000-000000000006",
+      "name": "Status abfragen",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [920, 0],
+      "parameters": {
+        "url": "={{ $env.PIPELINE_URL }}/status/{{ $('Lauf starten').first().json.body.runId }}",
+        "sendHeaders": true,
+        "headerParameters": { "parameters": [{ "name": "Authorization", "value": "={{ 'Bearer ' + $env.PIPELINE_TOKEN }}" }] },
+        "options": { "response": { "response": { "fullResponse": true, "neverError": true } }, "timeout": 20000 }
+      }
+    },
+    {
+      "id": "1a1f0c3e-0007-4000-8000-000000000007",
+      "name": "Fertig?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [1140, 0],
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "loose", "version": 2 },
+          "conditions": [
+            {
+              "id": "c-done",
+              "leftValue": "={{ $json.statusCode === 200 && $json.body?.done === true }}",
+              "rightValue": true,
+              "operator": { "type": "boolean", "operation": "true", "singleValue": true }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "1a1f0c3e-0008-4000-8000-000000000008",
+      "name": "Zu lange (> 6 h)?",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [1360, 120],
+      "parameters": {
+        "conditions": {
+          "options": { "caseSensitive": true, "leftValue": "", "typeValidation": "loose", "version": 2 },
+          "conditions": [
+            {
+              "id": "c-timeout",
+              "leftValue": "={{ $runIndex }}",
+              "rightValue": 360,
+              "operator": { "type": "number", "operation": "gte" }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "1a1f0c3e-0009-4000-8000-000000000009",
+      "name": "Ergebnis",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [1360, -120],
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            { "id": "a-run", "name": "runId", "value": "={{ $json.body.runId }}", "type": "string" },
+            { "id": "a-status", "name": "status", "value": "={{ $json.body.status }}", "type": "string" },
+            { "id": "a-failed", "name": "failedFiles", "value": "={{ $json.body.failedFiles }}", "type": "number" },
+            { "id": "a-summary", "name": "summary", "value": "={{ $json.body.summary }}", "type": "string" }
+          ]
+        },
+        "options": {}
+      }
+    },
+    {
+      "id": "1a1f0c3e-0010-4000-8000-000000000010",
+      "name": "Trigger-Fehler melden",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [700, 220],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.PIPELINE_URL }}/notify",
+        "sendHeaders": true,
+        "headerParameters": { "parameters": [{ "name": "Authorization", "value": "={{ 'Bearer ' + $env.PIPELINE_TOKEN }}" }] },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ level: 'error', title: '❌ LernQuest (n8n): Lauf konnte nicht gestartet werden', body: 'HTTP ' + ($json.statusCode ?? '–') + ': ' + JSON.stringify($json.body ?? $json.error ?? {}).slice(0, 500) }) }}",
+        "options": { "timeout": 20000 }
+      }
+    },
+    {
+      "id": "1a1f0c3e-0011-4000-8000-000000000011",
+      "name": "Timeout melden",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [1580, 120],
+      "parameters": {
+        "method": "POST",
+        "url": "={{ $env.PIPELINE_URL }}/notify",
+        "sendHeaders": true,
+        "headerParameters": { "parameters": [{ "name": "Authorization", "value": "={{ 'Bearer ' + $env.PIPELINE_TOKEN }}" }] },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ level: 'error', title: '❌ LernQuest (n8n): Lauf nach 6 h nicht fertig', body: 'Run ' + $('Lauf starten').first().json.body.runId + ' – bitte data/runs/ prüfen.' }) }}",
+        "options": { "timeout": 20000 }
+      }
+    }
+  ],
+  "connections": {
+    "Jede Nacht 00:00": { "main": [[{ "node": "Lauf starten", "type": "main", "index": 0 }]] },
+    "Manuell testen": { "main": [[{ "node": "Lauf starten", "type": "main", "index": 0 }]] },
+    "Lauf starten": { "main": [[{ "node": "Gestartet?", "type": "main", "index": 0 }]] },
+    "Gestartet?": {
+      "main": [
+        [{ "node": "60 s warten", "type": "main", "index": 0 }],
+        [{ "node": "Trigger-Fehler melden", "type": "main", "index": 0 }]
+      ]
+    },
+    "60 s warten": { "main": [[{ "node": "Status abfragen", "type": "main", "index": 0 }]] },
+    "Status abfragen": { "main": [[{ "node": "Fertig?", "type": "main", "index": 0 }]] },
+    "Fertig?": {
+      "main": [
+        [{ "node": "Ergebnis", "type": "main", "index": 0 }],
+        [{ "node": "Zu lange (> 6 h)?", "type": "main", "index": 0 }]
+      ]
+    },
+    "Zu lange (> 6 h)?": {
+      "main": [
+        [{ "node": "Timeout melden", "type": "main", "index": 0 }],
+        [{ "node": "60 s warten", "type": "main", "index": 0 }]
+      ]
+    }
+  },
+  "pinData": {},
+  "tags": []
+}

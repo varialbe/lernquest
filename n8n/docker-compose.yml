@@ -1,0 +1,38 @@
+# n8n für die nächtliche LernQuest-Pipeline.
+# network_mode: host + N8N_LISTEN_ADDRESS=127.0.0.1 → n8n ist nur lokal erreichbar (Zugriff per SSH-Tunnel)
+# und erreicht den Pipeline-Trigger (127.0.0.1:3461) und die API (127.0.0.1:3460), ohne dass diese
+# auf der Docker-Bridge lauschen müssen.
+services:
+  n8n:
+    image: n8nio/n8n:2.45.7
+    container_name: lernquest-n8n
+    restart: unless-stopped
+    network_mode: host
+    environment:
+      - N8N_LISTEN_ADDRESS=127.0.0.1
+      - N8N_PORT=5678
+      - N8N_HOST=localhost
+      - N8N_PROTOCOL=http
+      - N8N_SECURE_COOKIE=false
+      - GENERIC_TIMEZONE=Europe/Berlin
+      - TZ=Europe/Berlin
+      - N8N_DIAGNOSTICS_ENABLED=false
+      - N8N_VERSION_NOTIFICATIONS_ENABLED=false
+      - N8N_PERSONALIZATION_ENABLED=false
+      - N8N_BLOCK_ENV_ACCESS_IN_NODE=false
+      - N8N_RUNNERS_ENABLED=true
+      - EXECUTIONS_DATA_PRUNE=true
+      - EXECUTIONS_DATA_MAX_AGE=336
+      - NODE_OPTIONS=--max-old-space-size=384
+      # Tokens für die Workflow-Requests (aus ~/lernquest/.env)
+      - PIPELINE_TOKEN=${PIPELINE_TOKEN}
+      - INTERNAL_TOKEN=${INTERNAL_TOKEN}
+      - PIPELINE_URL=http://127.0.0.1:3461
+      - API_URL=http://127.0.0.1:3460
+    volumes:
+      - n8n_data:/home/node/.n8n
+      - ./workflows:/workflows:ro
+    mem_limit: 700m
+
+volumes:
+  n8n_data:
