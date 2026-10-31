@@ -1,6 +1,6 @@
 import { spawn } from 'node:child_process';
 import { existsSync, readFileSync, writeFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { join, resolve } from 'node:path';
 import { config } from './config.ts';
 
 export type CodexOptions = {
@@ -32,7 +32,9 @@ export function parseTokens(output: string): number {
 }
 
 /** Ein nicht-interaktiver `codex exec`-Aufruf (read-only Sandbox, strukturierte Ausgabe). */
-function runOnce(opts: CodexOptions, attempt: number): Promise<CodexResult> {
+function runOnce(input: CodexOptions, attempt: number): Promise<CodexResult> {
+  // absoluter Pfad: codex bekommt ihn per -C und als cwd, ein relativer würde doppelt aufgelöst
+  const opts = { ...input, workDir: resolve(input.workDir) };
   const outFile = join(opts.workDir, `${opts.label}-out-${attempt}.json`);
   const logFile = join(opts.workDir, `${opts.label}-codex-${attempt}.log`);
   const args = [
