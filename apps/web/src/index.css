@@ -1,0 +1,245 @@
+@import 'tailwindcss';
+@import '@fontsource-variable/nunito';
+@import 'katex/dist/katex.min.css';
+
+/* ---------- Design-Tokens ---------- */
+:root {
+  --c-primary: #7c5cff;
+  --c-primary-dark: #5b3fd6;
+  --c-primary-soft: color-mix(in oklab, var(--c-primary) 14%, transparent);
+  --c-success: #22c55e;
+  --c-success-dark: #15993f;
+  --c-success-soft: #dcfce7;
+  --c-error: #f43f5e;
+  --c-error-dark: #c81e43;
+  --c-error-soft: #ffe4e9;
+  --c-gold: #f5b301;
+  --c-gold-dark: #c98d00;
+  --c-flame: #ff8a00;
+  --c-sky: #38bdf8;
+
+  --c-bg: #f6f4ff;
+  --c-surface: #ffffff;
+  --c-surface-2: #f1eefc;
+  --c-border: #e4def7;
+  --c-border-strong: #cfc6ee;
+  --c-text: #241d3d;
+  --c-muted: #6f6790;
+  --c-locked: #d9d4ea;
+  --c-locked-dark: #bdb5d6;
+  --shadow-card: 0 1px 0 rgba(60, 40, 140, 0.04), 0 8px 24px -12px rgba(60, 40, 140, 0.18);
+  color-scheme: light;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --c-primary-soft: color-mix(in oklab, var(--c-primary) 22%, transparent);
+    --c-success-soft: #0f3a22;
+    --c-error-soft: #45131f;
+    --c-bg: #12101f;
+    --c-surface: #1c1930;
+    --c-surface-2: #25213d;
+    --c-border: #322c52;
+    --c-border-strong: #463e6e;
+    --c-text: #f1eeff;
+    --c-muted: #a69fca;
+    --c-locked: #2f2a4b;
+    --c-locked-dark: #221e38;
+    --shadow-card: 0 1px 0 rgba(0, 0, 0, 0.2), 0 10px 30px -14px rgba(0, 0, 0, 0.6);
+    color-scheme: dark;
+  }
+}
+
+/* Themes aus dem Shop */
+[data-theme='ocean'] { --c-primary: #0ea5e9; --c-primary-dark: #0369a1; }
+[data-theme='sunset'] { --c-primary: #f97316; --c-primary-dark: #c2410c; }
+[data-theme='forest'] { --c-primary: #16a34a; --c-primary-dark: #15803d; }
+[data-theme='candy'] { --c-primary: #ec4899; --c-primary-dark: #be185d; }
+
+@theme {
+  --font-sans: 'Nunito Variable', ui-rounded, system-ui, sans-serif;
+  --color-primary: var(--c-primary);
+  --color-primary-dark: var(--c-primary-dark);
+  --color-primary-soft: var(--c-primary-soft);
+  --color-success: var(--c-success);
+  --color-success-dark: var(--c-success-dark);
+  --color-success-soft: var(--c-success-soft);
+  --color-error: var(--c-error);
+  --color-error-dark: var(--c-error-dark);
+  --color-error-soft: var(--c-error-soft);
+  --color-gold: var(--c-gold);
+  --color-gold-dark: var(--c-gold-dark);
+  --color-flame: var(--c-flame);
+  --color-bg: var(--c-bg);
+  --color-surface: var(--c-surface);
+  --color-surface-2: var(--c-surface-2);
+  --color-line: var(--c-border);
+  --color-line-strong: var(--c-border-strong);
+  --color-ink: var(--c-text);
+  --color-muted: var(--c-muted);
+  --color-locked: var(--c-locked);
+  --color-locked-dark: var(--c-locked-dark);
+  --shadow-card: var(--shadow-card);
+}
+
+@layer base {
+html,
+body,
+#root {
+  min-height: 100%;
+}
+body {
+  margin: 0;
+  background: var(--c-bg);
+  color: var(--c-text);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -webkit-tap-highlight-color: transparent;
+  overscroll-behavior-y: none;
+  overflow-x: hidden;
+}
+button {
+  font: inherit;
+  cursor: pointer;
+}
+img {
+  -webkit-user-drag: none;
+  user-select: none;
+}
+}
+
+/* ---------- 3D-Buttons ---------- */
+@utility btn3d {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 3.25rem;
+  padding: 0 1.25rem;
+  border-radius: 1rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  font-size: 0.95rem;
+  transition:
+    transform 80ms ease,
+    box-shadow 80ms ease,
+    filter 120ms;
+  user-select: none;
+  &:active:not(:disabled) {
+    transform: translateY(4px);
+    box-shadow: 0 0 0 transparent !important;
+  }
+  &:disabled {
+    cursor: not-allowed;
+  }
+}
+
+.safe-top {
+  padding-top: env(safe-area-inset-top);
+}
+.safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom);
+}
+
+/* ---------- Animationen ---------- */
+@keyframes shake {
+  10%, 90% { transform: translateX(-2px); }
+  20%, 80% { transform: translateX(4px); }
+  30%, 50%, 70% { transform: translateX(-7px); }
+  40%, 60% { transform: translateX(7px); }
+}
+.animate-shake {
+  animation: shake 0.45s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+}
+@keyframes float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-6px); }
+}
+.animate-float {
+  animation: float 2.6s ease-in-out infinite;
+}
+@keyframes pulse-ring {
+  0% { box-shadow: 0 0 0 0 color-mix(in oklab, var(--c-primary) 55%, transparent); }
+  100% { box-shadow: 0 0 0 16px transparent; }
+}
+.animate-ring {
+  animation: pulse-ring 1.6s ease-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-float,
+  .animate-ring,
+  .animate-shake {
+    animation: none;
+  }
+}
+
+/* ---------- Inhalte (Markdown, KaTeX, Code) ---------- */
+.prose-q {
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+.prose-q p {
+  margin: 0.35em 0;
+}
+.prose-q ul,
+.prose-q ol {
+  margin: 0.35em 0;
+  padding-left: 1.3em;
+}
+.prose-q ul { list-style: disc; }
+.prose-q ol { list-style: decimal; }
+.prose-q strong {
+  font-weight: 800;
+}
+.prose-q code:not(pre code) {
+  background: var(--c-surface-2);
+  border: 1px solid var(--c-border);
+  padding: 0.05em 0.35em;
+  border-radius: 0.4em;
+  font-size: 0.9em;
+}
+.prose-q pre {
+  margin: 0.6em 0;
+  padding: 0.8em 0.9em;
+  border-radius: 0.9rem;
+  background: #1d1a33;
+  color: #ece9ff;
+  overflow-x: auto;
+  font-size: 0.85rem;
+  line-height: 1.45;
+  -webkit-overflow-scrolling: touch;
+}
+.prose-q table {
+  border-collapse: collapse;
+  margin: 0.5em 0;
+  font-size: 0.9em;
+  display: block;
+  overflow-x: auto;
+}
+.prose-q th,
+.prose-q td {
+  border: 1px solid var(--c-border-strong);
+  padding: 0.25em 0.55em;
+}
+.prose-q .katex-display {
+  margin: 0.5em 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+  padding: 0.2em 0;
+}
+.prose-q .katex {
+  font-size: 1.05em;
+}
+/* highlight.js (eigene, kontraststarke Palette für den dunklen Code-Block) */
+.hljs-keyword, .hljs-selector-tag, .hljs-built_in { color: #c4a5ff; }
+.hljs-string, .hljs-attr { color: #8fe3a8; }
+.hljs-number, .hljs-literal { color: #ffc37a; }
+.hljs-comment { color: #8c86ad; font-style: italic; }
+.hljs-title, .hljs-function { color: #7cd3ff; }
+.hljs-type, .hljs-class { color: #ffd66e; }
+
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { scrollbar-width: none; }
