@@ -97,4 +97,53 @@ export const ACHIEVEMENTS: AchievementDef[] = [
   { id: 'evolve', name: 'Evolution', description: 'Lass ein Pet sich entwickeln.', icon: 'badge-evolve' },
   { id: 'collector', name: 'Sammler', description: 'Besitze 4 Pets.', icon: 'badge-collector' },
   { id: 'module_done', name: 'Modul gemeistert', description: 'Schließe alle Units eines Moduls ab.', icon: 'badge-module' },
+  { id: 'exam_pass', name: 'Klausurreif', description: 'Bestehe einen Klausur-Check.', icon: 'badge-boss' },
+  { id: 'duel_win', name: 'Duellant', description: 'Gewinne ein Duell.', icon: 'badge-collector' },
 ];
+
+// ---------- Klausur-Check, Schwächen, Duelle ----------
+export const EXAM = {
+  questions: 20,
+  secondsPerQuestion: 45,
+  xpPerCorrect: 1,
+  passAt: 0.5,
+  passBonusXp: 15,
+  passCoins: 10,
+  /** nur die ersten N Klausur-Checks pro Tag geben XP/Coins */
+  rewardedPerDay: 2,
+} as const;
+export const WEAK = { questions: 10, rewardedPerDay: 3, minAnswers: 2 } as const;
+export const DUEL = { questions: 10, expiresHours: 48, xpBase: 5, xpPerCorrect: 2, winCoins: 15, maxOpen: 5, rewardedPerDay: 3 } as const;
+
+/** Note nach TUM-Notenstufen (bestanden ab 50 %). */
+export function examGrade(accuracy: number): number {
+  const steps: [number, number][] = [
+    [0.95, 1.0], [0.9, 1.3], [0.85, 1.7], [0.8, 2.0], [0.75, 2.3], [0.7, 2.7],
+    [0.65, 3.0], [0.6, 3.3], [0.55, 3.7], [0.5, 4.0],
+  ];
+  return steps.find(([min]) => accuracy >= min - 1e-9)?.[1] ?? 5.0;
+}
+
+/** Kenngrößen, aus denen Tagesaufgaben gezählt werden (alles heute, Europe/Berlin). */
+export type QuestMetric = 'xp' | 'correct' | 'levels' | 'estimate' | 'review' | 'praxis' | 'exam' | 'duel';
+export type QuestDef = { id: string; metric: QuestMetric; target: number; coins: number; title: string; icon: string };
+export const QUESTS: QuestDef[] = [
+  { id: 'xp', metric: 'xp', target: 40, coins: 10, title: 'Sammle 40 XP', icon: 'item-xp' },
+  { id: 'correct', metric: 'correct', target: 15, coins: 10, title: 'Beantworte 15 Fragen richtig', icon: 'badge-first' },
+  { id: 'levels', metric: 'levels', target: 2, coins: 10, title: 'Schließe 2 Level ab', icon: 'badge-perfect' },
+  { id: 'estimate', metric: 'estimate', target: 2, coins: 15, title: 'Triff 2 Schätzfragen', icon: 'item-chest' },
+  { id: 'review', metric: 'review', target: 1, coins: 10, title: 'Mach eine Wiederholungsrunde', icon: 'badge-practice' },
+  { id: 'praxis', metric: 'praxis', target: 5, coins: 10, title: 'Beantworte 5 Praxis-Fragen', icon: 'item-chest' },
+  { id: 'exam', metric: 'exam', target: 1, coins: 20, title: 'Mach einen Klausur-Check', icon: 'badge-boss' },
+  { id: 'duel', metric: 'duel', target: 1, coins: 15, title: 'Spiel ein Duell', icon: 'badge-collector' },
+];
+/** Drei Aufgaben pro Tag: immer XP, dazu zwei weitere – deterministisch je Nutzer und Tag. */
+export function pickQuests(userId: number, day: string): QuestDef[] {
+  let h = 2166136261;
+  for (const ch of `${userId}:${day}`) h = Math.imul(h ^ ch.charCodeAt(0), 16777619) >>> 0;
+  const rest = QUESTS.slice(1);
+  const a = rest[h % rest.length]!;
+  const others = rest.filter((q) => q !== a);
+  const b = others[(h >>> 8) % others.length]!;
+  return [QUESTS[0]!, a, b];
+}

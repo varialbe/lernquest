@@ -20,14 +20,14 @@ import {
   type RewardResponse,
 } from '@lernquest/shared';
 import type { DB } from '../db/index.ts';
-import { answers, inventory, levelProgress, levels, questions, reviewItems, units, userPets, users, xpEvents } from '../db/schema.ts';
+import { answers, duels, inventory, levelProgress, levels, questions, quizRuns, reviewItems, units, userPets, users, xpEvents } from '../db/schema.ts';
 import type { AuthUser } from './auth.ts';
 import { badRequest, notFound, forbidden } from './http.ts';
 import { effectiveStreak, leitnerNext, recordActivity } from './streak.ts';
 import { addDays, berlinDay, berlinMidnight, weekStart } from './time.ts';
 
-type Tx = Parameters<Parameters<DB['transaction']>[0]>[0];
-type AnyDb = DB | Tx;
+export type Tx = Parameters<Parameters<DB['transaction']>[0]>[0];
+export type AnyDb = DB | Tx;
 
 // ---------- Statistiken ----------
 export function todayXp(db: AnyDb, userId: number, day = berlinDay()): number {
@@ -220,7 +220,7 @@ export function getLevel(db: DB, u: AuthUser, levelId: string) {
 
 // ---------- XP / Coins ----------
 /** Bucht XP (inkl. Pet-XP, Tagesziel, Streak). Muss in einer Transaktion laufen. */
-function award(tx: Tx, u: AuthUser, xp: number, coins: number, module: string | null, source: string, now: number) {
+export function award(tx: Tx, u: AuthUser, xp: number, coins: number, module: string | null, source: string, now: number) {
   const day = berlinDay(now);
   const before = todayXp(tx, u.id, day);
   if (xp > 0) tx.insert(xpEvents).values({ userId: u.id, amount: xp, module, source, day, createdAt: now }).run();
@@ -440,6 +440,12 @@ export function unlockedAchievements(db: AnyDb, userId: number): string[] {
     evolve: pets.some((p) => petStage(p.xp) >= 2),
     collector: pets.length >= 4,
     module_done: moduleDone,
+    exam_pass: !!db
+      .select({ id: quizRuns.id })
+      .from(quizRuns)
+      .where(and(eq(quizRuns.userId, userId), eq(quizRuns.kind, 'exam'), sql`${quizRuns.completedAt} is not null and ${quizRuns.total} > 0 and ${quizRuns.correct} * 2 >= ${quizRuns.total}`))
+      .get(),
+    duel_win: !!db.select({ id: duels.id }).from(duels).where(eq(duels.winnerId, userId)).get(),
   };
   return ACHIEVEMENTS.filter((a) => checks[a.id]).map((a) => a.id);
 }

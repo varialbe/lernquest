@@ -130,7 +130,7 @@ export const answers = sqliteTable(
     userId: integer('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
     questionId: text('question_id').notNull(),
     correct: integer('correct', { mode: 'boolean' }).notNull(),
-    context: text('context', { enum: ['level', 'practice'] }).notNull(),
+    context: text('context', { enum: ['level', 'practice', 'weak', 'exam', 'duel'] }).notNull(),
     createdAt: ts('created_at'),
   },
   (t) => [index('answers_user_idx').on(t.userId)],
@@ -160,6 +160,54 @@ export const xpEvents = sqliteTable(
     createdAt: ts('created_at'),
   },
   (t) => [index('xp_user_day').on(t.userId, t.day), index('xp_created').on(t.createdAt)],
+);
+
+/** Vom Server zusammengestellte Fragerunden (Schwächen, Klausur-Check, Duell): nur genau diese Fragen werden gewertet, genau einmal. */
+export const quizRuns = sqliteTable(
+  'quiz_runs',
+  {
+    id: text('id').primaryKey(),
+    userId: integer('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+    kind: text('kind', { enum: ['weak', 'exam', 'duel'] }).notNull(),
+    module: text('module'),
+    questionIds: text('question_ids', { mode: 'json' }).$type<string[]>().notNull(),
+    duelId: text('duel_id'),
+    startedAt: ts('started_at'),
+    completedAt: integer('completed_at'),
+    correct: integer('correct'),
+    total: integer('total'),
+    durationSec: integer('duration_sec'),
+  },
+  (t) => [index('quiz_runs_user_idx').on(t.userId, t.kind), index('quiz_runs_duel_idx').on(t.duelId)],
+);
+
+export const duels = sqliteTable(
+  'duels',
+  {
+    id: text('id').primaryKey(),
+    module: text('module').notNull(),
+    questionIds: text('question_ids', { mode: 'json' }).$type<string[]>().notNull(),
+    challengerId: integer('challenger_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+    opponentId: integer('opponent_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+    status: text('status', { enum: ['open', 'done', 'declined', 'expired'] }).notNull().default('open'),
+    winnerId: integer('winner_id'),
+    createdAt: ts('created_at'),
+    expiresAt: integer('expires_at').notNull(),
+    finishedAt: integer('finished_at'),
+  },
+  (t) => [index('duels_challenger_idx').on(t.challengerId), index('duels_opponent_idx').on(t.opponentId)],
+);
+
+export const questClaims = sqliteTable(
+  'quest_claims',
+  {
+    userId: integer('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+    day: text('day').notNull(),
+    questId: text('quest_id').notNull(),
+    coins: integer('coins').notNull(),
+    claimedAt: ts('claimed_at'),
+  },
+  (t) => [primaryKey({ columns: [t.userId, t.day, t.questId] })],
 );
 
 // ---------- Ökonomie ----------

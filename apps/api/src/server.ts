@@ -6,7 +6,8 @@ import { importContentDir } from './content/import.ts';
 import { getDb } from './db/index.ts';
 import { cleanupSessions } from './lib/auth.ts';
 import { ensureLeagueRollover } from './lib/league.ts';
-import { remindersTick } from './lib/push.ts';
+import { expireDuels } from './lib/duels.ts';
+import { newUnitsTick, remindersTick } from './lib/push.ts';
 
 const db = getDb();
 // content/ ist die Quelle der Wahrheit – beim Start (idempotent) abgleichen
@@ -19,8 +20,11 @@ const tick = async () => {
   try {
     ensureLeagueRollover(db);
     cleanupSessions(db);
+    expireDuels(db);
     const sent = await remindersTick(db);
     if (sent) app.log.info({ sent }, 'Streak-Erinnerungen gesendet');
+    const announced = await newUnitsTick(db);
+    if (announced) app.log.info({ announced }, 'Neue Units angekündigt');
   } catch (e) {
     app.log.error(e);
   }

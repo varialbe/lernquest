@@ -1,7 +1,8 @@
-import { eq } from 'drizzle-orm';
+import { asc, eq, gt } from 'drizzle-orm';
+import { MODULE_INFO, type ModuleId } from '@lernquest/shared';
 import webpush from 'web-push';
 import type { DB } from '../db/index.ts';
-import { pushSubscriptions, users } from '../db/schema.ts';
+import { pipelineState, pushSubscriptions, units, users } from '../db/schema.ts';
 import { todayXp } from './game.ts';
 import { berlinDay, berlinHour } from './time.ts';
 
@@ -47,5 +48,40 @@ export async function remindersTick(db: DB, now = Date.now()) {
     });
     if (ok) sent++;
   }
+  return sent;
+}
+
+/** An alle Geräte einer Person (Duelle). Ohne VAPID oder Abo passiert nichts. */
+export async function sendToUser(db: DB, userId: number, payload: { title: string; body: string; url?: string }) {
+  if (!pushEnabled()) return 0;
+  let sent = 0;
+  for (const sub of db.select().from(pushSubscriptions).where(eq(pushSubscriptions.userId, userId)).all()) if (await sendPush(db, sub, payload)) sent++;
+  return sent;
+}
+
+const ANNOUNCED = 'push_announced_units_at';
+
+/**
+ * Neue Units (vom nächtlichen Lauf) ankündigen – aber erst ab 8 Uhr, nicht um Mitternacht.
+ * Beim allerersten Aufruf wird nur der Zeitpunkt gemerkt, damit der Backfill nicht angekündigt wird.
+ */
+export async function newUnitsTick(db: DB, now = Date.now()) {
+  const marker = db.select().from(pipelineState).where(eq(pipelineState.key, ANNOUNCED)).get();
+  if (!marker) {
+    db.insert(pipelineState).values({ key: ANNOUNCED, value: String(now) }).run();
+    return 0;
+  }
+  if (!pushEnabled() || berlinHour(now) < 8 || berlinHour(now) >= 21) return 0;
+  const fresh = db.select().from(units).where(gt(units.createdAt, Number(marker.value))).orderBy(asc(units.createdAt)).all();
+  if (!fresh.length) return 0;
+  db.update(pipelineState).set({ value: String(fresh.at(-1)!.createdAt), updatedAt: now }).where(eq(pipelineState.key, ANNOUNCED)).run();
+  const first = fresh[0]!;
+  const payload =
+    fresh.length === 1
+      ? { title: `📚 Neu in ${MODULE_INFO[first.module as ModuleId]?.short ?? first.module}: ${first.title}`, body: 'Vier frische Level + Praxis warten auf dich.', url: '/' }
+      : { title: `📚 ${fresh.length} neue Units sind da`, body: fresh.map((u) => `${u.module} ${u.number}: ${u.title}`).join(' · ').slice(0, 180), url: '/' };
+  let sent = 0;
+  const subs = db.select({ sub: pushSubscriptions, user: users }).from(pushSubscriptions).innerJoin(users, eq(users.id, pushSubscriptions.userId)).all();
+  for (const { sub, user } of subs) if (!user.disabled && (await sendPush(db, sub, payload))) sent++;
   return sent;
 }

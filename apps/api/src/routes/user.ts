@@ -4,16 +4,21 @@ import {
   ACHIEVEMENTS,
   ChangePasswordReq,
   CompleteLevelReq,
+  CreateDuelReq,
   EquipReq,
   LoginReq,
   MODULES,
   PracticeSubmitReq,
   RegisterReq,
   ReportReq,
+  RunSubmitReq,
   SettingsReq,
   SHOP_ITEMS,
+  StartExamReq,
+  StartWeakReq,
   type ProfileResponse,
 } from '@lernquest/shared';
+import { readFile } from 'node:fs/promises';
 import { z } from 'zod';
 import type { DB } from '../db/index.ts';
 import { invites, pushSubscriptions, questionReports, questions, users } from '../db/schema.ts';
@@ -29,8 +34,11 @@ import {
 } from '../lib/auth.ts';
 import { buildDiscover, buildPath, completeLevel, completePractice, getLevel, meResponse, practiceSet, unlockedAchievements, userStats } from '../lib/game.ts';
 import { badRequest, conflict, HttpError, notFound } from '../lib/http.ts';
+import { createDuel, declineDuel, listDuels, playDuel, resolveDuel } from '../lib/duels.ts';
 import { calendar, leaderboard } from '../lib/league.ts';
 import { pushEnabled } from '../lib/push.ts';
+import { claimQuest, questsFor } from '../lib/quests.ts';
+import { completeRun, mastery, startExam, startWeak } from '../lib/runs.ts';
 import { addStarterPet, equip, purchase, validateSettings } from '../lib/shop.ts';
 
 export function userRoutes(app: FastifyInstance, db: DB) {
@@ -46,6 +54,16 @@ export function userRoutes(app: FastifyInstance, db: DB) {
     sourceLinkBase: process.env.SOURCE_LINK_BASE || 'https://github.com/varialbe/studium/blob/main',
     vapidPublicKey: pushEnabled() ? process.env.VAPID_PUBLIC_KEY : null,
   }));
+
+  // Live-Update der iOS-App: Manifest des neuesten Web-Pakets (deploy-web.sh legt es ab). Über die API wegen CORS (capacitor://localhost).
+  app.get('/api/app/update', async (_req, reply) => {
+    reply.header('cache-control', 'no-store');
+    try {
+      return JSON.parse(await readFile(`${process.env.WEB_ROOT ?? '/var/www/lernquest'}/app-updates/latest.json`, 'utf8'));
+    } catch {
+      return { version: null };
+    }
+  });
 
   // ---------- Auth ----------
   app.post('/api/auth/register', authLimit, async (req) => {
@@ -122,6 +140,29 @@ export function userRoutes(app: FastifyInstance, db: DB) {
   });
   app.get('/api/practice', auth, async (req) => ({ questions: practiceSet(db, req.user) }));
   app.post('/api/practice/complete', auth, async (req) => completePractice(db, req.user, PracticeSubmitReq.parse(req.body).answers));
+
+  // ---------- Schwächen, Klausur-Check, Duelle ----------
+  app.get('/api/mastery', auth, async (req) => mastery(db, req.user));
+  app.post('/api/runs/weak', auth, async (req) => startWeak(db, req.user, StartWeakReq.parse(req.body ?? {}).module));
+  app.post('/api/runs/exam', auth, async (req) => startExam(db, req.user, StartExamReq.parse(req.body).module));
+  app.post<{ Params: { id: string } }>('/api/runs/:id/complete', auth, async (req) => {
+    const body = RunSubmitReq.parse(req.body);
+    return completeRun(db, req.user, req.params.id, body.answers, body.durationSec, { afterDuelRun: (duelId) => resolveDuel(db, duelId, req.user.id) });
+  });
+  app.get('/api/duels', auth, async (req) => listDuels(db, req.user));
+  app.post('/api/duels', { ...auth, config: { rateLimit: { max: 20, timeWindow: '1 hour' } } }, async (req) => {
+    const body = CreateDuelReq.parse(req.body);
+    return createDuel(db, req.user, body.opponent, body.module);
+  });
+  app.post<{ Params: { id: string } }>('/api/duels/:id/play', auth, async (req) => playDuel(db, req.user, req.params.id));
+  app.post<{ Params: { id: string } }>('/api/duels/:id/decline', auth, async (req) => {
+    declineDuel(db, req.user, req.params.id);
+    return { ok: true };
+  });
+
+  // ---------- Tagesaufgaben ----------
+  app.get('/api/quests', auth, async (req) => questsFor(db, req.user));
+  app.post<{ Params: { id: string } }>('/api/quests/:id/claim', auth, async (req) => claimQuest(db, req.user, req.params.id));
 
   app.post('/api/reports', { ...auth, config: { rateLimit: { max: 30, timeWindow: '1 hour' } } }, async (req) => {
     const body = ReportReq.parse(req.body);

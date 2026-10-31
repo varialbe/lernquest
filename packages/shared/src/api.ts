@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import type { LevelKind, ModuleId, Question, QuestionType } from './quiz.ts';
+import { ModuleId, type LevelKind, type Question, type QuestionType } from './quiz.ts';
 
 // ---------- Requests ----------
 export const Username = z
@@ -44,6 +44,13 @@ export const SettingsReq = z.object({
   soundOn: z.boolean().optional(),
 });
 export const EquipReq = z.object({ petId: z.string(), accessory: z.string().nullable() });
+export const RunSubmitReq = z.object({
+  answers: z.array(AnswerSubmission).max(40),
+  durationSec: z.number().int().min(0).max(24 * 3600).optional(),
+});
+export const StartWeakReq = z.object({ module: ModuleId.optional() });
+export const StartExamReq = z.object({ module: ModuleId });
+export const CreateDuelReq = z.object({ opponent: Username, module: ModuleId });
 
 // ---------- Responses ----------
 export type PublicUser = {
@@ -152,4 +159,53 @@ export type ProfileResponse = {
   moduleProgress: { module: ModuleId; done: number; total: number }[];
 };
 
-export type AdminQuestionRef = { id: string; prompt: string; type: QuestionType; levelId: string; active: boolean };
+// ---------- Schwächen, Klausur-Check, Duelle, Tagesaufgaben ----------
+export type RunKind = 'weak' | 'exam' | 'duel';
+export type RunStart = {
+  runId: string;
+  kind: RunKind;
+  title: string;
+  module: ModuleId | null;
+  questions: ClientQuestion[];
+  /** nur Klausur-Check */
+  timeLimitSec: number | null;
+  duelId: string | null;
+};
+export type RunResult = RewardResponse & {
+  kind: RunKind;
+  /** false, wenn das Tageskontingent für XP/Coins dieser Art schon verbraucht war */
+  rewarded: boolean;
+  review: { questionId: string; selected: string[]; correct: boolean }[];
+  /** Note (nur Klausur-Check) */
+  grade: number | null;
+  duel: DuelSummary | null;
+};
+
+export type MasteryLevel = 'weak' | 'ok' | 'strong' | 'new';
+export type ConceptMastery = { concept: string; unitId: string; unitNumber: number; unitTitle: string; answered: number; correct: number; score: number; level: MasteryLevel };
+export type MasteryResponse = { modules: { id: ModuleId; name: string; color: string; concepts: ConceptMastery[]; untouched: number }[] };
+
+export type QuestState = { id: string; title: string; icon: string; target: number; progress: number; coins: number; done: boolean; claimed: boolean };
+export type QuestsResponse = { day: string; quests: QuestState[] };
+
+export type DuelPlayer = { username: string; displayName: string; pet: string | null; petStage: number; frame: string | null };
+export type DuelSummary = {
+  id: string;
+  module: ModuleId;
+  status: 'open' | 'done' | 'declined' | 'expired';
+  createdAt: string;
+  expiresAt: string;
+  questionCount: number;
+  challengedByMe: boolean;
+  opponent: DuelPlayer;
+  me: { played: boolean; correct: number | null; durationSec: number | null };
+  /** Gegner-Ergebnis erst sichtbar, wenn ich selbst gespielt habe (oder das Duell vorbei ist) */
+  them: { played: boolean; correct: number | null; durationSec: number | null };
+  winner: 'me' | 'them' | 'draw' | null;
+};
+export type DuelsResponse = { duels: DuelSummary[]; opponents: DuelPlayer[] };
+
+/** /app-updates/latest.json – Live-Update-Paket der iOS-App */
+export type AppUpdateManifest = { version: string; url: string; checksum: string; builtAt: string };
+
+export type AdminQuestionRef ={ id: string; prompt: string; type: QuestionType; levelId: string; active: boolean };
