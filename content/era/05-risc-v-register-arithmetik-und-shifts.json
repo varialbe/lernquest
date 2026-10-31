@@ -1,0 +1,1646 @@
+{
+  "schemaVersion": 1,
+  "id": "era-05",
+  "module": "ERA",
+  "number": 5,
+  "slug": "risc-v-register-arithmetik-und-shifts",
+  "title": "RISC-V: Register, Arithmetik und Shifts",
+  "summary": "Diese Unit vertieft die modulare RISC-V-ISA, Registerkonventionen sowie signed- und unsigned-Arithmetik. Du lernst, wie Multiplikation, Division und Shifts Bitmuster verändern und welche Pseudobefehle und Immediate-Operationen dafür verwendet werden. Abschließend geht es um typische Fehler beim Assemblerprogrammieren.",
+  "concepts": [
+    "RISC-V-Basis und Erweiterungen",
+    "Register und Registerkonventionen",
+    "signed/unsigned-Interpretation",
+    "Multiplikation und Division",
+    "Shifts",
+    "Linksshift und Überlauf",
+    "logischer und arithmetischer Rechtsshift",
+    "Pseudobefehle",
+    "Immediate-Befehle",
+    "Bitweise logische Operationen",
+    "Sign Extension",
+    "Assemblerprogrammierung"
+  ],
+  "keyFacts": [
+    "`RV32` bezeichnet eine RISC-V-Variante mit 32 Bit breiten Registern; `I` steht für die Integer-Basis und `M` für Multiplikation und Division.",
+    "`RV32I` besitzt 32 Register von `x0` bis `x31`, die jeweils 32 Bit breit sind.",
+    "`x0` liefert immer den Wert null; für andere Register darf kein Anfangswert angenommen werden.",
+    "Registerbezeichnungen wie `a0`, `s0` und `t0` sind Verwendungskonventionen und kennzeichnen keine unterschiedlichen Registertypen.",
+    "`mul` liefert die unteren 32 Produktbits; `mulh`, `mulhu` und `mulhsu` liefern obere Produktbits mit unterschiedlichen Vorzeicheninterpretationen.",
+    "`div` und `rem` arbeiten signed, `divu` und `remu` unsigned.",
+    "`sll` und `slli` füllen beim Linksshift rechts mit Nullen auf; `srl` und `srli` füllen beim logischen Rechtsshift links mit Nullen auf.",
+    "`sra` und `srai` füllen beim arithmetischen Rechtsshift links mit Kopien des Vorzeichenbits auf.",
+    "Ein Linksshift um eine Stelle entspricht nur dann sicher einer Multiplikation mit 2, wenn das Ergebnis in die gewählte Wortbreite passt.",
+    "Bei negativen ungeraden Zahlen kann ein arithmetischer Rechtsshift vom Ergebnis der signed-Division abweichen, weil Division in Richtung null rundet.",
+    "Ein Pseudobefehl ist kein eigener Maschinenbefehl, sondern wird vom Assembler in echte Befehle umgesetzt.",
+    "`li` kann je nach Konstante unterschiedlich viele echte Befehle benötigen; für große Konstanten sind beispielsweise `lui` und `addi` möglich.",
+    "Ein Immediate ist eine Konstante, die direkt im Befehl enthalten ist.",
+    "Bei negativen Immediates muss die Sign Extension berücksichtigt werden.",
+    "Beim Assemblerprogrammieren müssen Registerwerte, Vorzeichen, Schleifenablauf und Registerbelegung Schritt für Schritt kontrolliert werden."
+  ],
+  "tags": [],
+  "links": [],
+  "source": {
+    "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO5.md",
+    "sha256": "4b7b23f7e76142f55927d407e4781ee9de310136b1a7642a5f450a0606d9f91f",
+    "commit": "c01f10e1818d61e8fd05d663cf852d7a59f2e1e4"
+  },
+  "generator": {
+    "model": "gpt-5.6-luna",
+    "effort": "xhigh",
+    "reviewEffort": "high",
+    "promptVersion": "v2",
+    "generatedAt": "2026-10-31T00:43:18.378Z",
+    "review": {
+      "checked": 42,
+      "fixed": 1,
+      "removed": 0,
+      "notes": "Ein Distraktor in der RV32I-Frage war mehrdeutig, weil Multiplikation und Division als Erweiterung M verstanden werden konnten; er wurde eindeutig als falsche Basiszuordnung formuliert. Alle 42 Fragen wurden geprüft; Rechenwerte, Antwortmengen, Quellenüberschriften und Formalia sind konsistent."
+    }
+  },
+  "levels": [
+    {
+      "id": "era-05-l1",
+      "index": 1,
+      "kind": "basics",
+      "title": "Grundlagen",
+      "questions": [
+        {
+          "id": "era-05-l1-q01",
+          "type": "single",
+          "prompt": "Welche Aussage beschreibt `RV32I` korrekt?",
+          "options": [
+            {
+              "id": "a",
+              "text": "32-Bit-Variante, deren Basis Multiplikation und Division enthält"
+            },
+            {
+              "id": "b",
+              "text": "64-Bit-Variante mit Integer-Basis"
+            },
+            {
+              "id": "c",
+              "text": "32-Bit-Variante mit Integer-Basis"
+            },
+            {
+              "id": "d",
+              "text": "32-Bit-Variante mit Gleitkomma-Basis"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "`RV32` bezeichnet 32-Bit-Register, und `I` steht für die Integer-Basis. Multiplikation und Division gehören zur Erweiterung `M`.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO5.md",
+            "heading": "RISC-V: Basis und Erweiterungen"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "RISC-V-Basis und Erweiterungen"
+          ]
+        },
+        {
+          "id": "era-05-l1-q02",
+          "type": "multi",
+          "prompt": "Wähle alle richtigen Zuordnungen. Mehrere Antworten können richtig sein.",
+          "options": [
+            {
+              "id": "a",
+              "text": "`M` steht für Multiplikation und Division."
+            },
+            {
+              "id": "b",
+              "text": "`F` steht für Gleitkomma."
+            },
+            {
+              "id": "c",
+              "text": "`I` steht für die Integer-Basis."
+            },
+            {
+              "id": "d",
+              "text": "`A` steht für Vektoroperationen."
+            },
+            {
+              "id": "e",
+              "text": "`V` steht für atomare Operationen."
+            }
+          ],
+          "correct": [
+            "a",
+            "b",
+            "c"
+          ],
+          "explanation": "`I` bezeichnet die Integer-Basis, `M` Multiplikation und Division und `F` Gleitkomma. `A` steht für atomare, `V` für Vektoroperationen.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO5.md",
+            "heading": "RISC-V: Basis und Erweiterungen"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "RISC-V-Basis und Erweiterungen"
+          ]
+        },
+        {
+          "id": "era-05-l1-q03",
+          "type": "truefalse",
+          "prompt": "`RV32I` besitzt 32 Register von `x0` bis `x31`, und jedes Register ist 32 Bit breit.",
+          "options": [
+            {
+              "id": "true",
+              "text": "Wahr"
+            },
+            {
+              "id": "false",
+              "text": "Falsch"
+            }
+          ],
+          "correct": [
+            "true"
+          ],
+          "explanation": "Die Register reichen von `x0` bis `x31`, also sind es 32 Register. Bei `RV32I` ist jedes Register 32 Bit breit.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO5.md",
+            "heading": "Register"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Register und Registerkonventionen",
+            "RISC-V-Basis und Erweiterungen"
+          ]
+        },
+        {
+          "id": "era-05-l1-q04",
+          "type": "cloze",
+          "prompt": "Das Register `x0` liefert immer ___.",
+          "options": [
+            {
+              "id": "a",
+              "text": "einen unbekannten Anfangswert"
+            },
+            {
+              "id": "b",
+              "text": "null"
+            },
+            {
+              "id": "c",
+              "text": "den zuletzt gespeicherten Wert"
+            },
+            {
+              "id": "d",
+              "text": "das Vorzeichenbit"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "`x0` ist das Nullregister und liefert unabhängig von anderen Befehlen immer den Wert null.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO5.md",
+            "heading": "Register"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Register und Registerkonventionen"
+          ]
+        },
+        {
+          "id": "era-05-l1-q05",
+          "type": "single",
+          "prompt": "Was bedeuten Namen wie `a0`, `s0` und `t0` in RISC-V?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Sie sind feste Hardwaretypen mit unterschiedlicher Arithmetik."
+            },
+            {
+              "id": "b",
+              "text": "Sie sind alternative Namen für Maschinenbefehle."
+            },
+            {
+              "id": "c",
+              "text": "Sie sind Verwendungskonventionen für Register."
+            },
+            {
+              "id": "d",
+              "text": "Sie bezeichnen drei verschiedene Registerbreiten."
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Die Namen beschreiben übliche Rollen wie Argument-, gesicherte oder temporäre Register. Es handelt sich weiterhin um normale Register.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO5.md",
+            "heading": "Register"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Register und Registerkonventionen"
+          ]
+        },
+        {
+          "id": "era-05-l1-q06",
+          "type": "single",
+          "prompt": "Welche Information liefert `mul` bei 32-Bit-Operanden?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Den signed Quotienten"
+            },
+            {
+              "id": "b",
+              "text": "Die unteren 32 Bit des Produkts"
+            },
+            {
+              "id": "c",
+              "text": "Die oberen 32 Bit eines unsigned Produkts"
+            },
+            {
+              "id": "d",
+              "text": "Die oberen 32 Bit eines signed Produkts"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "`mul` liefert den unteren Teil des Produkts. Für obere Produktbits werden `mulh`, `mulhu` oder `mulhsu` verwendet.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO5.md",
+            "heading": "Multiplikation und Division: signed oder unsigned?"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Multiplikation und Division",
+            "signed/unsigned-Interpretation"
+          ]
+        },
+        {
+          "id": "era-05-l1-q07",
+          "type": "multi",
+          "prompt": "Wähle alle richtigen Zuordnungen. Mehrere Antworten können richtig sein.",
+          "options": [
+            {
+              "id": "a",
+              "text": "`div` und `rem` verwenden eine signed-Interpretation."
+            },
+            {
+              "id": "b",
+              "text": "`divu` und `remu` verwenden eine signed-Interpretation."
+            },
+            {
+              "id": "c",
+              "text": "`mulhu` liefert die unteren Produktbits bei zwei unsigned Operanden."
+            },
+            {
+              "id": "d",
+              "text": "`mulhsu` interpretiert den ersten Operanden signed und den zweiten unsigned."
+            },
+            {
+              "id": "e",
+              "text": "`mulh` liefert obere Produktbits bei zwei signed Operanden."
+            }
+          ],
+          "correct": [
+            "a",
+            "d",
+            "e"
+          ],
+          "explanation": "`mulh` ist signed/signed, `mulhsu` signed/unsigned und `div` beziehungsweise `rem` arbeiten signed. `mulhu` liefert obere, nicht untere Produktbits; `divu` und `remu` sind unsigned.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO5.md",
+            "heading": "Multiplikation und Division: signed oder unsigned?"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Multiplikation und Division",
+            "signed/unsigned-Interpretation"
+          ]
+        },
+        {
+          "id": "era-05-l1-q08",
+          "type": "single",
+          "prompt": "Wie füllt `srl` die beim Rechtsshift links frei werdenden Stellen auf?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Gar nicht"
+            },
+            {
+              "id": "b",
+              "text": "Mit Nullen"
+            },
+            {
+              "id": "c",
+              "text": "Mit Kopien des Vorzeichenbits"
+            },
+            {
+              "id": "d",
+              "text": "Mit Einsen"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "`srl` ist ein logischer Rechtsshift und ergänzt links Nullen. Das Kopieren des Vorzeichenbits gehört zu `sra`.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO5.md",
+            "heading": "Shifts: Bits verschieben"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Shifts",
+            "logischer und arithmetischer Rechtsshift"
+          ]
+        },
+        {
+          "id": "era-05-l1-q09",
+          "type": "truefalse",
+          "prompt": "Ein Pseudobefehl ist ein eigener Maschinenbefehl mit einem separaten Opcode.",
+          "options": [
+            {
+              "id": "true",
+              "text": "Wahr"
+            },
+            {
+              "id": "false",
+              "text": "Falsch"
+            }
+          ],
+          "correct": [
+            "false"
+          ],
+          "explanation": "Ein Pseudobefehl ist nur eine lesbare Assembler-Schreibweise. Der Assembler setzt ihn in einen oder mehrere echte Maschinenbefehle um.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO5.md",
+            "heading": "Pseudobefehle"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Pseudobefehle"
+          ]
+        },
+        {
+          "id": "era-05-l1-q10",
+          "type": "cloze",
+          "prompt": "Ein Immediate ist eine ___, die direkt im Befehl enthalten ist.",
+          "options": [
+            {
+              "id": "a",
+              "text": "Rücksprungadresse"
+            },
+            {
+              "id": "b",
+              "text": "Konstante"
+            },
+            {
+              "id": "c",
+              "text": "Registeradresse"
+            },
+            {
+              "id": "d",
+              "text": "Speicherzeile"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "Ein Immediate ist ein fester Zahlenwert innerhalb des Befehls und wird nicht erst aus einem Register gelesen.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO5.md",
+            "heading": "Immediate-Befehle: eigene kleine Beispiele"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Immediate-Befehle"
+          ]
+        },
+        {
+          "id": "era-05-l1-q11",
+          "type": "single",
+          "prompt": "Welche Operation behält bei `t0 = 0x2C` nur die unteren vier Bits?",
+          "options": [
+            {
+              "id": "a",
+              "text": "`xori t1, t0, 0x0F`"
+            },
+            {
+              "id": "b",
+              "text": "`andi t1, t0, 0x0F`"
+            },
+            {
+              "id": "c",
+              "text": "`addi t1, t0, 0x0F`"
+            },
+            {
+              "id": "d",
+              "text": "`ori t1, t0, 0x0F`"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "`andi` mit der Maske `0x0F` setzt alle höheren Bits auf null und behält nur die unteren vier Bits.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO5.md",
+            "heading": "Immediate-Befehle: eigene kleine Beispiele"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Immediate-Befehle",
+            "Bitweise logische Operationen"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "era-05-l2",
+      "index": 2,
+      "kind": "apply",
+      "title": "Anwenden",
+      "questions": [
+        {
+          "id": "era-05-l2-q01",
+          "type": "single",
+          "prompt": "Welche Erweiterungen sind in `RV32IM` enthalten?",
+          "options": [
+            {
+              "id": "a",
+              "text": "32-Bit-Register, Vektor- und Atomaroperationen"
+            },
+            {
+              "id": "b",
+              "text": "32-Bit-Register, Integer-Basis und Multiplikation/Division"
+            },
+            {
+              "id": "c",
+              "text": "64-Bit-Register, Integer-Basis und Gleitkomma"
+            },
+            {
+              "id": "d",
+              "text": "32-Bit-Register, nur Gleitkomma"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "`RV32` gibt die Registerbreite an, `I` bezeichnet die Integer-Basis und `M` ergänzt Multiplikation und Division.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO5.md",
+            "heading": "RISC-V: Basis und Erweiterungen"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "RISC-V-Basis und Erweiterungen"
+          ]
+        },
+        {
+          "id": "era-05-l2-q02",
+          "type": "calc",
+          "prompt": "Die 4-Bit-Muster `1101` und `0010` werden signed multipliziert. Welches 8-Bit-Ergebnis entsteht?",
+          "options": [
+            {
+              "id": "a",
+              "text": "`1000 0111`"
+            },
+            {
+              "id": "b",
+              "text": "`0000 0111`"
+            },
+            {
+              "id": "c",
+              "text": "`0001 1010`"
+            },
+            {
+              "id": "d",
+              "text": "`1111 1010`"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "`1101` entspricht signed dem Wert −3 und `0010` dem Wert 2. Das Produkt ist −6, dargestellt als `1111 1010`.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO5.md",
+            "heading": "Multiplikation und Division: signed oder unsigned?"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Multiplikation und Division",
+            "signed/unsigned-Interpretation"
+          ]
+        },
+        {
+          "id": "era-05-l2-q03",
+          "type": "calc",
+          "prompt": "Die 4-Bit-Muster `1111` und `1001` werden unsigned multipliziert. Welches 8-Bit-Ergebnis entsteht?",
+          "options": [
+            {
+              "id": "a",
+              "text": "`0001 1010`"
+            },
+            {
+              "id": "b",
+              "text": "`1000 0111`"
+            },
+            {
+              "id": "c",
+              "text": "`0000 0111`"
+            },
+            {
+              "id": "d",
+              "text": "`1111 1001`"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "Unsigned sind die Werte 15 und 9. Ihr Produkt ist 135, also `1000 0111` in acht Bits.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO5.md",
+            "heading": "Multiplikation und Division: signed oder unsigned?"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Multiplikation und Division",
+            "signed/unsigned-Interpretation"
+          ]
+        },
+        {
+          "id": "era-05-l2-q04",
+          "type": "single",
+          "prompt": "Welcher Befehl berechnet einen Quotienten mit signed-Interpretation?",
+          "options": [
+            {
+              "id": "a",
+              "text": "`divu`"
+            },
+            {
+              "id": "b",
+              "text": "`div`"
+            },
+            {
+              "id": "c",
+              "text": "`remu`"
+            },
+            {
+              "id": "d",
+              "text": "`mulh`"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "`div` liefert den signed Quotienten. `divu` ist die unsigned Variante; `rem` und `remu` liefern jeweils den Rest.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO5.md",
+            "heading": "Multiplikation und Division: signed oder unsigned?"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Multiplikation und Division",
+            "signed/unsigned-Interpretation"
+          ]
+        },
+        {
+          "id": "era-05-l2-q05",
+          "type": "calc",
+          "prompt": "Berechne den 8-Bit-Linksshift `0010 1100 << 1`.",
+          "options": [
+            {
+              "id": "a",
+              "text": "`1010 0000` = 160"
+            },
+            {
+              "id": "b",
+              "text": "`0101 1000` = 88"
+            },
+            {
+              "id": "c",
+              "text": "`0010 1101` = 45"
+            },
+            {
+              "id": "d",
+              "text": "`0001 0110` = 22"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "Beim Linksshift werden die Bits um eine Stelle nach links bewegt und rechts wird eine 0 ergänzt. Das ergibt `0101 1000`, also 88.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO5.md",
+            "heading": "Links um eine Stelle: Multiplikation mit 2"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Shifts",
+            "Linksshift und Überlauf"
+          ]
+        },
+        {
+          "id": "era-05-l2-q06",
+          "type": "calc",
+          "prompt": "Berechne den logischen Rechtsshift `1101 0000 >> 1`.",
+          "options": [
+            {
+              "id": "a",
+              "text": "`1010 0000` = unsigned 160"
+            },
+            {
+              "id": "b",
+              "text": "`1110 1000` = signed −24"
+            },
+            {
+              "id": "c",
+              "text": "`0110 1000` = unsigned 104"
+            },
+            {
+              "id": "d",
+              "text": "`1101 0001` = unsigned 209"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Beim logischen Rechtsshift wird links eine 0 ergänzt. `1101 0000` wird zu `0110 1000`, was unsigned 104 entspricht.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO5.md",
+            "heading": "Rechts um eine Stelle: zwei Arten"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Shifts",
+            "logischer und arithmetischer Rechtsshift"
+          ]
+        },
+        {
+          "id": "era-05-l2-q07",
+          "type": "calc",
+          "prompt": "Berechne den arithmetischen Rechtsshift `1101 0000 >> 1`.",
+          "options": [
+            {
+              "id": "a",
+              "text": "`1101 0001` = signed −47"
+            },
+            {
+              "id": "b",
+              "text": "`1010 0000` = signed −96"
+            },
+            {
+              "id": "c",
+              "text": "`1110 1000` = signed −24"
+            },
+            {
+              "id": "d",
+              "text": "`0110 1000` = 104"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Das Vorzeichenbit 1 wird links kopiert. Dadurch entsteht `1110 1000`, das im 8-Bit-Zweierkomplement −24 darstellt.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO5.md",
+            "heading": "Rechts um eine Stelle: zwei Arten"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Shifts",
+            "logischer und arithmetischer Rechtsshift"
+          ]
+        },
+        {
+          "id": "era-05-l2-q08",
+          "type": "single",
+          "prompt": "Welche echte Befehlsfolge kann `not t0, t1` ersetzen?",
+          "options": [
+            {
+              "id": "a",
+              "text": "`addi t0, t1, -1`"
+            },
+            {
+              "id": "b",
+              "text": "`andi t0, t1, -1`"
+            },
+            {
+              "id": "c",
+              "text": "`ori t0, t1, 1`"
+            },
+            {
+              "id": "d",
+              "text": "`xori t0, t1, -1`"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "XOR mit einer Bitmaske aus lauter Einsen kippt jedes Bit. Daher entspricht `not` der Expansion `xori t0, t1, -1`.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO5.md",
+            "heading": "Pseudobefehle"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Pseudobefehle",
+            "Bitweise logische Operationen"
+          ]
+        },
+        {
+          "id": "era-05-l2-q09",
+          "type": "calc",
+          "prompt": "Für `t0 = 0x2C`: Welchen Wert erzeugt `ori t2, t0, 0x10`?",
+          "options": [
+            {
+              "id": "a",
+              "text": "`0x30`"
+            },
+            {
+              "id": "b",
+              "text": "`0x2C`"
+            },
+            {
+              "id": "c",
+              "text": "`0x3C`"
+            },
+            {
+              "id": "d",
+              "text": "`0x1C`"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "`0x2C` ist `0010 1100`, `0x10` ist `0001 0000`. Das bitweise OR ergibt `0011 1100` beziehungsweise `0x3C`.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO5.md",
+            "heading": "Immediate-Befehle: eigene kleine Beispiele"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Immediate-Befehle",
+            "Bitweise logische Operationen"
+          ]
+        },
+        {
+          "id": "era-05-l2-q10",
+          "type": "calc",
+          "prompt": "Für `t0 = 0x2C`: Welchen Wert erzeugt `addi t1, t0, 4`?",
+          "options": [
+            {
+              "id": "a",
+              "text": "`0x40`"
+            },
+            {
+              "id": "b",
+              "text": "`0x30`"
+            },
+            {
+              "id": "c",
+              "text": "`0x28`"
+            },
+            {
+              "id": "d",
+              "text": "`0x2C`"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "`0x2C` entspricht 44. Addiert man 4, erhält man 48, also `0x30`.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO5.md",
+            "heading": "Immediate-Befehle: eigene kleine Beispiele"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Immediate-Befehle"
+          ]
+        },
+        {
+          "id": "era-05-l2-q11",
+          "type": "truefalse",
+          "prompt": "Ein Linksshift um eine Stelle entspricht als Multiplikation mit 2 nur dann sicher dem mathematischen Ergebnis, wenn dieses in die gewählte Wortbreite passt.",
+          "options": [
+            {
+              "id": "true",
+              "text": "Wahr"
+            },
+            {
+              "id": "false",
+              "text": "Falsch"
+            }
+          ],
+          "correct": [
+            "true"
+          ],
+          "explanation": "Der Bitvorgang ist zwar immer derselbe, aber bei einem Überlauf fallen linke Bits weg. Dann entspricht das Bitmuster nicht mehr dem vollständigen Produkt.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO5.md",
+            "heading": "Links um eine Stelle: Multiplikation mit 2"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Shifts",
+            "Linksshift und Überlauf"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "era-05-l3",
+      "index": 3,
+      "kind": "deepen",
+      "title": "Vertiefen",
+      "questions": [
+        {
+          "id": "era-05-l3-q01",
+          "type": "multi",
+          "prompt": "Wähle alle richtigen Aussagen. Mehrere Antworten können richtig sein.",
+          "options": [
+            {
+              "id": "a",
+              "text": "Namen wie `a0` und `t0` sind Verwendungskonventionen."
+            },
+            {
+              "id": "b",
+              "text": "Für jedes Register außer `x0` darf ein Anfangswert von null angenommen werden."
+            },
+            {
+              "id": "c",
+              "text": "`RV32I` besitzt die Register `x0` bis `x31`."
+            },
+            {
+              "id": "d",
+              "text": "`x0` liefert immer null."
+            }
+          ],
+          "correct": [
+            "a",
+            "c",
+            "d"
+          ],
+          "explanation": "Nur `x0` ist garantiert null. Andere Register haben keinen vorausgesetzten Anfangswert; ihre Namen beschreiben übliche Rollen.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO5.md",
+            "heading": "Register"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Register und Registerkonventionen",
+            "Assemblerprogrammierung"
+          ]
+        },
+        {
+          "id": "era-05-l3-q02",
+          "type": "single",
+          "prompt": "Wie erhält man bei zwei signed 32-Bit-Operanden das vollständige 64-Bit-Produkt?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Untere Bits mit `mul`, obere Bits mit `mulhu`"
+            },
+            {
+              "id": "b",
+              "text": "Untere Bits mit `mulh`, obere Bits mit `mul`"
+            },
+            {
+              "id": "c",
+              "text": "Untere Bits mit `mul`, obere Bits mit `mulh`"
+            },
+            {
+              "id": "d",
+              "text": "Nur mit `div`"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "`mul` liefert den unteren Produktteil. Bei zwei signed Operanden liefert `mulh` den passenden oberen Produktteil.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO5.md",
+            "heading": "Multiplikation und Division: signed oder unsigned?"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Multiplikation und Division",
+            "signed/unsigned-Interpretation"
+          ]
+        },
+        {
+          "id": "era-05-l3-q03",
+          "type": "truefalse",
+          "prompt": "Bei den 4-Bit-Produkten aus der Vorlesung ist der untere 4-Bit-Teil unabhängig von der signed- oder unsigned-Interpretation gleich, während sich der obere Teil unterscheiden kann.",
+          "options": [
+            {
+              "id": "true",
+              "text": "Wahr"
+            },
+            {
+              "id": "false",
+              "text": "Falsch"
+            }
+          ],
+          "correct": [
+            "true"
+          ],
+          "explanation": "Die unteren Bits des Bitprodukts sind gleich. Die Vorzeicheninterpretation beeinflusst insbesondere den oberen Produktteil.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO5.md",
+            "heading": "Multiplikation und Division: signed oder unsigned?"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Multiplikation und Division",
+            "signed/unsigned-Interpretation"
+          ]
+        },
+        {
+          "id": "era-05-l3-q04",
+          "type": "cloze",
+          "prompt": "Für eine echte Division durch 2 bei negativen ungeraden signed-Werten verwendet man ___ statt eines arithmetischen Rechtsshifts.",
+          "options": [
+            {
+              "id": "a",
+              "text": "`divu`"
+            },
+            {
+              "id": "b",
+              "text": "`div`"
+            },
+            {
+              "id": "c",
+              "text": "`sra`"
+            },
+            {
+              "id": "d",
+              "text": "`srai`"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "Ein arithmetischer Rechtsshift kann bei negativen ungeraden Zahlen abrunden. `div` führt die signed-Division mit Rundung in Richtung null aus.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO5.md",
+            "heading": "Rechts um eine Stelle: zwei Arten"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Multiplikation und Division",
+            "logischer und arithmetischer Rechtsshift"
+          ]
+        },
+        {
+          "id": "era-05-l3-q05",
+          "type": "calc",
+          "prompt": "`1101 0001` ist signed der Wert −47. Welche Kombination für Shift und Division durch 2 ist korrekt?",
+          "options": [
+            {
+              "id": "a",
+              "text": "`srai` ergibt `1110 1000` = −24; `div` ergibt −23"
+            },
+            {
+              "id": "b",
+              "text": "`srai` ergibt `1110 1001` = −23; `div` ergibt −24"
+            },
+            {
+              "id": "c",
+              "text": "`srai` ergibt `1110 1000` = −24; `div` ergibt −24"
+            },
+            {
+              "id": "d",
+              "text": "`srai` ergibt `0110 1000` = 104; `div` ergibt −23"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "Der arithmetische Shift ergibt `1110 1000`, also −24. Die signed-Division −47 durch 2 rundet in Richtung null und ergibt −23.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO5.md",
+            "heading": "Rechts um eine Stelle: zwei Arten"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Multiplikation und Division",
+            "logischer und arithmetischer Rechtsshift"
+          ]
+        },
+        {
+          "id": "era-05-l3-q06",
+          "type": "multi",
+          "prompt": "Wähle alle richtigen Aussagen über Schiebebefehle. Mehrere Antworten können richtig sein.",
+          "options": [
+            {
+              "id": "a",
+              "text": "`sra` ergänzt links Kopien des Vorzeichenbits."
+            },
+            {
+              "id": "b",
+              "text": "Das Suffix `i` kennzeichnet die Immediate-Variante."
+            },
+            {
+              "id": "c",
+              "text": "Die Verschiebezahl kann in einem Register oder direkt im Befehl stehen."
+            },
+            {
+              "id": "d",
+              "text": "`srl` ergänzt links Kopien des Vorzeichenbits."
+            }
+          ],
+          "correct": [
+            "a",
+            "b",
+            "c"
+          ],
+          "explanation": "Die Varianten ohne `i` verwenden ein Register, die Varianten mit `i` ein Immediate. `sra` erhält das Vorzeichen, während `srl` links Nullen einfügt.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO5.md",
+            "heading": "Shifts: Bits verschieben"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Shifts",
+            "logischer und arithmetischer Rechtsshift"
+          ]
+        },
+        {
+          "id": "era-05-l3-q07",
+          "type": "single",
+          "prompt": "Welche Aussage über `li` ist richtig?",
+          "options": [
+            {
+              "id": "a",
+              "text": "`li` darf nur den Wert null laden."
+            },
+            {
+              "id": "b",
+              "text": "`li` ist immer genau ein Maschinenbefehl."
+            },
+            {
+              "id": "c",
+              "text": "`li` ist ein echter Befehl der M-Erweiterung."
+            },
+            {
+              "id": "d",
+              "text": "`li` kann je nach Konstante mehrere echte Befehle benötigen."
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Für kleine Konstanten reicht oft ein `addi`; größere Konstanten können beispielsweise mit `lui` und `addi` aufgebaut werden. Deshalb gibt es keine feste Expansion für jedes `li`.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO5.md",
+            "heading": "Pseudobefehle"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Pseudobefehle",
+            "Immediate-Befehle"
+          ]
+        },
+        {
+          "id": "era-05-l3-q08",
+          "type": "cloze",
+          "prompt": "Bei negativen Immediates muss ich die ___ mitdenken.",
+          "options": [
+            {
+              "id": "a",
+              "text": "Registerkonvention"
+            },
+            {
+              "id": "b",
+              "text": "Sign Extension"
+            },
+            {
+              "id": "c",
+              "text": "Vektorbreite"
+            },
+            {
+              "id": "d",
+              "text": "Byteadressierung"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "Ein negatives Immediate wird auf die Registerbreite vorzeichenerweitert. Dadurch bleiben seine signed-Bedeutung und die oberen Bits korrekt erhalten.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO5.md",
+            "heading": "Immediate-Befehle: eigene kleine Beispiele"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Immediate-Befehle",
+            "Sign Extension"
+          ]
+        },
+        {
+          "id": "era-05-l3-q09",
+          "type": "truefalse",
+          "prompt": "Zu Beginn eines Assemblerprogramms dürfen alle Register außer `x0` als null angenommen werden.",
+          "options": [
+            {
+              "id": "true",
+              "text": "Wahr"
+            },
+            {
+              "id": "false",
+              "text": "Falsch"
+            }
+          ],
+          "correct": [
+            "false"
+          ],
+          "explanation": "Nur `x0` liefert garantiert null. Für alle anderen Register ist ein Anfangswert ohne vorherige Initialisierung unbekannt.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO5.md",
+            "heading": "Typische Fehler beim Assemblerprogrammieren"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Register und Registerkonventionen",
+            "Assemblerprogrammierung"
+          ]
+        },
+        {
+          "id": "era-05-l3-q10",
+          "type": "single",
+          "prompt": "Welche Prüfung hilft direkt gegen Schleifen, die einmal zu oft oder zu wenig laufen?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Nur die Namen der Register prüfen"
+            },
+            {
+              "id": "b",
+              "text": "Start, Abbruchbedingung und Anzahl der Durchläufe prüfen"
+            },
+            {
+              "id": "c",
+              "text": "Jeden Pseudobefehl durch `mul` ersetzen"
+            },
+            {
+              "id": "d",
+              "text": "Alle Werte als unsigned interpretieren"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "Für die Schleifenlänge sind Startzustand, Abbruch und tatsächliche Durchlaufzahl entscheidend. Die anderen Prüfungen betreffen dieses Problem nicht direkt.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO5.md",
+            "heading": "Typische Fehler beim Assemblerprogrammieren"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Assemblerprogrammierung"
+          ]
+        },
+        {
+          "id": "era-05-l3-q11",
+          "type": "multi",
+          "prompt": "Wähle alle sinnvollen Vorgehensweisen beim Assemblerprogrammieren. Mehrere Antworten können richtig sein.",
+          "options": [
+            {
+              "id": "a",
+              "text": "Ablauf und Registerbelegung vor dem Schreiben planen."
+            },
+            {
+              "id": "b",
+              "text": "Uninitialisierte Register grundsätzlich als null behandeln."
+            },
+            {
+              "id": "c",
+              "text": "Den Code ausreichend kommentieren."
+            },
+            {
+              "id": "d",
+              "text": "Das Programm Befehl für Befehl verfolgen und Registerwerte kontrollieren."
+            }
+          ],
+          "correct": [
+            "a",
+            "c",
+            "d"
+          ],
+          "explanation": "Planung, Kommentare und schrittweises Kontrollieren machen den Code nachvollziehbar und helfen bei der Fehlersuche. Uninitialisierte Register dürfen dagegen nicht automatisch als null gelten.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO5.md",
+            "heading": "Typische Fehler beim Assemblerprogrammieren"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Assemblerprogrammierung",
+            "Register und Registerkonventionen"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "era-05-l4",
+      "index": 4,
+      "kind": "boss",
+      "title": "Boss",
+      "questions": [
+        {
+          "id": "era-05-l4-q01",
+          "type": "single",
+          "prompt": "Ein Assemblerprogramm verwendet den Pseudobefehl `neg`. Welche Aussage beschreibt das Verhältnis von ISA und Pseudobefehl korrekt?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Die ISA beschreibt ausschließlich Registerkonventionen, nicht Maschinenbefehle."
+            },
+            {
+              "id": "b",
+              "text": "`neg` erweitert die Hardware automatisch um einen neuen Opcode."
+            },
+            {
+              "id": "c",
+              "text": "Pseudobefehle gehören nur zur Betriebssystemschicht und werden nicht übersetzt."
+            },
+            {
+              "id": "d",
+              "text": "Die ISA legt echte Maschinenbefehle fest; der Assembler ersetzt `neg` durch solche Befehle."
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Die ISA definiert die ausführbaren Maschinenbefehle. `neg` ist nur eine lesbare Schreibweise und wird beispielsweise zu `sub t0, x0, t1` expandiert.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO5.md",
+            "heading": "Pseudobefehle"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Pseudobefehle",
+            "RISC-V-Basis und Erweiterungen"
+          ]
+        },
+        {
+          "id": "era-05-l4-q02",
+          "type": "calc",
+          "prompt": "Welche Bitfolge steht nach `addi t0, x0, -1` in einem 32-Bit-Register?",
+          "options": [
+            {
+              "id": "a",
+              "text": "`0x00000FFF`"
+            },
+            {
+              "id": "b",
+              "text": "`0x80000000`"
+            },
+            {
+              "id": "c",
+              "text": "`0x00000001`"
+            },
+            {
+              "id": "d",
+              "text": "`0xFFFFFFFF`"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "`x0` liefert null. Das negative Immediate wird vorzeichenerweitert, sodass −1 in 32 Bit als `0xFFFFFFFF` dargestellt wird.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO4.md",
+            "heading": null
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Immediate-Befehle",
+            "Sign Extension",
+            "Register und Registerkonventionen"
+          ]
+        },
+        {
+          "id": "era-05-l4-q03",
+          "type": "single",
+          "prompt": "Bei `ld a1, 8(s0)` ist die effektive Adresse ...",
+          "options": [
+            {
+              "id": "a",
+              "text": "immer die Adresse 8"
+            },
+            {
+              "id": "b",
+              "text": "der Wert in `a1` plus 8"
+            },
+            {
+              "id": "c",
+              "text": "der Wert in `s0` plus 8"
+            },
+            {
+              "id": "d",
+              "text": "der Wert in `s0` minus 8"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Bei einem Load ist `a1` das Zielregister. Die Speicheradresse wird aus dem Basisregister `s0` und dem Offset 8 gebildet.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO4.md",
+            "heading": null
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Register und Registerkonventionen",
+            "Assemblerprogrammierung"
+          ]
+        },
+        {
+          "id": "era-05-l4-q04",
+          "type": "multi",
+          "prompt": "Ein 8-Bit-Muster `1101 0000` wird um eine Stelle nach rechts verschoben. Wähle alle richtigen Aussagen. Mehrere Antworten können richtig sein.",
+          "options": [
+            {
+              "id": "a",
+              "text": "Beide Befehle liefern dasselbe Bitmuster."
+            },
+            {
+              "id": "b",
+              "text": "`srai` ergibt `1110 1000`, was signed −24 entspricht."
+            },
+            {
+              "id": "c",
+              "text": "`srai` füllt links mit Nullen auf."
+            },
+            {
+              "id": "d",
+              "text": "`srli` ergibt `0110 1000`, was unsigned 104 entspricht."
+            }
+          ],
+          "correct": [
+            "b",
+            "d"
+          ],
+          "explanation": "`srli` fügt links eine 0 ein, `srai` kopiert das Vorzeichenbit 1. Deshalb entstehen unterschiedliche Bitmuster und Interpretationen.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO5.md",
+            "heading": "Rechts um eine Stelle: zwei Arten"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Shifts",
+            "logischer und arithmetischer Rechtsshift",
+            "signed/unsigned-Interpretation"
+          ]
+        },
+        {
+          "id": "era-05-l4-q05",
+          "type": "calc",
+          "prompt": "Die 4-Bit-Muster `1101` und `0010` werden einmal unsigned und einmal signed multipliziert. Welche vollständige Zuordnung ist korrekt?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Unsigned: `0001 1010`; signed: `1111 1010`"
+            },
+            {
+              "id": "b",
+              "text": "Unsigned: `1111 1010`; signed: `0001 1010`"
+            },
+            {
+              "id": "c",
+              "text": "Unsigned und signed: `0001 1010`"
+            },
+            {
+              "id": "d",
+              "text": "Unsigned und signed: `1111 1010`"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "Unsigned ergibt 13 · 2 = 26, also `0001 1010`. Signed ergibt −3 · 2 = −6, also `1111 1010`.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO5.md",
+            "heading": "Multiplikation und Division: signed oder unsigned?"
+          },
+          "difficulty": 5,
+          "concepts": [
+            "Multiplikation und Division",
+            "signed/unsigned-Interpretation"
+          ]
+        },
+        {
+          "id": "era-05-l4-q06",
+          "type": "single",
+          "prompt": "Ein vollständiges Produkt benötigt die oberen Bits; der erste Operand ist signed, der zweite unsigned. Welcher Befehl liefert den oberen Produktteil?",
+          "options": [
+            {
+              "id": "a",
+              "text": "`mulh`"
+            },
+            {
+              "id": "b",
+              "text": "`mulhu`"
+            },
+            {
+              "id": "c",
+              "text": "`mulhsu`"
+            },
+            {
+              "id": "d",
+              "text": "`mul`"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "`mulhsu` ist genau für einen signed ersten und einen unsigned zweiten Operanden vorgesehen. `mul` liefert unabhängig davon nur die unteren Produktbits.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO5.md",
+            "heading": "Multiplikation und Division: signed oder unsigned?"
+          },
+          "difficulty": 5,
+          "concepts": [
+            "Multiplikation und Division",
+            "signed/unsigned-Interpretation"
+          ]
+        },
+        {
+          "id": "era-05-l4-q07",
+          "type": "single",
+          "prompt": "Welche echte Befehlsfolge realisiert den Pseudobefehl `neg t0, t1`?",
+          "options": [
+            {
+              "id": "a",
+              "text": "`sub t0, x0, t1`"
+            },
+            {
+              "id": "b",
+              "text": "`sub t0, t1, x0`"
+            },
+            {
+              "id": "c",
+              "text": "`xori t0, t1, 0`"
+            },
+            {
+              "id": "d",
+              "text": "`addi t0, t1, 1`"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "Da `x0` immer null liefert, berechnet `sub t0, x0, t1` den Wert 0 − `t1` und bildet damit den negativen Wert.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO5.md",
+            "heading": "Pseudobefehle"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Pseudobefehle",
+            "Register und Registerkonventionen"
+          ]
+        },
+        {
+          "id": "era-05-l4-q08",
+          "type": "calc",
+          "prompt": "Für `t0 = 0x2C` werden die drei Befehle ausgeführt. Welche Ergebniszeile ist vollständig korrekt?",
+          "options": [
+            {
+              "id": "a",
+              "text": "`ori` → `0x30`, `xori` → `0x2F`, `andi` → `0xF0`"
+            },
+            {
+              "id": "b",
+              "text": "`ori` → `0x23`, `xori` → `0x0C`, `andi` → `0x3C`"
+            },
+            {
+              "id": "c",
+              "text": "`ori` → `0x2C`, `xori` → `0x3C`, `andi` → `0x0F`"
+            },
+            {
+              "id": "d",
+              "text": "`ori` → `0x3C`, `xori` → `0x23`, `andi` → `0x0C`"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "OR mit `0x10` ergibt `0x3C`, XOR mit `0x0F` ergibt `0x23`, und AND mit `0x0F` ergibt `0x0C`. Jeder Befehl liest dabei den unveränderten Wert aus `t0`.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO5.md",
+            "heading": "Immediate-Befehle: eigene kleine Beispiele"
+          },
+          "difficulty": 5,
+          "concepts": [
+            "Immediate-Befehle",
+            "Bitweise logische Operationen"
+          ]
+        },
+        {
+          "id": "era-05-l4-q09",
+          "type": "multi",
+          "prompt": "Beim Überprüfen eines Assemblerprogramms: Wähle alle richtigen Vorgehensweisen. Mehrere Antworten können richtig sein.",
+          "options": [
+            {
+              "id": "a",
+              "text": "Vor einer Rechnung muss die signed- oder unsigned-Interpretation geklärt werden."
+            },
+            {
+              "id": "b",
+              "text": "Für `t0` und `t1` darf man ohne Initialisierung null annehmen."
+            },
+            {
+              "id": "c",
+              "text": "Bei Schleifen müssen Start, Abbruch und Durchlaufzahl geprüft werden."
+            },
+            {
+              "id": "d",
+              "text": "Nach jedem relevanten Befehl sollten die betroffenen Registerwerte kontrolliert werden."
+            }
+          ],
+          "correct": [
+            "a",
+            "c",
+            "d"
+          ],
+          "explanation": "Vorzeichen, Registerwerte und Schleifenbedingungen sind zentrale Fehlerquellen. Nur `x0`, nicht aber `t0` oder `t1`, ist automatisch null.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO5.md",
+            "heading": "Typische Fehler beim Assemblerprogrammieren"
+          },
+          "difficulty": 5,
+          "concepts": [
+            "Assemblerprogrammierung",
+            "signed/unsigned-Interpretation",
+            "Register und Registerkonventionen"
+          ]
+        },
+        {
+          "id": "era-05-l4-q10",
+          "type": "calc",
+          "prompt": "Das 8-Bit-Muster `1101 0000` wird um eine Stelle nach links verschoben. Welche Aussage beschreibt das Ergebnis korrekt?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Das Muster ist `1010 0000`; signed entspricht das −96 und unsigned 160."
+            },
+            {
+              "id": "b",
+              "text": "Das Muster ist `1010 0000`; signed und unsigned entsprechen beide 416."
+            },
+            {
+              "id": "c",
+              "text": "Das Muster ist `0110 1000`; unsigned entspricht das 104."
+            },
+            {
+              "id": "d",
+              "text": "Das Muster ist `1110 1000`; signed entspricht das −24."
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "Der Bitshift ergibt `1010 0000`. Dieses Muster kann signed als −96 oder unsigned als 160 interpretiert werden; das vollständige unsigned Produkt 208 · 2 = 416 passt nicht in 8 Bit.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO5.md",
+            "heading": "Links um eine Stelle: Multiplikation mit 2"
+          },
+          "difficulty": 5,
+          "concepts": [
+            "Shifts",
+            "Linksshift und Überlauf",
+            "signed/unsigned-Interpretation"
+          ]
+        },
+        {
+          "id": "era-05-l4-q11",
+          "type": "truefalse",
+          "prompt": "Wenn beim unsigned Linksshift von `1101 0000` das Ergebnisbitmuster `1010 0000` den Wert 160 darstellt, ist kein Überlauf aufgetreten.",
+          "options": [
+            {
+              "id": "true",
+              "text": "Wahr"
+            },
+            {
+              "id": "false",
+              "text": "Falsch"
+            }
+          ],
+          "correct": [
+            "false"
+          ],
+          "explanation": "Das Bitmuster stellt zwar innerhalb von 8 Bit 160 dar, aber das vollständige Produkt ist 208 · 2 = 416 und passt nicht in 8 Bit. Das linke Bit beziehungsweise weitere Produktbits gingen verloren.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO5.md",
+            "heading": "Links um eine Stelle: Multiplikation mit 2"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Linksshift und Überlauf",
+            "signed/unsigned-Interpretation"
+          ]
+        }
+      ]
+    }
+  ]
+}
