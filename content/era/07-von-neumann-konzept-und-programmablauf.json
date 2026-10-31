@@ -1,0 +1,1686 @@
+{
+  "schemaVersion": 1,
+  "id": "era-07",
+  "module": "ERA",
+  "number": 7,
+  "slug": "von-neumann-konzept-und-programmablauf",
+  "title": "Von-Neumann-Konzept und Programmablauf",
+  "summary": "Diese Unit erklärt das Von-Neumann-Konzept mit seinen vier Werken, dem gemeinsamen Speicher für Programme und Daten sowie der sequenziellen Befehlsausführung. Außerdem werden Harvard-Architektur, Linken, selbstmodifizierender Code und die Rolle von Prolog und Epilog eingeordnet.",
+  "concepts": [
+    "Stackframe",
+    "Prolog und Epilog",
+    "Calling Convention",
+    "Compileroptimierung",
+    "Von-Neumann-Konzept",
+    "Vier Werke",
+    "Hauptspeicher",
+    "Befehlszyklus",
+    "Programme und Daten im selben Speicher",
+    "Harvard-Architektur",
+    "Linken",
+    "Selbstmodifizierender Code",
+    "Sequenzielle Befehlsausführung",
+    "Sprünge"
+  ],
+  "keyFacts": [
+    "Der Stack liegt im byteweise adressierten Hauptspeicher.",
+    "Prolog und Epilog richten den Stackframe ein beziehungsweise bauen ihn wieder ab.",
+    "Welche Register erhalten bleiben müssen, regelt die Calling Convention.",
+    "Bei -O2 darf sich die Registerbelegung oder Befehlsfolge gegenüber unoptimierten Beispielen ändern.",
+    "Das Von-Neumann-Konzept trennt die Rechnerstruktur vom konkreten Problem; das Programm steuert den allgemeinen Rechner.",
+    "Die vier Werke sind Hauptspeicher, Leitwerk beziehungsweise Steuerwerk, Rechenwerk beziehungsweise ALU und Ein-/Ausgabewerk.",
+    "Im Von-Neumann-Modell liegen Programme und Daten im selben Hauptspeicher.",
+    "Der Hauptspeicher besteht aus gleich großen Zellen mit fortlaufenden Adressen.",
+    "Programme und Daten liegen als codierte Speicherinhalte beziehungsweise Binärcodes vor.",
+    "Befehle werden im Allgemeinen sequenziell an aufsteigenden Adressen gespeichert und ausgeführt.",
+    "Bedingte und unbedingte Sprünge können die sequenzielle Reihenfolge verändern.",
+    "Von Neumann verwendet gemeinsamen Programm- und Datenspeicher, Harvard getrennte Speicher.",
+    "Ein gemeinsamer Hauptspeicher mit getrennten Befehls- und Datencaches ist eine genannte Mischform.",
+    "Schreibschutz und die Trennung von Programm- und Datenspeicher sind unterschiedliche Fragen.",
+    "Beim Linken werden übersetzte Programmteile und Bibliotheken verbunden, Verweise aufgelöst und gegebenenfalls Adressangaben angepasst.",
+    "Selbstmodifizierender Code verändert den eigenen Programmcode und ist heute eine seltene Ausnahme."
+  ],
+  "tags": [],
+  "links": [],
+  "source": {
+    "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO7.md",
+    "sha256": "9959580966f408e4f3b711f12c8ec7a3f848b501f4af5bd118b5411d6808bfbf",
+    "commit": "c01f10e1818d61e8fd05d663cf852d7a59f2e1e4"
+  },
+  "generator": {
+    "model": "gpt-5.6-luna",
+    "effort": "xhigh",
+    "reviewEffort": "high",
+    "promptVersion": "v2",
+    "generatedAt": "2026-10-31T01:03:47.513Z",
+    "review": {
+      "checked": 44,
+      "fixed": 6,
+      "removed": 0,
+      "notes": "44 Fragen geprüft. Korrigiert wurden die Mermaid-Knotentexte durch gültige Anführungszeichen, die widersprüchliche Sprungfrage im Anwenden-Level sowie eine unpräzise Erklärung zu selbstmodifizierendem Code. Keine Frage musste entfernt oder ersetzt werden; alle Level enthalten mindestens 8 Fragen."
+    }
+  },
+  "levels": [
+    {
+      "id": "era-07-l1",
+      "index": 1,
+      "kind": "basics",
+      "title": "Grundlagen",
+      "questions": [
+        {
+          "id": "era-07-l1-q01",
+          "type": "single",
+          "prompt": "Wo liegt der Stack im betrachteten Rechnermodell?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Im Hauptspeicher"
+            },
+            {
+              "id": "b",
+              "text": "Ausschließlich in den Registern"
+            },
+            {
+              "id": "c",
+              "text": "In einem vom Hauptspeicher getrennten Stack-Speicher"
+            },
+            {
+              "id": "d",
+              "text": "Im Ein-/Ausgabewerk"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "Der Stack ist ein Bereich des byteweise adressierten Hauptspeichers. Er bildet keinen eigenen, vom Hauptspeicher getrennten Speicher.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO7.md",
+            "heading": "Rückblick: Stackframes und Unterprogramme"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Stackframe",
+            "Hauptspeicher"
+          ]
+        },
+        {
+          "id": "era-07-l1-q02",
+          "type": "cloze",
+          "prompt": "Am Ende einer Routine steht der ___, der gesicherte Werte wiederherstellt und den Stackframe freigibt.",
+          "options": [
+            {
+              "id": "a",
+              "text": "Epilog"
+            },
+            {
+              "id": "b",
+              "text": "Befehlszyklus"
+            },
+            {
+              "id": "c",
+              "text": "Linker"
+            },
+            {
+              "id": "d",
+              "text": "Prolog"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "Der Epilog baut den im Prolog eingerichteten Rahmen wieder ab und bereitet den Rücksprung vor.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO7.md",
+            "heading": "Prolog und Epilog"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Prolog und Epilog",
+            "Stackframe"
+          ]
+        },
+        {
+          "id": "era-07-l1-q03",
+          "type": "multi",
+          "prompt": "Welche Zuordnungen zu den vier Werken sind richtig? Wähle alle richtigen Aussagen; mehrere Antworten können richtig sein.",
+          "options": [
+            {
+              "id": "a",
+              "text": "Das Rechenwerk ist für die Ein- und Ausgabe einschließlich Sekundärspeicher zuständig."
+            },
+            {
+              "id": "b",
+              "text": "Das Leit- beziehungsweise Steuerwerk arbeitet den Befehlszyklus ab."
+            },
+            {
+              "id": "c",
+              "text": "Das Ein-/Ausgabewerk übersetzt Quelltext in Maschinenbefehle."
+            },
+            {
+              "id": "d",
+              "text": "Das Rechenwerk beziehungsweise die ALU führt arithmetische Operationen aus."
+            },
+            {
+              "id": "e",
+              "text": "Der Haupt- beziehungsweise Arbeitsspeicher enthält Programme und Daten."
+            }
+          ],
+          "correct": [
+            "b",
+            "d",
+            "e"
+          ],
+          "explanation": "Hauptspeicher, Leitwerk und Rechenwerk haben die Zuordnungen a, b und c. Übersetzen ist keine Aufgabe des Ein-/Ausgabewerks, und Ein-/Ausgabe gehört zum Ein-/Ausgabewerk.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO7.md",
+            "heading": "Die vier Werke"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Vier Werke",
+            "Hauptspeicher",
+            "Befehlszyklus"
+          ]
+        },
+        {
+          "id": "era-07-l1-q04",
+          "type": "diagram",
+          "prompt": "Welcher Schritt folgt im Diagramm unmittelbar auf den Routinenkörper?\n\n```mermaid\nflowchart LR\nP[\"Prolog\"] --> R[\"Routinenkörper\"]\nR --> E[\"Epilog\"]\nE --> C[\"Rücksprung\"]\n```",
+          "options": [
+            {
+              "id": "a",
+              "text": "Stack Pointer"
+            },
+            {
+              "id": "b",
+              "text": "Rücksprung"
+            },
+            {
+              "id": "c",
+              "text": "Prolog"
+            },
+            {
+              "id": "d",
+              "text": "Epilog"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Nach dem Routinenkörper folgt der Epilog. Er stellt gesicherte Werte wieder her und gibt den Stackframe frei.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO7.md",
+            "heading": "Prolog und Epilog"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Prolog und Epilog",
+            "Stackframe"
+          ]
+        },
+        {
+          "id": "era-07-l1-q05",
+          "type": "single",
+          "prompt": "Welche Grundidee gehört zum Von-Neumann-Konzept?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Ein Rechner besteht ausschließlich aus einer ALU."
+            },
+            {
+              "id": "b",
+              "text": "Die Rechnerstruktur ist unabhängig vom Problem; das Programm steuert den allgemeinen Rechner."
+            },
+            {
+              "id": "c",
+              "text": "Die Rechnerstruktur wird für jedes Problem neu gebaut."
+            },
+            {
+              "id": "d",
+              "text": "Programme dürfen niemals im Hauptspeicher liegen."
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "Das Von-Neumann-Konzept beschreibt einen allgemeinen Rechner, dessen konkretes Verhalten durch das jeweilige Programm bestimmt wird.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO7.md",
+            "heading": "Das Von-Neumann-Konzept"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Von-Neumann-Konzept"
+          ]
+        },
+        {
+          "id": "era-07-l1-q06",
+          "type": "truefalse",
+          "prompt": "Im Von-Neumann-Modell liegen Programme und Daten im selben Hauptspeicher.",
+          "options": [
+            {
+              "id": "true",
+              "text": "Wahr"
+            },
+            {
+              "id": "false",
+              "text": "Falsch"
+            }
+          ],
+          "correct": [
+            "true"
+          ],
+          "explanation": "Der gemeinsame Hauptspeicher für Programme und Daten ist ein zentraler Punkt des Von-Neumann-Modells.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO7.md",
+            "heading": "Die Merkpunkte mit bereinigter Nummerierung"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Programme und Daten im selben Speicher",
+            "Von-Neumann-Konzept"
+          ]
+        },
+        {
+          "id": "era-07-l1-q07",
+          "type": "cloze",
+          "prompt": "Befehle sind im Allgemeinen nacheinander an ___ Adressen gespeichert.",
+          "options": [
+            {
+              "id": "a",
+              "text": "nur externen"
+            },
+            {
+              "id": "b",
+              "text": "aufsteigenden"
+            },
+            {
+              "id": "c",
+              "text": "absteigenden"
+            },
+            {
+              "id": "d",
+              "text": "zufälligen"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "Die allgemeine Speicherung erfolgt an aufsteigenden Adressen. Sprünge können später die Ausführungsreihenfolge verändern.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO7.md",
+            "heading": "Die Merkpunkte mit bereinigter Nummerierung"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Sequenzielle Befehlsausführung",
+            "Hauptspeicher"
+          ]
+        },
+        {
+          "id": "era-07-l1-q08",
+          "type": "multi",
+          "prompt": "Welche Aussagen über Daten und Befehle als Speicherinhalte sind richtig? Wähle alle richtigen Aussagen; mehrere Antworten können richtig sein.",
+          "options": [
+            {
+              "id": "a",
+              "text": "Befehle werden gemäß der ISA codiert und können als Assembler dargestellt werden."
+            },
+            {
+              "id": "b",
+              "text": "Daten werden binär codiert und benötigen eine vereinbarte Interpretation der Bitmuster."
+            },
+            {
+              "id": "c",
+              "text": "Nur Befehle, nicht aber Daten, liegen als Speicherinhalte vor."
+            },
+            {
+              "id": "d",
+              "text": "Die lesbare Assemblerdarstellung ist identisch mit dem physischen Speicherinhalt."
+            },
+            {
+              "id": "e",
+              "text": "Daten werden grundsätzlich als Dezimalziffern im Speicher abgelegt."
+            }
+          ],
+          "correct": [
+            "a",
+            "b"
+          ],
+          "explanation": "Sowohl Daten als auch Befehle sind codierte Speicherinhalte. Ihre Interpretation unterscheidet sich: Daten folgen einer vereinbarten Codierung, Befehle der ISA.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO7.md",
+            "heading": "Daten und Befehle sind codierte Speicherinhalte"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Hauptspeicher",
+            "Von-Neumann-Konzept"
+          ]
+        },
+        {
+          "id": "era-07-l1-q09",
+          "type": "single",
+          "prompt": "Welche Speicherorganisation beschreibt die Harvard-Architektur?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Nur ein Speicher für Befehle, aber kein Datenspeicher"
+            },
+            {
+              "id": "b",
+              "text": "Ein gemeinsamer Hauptspeicher ohne Register"
+            },
+            {
+              "id": "c",
+              "text": "Getrennter Programm- und Datenspeicher"
+            },
+            {
+              "id": "d",
+              "text": "Ein gemeinsamer Speicher für Programme und Daten"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Harvard trennt Programm- und Datenspeicher. Der gemeinsame Speicher ist dagegen charakteristisch für Von Neumann.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO7.md",
+            "heading": "Gemeinsamer oder getrennter Speicher?"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Harvard-Architektur",
+            "Von-Neumann-Konzept"
+          ]
+        },
+        {
+          "id": "era-07-l1-q10",
+          "type": "single",
+          "prompt": "Was ist eine zentrale Aufgabe des Linkers?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Er verändert ausschließlich die Eingabedaten des Programms."
+            },
+            {
+              "id": "b",
+              "text": "Er verbindet übersetzte Programmteile und Bibliotheken und löst Verweise auf."
+            },
+            {
+              "id": "c",
+              "text": "Er führt das Programm Schritt für Schritt aus."
+            },
+            {
+              "id": "d",
+              "text": "Er ersetzt die ISA durch eine andere ISA."
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "Der Linker verbindet übersetzte Teile und Bibliotheksbestandteile. Dabei werden Verweise aufgelöst und gegebenenfalls Adressangaben angepasst.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO7.md",
+            "heading": "Was bedeutet Linken?"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Linken",
+            "Programme und Daten im selben Speicher"
+          ]
+        },
+        {
+          "id": "era-07-l1-q11",
+          "type": "truefalse",
+          "prompt": "Selbstmodifizierender Code ist in der Unit als heute häufige Standardtechnik beschrieben.",
+          "options": [
+            {
+              "id": "true",
+              "text": "Wahr"
+            },
+            {
+              "id": "false",
+              "text": "Falsch"
+            }
+          ],
+          "correct": [
+            "false"
+          ],
+          "explanation": "Selbstmodifizierende Programme werden als heute seltene Ausnahme eingeordnet. Unterschiedliche Abläufe werden vor allem über Sprünge und Adressänderungen umgesetzt.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO7.md",
+            "heading": "Selbstmodifizierender Code"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Selbstmodifizierender Code",
+            "Sprünge"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "era-07-l2",
+      "index": 2,
+      "kind": "apply",
+      "title": "Anwenden",
+      "questions": [
+        {
+          "id": "era-07-l2-q01",
+          "type": "single",
+          "prompt": "Welche Aufgabe gehört im Von-Neumann-Modell zum Leit- beziehungsweise Steuerwerk?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Den Befehlszyklus abarbeiten"
+            },
+            {
+              "id": "b",
+              "text": "Arithmetische Operationen ausführen"
+            },
+            {
+              "id": "c",
+              "text": "Ein- und Ausgabe einschließlich Sekundärspeicher bereitstellen"
+            },
+            {
+              "id": "d",
+              "text": "Programme und Daten dauerhaft speichern"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "Das Leitwerk arbeitet den Befehlszyklus ab. Arithmetische Operationen gehören zum Rechenwerk, das Speichern zum Hauptspeicher.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO7.md",
+            "heading": "Die vier Werke"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Vier Werke",
+            "Befehlszyklus"
+          ]
+        },
+        {
+          "id": "era-07-l2-q02",
+          "type": "calc",
+          "prompt": "Ein Programm startet bei Adresse $100$. Der Befehl an $101$ ist ein unbedingter Sprung zu $200$. Welche Folge beschreibt die ersten ausgeführten Adressen?",
+          "options": [
+            {
+              "id": "a",
+              "text": "$101, 102, 200$"
+            },
+            {
+              "id": "b",
+              "text": "$100, 200, 201$"
+            },
+            {
+              "id": "c",
+              "text": "$100, 101, 102$"
+            },
+            {
+              "id": "d",
+              "text": "$100, 101, 200$"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Zuerst wird $100$ ausgeführt, danach der Sprungbefehl an $101$. Weil der Sprung unbedingt zu $200$ erfolgt, ist $200$ die nächste Adresse; $102$ wird übersprungen.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO7.md",
+            "heading": "Die Merkpunkte mit bereinigter Nummerierung"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Sequenzielle Befehlsausführung",
+            "Sprünge"
+          ]
+        },
+        {
+          "id": "era-07-l2-q03",
+          "type": "diagram",
+          "prompt": "Welche Aussage lässt sich aus diesem Diagramm direkt ablesen?\n\n```mermaid\nflowchart TB\nM[\"Hauptspeicher<br/>Programme und Daten\"]\nsubgraph CPU[\"Prozessor\"]\nL[\"Leitwerk<br/>Befehlszyklus\"]\nR[\"Rechenwerk<br/>ALU\"]\nL -->|steuert| R\nend\nIO[\"Ein-/Ausgabewerk<br/>Sekundärspeicher\"]\nM <-->|Befehle und Daten| L\nM <-->|Daten| R\nIO <--> L\n```",
+          "options": [
+            {
+              "id": "a",
+              "text": "Das Leitwerk steuert das Rechenwerk."
+            },
+            {
+              "id": "b",
+              "text": "Das Rechenwerk steuert das Leitwerk."
+            },
+            {
+              "id": "c",
+              "text": "Das Ein-/Ausgabewerk kommuniziert ausschließlich mit dem Rechenwerk."
+            },
+            {
+              "id": "d",
+              "text": "Der Hauptspeicher enthält nur Daten, aber keine Befehle."
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "Die gerichtete Kante vom Leitwerk zum Rechenwerk ist mit steuert beschriftet. Außerdem zeigt das Diagramm Befehle und Daten im Hauptspeicher.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO7.md",
+            "heading": "Die vier Werke"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Vier Werke",
+            "Befehlszyklus"
+          ]
+        },
+        {
+          "id": "era-07-l2-q04",
+          "type": "single",
+          "prompt": "Ein Rechner besitzt einen gemeinsamen Hauptspeicher für Programme und Daten, aber getrennte Zwischenspeicher für Befehle und Daten. Wie wird diese Organisation bezeichnet?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Reiner Von-Neumann-Rechner ohne getrennte Speicherbereiche"
+            },
+            {
+              "id": "b",
+              "text": "Selbstmodifizierender Speicher"
+            },
+            {
+              "id": "c",
+              "text": "Strikte Harvard-Architektur"
+            },
+            {
+              "id": "d",
+              "text": "Genannte Mischform"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Die genannte Mischform kombiniert einen gemeinsamen Hauptspeicher mit getrennten Befehls- und Datencaches.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO7.md",
+            "heading": "Gemeinsamer oder getrennter Speicher?"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Harvard-Architektur",
+            "Von-Neumann-Konzept"
+          ]
+        },
+        {
+          "id": "era-07-l2-q05",
+          "type": "multi",
+          "prompt": "Welche Tätigkeiten gehören zum Linken? Wähle alle richtigen Aussagen; mehrere Antworten können richtig sein.",
+          "options": [
+            {
+              "id": "a",
+              "text": "Jeden Befehl während des Linkens ausführen"
+            },
+            {
+              "id": "b",
+              "text": "Verweise zwischen den verbundenen Teilen auflösen"
+            },
+            {
+              "id": "c",
+              "text": "Die ISA des Zielprozessors neu definieren"
+            },
+            {
+              "id": "d",
+              "text": "Gegebenenfalls Adressangaben anpassen"
+            },
+            {
+              "id": "e",
+              "text": "Übersetzte Programmteile und benötigte Bibliotheksbestandteile verbinden"
+            }
+          ],
+          "correct": [
+            "b",
+            "d",
+            "e"
+          ],
+          "explanation": "Linken verbindet Teile, löst ihre Verweise auf und kann Adressangaben anpassen. Das Ausführen des Programms und das Definieren der ISA gehören nicht dazu.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO7.md",
+            "heading": "Was bedeutet Linken?"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Linken",
+            "Hauptspeicher"
+          ]
+        },
+        {
+          "id": "era-07-l2-q06",
+          "type": "cloze",
+          "prompt": "Beim Linken werden Verweise zwischen den verbundenen Programmteilen ___ und gegebenenfalls Adressangaben angepasst.",
+          "options": [
+            {
+              "id": "a",
+              "text": "aufgelöst"
+            },
+            {
+              "id": "b",
+              "text": "ignoriert"
+            },
+            {
+              "id": "c",
+              "text": "verschlüsselt"
+            },
+            {
+              "id": "d",
+              "text": "verdoppelt"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "Der Linker ordnet Verweise passenden Zielen zu und löst sie dadurch auf. Bei Bedarf werden dabei Adressangaben angepasst.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO7.md",
+            "heading": "Was bedeutet Linken?"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Linken"
+          ]
+        },
+        {
+          "id": "era-07-l2-q07",
+          "type": "truefalse",
+          "prompt": "Schreibschutz und die Trennung von Programm- und Datenspeicher sind unterschiedliche Fragen.",
+          "options": [
+            {
+              "id": "true",
+              "text": "Wahr"
+            },
+            {
+              "id": "false",
+              "text": "Falsch"
+            }
+          ],
+          "correct": [
+            "true"
+          ],
+          "explanation": "Ein Speicherbereich kann beispielsweise nicht veränderbar sein, ohne dass dadurch automatisch die Organisation in getrennte Programm- und Datenspeicher festgelegt wird.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO7.md",
+            "heading": "Gemeinsamer oder getrennter Speicher?"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Harvard-Architektur",
+            "Programme und Daten im selben Speicher"
+          ]
+        },
+        {
+          "id": "era-07-l2-q08",
+          "type": "single",
+          "prompt": "Was bezeichnet selbstmodifizierender Code?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Ein Compileroptimierungsgrad von 2"
+            },
+            {
+              "id": "b",
+              "text": "Ein Programm, das nur seine Eingabedaten liest"
+            },
+            {
+              "id": "c",
+              "text": "Ein Linker, der Bibliotheken verbindet"
+            },
+            {
+              "id": "d",
+              "text": "Ein Programm, das seinen eigenen Programmcode verändert"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Selbstmodifizierende Programme verändern ihren eigenen Programmcode. Das ist von Änderungen an Daten oder vom Linken zu unterscheiden.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO7.md",
+            "heading": "Selbstmodifizierender Code"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Selbstmodifizierender Code"
+          ]
+        },
+        {
+          "id": "era-07-l2-q09",
+          "type": "calc",
+          "prompt": "Ein Programm enthält Befehle an den Adressen $40$, $41$ und $42$. Der Befehl an $41$ ist ein bedingter Sprung zu $100$; die Bedingung ist erfüllt. Welche Adresse wird dann als Nächstes ausgeführt?",
+          "options": [
+            {
+              "id": "a",
+              "text": "$101$"
+            },
+            {
+              "id": "b",
+              "text": "$40$"
+            },
+            {
+              "id": "c",
+              "text": "$42$"
+            },
+            {
+              "id": "d",
+              "text": "$100$"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Der Sprungbefehl an $41$ setzt die Fortsetzung auf die Zieladresse $100$. Deshalb folgt nicht die normalerweise nächste Adresse $42$.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO7.md",
+            "heading": "Die Merkpunkte mit bereinigter Nummerierung"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Sprünge",
+            "Sequenzielle Befehlsausführung"
+          ]
+        },
+        {
+          "id": "era-07-l2-q10",
+          "type": "single",
+          "prompt": "Was muss bei einer Compileroptimierung trotz veränderter interner Umsetzung erhalten bleiben?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Die Verwendung von -O2"
+            },
+            {
+              "id": "b",
+              "text": "Die exakt gleiche Registerbelegung"
+            },
+            {
+              "id": "c",
+              "text": "Die exakt gleiche Befehlsfolge"
+            },
+            {
+              "id": "d",
+              "text": "Die vom Programm geforderte, von außen beobachtbare Wirkung"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Optimierungen dürfen Registerbelegung und Befehlsfolge verändern. Entscheidend ist, dass die beobachtbare Wirkung des Programms erhalten bleibt.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO7.md",
+            "heading": "Wie wird ein Programm schrittweise abgearbeitet?"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Compileroptimierung",
+            "Sequenzielle Befehlsausführung"
+          ]
+        },
+        {
+          "id": "era-07-l2-q11",
+          "type": "multi",
+          "prompt": "Welche Aussagen beschreiben die Programmausführung korrekt? Wähle alle richtigen Aussagen; mehrere Antworten können richtig sein.",
+          "options": [
+            {
+              "id": "a",
+              "text": "Die grundlegende Befehlsfolge wird zunächst sequenziell abgearbeitet."
+            },
+            {
+              "id": "b",
+              "text": "Jeder Sprung muss die sequenzielle Reihenfolge vollständig verbieten."
+            },
+            {
+              "id": "c",
+              "text": "Eine Optimierung darf intern anders arbeiten, solange die beobachtbare Wirkung erhalten bleibt."
+            },
+            {
+              "id": "d",
+              "text": "Optimierung bedeutet zwingend dieselbe Registerbelegung wie im Beispiel."
+            },
+            {
+              "id": "e",
+              "text": "Bedingte und unbedingte Sprünge können die Reihenfolge verändern."
+            }
+          ],
+          "correct": [
+            "a",
+            "c",
+            "e"
+          ],
+          "explanation": "Sequenzielle Ausführung ist der Ausgangspunkt, Sprünge können davon abweichen, und Optimierungen dürfen die interne Umsetzung ändern. Die Registerbelegung muss dabei nicht gleich bleiben.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO7.md",
+            "heading": "Wie wird ein Programm schrittweise abgearbeitet?"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Sequenzielle Befehlsausführung",
+            "Sprünge",
+            "Compileroptimierung"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "era-07-l3",
+      "index": 3,
+      "kind": "deepen",
+      "title": "Vertiefen",
+      "questions": [
+        {
+          "id": "era-07-l3-q01",
+          "type": "single",
+          "prompt": "Welche Aussage trennt Speicherorganisation und Speicherbehandlung korrekt?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Getrennte Speicherbereiche können grundsätzlich nicht schreibgeschützt sein."
+            },
+            {
+              "id": "b",
+              "text": "Ein gemeinsamer Speicher darf niemals unterschiedliche Zugriffsrechte haben."
+            },
+            {
+              "id": "c",
+              "text": "Die gemeinsame oder getrennte Organisation von Programm- und Datenspeicher ist eine andere Frage als Schreibschutz."
+            },
+            {
+              "id": "d",
+              "text": "Schreibschutz beantwortet automatisch, ob Harvard oder Von Neumann vorliegt."
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Die Aufteilung in gemeinsame oder getrennte Speicher betrifft die Organisation. Schreibschutz beschreibt dagegen, wie Speicherbereiche behandelt werden.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO7.md",
+            "heading": "Gemeinsamer oder getrennter Speicher?"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Harvard-Architektur",
+            "Programme und Daten im selben Speicher"
+          ]
+        },
+        {
+          "id": "era-07-l3-q02",
+          "type": "multi",
+          "prompt": "Welche Aussagen über Von Neumann, Harvard und die genannte Mischform sind richtig? Wähle alle richtigen Aussagen; mehrere Antworten können richtig sein.",
+          "options": [
+            {
+              "id": "a",
+              "text": "Harvard verwendet getrennten Programm- und Datenspeicher."
+            },
+            {
+              "id": "b",
+              "text": "Schreibschutz allein macht aus jedem gemeinsamen Speicher eine Harvard-Architektur."
+            },
+            {
+              "id": "c",
+              "text": "Bei getrennten Caches können Programme und Daten nicht mehr im gemeinsamen Hauptspeicher liegen."
+            },
+            {
+              "id": "d",
+              "text": "Von Neumann verwendet einen gemeinsamen Speicher für Programme und Daten."
+            },
+            {
+              "id": "e",
+              "text": "Ein gemeinsamer Hauptspeicher mit getrennten Befehls- und Datencaches ist eine genannte Mischform."
+            }
+          ],
+          "correct": [
+            "a",
+            "d",
+            "e"
+          ],
+          "explanation": "a, b und c entsprechen den drei beschriebenen Organisationsformen. Schreibschutz und getrennte Caches legen die Speicherorganisation nicht automatisch vollständig fest.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO7.md",
+            "heading": "Gemeinsamer oder getrennter Speicher?"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Von-Neumann-Konzept",
+            "Harvard-Architektur",
+            "Hauptspeicher"
+          ]
+        },
+        {
+          "id": "era-07-l3-q03",
+          "type": "truefalse",
+          "prompt": "Weil Programme im Von-Neumann-Modell im Hauptspeicher liegen, kann die Maschine grundsätzlich auch Programminhalte verändern.",
+          "options": [
+            {
+              "id": "true",
+              "text": "Wahr"
+            },
+            {
+              "id": "false",
+              "text": "Falsch"
+            }
+          ],
+          "correct": [
+            "true"
+          ],
+          "explanation": "Programme und Daten liegen im selben Speicher, und die Merkpunkte nennen ausdrücklich, dass die Maschine Speicherinhalte verändern kann.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO7.md",
+            "heading": "Die Merkpunkte mit bereinigter Nummerierung"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Von-Neumann-Konzept",
+            "Programme und Daten im selben Speicher"
+          ]
+        },
+        {
+          "id": "era-07-l3-q04",
+          "type": "single",
+          "prompt": "Welche Technik wird als üblicher Weg genannt, unterschiedliche Abläufe umzusetzen, ohne den eigenen Programmcode zu verändern?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Ausschließlich das Löschen des Hauptspeichers"
+            },
+            {
+              "id": "b",
+              "text": "Bedingte Sprünge und Änderungen von Adressen"
+            },
+            {
+              "id": "c",
+              "text": "Das Ersetzen der ALU durch das Ein-/Ausgabewerk"
+            },
+            {
+              "id": "d",
+              "text": "Das Speichern aller Befehle als Dezimalzahlen"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "Statt selbstmodifizierendem Code werden unterschiedliche Abläufe vor allem durch bedingte Sprünge und Adressänderungen umgesetzt.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO7.md",
+            "heading": "Selbstmodifizierender Code"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Selbstmodifizierender Code",
+            "Sprünge"
+          ]
+        },
+        {
+          "id": "era-07-l3-q05",
+          "type": "cloze",
+          "prompt": "Beim Linken werden Verweise aufgelöst und gegebenenfalls ___ angepasst.",
+          "options": [
+            {
+              "id": "a",
+              "text": "Adressangaben"
+            },
+            {
+              "id": "b",
+              "text": "Ein-/Ausgabewerke"
+            },
+            {
+              "id": "c",
+              "text": "Befehlszyklen"
+            },
+            {
+              "id": "d",
+              "text": "Registerbreiten"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "Der Linker kann die Adressangaben anpassen, damit Verweise zwischen den verbundenen Programmteilen auf die richtigen Ziele zeigen.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO7.md",
+            "heading": "Was bedeutet Linken?"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Linken",
+            "Hauptspeicher"
+          ]
+        },
+        {
+          "id": "era-07-l3-q06",
+          "type": "diagram",
+          "prompt": "Welche Aussage beschreibt die beiden möglichen Pfade des Diagramms korrekt?\n\n```mermaid\nflowchart LR\nA[\"Befehl n\"] --> B[\"Befehl n plus 1\"]\nB --> C[\"Bedingter Sprung\"]\nC -->|nicht genommen| D[\"Befehl n plus 2\"]\nC -->|genommen| E[\"Andere Stelle\"]\n```",
+          "options": [
+            {
+              "id": "a",
+              "text": "Bei nicht genommenem Sprung geht es sequenziell weiter; bei genommenem Sprung an eine andere Stelle."
+            },
+            {
+              "id": "b",
+              "text": "Der bedingte Sprung wird nur ausgeführt, wenn der vorherige Befehl gelöscht wurde."
+            },
+            {
+              "id": "c",
+              "text": "Beide Pfade führen zwingend zum Befehl n plus 2."
+            },
+            {
+              "id": "d",
+              "text": "Der Sprung verändert ausschließlich Daten, nie die Befehlsreihenfolge."
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "Ein nicht genommener bedingter Sprung lässt die sequenzielle Fortsetzung zu. Ein genommener Sprung wählt dagegen die dargestellte andere Stelle.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO7.md",
+            "heading": "Wie wird ein Programm schrittweise abgearbeitet?"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Sprünge",
+            "Sequenzielle Befehlsausführung"
+          ]
+        },
+        {
+          "id": "era-07-l3-q07",
+          "type": "multi",
+          "prompt": "Welche Aussagen über Optimierung und Programmausführung sind richtig? Wähle alle richtigen Aussagen; mehrere Antworten können richtig sein.",
+          "options": [
+            {
+              "id": "a",
+              "text": "Die von außen beobachtbare Wirkung muss erhalten bleiben."
+            },
+            {
+              "id": "b",
+              "text": "Optimierung darf die geforderte Wirkung beliebig verändern."
+            },
+            {
+              "id": "c",
+              "text": "Die sequenzielle Grundidee gilt nach jeder Optimierung vollständig ohne mögliche Sprünge."
+            },
+            {
+              "id": "d",
+              "text": "Ein optimiertes Programm muss nicht dieselbe Befehlsfolge wie ein unoptimiertes Beispiel besitzen."
+            },
+            {
+              "id": "e",
+              "text": "Ein optimiertes Programm muss nicht dieselbe Registerbelegung wie ein unoptimiertes Beispiel besitzen."
+            }
+          ],
+          "correct": [
+            "a",
+            "d",
+            "e"
+          ],
+          "explanation": "Optimierungen können Registerbelegung und Befehlsfolge verändern. Die beobachtbare Wirkung des Programms muss dennoch erhalten bleiben; Sprünge bleiben weiterhin möglich.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO7.md",
+            "heading": "Compileroptimierung"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Compileroptimierung",
+            "Sequenzielle Befehlsausführung",
+            "Sprünge"
+          ]
+        },
+        {
+          "id": "era-07-l3-q08",
+          "type": "single",
+          "prompt": "Welche ausgeschriebene Bezeichnung ist für MDR angegeben?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Memory Data Register"
+            },
+            {
+              "id": "b",
+              "text": "Memory Direction Register"
+            },
+            {
+              "id": "c",
+              "text": "Main Data Register"
+            },
+            {
+              "id": "d",
+              "text": "Machine Data Router"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "MDR wird als Memory Data Register angegeben. Die Bezeichnung von MAR ist im Text ausdrücklich als unklar markiert und wird daher hier nicht benötigt.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO7.md",
+            "heading": "Daten und Befehle sind codierte Speicherinhalte"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Hauptspeicher"
+          ]
+        },
+        {
+          "id": "era-07-l3-q09",
+          "type": "calc",
+          "prompt": "Ein Programm enthält Befehle an den Adressen $200$, $201$ und $202$. Der Befehl an $201$ springt bei erfüllter Bedingung zu $300$. Welche Ausführungspräfixe sind je nach Bedingung möglich?",
+          "options": [
+            {
+              "id": "a",
+              "text": "$200, 201, 201$ oder $200, 202, 300$"
+            },
+            {
+              "id": "b",
+              "text": "$201, 202$ oder $200, 300$"
+            },
+            {
+              "id": "c",
+              "text": "$200, 202$ oder $201, 300$"
+            },
+            {
+              "id": "d",
+              "text": "$200, 201, 202$ oder $200, 201, 300$"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "In beiden Fällen wird zuerst $200$ und dann der Sprungbefehl an $201$ ausgeführt. Bei falscher Bedingung folgt $202$, bei wahrer Bedingung die Sprungadresse $300$; die anderen Optionen überspringen notwendige Befehle oder vertauschen die Reihenfolge.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO7.md",
+            "heading": "Wie wird ein Programm schrittweise abgearbeitet?"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Sprünge",
+            "Sequenzielle Befehlsausführung"
+          ]
+        },
+        {
+          "id": "era-07-l3-q10",
+          "type": "truefalse",
+          "prompt": "Weil Programme und Daten im selben Speicher liegen, werden beide immer auf genau dieselbe Weise interpretiert.",
+          "options": [
+            {
+              "id": "true",
+              "text": "Wahr"
+            },
+            {
+              "id": "false",
+              "text": "Falsch"
+            }
+          ],
+          "correct": [
+            "false"
+          ],
+          "explanation": "Beide liegen als codierte Speicherinhalte vor, aber Daten und Befehle haben unterschiedliche vereinbarte Interpretationen: Befehle folgen der ISA-Codierung, Daten ihrer jeweiligen Codierung.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO7.md",
+            "heading": "Daten und Befehle sind codierte Speicherinhalte"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Programme und Daten im selben Speicher",
+            "Von-Neumann-Konzept"
+          ]
+        },
+        {
+          "id": "era-07-l3-q11",
+          "type": "single",
+          "prompt": "Welche Zuordnung beschreibt Daten und Befehle korrekt?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Daten sind immer ISA-Befehle; Befehle sind immer Dezimaldaten."
+            },
+            {
+              "id": "b",
+              "text": "Befehle liegen nur im Ein-/Ausgabewerk, Daten nur in Registern."
+            },
+            {
+              "id": "c",
+              "text": "Assemblertext ist der einzige mögliche Speicherinhalt für Befehle."
+            },
+            {
+              "id": "d",
+              "text": "Daten folgen einer vereinbarten Binärinterpretation; Befehle sind gemäß ISA codiert und können als Assembler dargestellt werden."
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Die Tabelle unterscheidet die Interpretation von Daten und Befehlen, obwohl beide als codierte Inhalte im Speicher liegen können.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO7.md",
+            "heading": "Daten und Befehle sind codierte Speicherinhalte"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Hauptspeicher",
+            "Von-Neumann-Konzept"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "era-07-l4",
+      "index": 4,
+      "kind": "boss",
+      "title": "Boss",
+      "questions": [
+        {
+          "id": "era-07-l4-q01",
+          "type": "single",
+          "prompt": "Eine Routine ruft eine zweite Routine auf. Welche Vorgehensweise bewahrt die Rücksprungmöglichkeit korrekt?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Die Rücksprungadresse wird nicht gesichert, weil ein verschachtelter Aufruf sie nicht verändert."
+            },
+            {
+              "id": "b",
+              "text": "Der Stackframe wird vor dem verschachtelten Aufruf freigegeben und danach nicht wieder eingerichtet."
+            },
+            {
+              "id": "c",
+              "text": "Die erste Rücksprungadresse wird vor dem verschachtelten Aufruf gesichert und vor dem Rücksprung wiederhergestellt."
+            },
+            {
+              "id": "d",
+              "text": "Alle Register müssen immer unverändert bleiben, unabhängig von der Calling Convention."
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Ein verschachtelter `jal` überschreibt `ra`. Die bisherige Rücksprungadresse muss deshalb gesichert und vor dem Rücksprung wiederhergestellt werden.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO6.md",
+            "heading": null
+          },
+          "difficulty": 5,
+          "concepts": [
+            "Stackframe",
+            "Calling Convention",
+            "Prolog und Epilog"
+          ]
+        },
+        {
+          "id": "era-07-l4-q02",
+          "type": "calc",
+          "prompt": "Bei $PC=100$ wird `jal ra, 20` ausgeführt. Welche Werte gelten danach für `ra` und den neuen $PC$?",
+          "options": [
+            {
+              "id": "a",
+              "text": "$ra=104$, $PC=124$"
+            },
+            {
+              "id": "b",
+              "text": "$ra=100$, $PC=120$"
+            },
+            {
+              "id": "c",
+              "text": "$ra=96$, $PC=120$"
+            },
+            {
+              "id": "d",
+              "text": "$ra=104$, $PC=120$"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "`jal` speichert $PC+4=104$ in `ra` und setzt den $PC$ auf $PC+20=120$. Die anderen Optionen verwechseln Rücksprungadresse und Sprungziel oder berechnen den Offset falsch.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO6.md",
+            "heading": null
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Sprünge",
+            "Calling Convention"
+          ]
+        },
+        {
+          "id": "era-07-l4-q03",
+          "type": "single",
+          "prompt": "Welche Kombination beschreibt Stack und Hauptspeicher korrekt?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Der Stack liegt im Ein-/Ausgabewerk und wird wortweise ohne Adressen verwaltet."
+            },
+            {
+              "id": "b",
+              "text": "Der Stack liegt im Hauptspeicher, der byteweise adressiert ist."
+            },
+            {
+              "id": "c",
+              "text": "Der Stack ist ein vom Hauptspeicher unabhängiger Speicher mit eigenen Zellen."
+            },
+            {
+              "id": "d",
+              "text": "Der Stack liegt ausschließlich in Registern und ist nicht adressierbar."
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "Der Stack ist ein Bereich des byteweise adressierten Hauptspeichers. Er ist kein technisch getrennter Speicher.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO4.md",
+            "heading": null
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Stackframe",
+            "Hauptspeicher"
+          ]
+        },
+        {
+          "id": "era-07-l4-q04",
+          "type": "multi",
+          "prompt": "Ein Programm ruft `printf` auf und wird mit einer Bibliothek verbunden. Welche Vorgänge gehören zum Linken? Wähle alle richtigen Aussagen; mehrere Antworten können richtig sein.",
+          "options": [
+            {
+              "id": "a",
+              "text": "Der Verweis auf `printf` wird einem passenden Ziel zugeordnet."
+            },
+            {
+              "id": "b",
+              "text": "Durch das Linken wird automatisch aus Von Neumann eine Harvard-Architektur."
+            },
+            {
+              "id": "c",
+              "text": "Der Aufruf von `printf` wird beim Linken bereits vollständig ausgeführt."
+            },
+            {
+              "id": "d",
+              "text": "Der übersetzte Programmteil und die benötigte Bibliothek werden verbunden."
+            },
+            {
+              "id": "e",
+              "text": "Gegebenenfalls werden Adressangaben angepasst."
+            }
+          ],
+          "correct": [
+            "a",
+            "d",
+            "e"
+          ],
+          "explanation": "Linken verbindet Programmteile und Bibliotheken, löst Verweise wie den auf `printf` auf und kann Adressen anpassen. Es führt den Aufruf nicht aus und ändert nicht automatisch die Speicherarchitektur.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO7.md",
+            "heading": "Was bedeutet Linken?"
+          },
+          "difficulty": 5,
+          "concepts": [
+            "Linken",
+            "Von-Neumann-Konzept",
+            "Hauptspeicher"
+          ]
+        },
+        {
+          "id": "era-07-l4-q05",
+          "type": "single",
+          "prompt": "Ein Rechner besitzt gemeinsamen Hauptspeicher für Programme und Daten, getrennte Befehls- und Datencaches sowie einen nicht veränderbaren Programmbereich. Welche Einordnung ist korrekt?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Reiner Von-Neumann-Aufbau ohne getrennte Speicherbehandlung"
+            },
+            {
+              "id": "b",
+              "text": "Die genannte Mischform; der Schreibschutz ist davon unabhängig"
+            },
+            {
+              "id": "c",
+              "text": "Harvard-Architektur, weil der Programmbereich nicht veränderbar ist"
+            },
+            {
+              "id": "d",
+              "text": "Selbstmodifizierender Code, weil Programme im Hauptspeicher liegen"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "Gemeinsamer Hauptspeicher mit getrennten Befehls- und Datencaches ist die genannte Mischform. Der Schreibschutz betrifft die Behandlung des Bereichs und beantwortet nicht allein die Organisationsfrage.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO7.md",
+            "heading": "Gemeinsamer oder getrennter Speicher?"
+          },
+          "difficulty": 5,
+          "concepts": [
+            "Harvard-Architektur",
+            "Von-Neumann-Konzept",
+            "Programme und Daten im selben Speicher"
+          ]
+        },
+        {
+          "id": "era-07-l4-q06",
+          "type": "calc",
+          "prompt": "Ein Programm startet bei Adresse $100$. Der Befehl an $101$ ist ein bedingter Sprung zu $200$; die Bedingung ist wahr. Welche drei Adressen werden zuerst ausgeführt?",
+          "options": [
+            {
+              "id": "a",
+              "text": "$100, 200, 201$"
+            },
+            {
+              "id": "b",
+              "text": "$101, 102, 200$"
+            },
+            {
+              "id": "c",
+              "text": "$100, 101, 200$"
+            },
+            {
+              "id": "d",
+              "text": "$100, 101, 102$"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Die Ausführung beginnt bei $100$ und erreicht den Sprungbefehl an $101$. Da die Bedingung wahr ist, folgt die Zieladresse $200$ statt der sequenziellen Adresse $102$.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO7.md",
+            "heading": "Wie wird ein Programm schrittweise abgearbeitet?"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Sprünge",
+            "Sequenzielle Befehlsausführung"
+          ]
+        },
+        {
+          "id": "era-07-l4-q07",
+          "type": "diagram",
+          "prompt": "Welche Aussage stimmt mit dem Diagramm des Von-Neumann-Modells überein?\n\n```mermaid\nflowchart TB\nM[\"Hauptspeicher<br/>Programme und Daten\"]\nsubgraph CPU[\"Prozessor\"]\nL[\"Leitwerk<br/>Befehlszyklus\"]\nR[\"Rechenwerk<br/>ALU\"]\nL -->|steuert| R\nend\nIO[\"Ein-/Ausgabewerk<br/>inklusive Sekundärspeicher\"]\nM <-->|Befehle und Daten| L\nM <-->|Daten| R\nIO <--> L\n```",
+          "options": [
+            {
+              "id": "a",
+              "text": "Programme liegen außerhalb des Hauptspeichers und werden nur vom Ein-/Ausgabewerk verarbeitet."
+            },
+            {
+              "id": "b",
+              "text": "Das Rechenwerk steuert das Leitwerk, während der Hauptspeicher ausschließlich Befehle liefert."
+            },
+            {
+              "id": "c",
+              "text": "Das Ein-/Ausgabewerk ist Teil des Rechenwerks und besitzt keine Verbindung zum Leitwerk."
+            },
+            {
+              "id": "d",
+              "text": "Das Leitwerk steuert das Rechenwerk, der Hauptspeicher liefert Befehle und Daten an das Leitwerk, und das Ein-/Ausgabewerk kommuniziert mit dem Leitwerk."
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Die Pfeile zeigen genau diese Beziehungen: Das Leitwerk steuert die ALU, der Hauptspeicher enthält Programme und Daten, und das Ein-/Ausgabewerk ist mit dem Leitwerk verbunden.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO7.md",
+            "heading": "Die vier Werke"
+          },
+          "difficulty": 5,
+          "concepts": [
+            "Vier Werke",
+            "Von-Neumann-Konzept",
+            "Befehlszyklus"
+          ]
+        },
+        {
+          "id": "era-07-l4-q08",
+          "type": "truefalse",
+          "prompt": "Das Anpassen von Verweisen beim Linken ist dasselbe wie selbstmodifizierender Code.",
+          "options": [
+            {
+              "id": "true",
+              "text": "Wahr"
+            },
+            {
+              "id": "false",
+              "text": "Falsch"
+            }
+          ],
+          "correct": [
+            "false"
+          ],
+          "explanation": "Beim Linken werden übersetzte Teile verbunden und Verweise beziehungsweise Adressen angepasst. Selbstmodifizierender Code verändert dagegen den eigenen Programmcode.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO7.md",
+            "heading": "Programme im Speicher verändern"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Linken",
+            "Selbstmodifizierender Code"
+          ]
+        },
+        {
+          "id": "era-07-l4-q09",
+          "type": "multi",
+          "prompt": "Welche Aussagen verbinden die Grundidee des Von-Neumann-Konzepts mit der optimierten Programmausführung richtig? Wähle alle richtigen Aussagen; mehrere Antworten können richtig sein.",
+          "options": [
+            {
+              "id": "a",
+              "text": "Bedingte und unbedingte Sprünge können von der sequenziellen Reihenfolge abweichen."
+            },
+            {
+              "id": "b",
+              "text": "Ein gemeinsamer Hauptspeicher bedeutet automatisch eine Harvard-Architektur."
+            },
+            {
+              "id": "c",
+              "text": "Optimierungen dürfen interne Registerbelegung und Befehlsfolge ändern, solange die beobachtbare Wirkung erhalten bleibt."
+            },
+            {
+              "id": "d",
+              "text": "Selbstmodifizierender Code ist für jeden Sprung zwingend erforderlich."
+            },
+            {
+              "id": "e",
+              "text": "Die Rechnerstruktur bleibt vom konkreten Problem unabhängig; das Programm steuert den Rechner."
+            }
+          ],
+          "correct": [
+            "a",
+            "c",
+            "e"
+          ],
+          "explanation": "Das allgemeine Rechnerkonzept wird durch Programme gesteuert, Optimierungen dürfen die interne Umsetzung ändern, und Sprünge können die Sequenz verlassen. Die Aussagen b und e widersprechen den beschriebenen Konzepten.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO7.md",
+            "heading": "Wie wird ein Programm schrittweise abgearbeitet?"
+          },
+          "difficulty": 5,
+          "concepts": [
+            "Von-Neumann-Konzept",
+            "Compileroptimierung",
+            "Sprünge"
+          ]
+        },
+        {
+          "id": "era-07-l4-q10",
+          "type": "cloze",
+          "prompt": "Grundsätzlich wird die Befehlsreihenfolge sequenziell abgearbeitet; Sprünge bestimmen, wann es an einer ___ Stelle weitergeht.",
+          "options": [
+            {
+              "id": "a",
+              "text": "anderen"
+            },
+            {
+              "id": "b",
+              "text": "nicht adressierbaren"
+            },
+            {
+              "id": "c",
+              "text": "nur höheren"
+            },
+            {
+              "id": "d",
+              "text": "gleichen"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "Ein Sprung setzt die Fortsetzung an eine andere Stelle des Programms. Ohne Sprung würde die sequenzielle Reihenfolge weiterlaufen.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO7.md",
+            "heading": "Wie wird ein Programm schrittweise abgearbeitet?"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Sequenzielle Befehlsausführung",
+            "Sprünge"
+          ]
+        },
+        {
+          "id": "era-07-l4-q11",
+          "type": "single",
+          "prompt": "Wie kann derselbe Speicher grundsätzlich sowohl Daten als auch Befehle enthalten?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Daten und Befehle müssen immer in getrennten Hauptspeichern liegen."
+            },
+            {
+              "id": "b",
+              "text": "Befehle werden ausschließlich als Dezimaldaten interpretiert und Daten ausschließlich als Sprünge."
+            },
+            {
+              "id": "c",
+              "text": "Befehle liegen nicht im Hauptspeicher, sondern nur im Leitwerk."
+            },
+            {
+              "id": "d",
+              "text": "Beide sind codierte Speicherinhalte; Daten werden nach ihrer vereinbarten Codierung interpretiert, Befehle nach der ISA."
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Im gemeinsamen Speicher liegen sowohl Daten als auch Befehle als codierte Inhalte. Die jeweilige Verwendung bestimmt die passende Interpretation: vereinbarte Datenkodierung oder ISA-Codierung.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO7.md",
+            "heading": "Daten und Befehle sind codierte Speicherinhalte"
+          },
+          "difficulty": 5,
+          "concepts": [
+            "Programme und Daten im selben Speicher",
+            "Von-Neumann-Konzept",
+            "Hauptspeicher"
+          ]
+        }
+      ]
+    }
+  ]
+}
