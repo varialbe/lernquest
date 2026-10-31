@@ -12,6 +12,15 @@ export type BonusResult = { unit: Unit; dropped: string[]; tokens: number; revie
  * Praxis-Level (Bonus): Anwendungsfragen aus der echten Welt + Schätzfragen mit Schieberegler.
  * Generieren (CODEX_EFFORT) → Prüfen (CODEX_REVIEW_EFFORT) → als 5. Level an die Unit hängen.
  */
+/** Verteilt Schätzfragen gleichmäßig über das Level (sonst kämen sie alle am Ende) und nummeriert die ids neu. */
+export function spreadEstimates(qs: Question[], levelId: string): Question[] {
+  const est = qs.filter((q) => q.type === 'estimate');
+  const rest = qs.filter((q) => q.type !== 'estimate');
+  const slots = new Set(est.map((_, j) => Math.floor(((j + 1) * qs.length) / (est.length + 1))));
+  const out = qs.map((_, i) => (slots.has(i) ? est.shift() : rest.shift()) ?? est.shift() ?? rest.shift()!);
+  return out.map((q, i) => ({ ...q, id: `${levelId}-q${String(i + 1).padStart(2, '0')}` }));
+}
+
 export async function generateBonus(unit: Unit, note: { text: string; headings: Heading[] } | null, workDir: string, log: (m: string) => void): Promise<BonusResult> {
   const mod = unit.module;
   const headings = note?.headings ?? [];
@@ -56,7 +65,7 @@ export async function generateBonus(unit: Unit, note: { text: string; headings: 
   }
   if (qs.length < 8) throw new Error(`Praxis-Level hat nur ${qs.length} gültige Fragen (mind. 8): ${dropped.slice(0, 3).join(' | ')}`);
 
-  const level = { id: `${unit.id}-l5`, index: 5, kind: BONUS_KIND, title: raw.title?.trim().slice(0, 80) || LEVEL_TITLES.bonus, questions: qs };
+  const level = { id: `${unit.id}-l5`, index: 5, kind: BONUS_KIND, title: raw.title?.trim().slice(0, 80) || LEVEL_TITLES.bonus, questions: spreadEstimates(qs, `${unit.id}-l5`) };
   const next = Unit.parse({ ...unit, levels: [...unit.levels.slice(0, 4), level] });
   return { unit: next, dropped, tokens: draft.tokens + reviewed.tokens, review: raw.review };
 }
