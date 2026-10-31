@@ -1,7 +1,7 @@
 import confetti from 'canvas-confetti';
 import { animate, motion, useMotionValue, useTransform } from 'motion/react';
 import { useEffect } from 'react';
-import { ACHIEVEMENTS, type PetDef, type RewardResponse } from '@lernquest/shared';
+import { ACHIEVEMENTS, DUEL, type DuelSummary, type PetDef, type RewardResponse } from '@lernquest/shared';
 import { Icon } from '../components/icons.tsx';
 import { Mascot, PetImage } from '../components/Pet.tsx';
 import { Button } from '../components/ui.tsx';
@@ -32,7 +32,39 @@ function Tile({ label, color, icon, children, delay }: { label: string; color: s
   );
 }
 
-export function Reward({ result, practice, petName, onContinue }: { result: RewardResponse | 'offline'; practice: boolean; petName: (id: string) => PetDef | undefined; onContinue: (to: string) => void }) {
+/** Duell-Stand nach der eigenen Runde: Ergebnis gegen den Gegner oder „wartet noch“. */
+function DuelBox({ d }: { d: DuelSummary }) {
+  const verdict = d.winner === 'me' ? `Gewonnen! +${DUEL.winCoins} Coins` : d.winner === 'them' ? 'Knapp verloren' : d.winner === 'draw' ? 'Unentschieden' : `${d.opponent.displayName} ist noch dran`;
+  return (
+    <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.8 }} className="mt-5 w-full rounded-2xl border-2 border-line bg-surface p-4">
+      <p className="text-sm font-black uppercase tracking-wider text-muted">Duell gegen {d.opponent.displayName}</p>
+      <p className="mt-1 text-4xl font-black tabular-nums">
+        <span className="text-primary">{d.me.correct ?? '–'}</span>
+        <span className="mx-2 text-muted">:</span>
+        <span>{d.them.played ? (d.them.correct ?? '?') : '?'}</span>
+      </p>
+      <p className={`mt-1 font-black ${d.winner === 'me' ? 'text-success' : d.winner === 'them' ? 'text-error' : 'text-muted'}`}>{verdict}</p>
+    </motion.div>
+  );
+}
+
+export function Reward({
+  result,
+  practice,
+  petName,
+  onContinue,
+  heading,
+  note,
+  duel,
+}: {
+  result: RewardResponse | 'offline';
+  practice: boolean;
+  petName: (id: string) => PetDef | undefined;
+  onContinue: (to: string) => void;
+  heading?: string;
+  note?: string;
+  duel?: DuelSummary | null;
+}) {
   useEffect(() => {
     if (result === 'offline') return;
     const fire = (x: number) => confetti({ particleCount: 70, angle: x < 0.5 ? 60 : 120, spread: 70, origin: { x, y: 0.7 }, colors: ['#7c5cff', '#22c55e', '#f5b301', '#38bdf8', '#f472b6'], disableForReducedMotion: true });
@@ -64,7 +96,7 @@ export function Reward({ result, practice, petName, onContinue }: { result: Rewa
         <motion.div initial={{ scale: 0.4, rotate: -10, opacity: 0 }} animate={{ scale: 1, rotate: 0, opacity: 1 }} transition={{ type: 'spring', stiffness: 220, damping: 14 }}>
           <Mascot pose="cheer" size={150} />
         </motion.div>
-        <h1 className="mt-2 text-3xl font-black text-primary">{practice ? 'Übung geschafft!' : r.stars === 3 ? 'Perfekt!' : 'Level geschafft!'}</h1>
+        <h1 className="mt-2 text-3xl font-black text-primary">{heading ?? (practice ? 'Übung geschafft!' : r.stars === 3 ? 'Perfekt!' : 'Level geschafft!')}</h1>
 
         {!practice && (
           <div className="mt-3 flex gap-2" aria-label={`${r.stars} von 3 Sternen`}>
@@ -87,6 +119,9 @@ export function Reward({ result, practice, petName, onContinue }: { result: Rewa
             <CountUp to={Math.round(r.accuracy * 100)} delay={0.7} />%
           </Tile>
         </div>
+
+        {duel && <DuelBox d={duel} />}
+        {note && <p className="mt-4 rounded-2xl bg-surface-2 px-4 py-2 text-sm font-bold text-muted">{note}</p>}
 
         {r.streakIncreased && (
           <motion.div initial={{ scale: 0.6, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ delay: 0.9, type: 'spring' }} className="mt-5 flex w-full items-center gap-3 rounded-2xl border-2 border-flame/40 bg-surface p-3">

@@ -8,7 +8,8 @@ import { useMe } from './lib/queries.ts';
 import { setMuted } from './lib/sound.ts';
 import { ChangePassword, Login, Register } from './pages/Auth.tsx';
 import { Home } from './pages/Home.tsx';
-import { Quiz } from './pages/Quiz.tsx';
+import { Quiz, type RunSpec } from './pages/Quiz.tsx';
+import { initNative, rescheduleReminders } from './lib/native.ts';
 
 const League = lazy(() => import('./pages/League.tsx'));
 const Pets = lazy(() => import('./pages/Pets.tsx'));
@@ -16,6 +17,15 @@ const Praxis = lazy(() => import('./pages/Praxis.tsx'));
 const Shop = lazy(() => import('./pages/Shop.tsx'));
 const Profile = lazy(() => import('./pages/Profile.tsx'));
 const Admin = lazy(() => import('./pages/Admin.tsx'));
+const Train = lazy(() => import('./pages/Train.tsx'));
+const Mastery = lazy(() => import('./pages/Mastery.tsx'));
+const Duels = lazy(() => import('./pages/Duels.tsx'));
+
+/** Jede Runde bekommt beim Öffnen eine neue Server-Runde (eigener Query-Key pro Aufruf). */
+function RunQuiz(props: Omit<RunSpec, 'key'>) {
+  const [key] = useState(() => `${props.url}:${Date.now()}`);
+  return <Quiz key={key} run={{ ...props, key }} />;
+}
 
 export function App() {
   const [token, setTok] = useState(getToken());
@@ -66,11 +76,15 @@ export function App() {
 function Authed({ onLogin, onLogout }: { onLogin: (t: string) => void; onLogout: () => void }) {
   const { data: me, isLoading, error } = useMe();
 
+  const qc = useQueryClient();
   useEffect(() => {
     if (!me) return;
     document.documentElement.dataset.theme = me.settings.theme;
     setMuted(!me.settings.soundOn);
+    void rescheduleReminders(me.stats);
   }, [me]);
+  // iOS-App: Live-Update prüfen, beim Zurückkehren Daten auffrischen
+  useEffect(() => void initNative(() => void qc.invalidateQueries()), [qc]);
 
   if (isLoading) return <Spinner label="Lade …" />;
   if (error && !me) {
@@ -94,6 +108,12 @@ function Authed({ onLogin, onLogout }: { onLogin: (t: string) => void; onLogout:
           <Quiz key="practice" practice />
         </Route>
         <Route path="/praxis" component={Praxis} />
+        <Route path="/train" component={Train} />
+        <Route path="/mastery" component={Mastery} />
+        <Route path="/duels" component={Duels} />
+        <Route path="/weak/:module">{(p) => <RunQuiz url="/api/runs/weak" body={{ module: p.module }} back="/train" />}</Route>
+        <Route path="/exam/:module">{(p) => <RunQuiz url="/api/runs/exam" body={{ module: p.module }} back="/train" />}</Route>
+        <Route path="/duel/:id">{(p) => <RunQuiz url={`/api/duels/${p.id}/play`} back="/duels" />}</Route>
         <Route path="/league" component={League} />
         <Route path="/pets" component={Pets} />
         <Route path="/shop" component={Shop} />

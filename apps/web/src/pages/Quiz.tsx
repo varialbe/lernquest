@@ -1,9 +1,9 @@
 import confetti from 'canvas-confetti';
 import { AnimatePresence, motion } from 'motion/react';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useLocation } from 'wouter';
-import { checkAnswer, headingAnchor, PETS, type LevelResponse, type Question, type RewardResponse } from '@lernquest/shared';
+import { checkAnswer, headingAnchor, PETS, type LevelResponse, type Question, type RewardResponse, type RunResult, type RunStart } from '@lernquest/shared';
 import { EstimateInput, fmtNum } from '../components/Estimate.tsx';
 import { Icon } from '../components/icons.tsx';
 import { Markdown } from '../components/Markdown.tsx';
@@ -13,6 +13,7 @@ import { api, ApiError } from '../lib/api.ts';
 import { queueSubmission } from '../lib/offline.ts';
 import { useConfig } from '../lib/queries.ts';
 import { isMuted, setMuted, sfx } from '../lib/sound.ts';
+import { ExamResult } from './ExamResult.tsx';
 import { Reward } from './Reward.tsx';
 
 const TYPE_LABEL: Record<Question['type'], string> = {
@@ -28,6 +29,10 @@ const TYPE_LABEL: Record<Question['type'], string> = {
 const PRAISE = ['Super!', 'Richtig!', 'Stark!', 'Genau so!', 'Klasse!', 'Volltreffer!'];
 
 type Phase = 'answering' | 'correct' | 'wrong';
+/** Vom Server zusammengestellte Runde (Schwächen, Klausur-Check, Duell) */
+export type RunSpec = { key: string; url: string; body?: unknown; back: string };
+
+const fmtClock = (s: number) => `${Math.floor(Math.max(0, s) / 60)}:${String(Math.max(0, s) % 60).padStart(2, '0')}`;
 
 function SourceLink({ q }: { q: Question }) {
   const { data: cfg } = useConfig();
@@ -141,16 +146,29 @@ function TrueFalse({ q, selected, phase, onPick }: { q: Question; selected: stri
   );
 }
 
-export function Quiz({ levelId, practice }: { levelId?: string; practice?: boolean }) {
+export function Quiz({ levelId, practice, run: spec }: { levelId?: string; practice?: boolean; run?: RunSpec }) {
   const [, navigate] = useLocation();
   const qc = useQueryClient();
   const { data, isLoading, error } = useQuery({
-    queryKey: practice ? ['practice-set'] : ['level', levelId],
-    queryFn: async () => (practice ? { level: null, questions: (await api<{ questions: Question[] }>('/api/practice')).questions } : api<LevelResponse>(`/api/levels/${levelId}`)),
+    queryKey: spec ? ['run', spec.key] : practice ? ['practice-set'] : ['level', levelId],
+    queryFn: async (): Promise<{ level: LevelResponse['level'] | null; questions: Question[]; run?: RunStart }> => {
+      if (spec) {
+        const r = await api<RunStart>(spec.url, { method: 'POST', body: spec.body ?? {} });
+        return { level: null, questions: r.questions, run: r };
+      }
+      if (practice) return { level: null, questions: (await api<{ questions: Question[] }>('/api/practice')).questions };
+      return api<LevelResponse>(`/api/levels/${levelId}`);
+    },
     staleTime: Infinity,
     gcTime: 0,
+    retry: false,
   });
   const questions = data?.questions ?? [];
+  const run = data?.run;
+  const exam = run?.kind === 'exam';
+  /** Klausur-Check und Duell: jede Frage genau einmal, falsche kommen nicht wieder */
+  const onePass = exam || run?.kind === 'duel';
+  const back = spec?.back ?? (practice ? '/train' : '/');
 
   const [queue, setQueue] = useState<number[]>([]);
   const [firstTry, setFirstTry] = useState<Record<string, string[]>>({});
@@ -163,24 +181,30 @@ export function Quiz({ levelId, practice }: { levelId?: string; practice?: boole
   const [quit, setQuit] = useState(false);
   const [report, setReport] = useState(false);
   const [reported, setReported] = useState<Set<string>>(new Set());
-  const [result, setResult] = useState<RewardResponse | 'offline' | null>(null);
+  const [result, setResult] = useState<RewardResponse | RunResult | 'offline' | null>(null);
+  const [left, setLeft] = useState<number | null>(null);
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [muted, setMutedState] = useState(isMuted());
   const [started] = useState(Date.now());
 
+  // genau einmal befüllen – eine leere Queue heißt danach „fertig“ (auch wenn nichts richtig war)
+  const initialized = useRef(false);
   useEffect(() => {
-    if (questions.length && !queue.length && !solved.size) setQueue(questions.map((_, i) => i));
-  }, [questions]); // eslint-disable-line react-hooks/exhaustive-deps
+    if (questions.length && !initialized.current) {
+      initialized.current = true;
+      setQueue(questions.map((_, i) => i));
+    }
+  }, [questions]);
 
   const q = queue.length ? questions[queue[0]!] : undefined;
   const progress = questions.length ? solved.size / questions.length : 0;
 
   const submit = useCallback(
     async (answers: { questionId: string; selected: string[] }[]) => {
-      const url = practice ? '/api/practice/complete' : `/api/levels/${levelId}/complete`;
+      const url = run ? `/api/runs/${run.runId}/complete` : practice ? '/api/practice/complete' : `/api/levels/${levelId}/complete`;
       const body = practice ? { answers } : { answers, durationSec: Math.round((Date.now() - started) / 1000) };
       try {
-        const r = await api<RewardResponse>(url, { method: 'POST', body });
+        const r = await api<RewardResponse | RunResult>(url, { method: 'POST', body });
         sfx.complete();
         setResult(r);
         void qc.invalidateQueries({ queryKey: ['me'] });
@@ -188,18 +212,42 @@ export function Quiz({ levelId, practice }: { levelId?: string; practice?: boole
         void qc.invalidateQueries({ queryKey: ['discover'] });
         void qc.invalidateQueries({ queryKey: ['profile'] });
         void qc.invalidateQueries({ queryKey: ['lb'] });
+        void qc.invalidateQueries({ queryKey: ['quests'] });
+        void qc.invalidateQueries({ queryKey: ['mastery'] });
+        void qc.invalidateQueries({ queryKey: ['duels'] });
       } catch (e) {
-        if (e instanceof ApiError && e.status === 0) {
+        // Runden werden nicht offline gepuffert (der Server wertet sie genau einmal) → „Erneut senden“
+        if (e instanceof ApiError && e.status === 0 && !run) {
           queueSubmission(url, body);
           setResult('offline');
         } else setSubmitError((e as Error).message);
       }
     },
-    [levelId, practice, qc, started],
+    [levelId, practice, qc, started, run],
+  );
+
+  const finish = useCallback(
+    (ft: Record<string, string[]>) => {
+      setQueue([]);
+      // Klausur-Check: Unbeantwortetes (Zeit abgelaufen) weglassen → zählt serverseitig als falsch
+      void submit(questions.filter((x) => !exam || x.id in ft).map((x) => ({ questionId: x.id, selected: ft[x.id] ?? [] })));
+    },
+    [questions, exam, submit],
   );
 
   const check = useCallback(() => {
     if (!q || !selected.length || phase !== 'answering') return;
+    if (exam) {
+      // kein Feedback während des Klausur-Checks – Auswertung kommt am Ende
+      const ft = { ...firstTry, [q.id]: selected };
+      setFirstTry(ft);
+      setSelected([]);
+      sfx.tap();
+      const rest = queue.slice(1);
+      if (rest.length) setQueue(rest);
+      else finish(ft);
+      return;
+    }
     const ok = checkAnswer(q, selected);
     if (!(q.id in firstTry)) setFirstTry((f) => ({ ...f, [q.id]: selected }));
     if (ok) {
@@ -215,20 +263,37 @@ export function Quiz({ levelId, practice }: { levelId?: string; practice?: boole
       setShake((n) => n + 1);
       sfx.wrong();
     }
-  }, [q, selected, phase, firstTry]);
+  }, [q, selected, phase, firstTry, exam, queue, finish]);
 
   const next = useCallback(() => {
     if (!q) return;
     const rest = queue.slice(1);
     // falsch beantwortete Fragen kommen am Ende noch einmal
-    const newQueue = phase === 'wrong' ? [...rest, queue[0]!] : rest;
+    const newQueue = phase === 'wrong' && !onePass ? [...rest, queue[0]!] : rest;
     setSelected([]);
     setPhase('answering');
-    if (!newQueue.length) {
-      setQueue([]);
-      void submit(questions.map((x) => ({ questionId: x.id, selected: firstTry[x.id] ?? [] })));
-    } else setQueue(newQueue);
-  }, [q, queue, phase, questions, firstTry, submit]);
+    if (!newQueue.length) finish(firstTry);
+    else setQueue(newQueue);
+  }, [q, queue, phase, firstTry, onePass, finish]);
+
+  // Klausur-Check: Countdown, bei 0 wird automatisch abgegeben
+  const ftRef = useRef(firstTry);
+  ftRef.current = firstTry;
+  useEffect(() => {
+    if (!exam || !run?.timeLimitSec || result) return;
+    const end = started + run.timeLimitSec * 1000;
+    let done = false;
+    const t = setInterval(() => {
+      const s = Math.round((end - Date.now()) / 1000);
+      setLeft(s);
+      if (s <= 0 && !done) {
+        done = true;
+        clearInterval(t);
+        finish(ftRef.current);
+      }
+    }, 500);
+    return () => clearInterval(t);
+  }, [exam, run, started, result, finish]);
 
   const toggle = useCallback(
     (id: string) => {
@@ -272,7 +337,7 @@ export function Quiz({ levelId, practice }: { levelId?: string; practice?: boole
       <div className="flex min-h-dvh flex-col items-center justify-center gap-4 p-6 text-center">
         <Mascot pose="sad" size={140} />
         <p className="font-bold text-muted">{(error as Error).message}</p>
-        <Button onClick={() => navigate('/')}>Zurück</Button>
+        <Button onClick={() => navigate(back)}>Zurück</Button>
       </div>
     );
   }
@@ -290,7 +355,19 @@ export function Quiz({ levelId, practice }: { levelId?: string; practice?: boole
   }
   if (result) {
     const petName = (id: string) => PETS.find((p) => p.id === id);
-    return <Reward result={result} practice={!!practice} petName={petName} onContinue={(to) => navigate(to === '/' && data?.level?.kind === 'bonus' ? '/praxis' : to)} />;
+    const runResult = result !== 'offline' && 'kind' in result ? result : null;
+    if (runResult?.kind === 'exam') return <ExamResult result={runResult} questions={questions} onDone={(to) => navigate(to ?? back)} />;
+    return (
+      <Reward
+        result={result}
+        practice={!!practice || !!run}
+        heading={runResult?.kind === 'duel' ? 'Runde gespielt!' : runResult ? 'Schwächen trainiert!' : undefined}
+        note={runResult && !runResult.rewarded ? 'Tageskontingent erreicht – die Runde zählt für Wiederholung und Statistik, aber ohne XP und Coins.' : undefined}
+        duel={runResult?.duel ?? null}
+        petName={petName}
+        onContinue={(to) => navigate(run ? back : to === '/' && data?.level?.kind === 'bonus' ? '/praxis' : to)}
+      />
+    );
   }
   if (!q) {
     return (
@@ -299,7 +376,7 @@ export function Quiz({ levelId, practice }: { levelId?: string; practice?: boole
           <>
             <Mascot pose="sad" size={140} />
             <p className="font-bold text-error">{submitError}</p>
-            <Button onClick={() => void submit(questions.map((x) => ({ questionId: x.id, selected: firstTry[x.id] ?? [] })))}>Erneut senden</Button>
+            <Button onClick={() => finish(firstTry)}>Erneut senden</Button>
           </>
         ) : (
           <Spinner label="Wird ausgewertet …" />
@@ -316,7 +393,12 @@ export function Quiz({ levelId, practice }: { levelId?: string; practice?: boole
           <button onClick={() => setQuit(true)} aria-label="Beenden" className="-ml-1 rounded-xl p-1.5 text-muted hover:bg-surface-2">
             <Icon name="x" size={26} weight={2.8} />
           </button>
-          <ProgressBar value={progress} />
+          <ProgressBar value={exam ? (questions.length - queue.length) / questions.length : progress} />
+          {exam && left !== null && (
+            <span className={`shrink-0 rounded-xl px-2 py-0.5 font-black tabular-nums ${left <= 60 ? 'bg-error-soft text-error' : 'bg-surface-2 text-muted'}`} aria-label="Restzeit">
+              {fmtClock(left)}
+            </span>
+          )}
           <AnimatePresence>
             {combo >= 2 && (
               <motion.span key={combo} initial={{ scale: 0.4, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.4, opacity: 0 }} className="flex shrink-0 items-center gap-0.5 font-black text-flame" aria-label={`${combo}er-Combo`}>
@@ -343,6 +425,11 @@ export function Quiz({ levelId, practice }: { levelId?: string; practice?: boole
             <div className="mb-2 flex items-center gap-2">
               {retry && <span className="rounded-lg bg-error-soft px-2 py-0.5 text-xs font-black uppercase text-error">Noch mal</span>}
               {data?.level?.kind === 'bonus' && <span className="rounded-lg bg-gold/20 px-2 py-0.5 text-xs font-black uppercase text-gold-dark">Praxis</span>}
+              {run && (
+                <span className="rounded-lg bg-primary-soft px-2 py-0.5 text-xs font-black uppercase text-primary">
+                  {exam ? `Frage ${questions.length - queue.length + 1}/${questions.length}` : run.kind === 'duel' ? 'Duell' : 'Schwächen'}
+                </span>
+              )}
               <h1 className="text-sm font-black uppercase tracking-wider text-primary">{TYPE_LABEL[q.type]}</h1>
             </div>
             <div key={shake} className={phase === 'wrong' ? 'animate-shake' : ''}>
@@ -375,8 +462,8 @@ export function Quiz({ levelId, practice }: { levelId?: string; practice?: boole
           {phase === 'answering' ? (
             <motion.div key="check" className="safe-bottom border-t-2 border-line bg-bg" initial={{ y: 30, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ opacity: 0 }}>
               <div className="mx-auto max-w-xl px-4 py-4">
-                <Button full variant="success" disabled={!selected.length} onClick={check}>
-                  Prüfen
+                <Button full variant={exam ? 'primary' : 'success'} disabled={!selected.length} onClick={check}>
+                  {exam ? (queue.length > 1 ? 'Weiter' : 'Abgeben') : 'Prüfen'}
                 </Button>
               </div>
             </motion.div>
@@ -437,12 +524,14 @@ export function Quiz({ levelId, practice }: { levelId?: string; practice?: boole
       <Modal open={quit} onClose={() => setQuit(false)} title="Wirklich aufhören?">
         <div className="flex items-center gap-3">
           <Mascot pose="sad" size={90} />
-          <p className="font-semibold text-muted">Dein Fortschritt in diesem Level geht verloren.</p>
+          <p className="font-semibold text-muted">
+            {run?.kind === 'duel' ? 'Du kannst das Duell später neu beginnen – mit denselben Fragen.' : exam ? 'Dieser Klausur-Check wird dann nicht gewertet.' : 'Dein Fortschritt in diesem Level geht verloren.'}
+          </p>
         </div>
         <Button full className="mt-5" onClick={() => setQuit(false)}>
           Weiterlernen
         </Button>
-        <Button full variant="ghost" className="mt-2 text-error!" onClick={() => navigate('/')}>
+        <Button full variant="ghost" className="mt-2 text-error!" onClick={() => navigate(back)}>
           Beenden
         </Button>
       </Modal>

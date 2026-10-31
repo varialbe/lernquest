@@ -44,7 +44,7 @@ export function TopBar({ left }: { left?: ReactNode }) {
 
 const NAV: { to: string; label: string; icon: IconName; match: (p: string) => boolean }[] = [
   { to: '/', label: 'Lernen', icon: 'book', match: (p) => p === '/' },
-  { to: '/practice', label: 'Üben', icon: 'dumbbell', match: (p) => p.startsWith('/practice') },
+  { to: '/train', label: 'Üben', icon: 'dumbbell', match: (p) => ['/train', '/practice', '/mastery', '/duels'].some((x) => p.startsWith(x)) },
   { to: '/praxis', label: 'Praxis', icon: 'sparkle', match: (p) => p.startsWith('/praxis') },
   { to: '/league', label: 'Liga', icon: 'trophy', match: (p) => p.startsWith('/league') },
   { to: '/pets', label: 'Pets', icon: 'paw', match: (p) => p.startsWith('/pets') },
@@ -59,7 +59,7 @@ export function BottomNav() {
       <div className="mx-auto grid h-16 max-w-xl grid-cols-6">
         {NAV.map((n) => {
           const active = n.match(path);
-          const badge = n.to === '/practice' ? (me?.stats.dueReviews ?? 0) : 0;
+          const badge = n.to === '/train' ? (me?.stats.dueReviews ?? 0) : 0;
           return (
             <Link key={n.to} href={n.to} className="group flex flex-col items-center justify-center gap-0.5" aria-current={active ? 'page' : undefined}>
               <span className={`relative flex h-9 w-11 items-center justify-center rounded-2xl border-2 transition-colors ${active ? 'border-primary bg-primary-soft text-primary' : 'border-transparent text-muted group-hover:text-ink'}`}>

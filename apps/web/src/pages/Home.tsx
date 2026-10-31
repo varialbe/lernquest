@@ -4,6 +4,7 @@ import { Link, useLocation } from 'wouter';
 import { MODULE_INFO, PETS, petStage, type LevelNode, type ModuleId, type UnitNode } from '@lernquest/shared';
 import { Icon } from '../components/icons.tsx';
 import { Mascot, PetImage } from '../components/Pet.tsx';
+import { QuestsCard } from '../components/Quests.tsx';
 import { Page } from '../components/Shell.tsx';
 import { Button, Card, Modal, Pill, ProgressBar, Segmented, Spinner } from '../components/ui.tsx';
 import { assetUrl } from '../lib/api.ts';
@@ -157,6 +158,7 @@ export function Home() {
   return (
     <Page topLeft={<span className="text-xl font-black tracking-tight text-primary">LernQuest</span>}>
       <DailyCard />
+      <QuestsCard />
       <div className="mt-5 flex items-center justify-between gap-3">
         <Segmented
           value={mod}

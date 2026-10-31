@@ -1,4 +1,6 @@
-/** Kleine synthetische Sounds (WebAudio, keine Dateien) + Vibration, wo verfügbar. */
+/** Kleine synthetische Sounds (WebAudio, keine Dateien) + Haptik (iOS-App) bzw. Vibration. */
+import { haptic } from './native.ts';
+
 let ctx: AudioContext | null = null;
 let muted = localStorage.getItem('lq.muted') === '1';
 
@@ -40,14 +42,14 @@ export const sfx = {
       tone(784, 0, 0.12, 'triangle');
       tone(1175, 0.09, 0.18, 'triangle');
     });
-    navigator.vibrate?.(18);
+    void haptic('success');
   },
   wrong: () => {
     play(() => {
       tone(220, 0, 0.16, 'square', 0.07);
       tone(175, 0.12, 0.22, 'square', 0.07);
     });
-    navigator.vibrate?.([40, 40, 40]);
+    void haptic('error');
   },
   complete: () =>
     play(() => {

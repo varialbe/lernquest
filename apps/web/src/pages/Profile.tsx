@@ -6,6 +6,7 @@ import { Avatar } from '../components/Pet.tsx';
 import { Page } from '../components/Shell.tsx';
 import { Button, Card, Modal, ProgressBar, SectionTitle, Spinner, Toast } from '../components/ui.tsx';
 import { api, assetUrl } from '../lib/api.ts';
+import { APP_VERSION, isNative, localRemindersOn, rescheduleReminders, setLocalReminders } from '../lib/native.ts';
 import { pushSupported, currentSubscription, enablePush, disablePush } from '../lib/push.ts';
 import { useConfig, useMe, useMeMutation, useProfile } from '../lib/queries.ts';
 import { ChangePassword } from './Auth.tsx';
@@ -58,8 +59,11 @@ function Settings({ me, onLogout, onLogin }: { me: MeResponse; onLogout: () => v
   const [pwOpen, setPwOpen] = useState(false);
   const [toast, setToast] = useState<string | null>(null);
   useEffect(() => {
-    void currentSubscription().then((s) => setPush(!!s));
+    if (isNative) setPush(localRemindersOn());
+    else void currentSubscription().then((s) => setPush(!!s));
   }, []);
+  // iOS-App: lokale Mitteilungen (kein Apple-Push nötig); Browser/PWA: Web-Push
+  const canRemind = isNative || (pushSupported() && !!cfg?.vapidPublicKey);
   const themes = ['default', ...me.inventory.filter((i) => i.startsWith('theme:')).map((i) => i.slice(6))];
   const frames = me.inventory.filter((i) => i.startsWith('frame:')).map((i) => i.slice(6));
   const flash = (m: string) => {
@@ -111,15 +115,18 @@ function Settings({ me, onLogout, onLogin }: { me: MeResponse; onLogout: () => v
       <div className={row}>
         <div>
           <span className="font-bold">Streak-Erinnerung</span>
-          <p className="text-xs font-semibold text-muted">{pushSupported() ? 'Abends, wenn dein Tagesziel noch offen ist' : 'iPhone: erst „Zum Home-Bildschirm“ hinzufügen'}</p>
+          <p className="text-xs font-semibold text-muted">{isNative || pushSupported() ? 'Abends, wenn dein Tagesziel noch offen ist' : 'iPhone: erst „Zum Home-Bildschirm“ hinzufügen'}</p>
         </div>
         <button
           role="switch"
           aria-checked={!!push}
-          disabled={!pushSupported() || !cfg?.vapidPublicKey || push === null}
+          disabled={!canRemind || push === null}
           onClick={async () => {
             try {
-              if (push) await disablePush();
+              if (isNative) {
+                await setLocalReminders(!push);
+                if (!push) await rescheduleReminders(me.stats);
+              } else if (push) await disablePush();
               else await enablePush(cfg!.vapidPublicKey!);
               setPush(!push);
               flash(push ? 'Erinnerung aus' : 'Erinnerung aktiviert 🔔');
@@ -131,6 +138,10 @@ function Settings({ me, onLogout, onLogin }: { me: MeResponse; onLogout: () => v
         >
           <span className={`absolute top-1 h-6 w-6 rounded-full bg-white shadow transition-all ${push ? 'left-7' : 'left-1'}`} />
         </button>
+      </div>
+      <div className={row}>
+        <span className="font-bold">App-Version</span>
+        <span className="font-mono text-xs font-bold text-muted">{APP_VERSION}</span>
       </div>
       <button className={`${row} w-full font-bold`} onClick={() => setPwOpen(true)}>
         Passwort ändern <Icon name="chevronRight" className="text-muted" />
