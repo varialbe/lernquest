@@ -98,7 +98,7 @@ function Authed({ onLogin, onLogout }: { onLogin: (t: string) => void; onLogout:
       </div>
     );
   }
-  if (me?.user.mustChangePassword) return <ChangePassword forced onDone={onLogin} />;
+  if (me?.user.mustChangePassword) return <ChangePassword forced onDone={onLogin} username={me.user.username} />;
 
   return (
     <Suspense fallback={<Spinner />}>

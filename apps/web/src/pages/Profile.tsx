@@ -11,6 +11,7 @@ import { pushSupported, currentSubscription, enablePush, disablePush } from '../
 import { useConfig, useMe, useMeMutation, useProfile } from '../lib/queries.ts';
 import { ChangePassword } from './Auth.tsx';
 import { moduleColor } from '../lib/theme.ts';
+import { PasskeySettings } from '../components/PasskeySettings.tsx';
 
 function StatBox({ img, value, label }: { img: string; value: React.ReactNode; label: string }) {
   return (
@@ -144,6 +145,7 @@ function Settings({ me, onLogout, onLogin }: { me: MeResponse; onLogout: () => v
         <span className="font-bold">App-Version</span>
         <span className="font-mono text-xs font-bold text-muted">{APP_VERSION}</span>
       </div>
+      <PasskeySettings row={row} flash={flash} />
       <button className={`${row} w-full font-bold`} onClick={() => setPwOpen(true)}>
         Passwort ändern <Icon name="chevronRight" className="text-muted" />
       </button>
@@ -158,6 +160,7 @@ function Settings({ me, onLogout, onLogin }: { me: MeResponse; onLogout: () => v
       <Modal open={pwOpen} onClose={() => setPwOpen(false)}>
         <div className="-mx-5 -mb-6 max-h-[80dvh] overflow-y-auto">
           <ChangePassword
+            username={me.user.username}
             onDone={(t) => {
               setPwOpen(false);
               onLogin(t);
