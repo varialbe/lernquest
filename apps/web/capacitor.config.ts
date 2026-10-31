@@ -8,7 +8,8 @@ const config: CapacitorConfig = {
   ios: { contentInset: 'never', scheme: 'App', limitsNavigationsToAppBoundDomains: false },
   plugins: {
     // Live-Updates ohne Cloud: die App fragt selbst /api/app/update (siehe src/lib/native.ts)
-    CapacitorUpdater: { autoUpdate: false, appReadyTimeout: 15000, resetWhenUpdate: true },
+    // statsUrl '' = keine Telemetrie an Capgo-Server
+    CapacitorUpdater: { autoUpdate: false, appReadyTimeout: 15000, resetWhenUpdate: true, statsUrl: '' },
     LocalNotifications: { presentationOptions: ['banner', 'sound'] },
   },
 };

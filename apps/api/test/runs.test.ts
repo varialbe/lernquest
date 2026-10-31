@@ -148,3 +148,13 @@ describe('tagesaufgaben', () => {
     expect(db.select().from(reviewItems).where(and(eq(reviewItems.userId, id))).all()).toHaveLength(0);
   });
 });
+
+describe('ios live update', () => {
+  it('records failed updates from the app as admin notification', async () => {
+    const res = await app.inject({ method: 'POST', url: '/api/app/diag', headers: { origin: 'capacitor://localhost' }, payload: { version: 'abc', stage: 'download', error: 'Checksum required' } });
+    expect(res.statusCode).toBe(200);
+    expect(res.headers['access-control-allow-origin']).toBe('capacitor://localhost');
+    const { adminNotifications } = await import('../src/db/schema.ts');
+    expect(db.select().from(adminNotifications).all().at(-1)).toMatchObject({ level: 'warn', body: 'App-Version abc: Checksum required' });
+  });
+});

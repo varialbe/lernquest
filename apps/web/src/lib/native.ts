@@ -22,6 +22,16 @@ export async function haptic(kind: 'tap' | 'success' | 'error') {
 
 // ---------- Live-Updates ----------
 let checking = false;
+let stage: 'manifest' | 'plugin' | 'download' | 'activate' = 'manifest';
+
+function reportUpdateError(where: string, e: unknown) {
+  const error = e instanceof Error ? e.message : String(e);
+  return fetch(`${BASE}/api/app/diag`, {
+    method: 'POST',
+    headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ version: APP_VERSION, stage: where, error: error.slice(0, 500) }),
+  }).catch(() => {});
+}
 /**
  * Holt das neueste Web-Paket vom eigenen Server (Manifest über /api/app/update, ZIP unter /app-updates/).
  * Direkt nach dem Start wird es sofort aktiviert (die App lädt einmal neu), sonst beim nächsten Wechsel in den Hintergrund.
@@ -30,21 +40,27 @@ let checking = false;
 export async function checkForUpdate() {
   if (!isNative || checking) return;
   checking = true;
+  stage = 'manifest';
   try {
     const res = await fetch(`${BASE}/api/app/update`, { cache: 'no-store' });
     if (!res.ok) return;
     const latest = (await res.json()) as AppUpdateManifest;
     if (!latest.version || latest.version === APP_VERSION) return;
+    stage = 'plugin';
     const { CapacitorUpdater } = await import('@capgo/capacitor-updater');
     const { bundles } = await CapacitorUpdater.list();
     let bundle = bundles.find((b) => b.version === latest.version && b.status !== 'error' && b.status !== 'deleted');
-    bundle ??= await CapacitorUpdater.download({ url: latest.url.startsWith('http') ? latest.url : `${BASE}${latest.url}`, version: latest.version });
+    stage = 'download';
+    // Prüfsumme ist Pflicht (SHA-256 der ZIP, hex) – ohne sie bricht das Plugin vor dem Download ab
+    bundle ??= await CapacitorUpdater.download({ url: latest.url.startsWith('http') ? latest.url : `${BASE}${latest.url}`, version: latest.version, checksum: latest.checksum });
+    stage = 'activate';
     if (Date.now() - STARTED < 8000) await CapacitorUpdater.set({ id: bundle.id });
     else await CapacitorUpdater.next({ id: bundle.id });
     // alte Pakete aufräumen
     for (const b of bundles) if (b.id !== bundle.id && b.version !== APP_VERSION && b.id !== 'builtin') void CapacitorUpdater.delete({ id: b.id }).catch(() => {});
-  } catch {
-    /* offline oder Server nicht erreichbar – nächster Versuch beim nächsten Öffnen */
+  } catch (e) {
+    // offline → still; alles andere an den Server melden, damit es nicht wieder unbemerkt hängt
+    if (stage !== 'manifest') void reportUpdateError(stage, e);
   } finally {
     checking = false;
   }
