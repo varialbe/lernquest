@@ -1,0 +1,1692 @@
+{
+  "schemaVersion": 1,
+  "id": "eip-01",
+  "module": "EIP",
+  "number": 1,
+  "slug": "anforderungen-zum-algorithmus",
+  "title": "Von Anforderungen zum Algorithmus",
+  "summary": "Die Unit zeigt, wie eine Alltagssituation als strukturierte Daten und präzise Anforderung formuliert wird. Daraus entsteht ein Algorithmus, der die schnellste route ohne Treppen auswählt und Sonderfälle wie Gleichstand oder fehlende geeignete Routen behandelt. Außerdem werden Laufzeitvorteile des Merkens der bisher besten Route sowie die Rolle von KI und Java eingeordnet.",
+  "concepts": [
+    "Anforderungen",
+    "Datenbeschreibung",
+    "Algorithmus",
+    "geeignete Route",
+    "Treppenfilter",
+    "bisher beste Route",
+    "Reihenfolge",
+    "Gleichstand",
+    "Sonderfälle",
+    "Laufzeit",
+    "Theta-Notation",
+    "Korrektheit und Testen",
+    "KI und Anforderungen",
+    "Java-Umsetzung"
+  ],
+  "keyFacts": [
+    "Eine Route wird durch Kennung, Dauer und Treppenangabe beschrieben.",
+    "Die Anforderung lautet, die schnellste Route ohne Treppen auszuwählen.",
+    "Im Ausgangsbeispiel ist Route C mit 9 Minuten die geeignete schnellste Route.",
+    "Der erste Regelentwurf filtert Routen mit Treppen und vergleicht anschließend die verbleibenden Zeiten.",
+    "Wenn alle Routen Treppen enthalten, lautet das korrekte Ergebnis bei unveränderter Anforderung „Keine geeignete Route“.",
+    "Die notierte Regel 0, die dann die schnellste Treppenroute auswählt, verändert die Anforderung und wird deshalb nicht verwendet.",
+    "Bei gleicher Dauer wird die erste Route in der vorgegebenen Reihenfolge behalten.",
+    "Die Eingabe ist eine geordnete Liste von Routen mit Kennung, Dauer und Treppenangabe.",
+    "Der Algorithmus beginnt mit keiner ausgewählten Route, also mit best = none.",
+    "Routen mit Treppen werden ignoriert.",
+    "Eine Route wird gewählt, wenn noch keine Route gewählt wurde oder sie schneller als die bisherige Wahl ist.",
+    "Bei Gleichstand bleibt die bisherige Wahl erhalten, weil nur eine schnellere Route ersetzt.",
+    "Mit gespeicherter bisher bester Route wird jede neue Route einmal geprüft: $T_{\\text{merken}}(n)=n\\in\\Theta(n)$.",
+    "Wenn für jede neue Route die gesamte bisherige Liste erneut geprüft wird, gilt $T_{\\text{neu beginnen}}(n)=\\frac{n(n+1)}{2}\\in\\Theta(n^2)$.",
+    "Der Laufzeitvergleich gilt für den Fall, dass nach jeder neuen Route ein Ergebnis benötigt wird.",
+    "Für eine einmalige Auswahl am Ende genügt auch ohne Zwischenergebnisse ein einmaliges Durchgehen der Liste.",
+    "KI kann Verfahren erklären und Tests vorschlagen, aber Anforderungen und Entscheidungen müssen weiterhin geprüft und festgelegt werden.",
+    "Java macht die beschriebenen Ideen ausführbar."
+  ],
+  "tags": [],
+  "links": [],
+  "source": {
+    "file": "EIP/01_Vorlesungen/EIP VO1.md",
+    "sha256": "f308f409c8ffffb1b770b9f97d5d35a5834e1e450116e8b2ba7329d6cf767acf",
+    "commit": "c01f10e1818d61e8fd05d663cf852d7a59f2e1e4"
+  },
+  "generator": {
+    "model": "gpt-5.6-luna",
+    "effort": "xhigh",
+    "reviewEffort": "high",
+    "promptVersion": "v2",
+    "generatedAt": "2026-10-31T00:09:55.136Z",
+    "review": {
+      "checked": 48,
+      "fixed": 2,
+      "removed": 0,
+      "notes": "Geprüft: 48 Fragen. Zwei Formulierungen geschärft: Gleichstandsfrage auf geeignete Routen eingegrenzt; Laufzeitfrage korrigiert (Routen statt Listen). Keine Frage entfernt; keine Rechen-, Code- oder Mermaid-Fehler gefunden."
+    }
+  },
+  "levels": [
+    {
+      "id": "eip-01-l1",
+      "index": 1,
+      "kind": "basics",
+      "title": "Grundlagen",
+      "questions": [
+        {
+          "id": "eip-01-l1-q01",
+          "type": "single",
+          "prompt": "Durch welche drei Angaben lässt sich eine Route beschreiben?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Kennung, Dauer und Treppenangabe"
+            },
+            {
+              "id": "b",
+              "text": "Dauer, Nutzername und Farbe"
+            },
+            {
+              "id": "c",
+              "text": "Kennung, Zielort und Preis"
+            },
+            {
+              "id": "d",
+              "text": "Treppenanzahl, Geschwindigkeit und Startzeit"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "Eine Route wird durch ihre Kennung, ihre Dauer und die Angabe beschrieben, ob sie Treppen enthält.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO1.md",
+            "heading": "Ein Ort wird zu Daten"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Datenbeschreibung"
+          ]
+        },
+        {
+          "id": "eip-01-l1-q02",
+          "type": "single",
+          "prompt": "Welche Anforderung gilt für die Routenauswahl?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Die Route mit den wenigsten Treppen auswählen"
+            },
+            {
+              "id": "b",
+              "text": "Die schnellste Route unabhängig von Treppen auswählen"
+            },
+            {
+              "id": "c",
+              "text": "Immer die erste Route auswählen"
+            },
+            {
+              "id": "d",
+              "text": "Die schnellste Route ohne Treppen auswählen"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Die Route soll möglichst schnell sein, darf aber keine Treppen enthalten.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO1.md",
+            "heading": "Ein Ort wird zu Daten"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Anforderungen",
+            "geeignete Route"
+          ]
+        },
+        {
+          "id": "eip-01-l1-q03",
+          "type": "cloze",
+          "prompt": "Im Ausgangsbeispiel ist Route ___ das Ergebnis.",
+          "options": [
+            {
+              "id": "a",
+              "text": "A"
+            },
+            {
+              "id": "b",
+              "text": "C"
+            },
+            {
+              "id": "c",
+              "text": "B"
+            },
+            {
+              "id": "d",
+              "text": "Keine Route"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "Route B ist zwar mit 7 Minuten schneller, enthält aber Treppen. Route C ist mit 9 Minuten die schnellste Route ohne Treppen.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO1.md",
+            "heading": "Ein Ort wird zu Daten"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "geeignete Route",
+            "Treppenfilter"
+          ]
+        },
+        {
+          "id": "eip-01-l1-q04",
+          "type": "multi",
+          "prompt": "Welche Schritte gehören zum ersten Regelentwurf? Wähle alle richtigen Aussagen; mehrere Antworten können richtig sein.",
+          "options": [
+            {
+              "id": "a",
+              "text": "Die schnellste Route einschließlich Treppen auswählen"
+            },
+            {
+              "id": "b",
+              "text": "Alle Routen mit Treppen aussortieren"
+            },
+            {
+              "id": "c",
+              "text": "Die verbleibenden Routen durchgehen und ihre Zeiten vergleichen"
+            },
+            {
+              "id": "d",
+              "text": "Die schnellste verbleibende Route auswählen"
+            }
+          ],
+          "correct": [
+            "b",
+            "c",
+            "d"
+          ],
+          "explanation": "Der Entwurf filtert zuerst Treppenrouten und wählt dann unter den verbleibenden Routen die schnellste. Eine Route mit Treppen darf nicht ausgewählt werden.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO1.md",
+            "heading": "Übung: Regeln für beliebige Routenlisten formulieren"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Algorithmus",
+            "Treppenfilter"
+          ]
+        },
+        {
+          "id": "eip-01-l1-q05",
+          "type": "truefalse",
+          "prompt": "Wenn alle Routen Treppen enthalten, ist bei unveränderter Anforderung die schnellste dieser Routen das korrekte Ergebnis.",
+          "options": [
+            {
+              "id": "true",
+              "text": "Wahr"
+            },
+            {
+              "id": "false",
+              "text": "Falsch"
+            }
+          ],
+          "correct": [
+            "false"
+          ],
+          "explanation": "Keine der Routen erfüllt dann die Anforderung. Das korrekte Ergebnis lautet „Keine geeignete Route“.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO1.md",
+            "heading": "Sonderfall: Alle Routen enthalten Treppen"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Sonderfälle",
+            "geeignete Route"
+          ]
+        },
+        {
+          "id": "eip-01-l1-q06",
+          "type": "single",
+          "prompt": "Welche geeignete Route wird bei gleicher Dauer ausgewählt?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Die letzte Route in der vorgegebenen Reihenfolge"
+            },
+            {
+              "id": "b",
+              "text": "Eine zufällig ausgewählte Route"
+            },
+            {
+              "id": "c",
+              "text": "Immer Route A"
+            },
+            {
+              "id": "d",
+              "text": "Die erste Route in der vorgegebenen Reihenfolge"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Die präzise Anforderung legt fest, dass bei gleicher Dauer die erste Route in der Eingabereihenfolge behalten wird.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO1.md",
+            "heading": "Präzise Anforderung"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Gleichstand",
+            "Reihenfolge"
+          ]
+        },
+        {
+          "id": "eip-01-l1-q07",
+          "type": "cloze",
+          "prompt": "Wenn keine Route geeignet ist, wird ___ gemeldet.",
+          "options": [
+            {
+              "id": "a",
+              "text": "„Treppen erlaubt“"
+            },
+            {
+              "id": "b",
+              "text": "„Unbekannte Dauer“"
+            },
+            {
+              "id": "c",
+              "text": "„Route A“"
+            },
+            {
+              "id": "d",
+              "text": "„Keine geeignete Route“"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Der Algorithmus meldet ausdrücklich „Keine geeignete Route“, wenn keine treppenfreie Route vorhanden ist.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO1.md",
+            "heading": "Präzise Anforderung"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Sonderfälle",
+            "geeignete Route"
+          ]
+        },
+        {
+          "id": "eip-01-l1-q08",
+          "type": "single",
+          "prompt": "Mit welchem Anfangswert startet der Algorithmus für die bisher beste Route?",
+          "options": [
+            {
+              "id": "a",
+              "text": "best = 0 Minuten"
+            },
+            {
+              "id": "b",
+              "text": "best = A"
+            },
+            {
+              "id": "c",
+              "text": "best = none"
+            },
+            {
+              "id": "d",
+              "text": "best = die letzte Route"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Zu Beginn wurde noch keine Route ausgewählt. Deshalb wird best auf none gesetzt.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO1.md",
+            "heading": "Algorithmus mit einer bisher besten Route"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "bisher beste Route",
+            "Algorithmus"
+          ]
+        },
+        {
+          "id": "eip-01-l1-q09",
+          "type": "multi",
+          "prompt": "Unter welchen Bedingungen kann die aktuell geprüfte Route best werden? Wähle alle richtigen Aussagen; mehrere Antworten können richtig sein.",
+          "options": [
+            {
+              "id": "a",
+              "text": "Die Route hat keine Treppen und es wurde noch keine Route gewählt"
+            },
+            {
+              "id": "b",
+              "text": "Die Route ist gleich schnell wie best und kommt später"
+            },
+            {
+              "id": "c",
+              "text": "Die Route hat keine Treppen und ist schneller als best"
+            },
+            {
+              "id": "d",
+              "text": "Die Route enthält Treppen, ist aber besonders schnell"
+            }
+          ],
+          "correct": [
+            "a",
+            "c"
+          ],
+          "explanation": "Eine Route ohne Treppen wird übernommen, wenn noch keine Wahl existiert oder sie schneller als best ist. Treppen und ein späterer Gleichstand führen nicht zur Aktualisierung.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO1.md",
+            "heading": "Algorithmus mit einer bisher besten Route"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "bisher beste Route",
+            "Treppenfilter"
+          ]
+        },
+        {
+          "id": "eip-01-l1-q10",
+          "type": "diagram",
+          "prompt": "Welche Route ist nach diesem Ablauf das Ergebnis?\n\n```mermaid\nflowchart TD\n    Start[\"Start: keine Wahl\"] --> A[\"A: 12 Minuten, ohne Treppen\"]\n    A --> B[\"B: 7 Minuten, mit Treppen\"]\n    B --> C[\"C: 9 Minuten, ohne Treppen\"]\n    C --> Result[\"Ergebnis\"]\n```",
+          "options": [
+            {
+              "id": "a",
+              "text": "Route C"
+            },
+            {
+              "id": "b",
+              "text": "Route B"
+            },
+            {
+              "id": "c",
+              "text": "Keine geeignete Route"
+            },
+            {
+              "id": "d",
+              "text": "Route A"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "A wird zunächst gewählt, B wegen der Treppen ignoriert und C anschließend wegen der kürzeren Dauer übernommen.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO1.md",
+            "heading": "Ablauf für A, dann B, dann C"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Algorithmus",
+            "Reihenfolge"
+          ]
+        },
+        {
+          "id": "eip-01-l1-q11",
+          "type": "truefalse",
+          "prompt": "Bei gleicher Dauer ersetzt die später geprüfte Route automatisch die bisherige Wahl.",
+          "options": [
+            {
+              "id": "true",
+              "text": "Wahr"
+            },
+            {
+              "id": "false",
+              "text": "Falsch"
+            }
+          ],
+          "correct": [
+            "false"
+          ],
+          "explanation": "Ersetzt wird nur durch eine schnellere Route. Dadurch bleibt bei Gleichstand die erste Route erhalten.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO1.md",
+            "heading": "Algorithmus mit einer bisher besten Route"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Gleichstand",
+            "bisher beste Route"
+          ]
+        },
+        {
+          "id": "eip-01-l1-q12",
+          "type": "truefalse",
+          "prompt": "Java macht die beschriebenen Ideen ausführbar.",
+          "options": [
+            {
+              "id": "true",
+              "text": "Wahr"
+            },
+            {
+              "id": "false",
+              "text": "Falsch"
+            }
+          ],
+          "correct": [
+            "true"
+          ],
+          "explanation": "Der Ausblick beschreibt Java als Möglichkeit, Eingaben, gespeicherte Werte und den Algorithmus tatsächlich auszuführen.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO1.md",
+            "heading": "Ausblick: Umsetzung in Java"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Java-Umsetzung"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "eip-01-l2",
+      "index": 2,
+      "kind": "apply",
+      "title": "Anwenden",
+      "questions": [
+        {
+          "id": "eip-01-l2-q01",
+          "type": "single",
+          "prompt": "Gegeben sind A: 10 Minuten, ohne Treppen; B: 6 Minuten, mit Treppen; C: 8 Minuten, ohne Treppen. Welche Route wird ausgewählt?",
+          "options": [
+            {
+              "id": "a",
+              "text": "A"
+            },
+            {
+              "id": "b",
+              "text": "B"
+            },
+            {
+              "id": "c",
+              "text": "Keine geeignete Route"
+            },
+            {
+              "id": "d",
+              "text": "C"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "B wird wegen der Treppen ignoriert. Zwischen A und C ist C mit 8 Minuten schneller.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO1.md",
+            "heading": "Präzise Anforderung"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "geeignete Route",
+            "Treppenfilter"
+          ]
+        },
+        {
+          "id": "eip-01-l2-q02",
+          "type": "single",
+          "prompt": "Gegeben sind A: 7 Minuten, mit Treppen; B: 9 Minuten, ohne Treppen; C: 9 Minuten, ohne Treppen; D: 6 Minuten, mit Treppen. Welche Route wird ausgewählt?",
+          "options": [
+            {
+              "id": "a",
+              "text": "B"
+            },
+            {
+              "id": "b",
+              "text": "A"
+            },
+            {
+              "id": "c",
+              "text": "C"
+            },
+            {
+              "id": "d",
+              "text": "D"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "A und D werden ignoriert. B ist die erste geeignete Route und bleibt bei gleicher Dauer vor C gewählt.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO1.md",
+            "heading": "Sonderfall: Gleichstand"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Gleichstand",
+            "Reihenfolge"
+          ]
+        },
+        {
+          "id": "eip-01-l2-q03",
+          "type": "code_output",
+          "prompt": "Was gibt dieser Pseudocode für die angegebenen Routen aus?\n\nRouten in der Eingabereihenfolge: A: 12 Minuten, ohne Treppen; B: 7 Minuten, mit Treppen; C: 9 Minuten, ohne Treppen; D: 5 Minuten, ohne Treppen.\n\n```text\nbest = none\n\nfor each route in the supplied order:\n    if the route has no stairs:\n        if best is none:\n            best = route\n        else if the route is faster than best:\n            best = route\n\nreport best\n```",
+          "options": [
+            {
+              "id": "a",
+              "text": "A"
+            },
+            {
+              "id": "b",
+              "text": "B"
+            },
+            {
+              "id": "c",
+              "text": "D"
+            },
+            {
+              "id": "d",
+              "text": "C"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "A wird zuerst gewählt, B ignoriert, C ersetzt die Wahl von A und D übernimmt anschließend C, weil D noch schneller ist.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO1.md",
+            "heading": "Algorithmus mit einer bisher besten Route"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Algorithmus",
+            "bisher beste Route",
+            "Treppenfilter"
+          ]
+        },
+        {
+          "id": "eip-01-l2-q04",
+          "type": "calc",
+          "prompt": "Wie viele Routen werden insgesamt geprüft, wenn nach jeder neuen Route die gesamte bisherige Liste erneut durchgegangen wird und $n=4$ gilt?",
+          "options": [
+            {
+              "id": "a",
+              "text": "10"
+            },
+            {
+              "id": "b",
+              "text": "6"
+            },
+            {
+              "id": "c",
+              "text": "16"
+            },
+            {
+              "id": "d",
+              "text": "4"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "Die Arbeit ist $1+2+3+4=10$. Es wird also nicht nur der letzte Durchlauf gezählt.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO1.md",
+            "heading": "Was spart das Merken der besten Route?"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Laufzeit"
+          ]
+        },
+        {
+          "id": "eip-01-l2-q05",
+          "type": "multi",
+          "prompt": "Welche Aussagen sind Teil der Bedingung, unter der eine Route zur bisher besten Route werden kann? Wähle alle richtigen Aussagen; mehrere Antworten können richtig sein.",
+          "options": [
+            {
+              "id": "a",
+              "text": "Die Route ist schneller als die bisherige Wahl"
+            },
+            {
+              "id": "b",
+              "text": "Die Route hat keine Treppen"
+            },
+            {
+              "id": "c",
+              "text": "Es wurde bisher noch keine Route gewählt"
+            },
+            {
+              "id": "d",
+              "text": "Die Route enthält Treppen und ist schneller"
+            }
+          ],
+          "correct": [
+            "a",
+            "b",
+            "c"
+          ],
+          "explanation": "Die Route muss treppenfrei sein und zusätzlich entweder die erste geeignete Route oder schneller als best sein. Eine Treppenroute wird unabhängig von ihrer Dauer ignoriert.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO1.md",
+            "heading": "Algorithmus mit einer bisher besten Route"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "bisher beste Route",
+            "Treppenfilter"
+          ]
+        },
+        {
+          "id": "eip-01-l2-q06",
+          "type": "cloze",
+          "prompt": "A hat 12 Minuten ohne Treppen, B 7 Minuten mit Treppen und C 9 Minuten ohne Treppen. Nach der vollständigen Verarbeitung ist best = ___.",
+          "options": [
+            {
+              "id": "a",
+              "text": "B"
+            },
+            {
+              "id": "b",
+              "text": "C"
+            },
+            {
+              "id": "c",
+              "text": "A"
+            },
+            {
+              "id": "d",
+              "text": "none"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "B wird ignoriert. C ist geeignet und mit 9 Minuten schneller als A mit 12 Minuten.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO1.md",
+            "heading": "Ablauf für A, dann B, dann C"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "bisher beste Route",
+            "Treppenfilter"
+          ]
+        },
+        {
+          "id": "eip-01-l2-q07",
+          "type": "diagram",
+          "prompt": "Welche Aussage beschreibt den mit „Ja“ beschrifteten Pfad bei der Frage „Treppen?“?\n\n```mermaid\nflowchart TD\n    Start[\"best = none\"] --> Check[\"Route prüfen\"]\n    Check --> Stairs{\"Treppen?\"}\n    Stairs -- \"Ja\" --> Ignore[\"Route ignorieren\"]\n    Stairs -- \"Nein\" --> Faster{\"Schneller als best?\"}\n    Ignore --> Next[\"Nächste Route\"]\n    Faster -- \"Ja\" --> Update[\"best aktualisieren\"]\n    Faster -- \"Nein\" --> Next\n    Update --> Next\n```",
+          "options": [
+            {
+              "id": "a",
+              "text": "Die Route ersetzt best nur bei Gleichstand"
+            },
+            {
+              "id": "b",
+              "text": "Die Route wird ignoriert"
+            },
+            {
+              "id": "c",
+              "text": "Die Route wird als best gespeichert"
+            },
+            {
+              "id": "d",
+              "text": "Der Algorithmus meldet sofort „Keine geeignete Route“"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "Eine Route mit Treppen erfüllt die Anforderung nicht und wird deshalb übersprungen.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO1.md",
+            "heading": "Algorithmus mit einer bisher besten Route"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Treppenfilter",
+            "Algorithmus"
+          ]
+        },
+        {
+          "id": "eip-01-l2-q08",
+          "type": "truefalse",
+          "prompt": "Wenn eine spätere Route gleich schnell wie best ist, ersetzt sie best.",
+          "options": [
+            {
+              "id": "true",
+              "text": "Wahr"
+            },
+            {
+              "id": "false",
+              "text": "Falsch"
+            }
+          ],
+          "correct": [
+            "false"
+          ],
+          "explanation": "Die Aktualisierung erfolgt nur bei einer schnelleren Route. So wird die erste Route in der Reihenfolge behalten.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO1.md",
+            "heading": "Algorithmus mit einer bisher besten Route"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Gleichstand",
+            "Reihenfolge"
+          ]
+        },
+        {
+          "id": "eip-01-l2-q09",
+          "type": "calc",
+          "prompt": "Wie viele Routen werden mit gespeicherter bisher bester Route insgesamt geprüft, wenn $n=4$ neue Routen eintreffen?",
+          "options": [
+            {
+              "id": "a",
+              "text": "10"
+            },
+            {
+              "id": "b",
+              "text": "6"
+            },
+            {
+              "id": "c",
+              "text": "16"
+            },
+            {
+              "id": "d",
+              "text": "4"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Jede neue Route wird genau einmal geprüft. Daher gilt $T_{\\text{merken}}(4)=4$.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO1.md",
+            "heading": "Was spart das Merken der besten Route?"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Laufzeit",
+            "Theta-Notation"
+          ]
+        },
+        {
+          "id": "eip-01-l2-q10",
+          "type": "single",
+          "prompt": "Alle Routen einer Liste enthalten Treppen. Was soll der Algorithmus ausgeben?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Die Route mit der längsten Dauer"
+            },
+            {
+              "id": "b",
+              "text": "„Keine geeignete Route“"
+            },
+            {
+              "id": "c",
+              "text": "Die erste Route der Liste"
+            },
+            {
+              "id": "d",
+              "text": "Die schnellste Route mit Treppen"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "Unter der unveränderten Anforderung ist keine Route geeignet. Die schnellste Treppenroute wäre nur mit einer geänderten Anforderung zulässig.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO1.md",
+            "heading": "Sonderfall: Alle Routen enthalten Treppen"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Sonderfälle",
+            "geeignete Route"
+          ]
+        },
+        {
+          "id": "eip-01-l2-q11",
+          "type": "code_output",
+          "prompt": "Was gibt dieser Pseudocode aus?\n\nRouten in der Eingabereihenfolge: A: 8 Minuten, ohne Treppen; B: 6 Minuten, mit Treppen; C: 9 Minuten, ohne Treppen; D: 9 Minuten, ohne Treppen.\n\n```text\nbest = none\n\nfor each route in the supplied order:\n    if the route has no stairs:\n        if best is none:\n            best = route\n        else if the route is faster than best:\n            best = route\n\nreport best\n```",
+          "options": [
+            {
+              "id": "a",
+              "text": "D"
+            },
+            {
+              "id": "b",
+              "text": "A"
+            },
+            {
+              "id": "c",
+              "text": "C"
+            },
+            {
+              "id": "d",
+              "text": "B"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "A wird gewählt. B wird wegen der Treppen ignoriert, C und D sind langsamer als A; der Gleichstand zwischen C und D spielt daher keine Rolle.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO1.md",
+            "heading": "Algorithmus mit einer bisher besten Route"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Algorithmus",
+            "bisher beste Route"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "eip-01-l3",
+      "index": 3,
+      "kind": "deepen",
+      "title": "Vertiefen",
+      "questions": [
+        {
+          "id": "eip-01-l3-q01",
+          "type": "multi",
+          "prompt": "Warum benötigt der Fall „Alle Routen enthalten Treppen“ eine eigene Behandlung? Wähle alle richtigen Aussagen; mehrere Antworten können richtig sein.",
+          "options": [
+            {
+              "id": "a",
+              "text": "Keine Route erfüllt dann die unveränderte Anforderung"
+            },
+            {
+              "id": "b",
+              "text": "Die schnellste Treppenroute wäre nur bei geänderter Anforderung zulässig"
+            },
+            {
+              "id": "c",
+              "text": "Der Algorithmus muss in diesem Fall „Keine geeignete Route“ melden können"
+            },
+            {
+              "id": "d",
+              "text": "Der Algorithmus muss deshalb zwingend abbrechen"
+            }
+          ],
+          "correct": [
+            "a",
+            "b",
+            "c"
+          ],
+          "explanation": "Wenn alle Routen Treppen haben, gibt es keine geeignete Route. Die Auswahl der schnellsten Treppenroute wäre eine andere, ausdrücklich geänderte Anforderung; ein zwingender Abbruch folgt daraus nicht.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO1.md",
+            "heading": "Sonderfall: Alle Routen enthalten Treppen"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Sonderfälle",
+            "Anforderungen",
+            "geeignete Route"
+          ]
+        },
+        {
+          "id": "eip-01-l3-q02",
+          "type": "single",
+          "prompt": "Welche Laufzeitzuordnung gilt, wenn nach jeder neuen Route ein Ergebnis benötigt wird?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Merken der bisherigen Wahl: $\\Theta(n^2)$; jedes Mal neu beginnen: $\\Theta(n)$"
+            },
+            {
+              "id": "b",
+              "text": "Beide Verfahren: $\\Theta(n^2)$"
+            },
+            {
+              "id": "c",
+              "text": "Beide Verfahren: $\\Theta(n)$"
+            },
+            {
+              "id": "d",
+              "text": "Merken der bisherigen Wahl: $\\Theta(n)$; jedes Mal neu beginnen: $\\Theta(n^2)$"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Mit gespeicherter Wahl wird jede Route einmal geprüft. Beim erneuten Durchgehen entsteht die Summe $1+2+\\dots+n$ und damit quadratische Laufzeit.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO1.md",
+            "heading": "Was spart das Merken der besten Route?"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Laufzeit",
+            "Theta-Notation",
+            "bisher beste Route"
+          ]
+        },
+        {
+          "id": "eip-01-l3-q03",
+          "type": "calc",
+          "prompt": "Welche Formel beschreibt die Gesamtzahl der Prüfungen beim erneuten Durchgehen aller bisherigen Routen?",
+          "options": [
+            {
+              "id": "a",
+              "text": "$n$"
+            },
+            {
+              "id": "b",
+              "text": "$n^2$"
+            },
+            {
+              "id": "c",
+              "text": "$\\frac{n(n+1)}{2}$"
+            },
+            {
+              "id": "d",
+              "text": "$\\frac{n(n-1)}{2}$"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Die Durchläufe haben die Größen $1,2,\\dots,n$. Ihre Summe ist $\\frac{n(n+1)}{2}$.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO1.md",
+            "heading": "Was spart das Merken der besten Route?"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Laufzeit",
+            "Theta-Notation"
+          ]
+        },
+        {
+          "id": "eip-01-l3-q04",
+          "type": "truefalse",
+          "prompt": "Wenn nur am Ende eine einzige Auswahl benötigt wird, muss die gesamte bisherige Liste nach jeder Route erneut geprüft werden.",
+          "options": [
+            {
+              "id": "true",
+              "text": "Wahr"
+            },
+            {
+              "id": "false",
+              "text": "Falsch"
+            }
+          ],
+          "correct": [
+            "false"
+          ],
+          "explanation": "Für eine einzige Auswahl am Ende reicht ein einmaliges Durchgehen der Liste. Die wiederholten Prüfungen sind nur für Zwischenergebnisse nach jeder neuen Route relevant.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO1.md",
+            "heading": "Was spart das Merken der besten Route?"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Laufzeit",
+            "bisher beste Route"
+          ]
+        },
+        {
+          "id": "eip-01-l3-q05",
+          "type": "single",
+          "prompt": "Warum bleibt bei gleicher Dauer die zuerst gefundene geeignete Route ausgewählt?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Weil nur Route A geprüft werden darf"
+            },
+            {
+              "id": "b",
+              "text": "Weil die Route nur bei strikt kleinerer Dauer ersetzt wird"
+            },
+            {
+              "id": "c",
+              "text": "Weil gleiche Dauer als ungültige Eingabe gilt"
+            },
+            {
+              "id": "d",
+              "text": "Weil die spätere Route automatisch Treppen enthält"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "Die Bedingung lautet „schneller als best“. Gleichstand erfüllt diese Bedingung nicht, sodass die frühere Route erhalten bleibt.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO1.md",
+            "heading": "Algorithmus mit einer bisher besten Route"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Gleichstand",
+            "Reihenfolge"
+          ]
+        },
+        {
+          "id": "eip-01-l3-q06",
+          "type": "multi",
+          "prompt": "Was kann KI in diesem Beispiel leisten? Wähle alle richtigen Aussagen; mehrere Antworten können richtig sein.",
+          "options": [
+            {
+              "id": "a",
+              "text": "Das Verfahren in kurzer Zeit aufschreiben"
+            },
+            {
+              "id": "b",
+              "text": "Tests vorschlagen"
+            },
+            {
+              "id": "c",
+              "text": "Festlegen, was der eigene Dienst bei einem Gleichstand tun soll"
+            },
+            {
+              "id": "d",
+              "text": "Jede Zeile des Verfahrens erklären"
+            }
+          ],
+          "correct": [
+            "a",
+            "b",
+            "d"
+          ],
+          "explanation": "KI kann Verfahren erklären und Tests vorschlagen. Die fachliche Entscheidung über das gewünschte Verhalten, etwa bei Gleichstand, muss selbst festgelegt werden.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO1.md",
+            "heading": "KI: Was bleibt wichtig zu lernen?"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "KI und Anforderungen",
+            "Korrektheit und Testen"
+          ]
+        },
+        {
+          "id": "eip-01-l3-q07",
+          "type": "diagram",
+          "prompt": "Welche Verarbeitung von B ist in diesem Ablauf korrekt?\n\n```mermaid\nflowchart TD\n    A[\"A: 12 Minuten, ohne Treppen\"] --> B[\"B: 7 Minuten, mit Treppen\"]\n    B --> C[\"C: 9 Minuten, ohne Treppen\"]\n    C --> R[\"Ergebnis\"]\n```",
+          "options": [
+            {
+              "id": "a",
+              "text": "B führt sofort zu „Keine geeignete Route“"
+            },
+            {
+              "id": "b",
+              "text": "B wird gewählt, weil B am schnellsten ist"
+            },
+            {
+              "id": "c",
+              "text": "B ersetzt A trotz der Treppen"
+            },
+            {
+              "id": "d",
+              "text": "B wird wegen der Treppen ignoriert"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Die Dauer allein reicht nicht aus. B enthält Treppen und darf deshalb nicht als bisher beste Route übernommen werden.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO1.md",
+            "heading": "Ablauf für A, dann B, dann C"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Treppenfilter",
+            "Algorithmus"
+          ]
+        },
+        {
+          "id": "eip-01-l3-q08",
+          "type": "cloze",
+          "prompt": "Beim erneuten Durchgehen aller bisher eingegangenen Routen summiert sich die Arbeit als Summe von ___ bis $n$.",
+          "options": [
+            {
+              "id": "a",
+              "text": "1"
+            },
+            {
+              "id": "b",
+              "text": "0"
+            },
+            {
+              "id": "c",
+              "text": "$n^2$"
+            },
+            {
+              "id": "d",
+              "text": "$n$"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "Die einzelnen Durchläufe haben die Größen $1,2,\\dots,n$. Deshalb entsteht die Summe von 1 bis $n$.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO1.md",
+            "heading": "Was spart das Merken der besten Route?"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Laufzeit",
+            "Theta-Notation"
+          ]
+        },
+        {
+          "id": "eip-01-l3-q09",
+          "type": "single",
+          "prompt": "Was ist das Problem mit der zusätzlichen Regel, bei ausschließlich Treppenrouten die schnellste davon auszuwählen?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Sie behält immer die erste Route"
+            },
+            {
+              "id": "b",
+              "text": "Sie prüft keine Dauer"
+            },
+            {
+              "id": "c",
+              "text": "Sie ändert die Anforderung „ohne Treppen“"
+            },
+            {
+              "id": "d",
+              "text": "Sie macht die Eingabeliste ungeordnet"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Die Regel würde eine Route auswählen, die die ursprüngliche Anforderung verletzt. Sie wäre nur mit einer entsprechend geänderten Anforderung vereinbar.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO1.md",
+            "heading": "Sonderfall: Alle Routen enthalten Treppen"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Anforderungen",
+            "Sonderfälle"
+          ]
+        },
+        {
+          "id": "eip-01-l3-q10",
+          "type": "single",
+          "prompt": "Unter welcher Bedingung gilt der Vergleich zwischen Merken und wiederholtem Neustart mit $\\Theta(n)$ beziehungsweise $\\Theta(n^2)$?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Nach jeder neuen Route wird ein Ergebnis benötigt"
+            },
+            {
+              "id": "b",
+              "text": "Die Liste enthält genau drei Routen"
+            },
+            {
+              "id": "c",
+              "text": "Alle Routen haben dieselbe Dauer"
+            },
+            {
+              "id": "d",
+              "text": "Es gibt ausschließlich Routen mit Treppen"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "Die Tabelle zählt die Arbeit für ein Ergebnis nach jeder neu eingegangenen Route. Bei nur einer Auswahl am Ende genügt ein einmaliger Durchlauf.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO1.md",
+            "heading": "Was spart das Merken der besten Route?"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Laufzeit",
+            "Theta-Notation"
+          ]
+        },
+        {
+          "id": "eip-01-l3-q11",
+          "type": "multi",
+          "prompt": "Welche Aufgaben bleiben trotz KI-Unterstützung wichtig? Wähle alle richtigen Aussagen; mehrere Antworten können richtig sein.",
+          "options": [
+            {
+              "id": "a",
+              "text": "Festlegen, ob bei Gleichstand A oder C ausgewählt werden soll"
+            },
+            {
+              "id": "b",
+              "text": "Das eigene Verhalten vollständig von der KI festlegen lassen"
+            },
+            {
+              "id": "c",
+              "text": "Die Erklärung des Verfahrens auf Korrektheit prüfen"
+            },
+            {
+              "id": "d",
+              "text": "Prüfen, ob der Gleichstandsfall in den Tests vorkommt"
+            }
+          ],
+          "correct": [
+            "a",
+            "c",
+            "d"
+          ],
+          "explanation": "Anforderungen, Tests und Korrektheitsprüfung bleiben menschliche Entscheidungen. Eine KI kann dabei unterstützen, aber nicht selbst festlegen, was der eigene Dienst tun soll.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO1.md",
+            "heading": "KI: Was bleibt wichtig zu lernen?"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "KI und Anforderungen",
+            "Korrektheit und Testen"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "eip-01-l4",
+      "index": 4,
+      "kind": "boss",
+      "title": "Boss",
+      "questions": [
+        {
+          "id": "eip-01-l4-q01",
+          "type": "single",
+          "prompt": "Gegeben sind R1: 10 Minuten, ohne Treppen; R2: 8 Minuten, mit Treppen; R3: 10 Minuten, ohne Treppen; R4: 9 Minuten, ohne Treppen; R5: 7 Minuten, mit Treppen. Welche Route muss der Algorithmus ausgeben?",
+          "options": [
+            {
+              "id": "a",
+              "text": "R2"
+            },
+            {
+              "id": "b",
+              "text": "R1"
+            },
+            {
+              "id": "c",
+              "text": "R3"
+            },
+            {
+              "id": "d",
+              "text": "R4"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "R2 und R5 werden wegen der Treppen ignoriert. R1 und R3 sind gleich schnell, aber R4 ist mit 9 Minuten noch schneller und wird daher ausgewählt.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO1.md",
+            "heading": "Präzise Anforderung"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Anforderungen",
+            "Gleichstand",
+            "Treppenfilter"
+          ]
+        },
+        {
+          "id": "eip-01-l4-q02",
+          "type": "multi",
+          "prompt": "Welche der folgenden Regeln würde mindestens eine präzise Anforderung verletzen? Wähle alle richtigen Aussagen; mehrere Antworten können richtig sein.",
+          "options": [
+            {
+              "id": "a",
+              "text": "Wenn alle Routen Treppen haben, die schnellste Treppenroute auswählen"
+            },
+            {
+              "id": "b",
+              "text": "Bei Gleichstand die spätere statt der ersten Route behalten"
+            },
+            {
+              "id": "c",
+              "text": "Bei keiner geeigneten Route „Keine geeignete Route“ melden"
+            },
+            {
+              "id": "d",
+              "text": "Treppenrouten ignorieren und bei Gleichstand die erste Route behalten"
+            }
+          ],
+          "correct": [
+            "a",
+            "b"
+          ],
+          "explanation": "a verletzt die Gleichstandsregel, b verletzt die Anforderung „ohne Treppen“. c und d entsprechen den festgelegten Regeln.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO1.md",
+            "heading": "Präzise Anforderung"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Anforderungen",
+            "Gleichstand",
+            "Sonderfälle"
+          ]
+        },
+        {
+          "id": "eip-01-l4-q03",
+          "type": "calc",
+          "prompt": "Nach jeder neuen Route wird ein Ergebnis benötigt und $n=100$. Welche Paarung der Gesamtarbeit ist korrekt?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Merken: 100; neu beginnen: 10000"
+            },
+            {
+              "id": "b",
+              "text": "Merken: 5050; neu beginnen: 10000"
+            },
+            {
+              "id": "c",
+              "text": "Merken: 100; neu beginnen: 5050"
+            },
+            {
+              "id": "d",
+              "text": "Merken: 5050; neu beginnen: 100"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Mit Merken wird jede der 100 Routen einmal geprüft. Beim Neustart ergibt sich $1+\\dots+100=\\frac{100\\cdot101}{2}=5050$.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO1.md",
+            "heading": "Was spart das Merken der besten Route?"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Laufzeit",
+            "Theta-Notation"
+          ]
+        },
+        {
+          "id": "eip-01-l4-q04",
+          "type": "code_output",
+          "prompt": "Was gibt dieser Pseudocode für die angegebenen Routen aus?\n\nRouten in der Eingabereihenfolge: A: 6 Minuten, mit Treppen; B: 11 Minuten, ohne Treppen; C: 7 Minuten, ohne Treppen; D: 7 Minuten, ohne Treppen; E: 5 Minuten, mit Treppen.\n\n```text\nbest = none\n\nfor each route in the supplied order:\n    if the route has no stairs:\n        if best is none:\n            best = route\n        else if the route is faster than best:\n            best = route\n\nreport best\n```",
+          "options": [
+            {
+              "id": "a",
+              "text": "D"
+            },
+            {
+              "id": "b",
+              "text": "C"
+            },
+            {
+              "id": "c",
+              "text": "B"
+            },
+            {
+              "id": "d",
+              "text": "Keine geeignete Route"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "A und E werden ignoriert. B wird zuerst gewählt, C ist schneller und ersetzt B; D ist gleich schnell wie C und ersetzt C deshalb nicht.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO1.md",
+            "heading": "Algorithmus mit einer bisher besten Route"
+          },
+          "difficulty": 5,
+          "concepts": [
+            "Algorithmus",
+            "Gleichstand",
+            "Treppenfilter"
+          ]
+        },
+        {
+          "id": "eip-01-l4-q05",
+          "type": "diagram",
+          "prompt": "Welche Änderung am Ablauf würde die Regel „Bei gleicher Dauer die erste Route behalten“ verletzen?\n\n```mermaid\nflowchart TD\n    Start[\"best = none\"] --> A[\"A: 9 Minuten, ohne Treppen\"]\n    A --> B[\"B: 7 Minuten, mit Treppen\"]\n    B --> C[\"C: 9 Minuten, ohne Treppen\"]\n    C --> Result[\"Ergebnis\"]\n```",
+          "options": [
+            {
+              "id": "a",
+              "text": "B weiterhin ignorieren"
+            },
+            {
+              "id": "b",
+              "text": "Mit best = none starten"
+            },
+            {
+              "id": "c",
+              "text": "Die Vergleichsbedingung von „schneller“ zu „schneller oder gleich“ ändern"
+            },
+            {
+              "id": "d",
+              "text": "C prüfen, nachdem B ignoriert wurde"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Bei „schneller oder gleich“ würde C die gleich schnelle, zuerst gefundene Route A ersetzen. Die anderen Änderungen erhalten die festgelegte Regel.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO1.md",
+            "heading": "Ablauf für A, dann B, dann C"
+          },
+          "difficulty": 5,
+          "concepts": [
+            "Gleichstand",
+            "bisher beste Route"
+          ]
+        },
+        {
+          "id": "eip-01-l4-q06",
+          "type": "truefalse",
+          "prompt": "Die Regel, bei ausschließlich Treppenrouten die schnellste davon auszuwählen, kann ergänzt werden, ohne die ursprüngliche Anforderung zu verändern.",
+          "options": [
+            {
+              "id": "true",
+              "text": "Wahr"
+            },
+            {
+              "id": "false",
+              "text": "Falsch"
+            }
+          ],
+          "correct": [
+            "false"
+          ],
+          "explanation": "Die ursprüngliche Anforderung verlangt eine Route ohne Treppen. Die zusätzliche Regel würde dieses Verhalten ändern und ist deshalb nur mit einer geänderten Anforderung vereinbar.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO1.md",
+            "heading": "Sonderfall: Alle Routen enthalten Treppen"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Anforderungen",
+            "Sonderfälle"
+          ]
+        },
+        {
+          "id": "eip-01-l4-q07",
+          "type": "cloze",
+          "prompt": "Die Eingabe des Algorithmus ist eine ___ Liste von Routen mit Kennung, Dauer und Treppenangabe.",
+          "options": [
+            {
+              "id": "a",
+              "text": "leere"
+            },
+            {
+              "id": "b",
+              "text": "geordnete"
+            },
+            {
+              "id": "c",
+              "text": "zufällige"
+            },
+            {
+              "id": "d",
+              "text": "ungeordnete"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "Die Reihenfolge ist Teil der Eingabe, weil bei Gleichstand die erste geeignete Route in dieser Reihenfolge behalten wird.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO1.md",
+            "heading": "Präzise Anforderung"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Datenbeschreibung",
+            "Reihenfolge",
+            "Gleichstand"
+          ]
+        },
+        {
+          "id": "eip-01-l4-q08",
+          "type": "multi",
+          "prompt": "Welche Testfälle decken die beiden ausdrücklich diskutierten Sonderfälle ab? Wähle alle richtigen Aussagen; mehrere Antworten können richtig sein.",
+          "options": [
+            {
+              "id": "a",
+              "text": "Eine Liste mit ausschließlich unterschiedlichen Dauern und ohne Treppen"
+            },
+            {
+              "id": "b",
+              "text": "Eine Liste, in der alle Routen Treppen enthalten"
+            },
+            {
+              "id": "c",
+              "text": "Eine Liste mit mindestens zwei geeigneten Routen gleicher Dauer"
+            },
+            {
+              "id": "d",
+              "text": "Eine Liste, die den Gleichstand nicht prüft"
+            }
+          ],
+          "correct": [
+            "b",
+            "c"
+          ],
+          "explanation": "Die beiden diskutierten Sonderfälle sind eine Liste ohne geeignete Route und ein Gleichstand geeigneter Routen. Dafür müssen beide Situationen gezielt getestet werden.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO1.md",
+            "heading": "KI: Was bleibt wichtig zu lernen?"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Korrektheit und Testen",
+            "Sonderfälle",
+            "Gleichstand"
+          ]
+        },
+        {
+          "id": "eip-01-l4-q09",
+          "type": "single",
+          "prompt": "Welche Vorgehensweise reicht aus, wenn die beste Route nur einmal am Ende benötigt wird?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Nur Routen mit Treppen prüfen"
+            },
+            {
+              "id": "b",
+              "text": "Die Liste einmal durchgehen"
+            },
+            {
+              "id": "c",
+              "text": "Nach jeder Route die gesamte Liste neu prüfen"
+            },
+            {
+              "id": "d",
+              "text": "Die erste Route ohne Prüfung ausgeben"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "Für eine einmalige Auswahl am Ende genügt ein einmaliges Durchgehen der Liste. Wiederholte Durchläufe sind nur für laufend benötigte Zwischenergebnisse nötig.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO1.md",
+            "heading": "Was spart das Merken der besten Route?"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Laufzeit",
+            "Algorithmus"
+          ]
+        },
+        {
+          "id": "eip-01-l4-q10",
+          "type": "calc",
+          "prompt": "Bei $n=4$ werden nach jeder neuen Route beide Verfahren verglichen. Wie viele Prüfungen spart das Merken der bisherigen Wahl gegenüber dem erneuten Durchgehen insgesamt?",
+          "options": [
+            {
+              "id": "a",
+              "text": "4"
+            },
+            {
+              "id": "b",
+              "text": "0"
+            },
+            {
+              "id": "c",
+              "text": "10"
+            },
+            {
+              "id": "d",
+              "text": "6"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Das Merken benötigt 4 Prüfungen, das erneute Durchgehen 10. Die Differenz beträgt $10-4=6$.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO1.md",
+            "heading": "Was spart das Merken der besten Route?"
+          },
+          "difficulty": 5,
+          "concepts": [
+            "Laufzeit",
+            "bisher beste Route"
+          ]
+        },
+        {
+          "id": "eip-01-l4-q11",
+          "type": "multi",
+          "prompt": "Welche Aussagen verbinden die algorithmische Aufgabe mit den Lernzielen zur KI sinnvoll? Wähle alle richtigen Aussagen; mehrere Antworten können richtig sein.",
+          "options": [
+            {
+              "id": "a",
+              "text": "Die gewünschte Leistung des Programms muss präzise festgelegt werden"
+            },
+            {
+              "id": "b",
+              "text": "Korrektheit und Effizienz des Verfahrens müssen beurteilt werden"
+            },
+            {
+              "id": "c",
+              "text": "Das tatsächliche Verhalten muss geprüft und getestet werden"
+            },
+            {
+              "id": "d",
+              "text": "Eine Erklärung der KI macht eigene Prüfungen überflüssig"
+            }
+          ],
+          "correct": [
+            "a",
+            "b",
+            "c"
+          ],
+          "explanation": "KI kann bei Code, Erklärungen und Tests helfen, ersetzt aber weder die Festlegung der Anforderungen noch die Prüfung von Verhalten, Korrektheit und Effizienz.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO1.md",
+            "heading": "KI: Was bleibt wichtig zu lernen?"
+          },
+          "difficulty": 5,
+          "concepts": [
+            "KI und Anforderungen",
+            "Korrektheit und Testen",
+            "Anforderungen"
+          ]
+        }
+      ]
+    }
+  ]
+}
