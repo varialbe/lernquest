@@ -6,6 +6,7 @@ import { checkAnswer, headingAnchor, PETS, type LevelResponse, type Question, ty
 import { EstimateInput, fmtNum } from '../components/Estimate.tsx';
 import { Icon } from '../components/icons.tsx';
 import { Markdown } from '../components/Markdown.tsx';
+import { QuestionContext } from '../components/QuestionContext.tsx';
 import { Mascot } from '../components/Pet.tsx';
 import { Button, Modal, ProgressBar, Spinner } from '../components/ui.tsx';
 import { api, ApiError } from '../lib/api.ts';
@@ -459,6 +460,7 @@ export function Quiz({ levelId, practice, run: spec }: { levelId?: string; pract
               )}
               <h1 className="text-sm font-black uppercase tracking-wider text-primary">{TYPE_LABEL[q.type]}</h1>
             </div>
+            {q.context && <QuestionContext context={q.context} />}
             <div key={shake} className={phase === 'wrong' ? 'animate-shake' : ''}>
               <Markdown text={q.prompt} gap={gap} className="mb-5 text-[1.18rem] font-extrabold leading-snug" />
               {q.type === 'estimate' && q.slider ? (

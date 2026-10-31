@@ -5,6 +5,7 @@ import { EXAM, type Question, type RunResult } from '@lernquest/shared';
 import { fmtNum } from '../components/Estimate.tsx';
 import { Icon } from '../components/icons.tsx';
 import { Markdown } from '../components/Markdown.tsx';
+import { QuestionContext } from '../components/QuestionContext.tsx';
 import { Mascot } from '../components/Pet.tsx';
 import { Button } from '../components/ui.tsx';
 import { assetUrl } from '../lib/api.ts';
@@ -33,6 +34,7 @@ function ReviewItem({ q, selected }: { q: Question; selected: string[] }) {
       </button>
       {open && (
         <div className="mt-2 space-y-1.5 pl-8 text-sm">
+          {q.context && <QuestionContext context={q.context} />}
           <p className="font-bold text-error">
             Deine Antwort: <Markdown text={selected.length ? answerText(q, selected) : 'keine (Zeit abgelaufen)'} className="inline [&_p]:inline" />
           </p>
