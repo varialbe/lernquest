@@ -58,7 +58,7 @@ pnpm pipeline bonus                   # fehlende Praxis-Level nachziehen (oder: 
 pnpm pipeline watchdog                # lief heute schon ein Lauf?
 pnpm pipeline telegram-setup          # einmalig: Chat-ID nach /start an den Bot eintragen
 
-deploy/deploy-web.sh                  # Web-App bauen + nach /var/www/lernquest
+deploy/deploy-web.sh                  # Web-App + iOS-Live-Update-Paket bauen und nach /var/www/lernquest
 sudo systemctl restart lernquest-api  # nach API-Änderungen
 pnpm seed                             # Admin/Testuser/Einladungscode (idempotent)
 pnpm test                             # alle Tests (shared, api, pipeline)
@@ -76,6 +76,23 @@ cd apps/web && node scripts/make-icons.mjs   # App-Icons aus assets-src/app-icon
 - Jede verarbeitete Datei wird per **sha256** gemerkt: dieselbe Datei wird nie doppelt verarbeitet, auch nicht nach Umbenennung.
 - Geänderte Dateien werden ignoriert, außer `REGENERATE_ON_MODIFY=true`. Fehlgeschlagene Dateien werden bis zu 3× in späteren Läufen erneut versucht.
 - Ein Codex-Rate-Limit bricht den Lauf sauber ab. Die restlichen Dateien folgen im nächsten Lauf, und Telegram meldet es mit 🚦.
+
+## Üben-Tab: Wiederholen, Schwächen, Klausur-Check, Duelle
+Alle drei Rundenarten stellt der **Server** zusammen (`quiz_runs`). Gewertet werden genau diese Fragen, genau einmal (`POST /api/runs/:id/complete`).
+- **Schwächen** (`/api/mastery`, `POST /api/runs/weak`): Trefferquote je Konzept aus den letzten 10 Antworten (`< 60 %` unsicher, `< 85 %` fast sicher). Eine Runde zieht 10 Fragen der 4 schwächsten Konzepte, zuletzt falsch beantwortete zuerst. Leitner-Boxen laufen mit.
+- **Klausur-Check** (`POST /api/runs/exam`): 20 Fragen gleichmäßig über alle Units, 45 s pro Frage, kein Feedback zwischendurch. Am Ende gibt es eine Note (TUM-Stufen, bestanden ab 50 %) und jede falsche Frage mit Lösung. Unbeantwortetes zählt als falsch, Fehler landen in der Wiederholung.
+- **Duelle** (`/api/duels`): Herausfordern → selbst vorlegen → die andere Seite bekommt eine Push-Nachricht. Gleiche 10 Fragen, das Ergebnis der Gegenseite ist erst nach dem eigenen Spiel sichtbar. Sieger nach Richtigen, dann Zeit, er bekommt 15 Coins. Nach 48 h gewinnt, wer gespielt hat.
+- **Tagesaufgaben** (`/api/quests`): 3 pro Person und Tag (immer XP plus 2 zufällige, deterministisch), Coins beim Einlösen.
+- XP/Coins nur für die ersten 3 Schwächen-Runden, 2 Klausur-Checks und 3 Duelle pro Tag (`packages/shared/src/game.ts`: `WEAK`, `EXAM`, `DUEL`).
+- **Neue Vorlesung**: Der API-Tick kündigt neue Units per Push an, aber erst ab 08:00 (der Lauf ist um Mitternacht).
+
+## iOS-App: Live-Updates
+Die App enthält den Web-Code des Builds, holt sich aber neue Versionen selbst ([`@capgo/capacitor-updater`](https://github.com/Cap-go/capacitor-updater) im manuellen Modus, ohne Cloud):
+1. `deploy/deploy-web.sh` baut zusätzlich ein App-Paket (API absolut) nach `/var/www/lernquest/app-updates/bundle-<version>.zip` und schreibt `latest.json`. Version = Commit-Hash, bei uncommitteten Änderungen plus Zeitstempel.
+2. Die App fragt beim Start und beim Zurückkehren `GET /api/app/update` (über die API wegen CORS von `capacitor://localhost`). Ist die Version neu: Download, beim Start sofort aktivieren, sonst beim nächsten Wechsel in den Hintergrund.
+3. Startet ein Paket nicht (kein `notifyAppReady()` innerhalb 15 s), rollt die App automatisch zurück.
+
+**Neu kompilieren (IPA) ist nur nötig** bei neuen nativen Plugins, Berechtigungen, App-Icon/Name oder einer neuen Capacitor-Version. Eingebaut sind schon: Updater, lokale Mitteilungen, Haptik, Statusleiste, App-Lifecycle. Die installierte Version steht im Profil unter „App-Version“.
 
 ## Praxis-Bereich (Bonus-Level)
 Zu jeder Unit erzeugt die Pipeline nach den vier Hauptleveln ein fünftes Level `kind: "bonus"` (Tab **Praxis**). Es steht außerhalb des Lernpfads und wird nach „Grundlagen“ der Unit freigeschaltet.

@@ -7,6 +7,7 @@
 2. Den Bot-Token hast du im Chat geteilt – wenn du auf Nummer sicher gehen willst: bei @BotFather `/revoke` und den neuen Token in `~/lernquest/.env` (`TELEGRAM_BOT_TOKEN=`) eintragen.
 
 ## Stand (31.10.2026) – alle Phasen abgeschlossen
+- Nachtrag 31.10. (Wunsch „einmal richtig kompilieren“): Üben-Hub mit Schwächen (Konzept-Trefferquoten), Klausur-Check (20 Fragen, Timer, Note), asynchronen Duellen, Tagesaufgaben. Push für neue Units (ab 08:00) und Duelle. iOS: Live-Updates (selbst gehostet), lokale Erinnerungen, Haptik, Statusleiste. 68 Tests grün (12 shared, 37 API, 19 Pipeline), Feature-Screenshots hell/dunkel geprüft. Migration 0001 (rein additiv, Backup davor in `~/backups/lernquest/pre-migration-0001-*.db`).
 - Phase 7 ✔: Backfill aller 18 Vorlesungen (DS 6, EIP 5, ERA 7), 0 Fehler, je 44–45 Fragen + Praxis-Level (10–12 Fragen, davon 3 Schätzfragen). 976 aktive Fragen. n8n-Testlauf über „Manuell testen“ (`n8n execute`): Trigger → Lauf → Status-Polling → Ergebnis „nichts Neues“, Telegram-Nachricht gesendet. README mit Betrieb, Troubleshooting, Fragetyp, Modell, Praxis-Bereich.
 - Phase 6 ✔: Capacitor-iOS (SPM), Workflow `ios-ipa.yml` (manuell oder Tag `v*`). Testlauf am 31.10. grün: unsignierte IPA 9,3 MB (Info.plist, AppIcon, Web-Build inkl. Assets, API-Basis `https://lern.varialbe.xyz`). Sideloading: `docs/ios-sideloading.md`.
 - Phase 5 ✔: https://lern.varialbe.xyz live. Eigene vhosts `lernquest.conf` + `lernquest-le-ssl.conf`, Zertifikat per webroot (Renew-Hook nur für dieses Zertifikat), Brotli, HSTS, CSP, Cache-Header. Backup-Timer 03:30 → `~/backups/lernquest` (14 Tage). Apache-Backup vor der Änderung: `~/backups/apache2-before-lernquest-*.tgz`. `/ai/` weiterhin 200.
@@ -42,9 +43,14 @@
 - **Schätzfragen-Toleranz** prüft Zod hart (Antwort im Bereich, Toleranz ≤ ⅓ der Spanne, linear ≤ 400 Schritte, log nur mit `min > 0`). Sonst wären Fragen „immer richtig“ oder nicht treffbar.
 - **Code-Highlighting** über eigenes Mini-Rehype-Plugin auf `lowlight` mit nur java/c/python/bash/asm (rehype-highlight bündelt immer ~37 Sprachen).
 - **PWA-Icons unter `/app-icons/`**: Apache hat global `Alias /icons/` (autoindex). Die globale Konfiguration bleibt unangetastet.
+- **Runden statt freier Abgaben**: Schwächen, Klausur-Check und Duelle laufen über `quiz_runs`. Der Server legt die Fragen fest und wertet genau einmal, sonst könnte man (Antworten liegen im Client) beliebig XP farmen. Zusätzlich Tageslimits für Belohnungen.
+- **Live-Updates selbst gehostet** (capgo-Plugin, manueller Modus) statt Capgo-Cloud: keine Fremdabhängigkeit, Manifest über die API wegen CORS. Prüfsumme wird nicht an das Plugin übergeben (Format plugin-versionsabhängig, ein Fehler würde jedes Update blockieren); Integrität über HTTPS.
+- **Lokale statt Server-Push in der iOS-App**: Sideloading mit kostenloser Apple-ID erlaubt kein APNs.
 - **Mermaid wird mit precacht** (≈ 9 MB Precache, einmalig im Hintergrund), damit Diagramm-Fragen offline funktionieren.
 
 ## Offene Punkte / Ideen
+- Duell-Benachrichtigungen kommen nur per Web-Push (PWA). In der iOS-App sieht man offene Duelle beim Öffnen (Badge im Üben-Hub); echte Pushs bräuchten APNs und damit einen bezahlten Account.
+- Live-Update-Pfad auf einem echten iPhone noch nicht beobachtet (kein Gerät hier). Prüfen: Nach einem Deploy zeigt Profil → „App-Version“ beim übernächsten Öffnen den neuen Commit-Hash.
 - Optional: Bot-Token rotieren (siehe oben).
 - Abschnitts-Links öffnen GitHub, funktionieren also nur mit Zugriff auf das private Studium-Repo.
 - `![[Pasted image …]]` aus DS VO5 und ERA VO7 sind nicht im Studium-Repo committet. Diese Bilder fehlen Codex (⚑ im Report). Werden sie committet: `pnpm pipeline regenerate "<pfad>"`.

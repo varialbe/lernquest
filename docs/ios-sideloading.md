@@ -16,7 +16,8 @@ Sie ist **unsigniert**. Du signierst sie beim Installieren mit deiner **eigenen,
 **Wichtig zu wissen**
 - Mit einer kostenlosen Apple-ID läuft die App **7 Tage**, danach muss sie neu signiert („refresht“) werden. Deine Daten bleiben erhalten, die liegen auf dem Server.
 - Höchstens **3 selbst signierte Apps** gleichzeitig pro Apple-ID.
-- **Keine Push-Benachrichtigungen** in der nativen App (APNs braucht einen bezahlten Developer-Account). Für Streak-Erinnerungen zusätzlich die PWA nutzen.
+- **Streak-Erinnerungen** kommen in der App als **lokale Mitteilungen** (Profil → Streak-Erinnerung). Echte Server-Pushs (z. B. „Du bist im Duell dran“) gibt es nur in der PWA, denn APNs braucht einen bezahlten Developer-Account.
+- **Updates kommen automatisch**: Die App lädt neue Versionen selbst vom Server (Live-Update). Neu installieren musst du nur, wenn sich native Teile ändern (selten) – oder nach 7 Tagen neu signieren.
 - Ab iOS 16 muss der **Entwicklermodus** aktiv sein: Einstellungen → Datenschutz & Sicherheit → Entwicklermodus.
 
 ### Variante A: Sideloadly (Windows/macOS, am einfachsten)
