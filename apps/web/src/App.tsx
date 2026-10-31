@@ -6,7 +6,7 @@ import { getToken, setToken, setUnauthorizedHandler } from './lib/api.ts';
 import { flushPending } from './lib/offline.ts';
 import { useMe } from './lib/queries.ts';
 import { setMuted } from './lib/sound.ts';
-import { ChangePassword, Login, Register } from './pages/Auth.tsx';
+import { ChangePassword, Forgot, Login, Register, ResetPassword } from './pages/Auth.tsx';
 import { Home } from './pages/Home.tsx';
 import { Quiz, type RunSpec } from './pages/Quiz.tsx';
 import { Datenschutz, Impressum } from './pages/Legal.tsx';
@@ -65,6 +65,10 @@ export function App() {
       <Switch>
         <Route path="/impressum" component={Impressum} />
         <Route path="/datenschutz" component={Datenschutz} />
+        <Route path="/forgot" component={Forgot} />
+        <Route path="/reset">
+          <ResetPassword onLogin={login} />
+        </Route>
         <Route path="/register">
           <Register onLogin={login} />
         </Route>
@@ -107,6 +111,9 @@ function Authed({ onLogin, onLogout }: { onLogin: (t: string) => void; onLogout:
     <Suspense fallback={<Spinner />}>
       <Switch>
         <Route path="/" component={Home} />
+        <Route path="/reset">
+          <ResetPassword onLogin={onLogin} />
+        </Route>
         <Route path="/impressum" component={Impressum} />
         <Route path="/datenschutz" component={Datenschutz} />
         <Route path="/level/:id">{(p) => <Quiz key={p.id} levelId={p.id} />}</Route>

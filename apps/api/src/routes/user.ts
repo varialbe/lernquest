@@ -137,10 +137,11 @@ export function userRoutes(app: FastifyInstance, db: DB) {
 
   app.post('/api/auth/password', { ...auth, ...authLimit }, async (req) => {
     const body = ChangePasswordReq.parse(req.body);
-    if (!req.user.mustChangePassword && !(await verifyPassword(req.user.passwordHash, body.oldPassword))) {
+    // reine Google-Konten haben noch kein Passwort → kein altes abfragen
+    if (req.user.hasPassword && !req.user.mustChangePassword && !(await verifyPassword(req.user.passwordHash, body.oldPassword))) {
       throw badRequest('wrong_password', 'Aktuelles Passwort ist falsch.');
     }
-    db.update(users).set({ passwordHash: await hashPassword(body.newPassword), mustChangePassword: false }).where(eq(users.id, req.user.id)).run();
+    db.update(users).set({ passwordHash: await hashPassword(body.newPassword), mustChangePassword: false, hasPassword: true }).where(eq(users.id, req.user.id)).run();
     revokeAllSessions(db, req.user.id);
     return { token: createSession(db, req.user.id, req.headers['user-agent']) };
   });

@@ -9,7 +9,27 @@ import { Button, Card, Modal, Pill, Segmented, Spinner, Toast } from '../compone
 import { api } from '../lib/api.ts';
 
 type Run = { id: string; mode: string; status: string; startedAt: number; finishedAt: number | null; summary: string | null };
-type AdminUser = { id: number; username: string; displayName: string; role: string; disabled: boolean; unlockAll: boolean; xp: number; coins: number; streak: number; lastActiveDay: string | null; invitedWith: string | null; newsletter: boolean; email: string | null };
+type AdminUser = {
+  id: number;
+  username: string;
+  displayName: string;
+  role: string;
+  disabled: boolean;
+  unlockAll: boolean;
+  xp: number;
+  coins: number;
+  streak: number;
+  lastActiveDay: string | null;
+  createdAt: number;
+  invitedWith: string | null;
+  email: string | null;
+  emailVerified: boolean;
+  newsletter: 'none' | 'pending' | 'confirmed';
+  google: boolean;
+  hasPassword: boolean;
+  sessions: number;
+  passkeys: number;
+};
 type Invite = { code: string; note: string | null; maxUses: number; uses: number; revoked: boolean; expiresAt: number | null; createdAt: number };
 type Report = { report: { id: number; questionId: string; reason: string; comment: string | null; status: string; createdAt: number }; username: string | null; question: Question | null; active: boolean | null };
 type Note = { id: number; level: string; title: string; body: string; read: boolean; createdAt: number };
@@ -93,50 +113,158 @@ function UsersTab({ flash }: { flash: (m: string) => void }) {
   const qc = useQueryClient();
   const { data } = useAdmin<AdminUser[]>('users');
   const [temp, setTemp] = useState<{ user: string; pw: string } | null>(null);
+  const [q, setQ] = useState('');
+  const [open, setOpen] = useState<number | null>(null);
+  const [edit, setEdit] = useState<AdminUser | null>(null);
+  const [form, setForm] = useState({ displayName: '', username: '', email: '' });
+  const refresh = () => void qc.invalidateQueries({ queryKey: ['admin', 'users'] });
   const patch = useMutation({
     mutationFn: (v: { id: number; body: Record<string, unknown> }) => api(`/api/admin/users/${v.id}`, { method: 'PATCH', body: v.body }),
-    onSuccess: () => void qc.invalidateQueries({ queryKey: ['admin', 'users'] }),
+    onSuccess: () => {
+      refresh();
+      setEdit(null);
+    },
     onError: (e) => flash((e as Error).message),
   });
   const reset = useMutation({
     mutationFn: (u: AdminUser) => api<{ temporaryPassword: string }>(`/api/admin/users/${u.id}/reset-password`, { method: 'POST' }).then((r) => ({ user: u.username, pw: r.temporaryPassword })),
-    onSuccess: setTemp,
+    onSuccess: (t) => {
+      setTemp(t);
+      refresh();
+    },
     onError: (e) => flash((e as Error).message),
   });
+  /** Aktion mit Rückfrage */
+  const act = async (u: AdminUser, question: string, method: string, path: string, done: string) => {
+    if (!confirm(`${question}\n\n@${u.username} (${u.displayName})`)) return;
+    try {
+      await api(`/api/admin/users/${u.id}${path}`, { method });
+      flash(done);
+      refresh();
+    } catch (e) {
+      flash((e as Error).message);
+    }
+  };
   if (!data) return <Spinner />;
+  const needle = q.trim().toLowerCase();
+  const list = needle ? data.filter((u) => [u.username, u.displayName, u.email ?? '', u.invitedWith ?? ''].some((s) => s.toLowerCase().includes(needle))) : data;
+  const btn = 'rounded-xl border-2 border-line px-2.5 py-1 font-black';
+  const nlLabel = { confirmed: '📧 Newsletter', pending: '📧 wartet auf Bestätigung', none: '' } as const;
   return (
     <div className="space-y-3">
-      {data.map((u) => (
+      <input value={q} onChange={(e) => setQ(e.target.value)} placeholder={`Suchen in ${data.length} Konten (Name, E-Mail, Code) …`} className="w-full rounded-2xl border-2 border-line bg-surface px-4 py-2.5 font-bold outline-none focus:border-primary" />
+      {list.map((u) => (
         <Card key={u.id} className="p-3">
-          <div className="flex items-center justify-between gap-2">
+          <button className="flex w-full items-center justify-between gap-2 text-left" onClick={() => setOpen(open === u.id ? null : u.id)} aria-expanded={open === u.id}>
             <div className="min-w-0">
               <p className="truncate font-black">
                 {u.displayName} <span className="font-bold text-muted">@{u.username}</span>
               </p>
-              <p className="text-xs font-bold text-muted">
-                {u.xp} XP · {u.coins} Coins · 🔥 {u.streak} · zuletzt {u.lastActiveDay ?? '–'}
-                {u.invitedWith ? ` · via ${u.invitedWith}` : ''}
-                {u.newsletter ? ` · 📧 ${u.email}` : ''}
+              <p className="truncate text-xs font-bold text-muted">
+                {u.email ? `${u.email}${u.emailVerified ? ' ✓' : ' (unbestätigt)'}` : 'keine E-Mail'} · {u.xp} XP · 🔥 {u.streak}
               </p>
             </div>
-            <div className="flex shrink-0 gap-1">
+            <div className="flex shrink-0 items-center gap-1">
               {u.role === 'admin' && <Pill className="bg-primary-soft text-primary">Admin</Pill>}
               {u.disabled && <Pill className="bg-error-soft text-error">Gesperrt</Pill>}
+              <Icon name="chevronRight" size={18} className={`text-muted transition-transform ${open === u.id ? 'rotate-90' : ''}`} />
             </div>
-          </div>
-          <div className="mt-2 flex flex-wrap gap-2 text-sm">
-            <button className="rounded-xl border-2 border-line px-2.5 py-1 font-black" onClick={() => patch.mutate({ id: u.id, body: { disabled: !u.disabled } })}>
-              {u.disabled ? 'Entsperren' : 'Sperren'}
-            </button>
-            <button className="rounded-xl border-2 border-line px-2.5 py-1 font-black" onClick={() => reset.mutate(u)}>
-              Passwort zurücksetzen
-            </button>
-            <button className={`rounded-xl border-2 px-2.5 py-1 font-black ${u.unlockAll ? 'border-primary text-primary' : 'border-line'}`} onClick={() => patch.mutate({ id: u.id, body: { unlockAll: !u.unlockAll } })}>
-              {u.unlockAll ? 'Alles frei ✓' : 'Alles freischalten'}
-            </button>
-          </div>
+          </button>
+          {open === u.id && (
+            <>
+              <dl className="mt-3 grid grid-cols-2 gap-x-3 gap-y-1 rounded-2xl bg-surface-2 p-3 text-xs font-bold">
+                <dt className="text-muted">Registriert</dt>
+                <dd>{new Date(u.createdAt).toLocaleDateString('de-DE')}</dd>
+                <dt className="text-muted">Zuletzt aktiv</dt>
+                <dd>{u.lastActiveDay ?? '–'}</dd>
+                <dt className="text-muted">Anmeldung</dt>
+                <dd>{[u.hasPassword && 'Passwort', u.google && 'Google', u.passkeys && `${u.passkeys} Passkey${u.passkeys > 1 ? 's' : ''}`].filter(Boolean).join(' · ') || '–'}</dd>
+                <dt className="text-muted">Sitzungen</dt>
+                <dd>{u.sessions}</dd>
+                <dt className="text-muted">Eingeladen via</dt>
+                <dd>{u.invitedWith ?? '–'}</dd>
+                <dt className="text-muted">Newsletter</dt>
+                <dd>{nlLabel[u.newsletter] || 'nein'}</dd>
+                <dt className="text-muted">Coins</dt>
+                <dd>{u.coins}</dd>
+              </dl>
+              <div className="mt-2 flex flex-wrap gap-2 text-sm">
+                <button
+                  className={btn}
+                  onClick={() => {
+                    setForm({ displayName: u.displayName, username: u.username, email: u.email ?? '' });
+                    setEdit(u);
+                  }}
+                >
+                  Bearbeiten
+                </button>
+                {u.email && (
+                  <button className={btn} onClick={() => void act(u, `Passwort-Reset-Link an ${u.email} senden?`, 'POST', '/send-reset', `Reset-Link an ${u.email} gesendet`)}>
+                    Reset-Mail senden
+                  </button>
+                )}
+                <button className={btn} onClick={() => confirm(`Temporäres Passwort für @${u.username} erzeugen? Alle Sitzungen werden beendet.`) && reset.mutate(u)}>
+                  Temporäres Passwort
+                </button>
+                <button className={btn} onClick={() => patch.mutate({ id: u.id, body: { disabled: !u.disabled } })}>
+                  {u.disabled ? 'Entsperren' : 'Sperren'}
+                </button>
+                <button className={`${btn} ${u.unlockAll ? 'border-primary text-primary' : ''}`} onClick={() => patch.mutate({ id: u.id, body: { unlockAll: !u.unlockAll } })}>
+                  {u.unlockAll ? 'Alles frei ✓' : 'Alles freischalten'}
+                </button>
+                <button className={btn} onClick={() => void act(u, 'Alle Sitzungen beenden (auf allen Geräten abmelden)?', 'POST', '/revoke-sessions', 'Abgemeldet')}>
+                  Abmelden erzwingen
+                </button>
+                {u.google && (
+                  <button className={btn} onClick={() => void act(u, 'Google-Verknüpfung trennen?', 'DELETE', '/google', 'Google getrennt')}>
+                    Google trennen
+                  </button>
+                )}
+                <button className={btn} onClick={() => patch.mutate({ id: u.id, body: { role: u.role === 'admin' ? 'user' : 'admin' } })}>
+                  {u.role === 'admin' ? 'Admin entziehen' : 'Zum Admin machen'}
+                </button>
+                <button className={`${btn} text-error`} onClick={() => void act(u, 'Fortschritt zurücksetzen? XP, Coins, Streak, Level-Fortschritt und Wiederholungen werden gelöscht. Konto, Pets und Items bleiben.', 'POST', '/reset-progress', 'Fortschritt zurückgesetzt')}>
+                  Fortschritt zurücksetzen
+                </button>
+                <button className={`${btn} border-error text-error`} onClick={() => void act(u, 'Konto ENDGÜLTIG löschen? Alle Daten dieses Kontos werden entfernt. Das lässt sich nicht rückgängig machen.', 'DELETE', '', 'Konto gelöscht')}>
+                  Konto löschen
+                </button>
+              </div>
+            </>
+          )}
         </Card>
       ))}
+      <Modal open={!!edit} onClose={() => setEdit(null)} title={`@${edit?.username ?? ''} bearbeiten`}>
+        <form
+          className="space-y-3"
+          onSubmit={(e) => {
+            e.preventDefault();
+            if (!edit) return;
+            const body: Record<string, unknown> = {};
+            if (form.displayName !== edit.displayName) body.displayName = form.displayName;
+            if (form.username !== edit.username) body.username = form.username;
+            if (form.email.trim() !== (edit.email ?? '')) body.email = form.email.trim() || null;
+            if (!Object.keys(body).length) return setEdit(null);
+            patch.mutate({ id: edit.id, body });
+          }}
+        >
+          {(
+            [
+              ['displayName', 'Anzeigename', 'text'],
+              ['username', 'Benutzername', 'text'],
+              ['email', 'E-Mail (leer = entfernen; neue Adresse bekommt eine Bestätigungs-Mail)', 'email'],
+            ] as const
+          ).map(([k, label, type]) => (
+            <label key={k} className="block">
+              <span className="mb-1 block px-1 text-sm font-extrabold text-muted">{label}</span>
+              <input type={type} value={form[k]} onChange={(e) => setForm({ ...form, [k]: e.target.value })} className="w-full rounded-2xl border-2 border-line bg-surface-2 px-4 py-2.5 font-bold outline-none focus:border-primary" />
+            </label>
+          ))}
+          <Button full type="submit" disabled={patch.isPending}>
+            Speichern
+          </Button>
+        </form>
+      </Modal>
       <Modal open={!!temp} onClose={() => setTemp(null)} title="Temporäres Passwort">
         <p className="font-semibold text-muted">Für @{temp?.user} – wird nur jetzt angezeigt. Beim nächsten Login muss ein neues Passwort gesetzt werden.</p>
         <p className="mt-3 select-all rounded-2xl bg-surface-2 p-3 text-center font-mono text-xl font-black">{temp?.pw}</p>

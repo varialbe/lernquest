@@ -5,7 +5,7 @@ import { api } from './api.ts';
 export const useMe = (enabled = true) => useQuery({ queryKey: ['me'], queryFn: () => api<MeResponse>('/api/me'), enabled, staleTime: 15_000 });
 export const usePath = () => useQuery({ queryKey: ['path'], queryFn: () => api<PathResponse>('/api/path'), staleTime: 30_000 });
 export const useConfig = () =>
-  useQuery({ queryKey: ['config'], queryFn: () => api<{ sourceLinkBase: string; vapidPublicKey: string | null }>('/api/config'), staleTime: Infinity });
+  useQuery({ queryKey: ['config'], queryFn: () => api<{ sourceLinkBase: string; vapidPublicKey: string | null; googleLogin?: boolean }>('/api/config'), staleTime: Infinity });
 export const useShop = () => useQuery({ queryKey: ['shop'], queryFn: () => api<{ items: ShopItem[] }>('/api/shop'), staleTime: Infinity });
 export const useLeaderboard = (kind: string) => useQuery({ queryKey: ['lb', kind], queryFn: () => api<LeaderboardResponse>(`/api/leaderboard/${kind}`), staleTime: 20_000 });
 export const useProfile = (username = 'me') => useQuery({ queryKey: ['profile', username], queryFn: () => api<ProfileResponse>(`/api/profile/${username}`) });

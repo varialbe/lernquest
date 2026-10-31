@@ -1,3 +1,4 @@
+import { useQueryClient } from '@tanstack/react-query';
 import { useEffect, useState } from 'react';
 import { Link } from 'wouter';
 import { ACHIEVEMENTS, ECONOMY, MODULE_INFO, SHOP_ITEMS, THEMES, petStage, type MeResponse } from '@lernquest/shared';
@@ -13,6 +14,7 @@ import { ChangePassword } from './Auth.tsx';
 import { moduleColor } from '../lib/theme.ts';
 import { PasskeySettings } from '../components/PasskeySettings.tsx';
 import { Copyright } from './Legal.tsx';
+import { GOOGLE_G, startGoogle } from '../lib/google.ts';
 
 function StatBox({ img, value, label }: { img: string; value: React.ReactNode; label: string }) {
   return (
@@ -55,47 +57,111 @@ function Calendar({ days }: { days: { day: string; xp: number }[] }) {
   );
 }
 
-/** Newsletter an/aus; zum Einschalten braucht es eine E-Mail-Adresse */
-function NewsletterRow({ me, row, save, flash }: { me: MeResponse; row: string; save: (b: Record<string, unknown>) => Promise<unknown>; flash: (m: string) => void }) {
-  const [email, setEmail] = useState(me.settings.email ?? '');
-  const [asking, setAsking] = useState(false);
-  const on = me.settings.newsletter;
-  const toggle = async (next: boolean, mail?: string) => {
+/** E-Mail, Google und Newsletter im Profil */
+function AccountRows({ me, row, save, flash }: { me: MeResponse; row: string; save: (b: Record<string, unknown>) => Promise<unknown>; flash: (m: string) => void }) {
+  const qc = useQueryClient();
+  const { data: cfg } = useConfig();
+  const s = me.settings;
+  const [editMail, setEditMail] = useState(false);
+  const [email, setEmail] = useState(s.email ?? '');
+  const [busy, setBusy] = useState(false);
+  const refresh = () => void qc.invalidateQueries({ queryKey: ['me'] });
+  const run = async (fn: () => Promise<unknown>, ok: string) => {
+    setBusy(true);
     try {
-      await save(next ? { newsletter: true, ...(mail ? { email: mail } : {}) } : { newsletter: false, email: null });
-      flash(next ? 'Newsletter abonniert 📧' : 'Newsletter abbestellt');
-      setAsking(false);
+      await fn();
+      flash(ok);
+      refresh();
     } catch (e) {
       flash((e as Error).message);
+    } finally {
+      setBusy(false);
     }
   };
+  // Rückkehr von Google (Verknüpfen)
+  useEffect(() => {
+    const p = new URLSearchParams(location.search);
+    if (p.get('google') === 'linked') flash('Google verknüpft ✅');
+    if (p.get('oauthError')) flash(p.get('oauthError')!);
+    if (p.has('google') || p.has('oauthError')) history.replaceState(null, '', location.pathname);
+  }, [flash]);
+  const linkGoogle = () =>
+    run(async () => {
+      const r = await startGoogle('link');
+      if (r?.status === 'error') throw new Error(r.message);
+    }, 'Google verknüpft ✅');
+  const toggle = 'relative h-8 w-14 shrink-0 rounded-full transition-colors';
+  const knob = (on: boolean) => <span className={`absolute top-1 h-6 w-6 rounded-full bg-white shadow transition-all ${on ? 'left-7' : 'left-1'}`} />;
   return (
-    <div className="py-3">
-      <div className={`${row} py-0`}>
-        <span className="font-bold">Newsletter</span>
-        <button
-          role="switch"
-          aria-checked={on}
-          onClick={() => (on ? void toggle(false) : me.settings.email ? void toggle(true) : setAsking(true))}
-          className={`relative h-8 w-14 rounded-full transition-colors ${on ? 'bg-primary' : 'bg-line-strong'}`}
-        >
-          <span className={`absolute top-1 h-6 w-6 rounded-full bg-white shadow transition-all ${on ? 'left-7' : 'left-1'}`} />
-        </button>
+    <>
+      <div className="py-3">
+        <div className={`${row} py-0`}>
+          <span className="font-bold">E-Mail</span>
+          <button onClick={() => setEditMail(!editMail)} className="min-w-0 truncate text-right text-sm font-bold text-muted">
+            {s.email ?? 'hinzufügen'} {s.email && (s.emailVerified ? <span className="text-success">✓</span> : <span className="text-gold-dark">(unbestätigt)</span>)}
+          </button>
+        </div>
+        {s.email && !s.emailVerified && !editMail && (
+          <button disabled={busy} onClick={() => void run(() => api('/api/auth/verify/resend', { method: 'POST' }), 'Bestätigungs-Mail gesendet 📬')} className="mt-1 text-xs font-black text-primary">
+            Bestätigungs-Mail erneut senden
+          </button>
+        )}
+        {editMail && (
+          <form
+            className="mt-2 flex gap-2"
+            onSubmit={(e) => {
+              e.preventDefault();
+              void run(() => save({ email }).then(() => setEditMail(false)), 'Gespeichert – bitte bestätige die neue Adresse per Mail');
+            }}
+          >
+            <input type="email" required autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} className="min-w-0 flex-1 rounded-xl border-2 border-line bg-surface-2 px-3 py-1.5 font-bold outline-none focus:border-primary" />
+            <button disabled={busy} className="rounded-xl bg-primary px-3 font-black text-white">
+              OK
+            </button>
+          </form>
+        )}
       </div>
-      {asking && (
-        <form
-          className="mt-2 flex gap-2"
-          onSubmit={(e) => {
-            e.preventDefault();
-            void toggle(true, email);
-          }}
-        >
-          <input type="email" required autoComplete="email" placeholder="deine@mail.de" value={email} onChange={(e) => setEmail(e.target.value)} className="min-w-0 flex-1 rounded-xl border-2 border-line bg-surface-2 px-3 py-1.5 font-bold outline-none focus:border-primary" />
-          <button className="rounded-xl bg-primary px-3 font-black text-white">OK</button>
-        </form>
+
+      {(cfg?.googleLogin || s.google) && (
+        <div className={row}>
+          <span className="flex items-center gap-2 font-bold">
+            <span dangerouslySetInnerHTML={{ __html: GOOGLE_G }} /> Google
+          </span>
+          {s.google ? (
+            <button disabled={busy} onClick={() => confirm('Google-Verknüpfung trennen?') && void run(() => api('/api/me/google', { method: 'DELETE' }), 'Google getrennt')} className="text-sm font-black text-muted hover:text-error">
+              verknüpft · trennen
+            </button>
+          ) : (
+            <button disabled={busy} onClick={() => void linkGoogle()} className="rounded-xl border-2 border-primary px-2.5 py-1 text-sm font-black text-primary">
+              Verknüpfen
+            </button>
+          )}
+        </div>
       )}
-      {on && me.settings.email && <p className="mt-1 text-xs font-semibold text-muted">an {me.settings.email}</p>}
-    </div>
+
+      <div className="py-3">
+        <div className={`${row} py-0`}>
+          <span className="font-bold">Newsletter</span>
+          <button
+            role="switch"
+            aria-checked={s.newsletter !== 'none'}
+            disabled={busy}
+            onClick={() =>
+              s.newsletter !== 'none'
+                ? void run(() => save({ newsletter: false }), 'Newsletter abbestellt')
+                : s.email
+                  ? void run(() => save({ newsletter: true }), 'Fast geschafft – bitte bestätige die Mail in deinem Postfach 📬')
+                  : (setEditMail(true), flash('Bitte zuerst eine E-Mail-Adresse hinterlegen'))
+            }
+            className={`${toggle} ${s.newsletter !== 'none' ? 'bg-primary' : 'bg-line-strong'}`}
+          >
+            {knob(s.newsletter !== 'none')}
+          </button>
+        </div>
+        {s.newsletter === 'pending' && <p className="mt-1 text-xs font-semibold text-gold-dark">Wartet auf deine Bestätigung – schau in dein Postfach (news.quest@varialbe.xyz).</p>}
+        {s.newsletter === 'confirmed' && <p className="mt-1 text-xs font-semibold text-muted">Bestätigt · an {s.email}</p>}
+      </div>
+    </>
   );
 }
 
@@ -190,10 +256,10 @@ function Settings({ me, onLogout, onLogin }: { me: MeResponse; onLogout: () => v
         <span className="font-bold">App-Version</span>
         <span className="font-mono text-xs font-bold text-muted">{APP_VERSION}</span>
       </div>
-      <NewsletterRow me={me} row={row} save={(b) => save.mutateAsync(b)} flash={flash} />
+      <AccountRows me={me} row={row} save={(b) => save.mutateAsync(b)} flash={flash} />
       <PasskeySettings row={row} flash={flash} />
       <button className={`${row} w-full font-bold`} onClick={() => setPwOpen(true)}>
-        Passwort ändern <Icon name="chevronRight" className="text-muted" />
+        {me.settings.hasPassword ? 'Passwort ändern' : 'Passwort festlegen'} <Icon name="chevronRight" className="text-muted" />
       </button>
       {me.user.role === 'admin' && (
         <Link href="/admin" className={`${row} font-bold text-primary`}>
@@ -208,6 +274,7 @@ function Settings({ me, onLogout, onLogin }: { me: MeResponse; onLogout: () => v
         <div className="-mx-5 -mb-6 max-h-[80dvh] overflow-y-auto">
           <ChangePassword
             username={me.user.username}
+            forced={!me.settings.hasPassword}
             onDone={(t) => {
               setPwOpen(false);
               onLogin(t);

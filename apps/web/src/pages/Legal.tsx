@@ -116,17 +116,32 @@ export function Datenschutz() {
 
       <H>5. Benutzerkonto</H>
       <p>
-        Für die Nutzung brauchst du ein Konto. Gespeichert werden Benutzername, Anzeigename, das Passwort ausschließlich als Argon2id-Hash (nie im Klartext), der Zeitpunkt, zu dem du diese Datenschutzerklärung bestätigt hast, und deine Einstellungen (Tagesziel,
+        Für die Nutzung brauchst du ein Konto. Gespeichert werden Benutzername, Anzeigename, deine E-Mail-Adresse, das Passwort ausschließlich als Argon2id-Hash (nie im Klartext), der Zeitpunkt, zu dem du diese Datenschutzerklärung bestätigt hast, und deine Einstellungen (Tagesziel,
         Farbschema, Ton, Profilrahmen, aktives Pet). Gibst du freiwillig einen Einladungscode an, speichern wir ihn, damit der Betreiber sieht, über wen du gekommen bist. Rechtsgrundlage: Art. 6 Abs. 1 lit. b DSGVO (Bereitstellung der App).
       </p>
       <p className="mt-2">
         Für jede Anmeldung wird eine Sitzung angelegt: ein zufälliger Schlüssel (auf dem Server nur als Hash), die Browser-/App-Kennung und Zeitpunkte von Anmeldung und letzter Nutzung. Abgelaufene oder abgemeldete Sitzungen werden gelöscht.
       </p>
 
+      <H>5a. E-Mail-Adresse und Sicherheit</H>
+      <p>
+        Deine E-Mail-Adresse nutzen wir, um sie zu bestätigen, für Links zum Zurücksetzen des Passworts und – nur mit deiner Einwilligung – für den Newsletter. In der Datenbank liegt sie ausschließlich verschlüsselt (AES-256); gesucht wird über einen
+        geschlüsselten Hash. Links aus E-Mails (Bestätigen, Passwort zurücksetzen) speichern wir nur als Hash, sie sind zeitlich begrenzt und nur einmal gültig. Die Mails versenden wir über unseren eigenen Mailserver auf demselben Server (Absender
+        lernquest.reset@varialbe.xyz und news.quest@varialbe.xyz).
+      </p>
+
+      <H>5b. Anmeldung mit Google</H>
+      <p>
+        Wenn du „Mit Google anmelden/registrieren“ wählst, leitet dich die App zu Google (Google Ireland Limited, Gordon House, Barrow Street, Dublin 4, Irland) weiter. Nach deiner Zustimmung übermittelt Google uns deine Google-Kennung, deine E-Mail-Adresse, ob sie
+        bestätigt ist, und deinen Namen. Wir speichern die Kennung und die E-Mail-Adresse (verschlüsselt), um dich wiederzuerkennen. Rechtsgrundlage: Art. 6 Abs. 1 lit. b DSGVO; die Nutzung von Google ist freiwillig, du kannst dich auch mit Benutzername/E-Mail und
+        Passwort registrieren. Für die Verarbeitung bei Google gilt dessen Datenschutzerklärung (policies.google.com/privacy). Die Verknüpfung kannst du im Profil trennen.
+      </p>
+
       <H>6. Newsletter (freiwillig)</H>
       <p>
-        Nur wenn du bei der Registrierung oder im Profil „Newsletter abonnieren“ wählst, speichern wir deine E-Mail-Adresse und den Zeitpunkt deiner Einwilligung, um dir gelegentlich Neuigkeiten zu LernQuest zu schicken. Rechtsgrundlage: deine Einwilligung (Art. 6 Abs. 1
-        lit. a DSGVO). Du kannst den Newsletter jederzeit im Profil abbestellen oder per E-Mail widerrufen. Danach wird die Adresse gelöscht, sofern du sie nicht für etwas anderes hinterlegt hast.
+        Nur wenn du bei der Registrierung oder im Profil „Newsletter abonnieren“ wählst, schicken wir dir gelegentlich Neuigkeiten zu LernQuest. Wir nutzen das Double-Opt-in-Verfahren: Erst nachdem du den Link in unserer Bestätigungs-Mail angeklickt hast, bekommst du
+        den Newsletter. Zum Nachweis speichern wir die Zeitpunkte von Anmeldung und Bestätigung. Rechtsgrundlage: deine Einwilligung (Art. 6 Abs. 1 lit. a DSGVO). Abbestellen kannst du jederzeit per Link in jeder Mail, im Profil oder per E-Mail. Für den Versand
+        speichern wir keine Öffnungs- oder Klickstatistiken.
       </p>
 
       <H>6a. Passkeys</H>
