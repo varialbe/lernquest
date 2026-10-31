@@ -75,7 +75,7 @@ export default function Praxis() {
                   {it.isNew && <Pill className="bg-gold/20 text-gold-dark">Neu</Pill>}
                 </div>
                 <p className="truncate font-black">{it.unitTitle}</p>
-                <p className="truncate text-sm font-semibold text-muted">{locked ? 'Schließe zuerst „Grundlagen“ dieser Unit ab' : `${it.title} · ${it.questionCount} Fragen`}</p>
+                <p className="truncate text-sm font-semibold text-muted">{locked ? 'Erst „Grundlagen“ abschließen' : `${it.title} · ${it.questionCount} Fragen`}</p>
               </div>
               {done ? (
                 <div className="flex shrink-0 gap-0.5" aria-label={`${it.stars} von 3 Sternen`}>

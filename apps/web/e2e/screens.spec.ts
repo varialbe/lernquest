@@ -31,6 +31,7 @@ for (const scheme of ['light', 'dark'] as const) {
       await loginViaApi(page, 'Testuser');
       const shots: [string, string, (() => Promise<void>)?][] = [
         ['03-home', '/'],
+        ['04-praxis', '/praxis'],
         ['05-pets', '/pets'],
         ['06-shop', '/shop'],
         ['07-league', '/league'],
@@ -45,6 +46,30 @@ for (const scheme of ['light', 'dark'] as const) {
         if (['08-profile', '06-shop'].includes(name)) await page.screenshot({ path: `${OUT}/${scheme}-${name}-full.png`, fullPage: true });
         expect(await assertNoHorizontalOverflow(page), `${name} hat horizontalen Overflow`).toBeLessThanOrEqual(0);
       }
+    });
+
+    test(`praxis estimate screens (${scheme})`, async ({ page }) => {
+      await loginViaApi(page, 'Admin');
+      await page.goto(`/level/${process.env.SHOT_PRAXIS ?? 'era-02-l5'}`);
+      await page.getByRole('button', { name: 'Prüfen' }).waitFor();
+      await page.waitForTimeout(600);
+      await page.screenshot({ path: `${OUT}/${scheme}-15-praxis-quiz.png` });
+      const slider = page.getByRole('slider', { name: 'Schätzwert' });
+      for (let i = 0; i < 12 && !(await slider.count()); i++) {
+        await page.locator('main button[aria-pressed]').first().click();
+        await page.getByRole('button', { name: 'Prüfen' }).click();
+        await page.getByRole('button', { name: 'Weiter' }).click();
+        await page.waitForTimeout(350);
+      }
+      await expect(slider).toBeVisible();
+      await page.waitForTimeout(400);
+      await page.screenshot({ path: `${OUT}/${scheme}-16-estimate.png` });
+      await slider.focus();
+      for (let i = 0; i < 6; i++) await page.keyboard.press('ArrowRight');
+      await page.getByRole('button', { name: 'Prüfen' }).click();
+      await page.waitForTimeout(700);
+      await page.screenshot({ path: `${OUT}/${scheme}-17-estimate-feedback.png` });
+      expect(await assertNoHorizontalOverflow(page)).toBeLessThanOrEqual(0);
     });
 
     test(`quiz screens (${scheme})`, async ({ page }) => {
