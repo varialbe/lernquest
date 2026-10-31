@@ -23,8 +23,8 @@ export type GenerateInput = {
 
 export type GenerateResult = { unit: Unit; dropped: string[]; tokens: number };
 
-const fill = (tpl: string, vars: Record<string, string>) => tpl.replace(/\{\{(\w+)\}\}/g, (_, k: string) => vars[k] ?? `{{${k}}}`);
-const template = (name: string) => readFileSync(join(config.promptsDir, name), 'utf8').replace(/^<!--[\s\S]*?-->\s*/, '');
+export const fill = (tpl: string, vars: Record<string, string>) => tpl.replace(/\{\{(\w+)\}\}/g, (_, k: string) => vars[k] ?? `{{${k}}}`);
+export const template = (name: string) => readFileSync(join(config.promptsDir, name), 'utf8').replace(/^<!--[\s\S]*?-->\s*/, '');
 
 export function formatPrevious(prev: PreviousUnit[]): string {
   if (!prev.length) return '_(keine – das ist die erste Unit dieses Moduls)_';
@@ -35,11 +35,11 @@ export function formatPrevious(prev: PreviousUnit[]): string {
     .join('\n\n');
 }
 
-const formatHeadings = (h: Heading[]) => (h.length ? h.map((x) => `${'  '.repeat(x.level - 1)}- ${x.text}`).join('\n') : '_(keine Überschriften)_');
+export const formatHeadings = (h: Heading[]) => (h.length ? h.map((x) => `${'  '.repeat(x.level - 1)}- ${x.text}`).join('\n') : '_(keine Überschriften)_');
 const formatLinked = (p: Prepared) =>
   p.linked.length ? p.linked.map((n) => `### ${n.title} (\`${n.path}\`)\n${FENCE}markdown\n${n.excerpt}\n${FENCE}`).join('\n\n') : '_(keine)_';
 /** 4 Backticks, damit ```mermaid-Blöcke der Notiz die Umrahmung nicht beenden */
-const FENCE = '````';
+export const FENCE = '````';
 
 /** Überschrift einer Frage auf eine echte Überschrift der Notiz abbilden (exakt, sonst case-insensitiv, sonst null). */
 export function matchHeading(headings: Heading[], wanted: string | null | undefined): string | null {
@@ -101,7 +101,57 @@ type RawQuestion = {
   source: { file: string; heading: string | null };
   difficulty: number;
   concepts: string[];
+  /** nur bei estimate (Bonus-Schema) */
+  slider?: { min: number; max: number; step: number; answer: number; tolerance: number; unit: string | null; scale: string } | null;
 };
+export type { RawQuestion };
+
+/** Eine Roh-Frage normalisieren und validieren. Ergebnis: gültige Frage oder Fehlermeldung. */
+export function normalizeQuestion(
+  rq: RawQuestion,
+  qid: string,
+  ctx: { file: string; headings: Heading[]; knownFiles: string[]; fallbackConcept: string },
+): { ok: true; question: Question } | { ok: false; error: string } {
+  let options = (rq.options ?? []).map((o) => ({ id: o.id.trim().toLowerCase(), text: fixLatexEscapes(o.text.trim()) }));
+  let correct = (rq.correct ?? []).map((c) => c.trim().toLowerCase());
+  let slider: Question['slider'];
+  if (rq.type === 'estimate') {
+    options = [];
+    correct = [];
+    if (rq.slider) slider = { ...rq.slider, unit: rq.slider.unit?.trim() || null, scale: rq.slider.scale === 'log' ? 'log' : 'linear' };
+  } else if (rq.type === 'truefalse') {
+    const isTrue = correct[0] === 'true' || correct[0] === options.find((o) => /^wahr$/i.test(o.text))?.id;
+    options = [{ id: 'true', text: 'Wahr' }, { id: 'false', text: 'Falsch' }];
+    correct = [isTrue ? 'true' : 'false'];
+  } else {
+    // neu mischen und als a, b, c … durchnummerieren
+    const shuffled = seededShuffle(options, qid);
+    const map = new Map(shuffled.map((o, k) => [o.id, String.fromCharCode(97 + k)]));
+    correct = correct.map((c) => map.get(c) ?? `?${c}`);
+    options = shuffled.map((o, k) => ({ id: String.fromCharCode(97 + k), text: o.text }));
+    correct.sort();
+  }
+  const sourceFile = ctx.knownFiles.includes(rq.source?.file) ? rq.source.file : ctx.file;
+  // Überschriften kennen wir nur für die aktuelle Notiz; fremde Quellen behalten Codex' Angabe
+  const heading = sourceFile === ctx.file ? matchHeading(ctx.headings, rq.source?.heading) : rq.source?.heading?.trim().slice(0, 200) || null;
+  const concepts = (rq.concepts ?? []).map((c) => c.trim()).filter(Boolean).slice(0, 6);
+  const candidate = {
+    id: qid,
+    type: rq.type,
+    prompt: fixLatexEscapes(rq.prompt.trim()),
+    options,
+    correct,
+    ...(slider ? { slider } : {}),
+    explanation: fixLatexEscapes(rq.explanation.trim()),
+    source: { file: sourceFile, heading },
+    difficulty: Math.min(5, Math.max(1, Math.round(rq.difficulty || 1))),
+    concepts: concepts.length ? concepts : [ctx.fallbackConcept],
+  };
+  const parsed = Question.safeParse(candidate);
+  if (parsed.success) return { ok: true, question: parsed.data };
+  return { ok: false, error: `„${candidate.prompt.slice(0, 60)}…“ – ${parsed.error.issues.map((x) => x.message).join('; ')}` };
+}
+
 type RawUnit = {
   title: string;
   slug: string;
@@ -120,39 +170,11 @@ export function normalize(raw: RawUnit, input: Omit<GenerateInput, 'previous' | 
     const rawLevel = raw.levels.find((l) => l.kind === kind) ?? raw.levels[i];
     const qs: Question[] = [];
     for (const rq of rawLevel?.questions ?? []) {
+      if (rq.type === 'estimate') continue; // Schätzfragen gibt es nur im Praxis-Level
       const qid = `${id}-l${i + 1}-q${String(qs.length + 1).padStart(2, '0')}`;
-      let options = rq.options.map((o) => ({ id: o.id.trim().toLowerCase(), text: o.text.trim() }));
-      let correct = rq.correct.map((c) => c.trim().toLowerCase());
-      if (rq.type === 'truefalse') {
-        const isTrue = correct[0] === 'true' || correct[0] === options.find((o) => /^wahr$/i.test(o.text))?.id;
-        options = [{ id: 'true', text: 'Wahr' }, { id: 'false', text: 'Falsch' }];
-        correct = [isTrue ? 'true' : 'false'];
-      } else {
-        // neu mischen und als a, b, c … durchnummerieren
-        const shuffled = seededShuffle(options, qid);
-        const map = new Map(shuffled.map((o, k) => [o.id, String.fromCharCode(97 + k)]));
-        correct = correct.map((c) => map.get(c) ?? `?${c}`);
-        options = shuffled.map((o, k) => ({ id: String.fromCharCode(97 + k), text: o.text }));
-        correct.sort();
-      }
-      const sourceFile = knownFiles.includes(rq.source?.file) ? rq.source.file : input.file;
-      // Überschriften kennen wir nur für die aktuelle Notiz; fremde Quellen behalten Codex' Angabe
-      const heading = sourceFile === input.file ? matchHeading(input.prepared.headings, rq.source?.heading) : (rq.source?.heading?.trim().slice(0, 200) || null);
-      const candidate = {
-        id: qid,
-        type: rq.type,
-        prompt: rq.prompt.trim(),
-        options,
-        correct,
-        explanation: rq.explanation.trim(),
-        source: { file: sourceFile, heading },
-        difficulty: Math.min(5, Math.max(1, Math.round(rq.difficulty || 1))),
-        concepts: (rq.concepts ?? []).map((c) => c.trim()).filter(Boolean).slice(0, 6),
-      };
-      if (!candidate.concepts.length) candidate.concepts = [raw.concepts[0] ?? raw.title];
-      const parsed = Question.safeParse(candidate);
-      if (parsed.success) qs.push(parsed.data);
-      else dropped.push(`${kind}: „${candidate.prompt.slice(0, 60)}…“ – ${parsed.error.issues.map((x) => x.message).join('; ')}`);
+      const r = normalizeQuestion(rq, qid, { file: input.file, headings: input.prepared.headings, knownFiles, fallbackConcept: raw.concepts[0] ?? raw.title });
+      if (r.ok) qs.push(r.question);
+      else dropped.push(`${kind}: ${r.error}`);
       if (qs.length === 12) break;
     }
     return { id: `${id}-l${i + 1}`, index: i + 1, kind, title: rawLevel?.title?.trim() || LEVEL_TITLES[kind], questions: qs };

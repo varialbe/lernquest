@@ -10,6 +10,8 @@ export type CodexOptions = {
   images?: string[];
   label: string;
   log: (msg: string) => void;
+  /** JSON-Schema für --output-schema (Standard: Unit-Schema) */
+  schema?: string;
 };
 
 export type CodexResult = { data: unknown; tokens: number };
@@ -41,7 +43,7 @@ function runOnce(opts: CodexOptions, attempt: number): Promise<CodexResult> {
     '-C', opts.workDir,
     '-m', config.codexModel,
     '-c', `model_reasoning_effort="${opts.effort}"`,
-    '--output-schema', config.schemaFile,
+    '--output-schema', opts.schema ?? config.schemaFile,
     '-o', outFile,
     ...(opts.images ?? []).flatMap((img) => ['-i', img]),
     '-',

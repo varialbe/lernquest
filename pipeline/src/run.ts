@@ -1,20 +1,21 @@
 import { randomBytes } from 'node:crypto';
-import { appendFileSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, unlinkSync, writeFileSync } from 'node:fs';
+import { appendFileSync, existsSync, mkdirSync, readdirSync, readFileSync, rmSync, statSync, unlinkSync, writeFileSync } from 'node:fs';
 import { join, relative } from 'node:path';
 import { and, asc, eq, lt, max } from 'drizzle-orm';
 import { getDb, type DB } from '@lernquest/api/db';
 import { pipelineRuns, pipelineState, processedFiles, units } from '@lernquest/api/schema';
 import { importContentDir, importUnit } from '@lernquest/api/import';
-import { ModuleId } from '@lernquest/shared';
+import { BONUS_KIND, ModuleId, Unit } from '@lernquest/shared';
 import { config, moduleOf } from './config.ts';
 import type { Vault } from './obsidian.ts';
 import { prepareNote } from './prepare.ts';
 import { RateLimitError } from './codex.ts';
+import { generateBonus } from './bonus.ts';
 import { generateUnit } from './generate.ts';
 import { notify, runMessage } from './notify.ts';
 import * as git from './git.ts';
 
-export type Mode = 'run' | 'backfill' | 'dry-run' | 'regenerate';
+export type Mode = 'run' | 'backfill' | 'dry-run' | 'regenerate' | 'bonus';
 
 type PlanItem = {
   path: string;
@@ -173,6 +174,33 @@ function plan(db: DB, mode: Mode, head: string, file: string | undefined, warnin
   return [...order.map((p) => work.find((i) => i.path === p)!), ...items.filter((i) => i.action === 'skip')];
 }
 
+/** content-Datei einer Unit (content/<modul>/<nr>-<slug>.json) */
+function contentFileOf(unitId: string): string | null {
+  const [mod, nr] = unitId.split('-');
+  const dir = join(config.contentDir, mod!);
+  if (!existsSync(dir)) return null;
+  const f = readdirSync(dir).find((x) => x.startsWith(`${nr}-`) && x.endsWith('.json'));
+  return f ? join(dir, f) : null;
+}
+
+/** Units ohne Praxis-Level (oder eine bestimmte, per Unit-ID oder Quelldatei). */
+function planBonus(only?: string): PlanItem[] {
+  const items: PlanItem[] = [];
+  if (!existsSync(config.contentDir)) return items;
+  for (const mod of readdirSync(config.contentDir).sort()) {
+    const dir = join(config.contentDir, mod);
+    if (!statSync(dir).isDirectory()) continue;
+    for (const f of readdirSync(dir).filter((x) => x.endsWith('.json')).sort()) {
+      const u = JSON.parse(readFileSync(join(dir, f), 'utf8')) as Unit;
+      const has = u.levels.some((l) => l.kind === BONUS_KIND);
+      if (only ? only === u.id || only === u.source.file : !has) {
+        items.push({ path: u.source.file, sha256: u.source.sha256, action: 'regenerate', reason: has ? 'Praxis-Level neu' : 'Praxis-Level fehlt', unitId: u.id });
+      }
+    }
+  }
+  return items;
+}
+
 // ---------- Ausführung ----------
 export async function execute(mode: Mode, opts: { runId?: string; file?: string; quiet?: boolean; notify?: boolean } = {}): Promise<Report> {
   const runId = opts.runId ?? newRunId();
@@ -209,7 +237,7 @@ export async function execute(mode: Mode, opts: { runId?: string; file?: string;
     head = git.pullStudium();
     log(`Studium-Repo auf ${head.slice(0, 8)} (zuletzt verarbeitet: ${previousSha?.slice(0, 8) ?? '–'})`);
 
-    const items = plan(db, mode, head, opts.file, warnings);
+    const items = mode === 'bonus' ? planBonus(opts.file) : plan(db, mode, head, opts.file, warnings);
     for (const w of warnings) log(`Hinweis: ${w}`);
     const todo = items.filter((i) => i.action !== 'skip');
     for (const s of items.filter((i) => i.action === 'skip')) {
@@ -226,12 +254,31 @@ export async function execute(mode: Mode, opts: { runId?: string; file?: string;
     } else {
       if (!todo.length) log('Nichts Neues.');
       let committed = false;
+      let stopAfterThis = false;
       const vault: Vault = { root: config.studiumRepo, files: git.listAllFiles() };
       for (const [i, item] of todo.entries()) {
         const t0 = Date.now();
         let notes: string[] = [];
         log(`[${i + 1}/${todo.length}] ${item.path} (${item.action}: ${item.reason})`);
         try {
+          if (mode === 'bonus') {
+            // nur das Praxis-Level einer bestehenden Unit (nach-)generieren
+            const file = contentFileOf(item.unitId!)!;
+            const unit = Unit.parse(JSON.parse(readFileSync(file, 'utf8')));
+            const workDir = join(config.dataDir, 'work', runId, String(i + 1));
+            mkdirSync(workDir, { recursive: true });
+            // aktueller Pfad aus der DB (Datei kann seit der Generierung umbenannt worden sein)
+            const current = db.select({ f: units.sourceFile }).from(units).where(eq(units.id, unit.id)).get()?.f ?? unit.source.file;
+            const note = existsSync(git.studiumPath(current)) ? await prepareNote(vault, current, workDir) : null;
+            const b = await generateBonus(unit, note, workDir, log);
+            writeFileSync(file, JSON.stringify(b.unit, null, 2) + '\n');
+            committed ||= git.commitContent([relative(config.lernquestRepo, file)], `content: add ${unit.module} Vorlesung ${unit.number} – Praxis-Level`);
+            importUnit(db, b.unit);
+            const bq = b.unit.levels[4]!.questions;
+            files.push({ path: unit.source.file, status: 'done', unitId: unit.id, title: `${unit.title} (Praxis)`, levels: 1, questions: bq.length, dropped: b.dropped, review: b.review, tokens: b.tokens, durationSec: Math.round((Date.now() - t0) / 1000) });
+            log(`  ✓ ${unit.id} Praxis-Level: ${bq.length} Fragen (${bq.filter((q) => q.type === 'estimate').length} Schätzfragen), Review: ${b.review.fixed} korrigiert, ${b.dropped.length} verworfen`);
+            continue;
+          }
           const module = ModuleId.parse(moduleOf(item.path));
           const existing = item.unitId ? db.select().from(units).where(eq(units.id, item.unitId)).get() : undefined;
           const number =
@@ -253,7 +300,21 @@ export async function execute(mode: Mode, opts: { runId?: string; file?: string;
           log(`  Notiz: ${s.chars} Zeichen, ${prepared.headings.length} Überschriften, ${s.mermaid} Mermaid, ${s.callouts} Callouts, ${s.math} Formeln, ${s.images} Bilder · ${prepared.links.length} Wikilinks · Kontext: ${previous.length} frühere Units`);
           for (const n of notes) log(`  ⚑ ${n}`);
 
-          const { unit, dropped, tokens } = await generateUnit({ module, number, file: item.path, sha256: item.sha256, commit: head, prepared, previous, workDir, log });
+          const gen = await generateUnit({ module, number, file: item.path, sha256: item.sha256, commit: head, prepared, previous, workDir, log });
+          let { unit, tokens } = gen;
+          const { dropped } = gen;
+          // Praxis-Level (Bonus) – ein Fehler hier verhindert die Unit nicht
+          if (config.generateBonus) {
+            try {
+              const b = await generateBonus(unit, prepared, workDir, log);
+              unit = b.unit;
+              tokens += b.tokens;
+              dropped.push(...b.dropped);
+            } catch (e) {
+              notes.push(`Praxis-Level fehlgeschlagen (später mit \`pnpm pipeline bonus\`): ${(e as Error).message.slice(0, 200)}`);
+              if (e instanceof RateLimitError) stopAfterThis = true;
+            }
+          }
 
           // content/<modul>/<nr>-<slug>.json schreiben (alte Datei derselben Unit ersetzen)
           const modDir = join(config.contentDir, module.toLowerCase());
@@ -283,7 +344,14 @@ export async function execute(mode: Mode, opts: { runId?: string; file?: string;
             tokens,
             durationSec: Math.round((Date.now() - t0) / 1000),
           });
-          log(`  ✓ ${unit.id} „${unit.title}“: ${qCount} Fragen (${imported.status}), Review: ${unit.generator.review.fixed} korrigiert, ${unit.generator.review.removed} entfernt, ${dropped.length} bei Validierung verworfen`);
+          log(`  ✓ ${unit.id} „${unit.title}“: ${qCount} Fragen (${imported.status}${unit.levels.length === 5 ? ', inkl. Praxis' : ''}), Review: ${unit.generator.review.fixed} korrigiert, ${unit.generator.review.removed} entfernt, ${dropped.length} bei Validierung verworfen`);
+          if (stopAfterThis) {
+            rateLimited = true;
+            const rest = todo.slice(i + 1);
+            for (const r of rest) files.push({ path: r.path, status: 'skipped', reason: 'Codex-Rate-Limit – im nächsten Lauf' });
+            warnings.push(`Codex-Rate-Limit erreicht – ${rest.length} weitere Datei(en) verschoben`);
+            break;
+          }
         } catch (e) {
           const msg = (e as Error).message.slice(0, 2000);
           const limited = e instanceof RateLimitError;
@@ -308,7 +376,7 @@ export async function execute(mode: Mode, opts: { runId?: string; file?: string;
           log(`⚠ Push: ${pushErr}`);
         } else log('Content gepusht.');
       }
-      if (mode !== 'regenerate') setState(db, 'last_sha', head);
+      if (mode !== 'regenerate' && mode !== 'bonus') setState(db, 'last_sha', head);
     }
   } catch (e) {
     warnings.push((e as Error).message);

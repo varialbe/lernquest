@@ -22,6 +22,15 @@ const levels = kinds.map((kind, li) => ({
     ? { type: 'truefalse', prompt: 'Aussage ' + li + '-' + i + ' stimmt?', options: [{ id: 'true', text: 'Wahr' }, { id: 'false', text: 'Falsch' }], correct: ['true'], explanation: 'Weil es so ist.', source: { file: 'x', heading: 'mengen' }, difficulty: 2, concepts: ['K'] }
     : { type: 'single', prompt: 'Frage ' + li + '-' + i + '?', options: [{ id: 'a', text: 'eins' }, { id: 'b', text: 'zwei' }, { id: 'c', text: 'drei' }, { id: 'd', text: 'vier' }], correct: ['b'], explanation: 'Zwei ist richtig.', source: { file: 'x', heading: 'mengen' }, difficulty: 9, concepts: ['K'] }),
 }));
+if (a[a.indexOf('--output-schema') + 1].includes('bonus')) {
+  // Praxis-Level: 7 Anwendungsfragen + 3 Schätzfragen (eine davon ungültig → wird verworfen)
+  const questions = Array.from({ length: 7 }, (_, i) => ({ type: 'single', prompt: 'Welcher Alltagsfall ' + i + '?', options: [{ id: 'a', text: 'Navi' }, { id: 'b', text: 'Toaster' }, { id: 'c', text: 'Ampel' }], correct: ['a'], explanation: 'Weil Graphen.', source: { file: 'x', heading: null }, difficulty: 2, concepts: ['K'], slider: null }));
+  questions.push({ type: 'estimate', prompt: 'Wie viele Teilmengen hat eine 6-elementige Menge?', options: [], correct: [], explanation: '2^6 = 64.', source: { file: 'x', heading: null }, difficulty: 2, concepts: ['K'], slider: { min: 0, max: 100, step: 1, answer: 64, tolerance: 0, unit: null, scale: 'linear' } });
+  questions.push({ type: 'estimate', prompt: 'Wie viele PINs mit 4 Ziffern gibt es?', options: [], correct: [], explanation: '10^4.', source: { file: 'x', heading: null }, difficulty: 2, concepts: ['K'], slider: { min: 10, max: 1000000, step: 1, answer: 10000, tolerance: 1500, unit: 'PINs', scale: 'log' } });
+  questions.push({ type: 'estimate', prompt: 'Kaputter Regler?', options: [], correct: [], explanation: 'Nope.', source: { file: 'x', heading: null }, difficulty: 2, concepts: ['K'], slider: { min: 0, max: 10, step: 1, answer: 50, tolerance: 0, unit: null, scale: 'linear' } });
+  fs.writeFileSync(out, JSON.stringify({ title: 'Praxis: Mengen im Alltag', questions, review: { checked: 10, fixed: 0, removed: 0, notes: '' } }));
+  process.exit(0);
+}
 fs.writeFileSync(out, JSON.stringify({ title: 'Mengen & Relationen', slug: 'Mengen Relationen', summary: 'Eine Zusammenfassung.', concepts: ['K'], keyFacts: ['F'], levels, review: { checked: 40, fixed: 1, removed: 0, notes: 'ok' } }));
 `;
 
@@ -84,8 +93,8 @@ describe('pipeline', () => {
     const r = await run.execute('run', { quiet: true });
     expect(r.status).toBe('success');
     expect(r.totals.processed).toBe(1);
-    expect(r.totals.questions).toBe(40);
-    expect(r.totals.tokens).toBe(2468); // generate + review
+    expect(r.totals.questions).toBe(49); // 4 × 10 + Praxis 9 (1 Schätzfrage verworfen)
+    expect(r.totals.tokens).toBe(4 * 1234); // generate + review, Praxis generate + review
     expect(r.rateLimited).toBe(false);
     const files = readdirSync(join(lq, 'content/ds'));
     expect(files).toEqual(['01-mengen-relationen.json']);
@@ -94,6 +103,10 @@ describe('pipeline', () => {
     expect(unit.levels[0].questions[1].id).toBe('ds-01-l1-q02');
     expect(unit.levels[0].questions[1].difficulty).toBe(5);
     expect(unit.levels[0].questions[1].source).toEqual({ file: 'DS/01_Vorlesungen/DS VO1.md', heading: 'Mengen' });
+    expect(unit.levels).toHaveLength(5);
+    expect(unit.levels[4]).toMatchObject({ id: 'ds-01-l5', kind: 'bonus', title: 'Praxis: Mengen im Alltag' });
+    expect(unit.levels[4].questions.filter((q: { type: string }) => q.type === 'estimate').map((q: { slider: { answer: number } }) => q.slider.answer)).toEqual([64, 10000]);
+    expect(r.files[0]!.dropped!.join()).toContain('answer außerhalb');
     expect(sh(lq, 'log', '-1', '--format=%s')).toContain('content: add DS Vorlesung 1 – Mengen & Relationen');
   });
 
@@ -135,6 +148,16 @@ describe('pipeline', () => {
     expect(unit.tags).toEqual(['ds', 'relationen']);
     expect(unit.links).toEqual(['DS/01_Vorlesungen/Diskrete Strukturen VO1.md']);
     expect(unit.levels[0].questions[0].source).toEqual({ file: 'DS/01_Vorlesungen/Diskrete Strukturen VO2.md', heading: null });
+  });
+
+  it('bonus mode regenerates only the praxis level of an existing unit', async () => {
+    const r = await run.execute('bonus', { quiet: true, file: 'ds-01' });
+    expect(r.files.find((f) => f.error)?.error).toBeUndefined();
+    expect(r.status).toBe('success');
+    expect(r.files.map((f) => [f.unitId, f.questions])).toEqual([['ds-01', 9]]);
+    // identischer Inhalt → kein leerer Commit
+    expect(sh(lq, 'log', '-1', '--format=%s')).not.toContain('Praxis-Level');
+    expect((await run.execute('bonus', { quiet: true })).status).toBe('nothing_new'); // alle haben schon eins
   });
 
   it('refuses to run twice in parallel', async () => {
