@@ -11,6 +11,7 @@
 
 ## Stand
 - Phase 0 ✔
+- Phase 3 ✔ – API (Fastify, 127.0.0.1:3460, ~115 MB) als `lernquest-api` aktiv. 30 API-Tests grün (Auth, Rate-Limit, CORS, Unlocks, Ökonomie, Leitner, Shop-Transaktionen, Import-Idempotenz, Liga-Reset, Streak inkl. Mitternacht/Sommerzeit). Seed: Admin `mateen`, `testuser` (Streak 3, 2 Pets, Fehler zum Üben), Einladungscode – alles in `CREDENTIALS.local.md`.
 - Phase 2 ✔ – n8n 2.45.7 läuft (127.0.0.1:5678, ~450 MB), Owner angelegt (Zugang in `CREDENTIALS.local.md`), Workflow „LernQuest Nightly“ importiert + aktiv.
 - Phase 1 ✔ – Pipeline inkl. Obsidian-Parser, Konzeptgraph, Telegram-Reports, Watchdog. 17 Pipeline- + 8 Shared-Tests grün. Echtlauf DS VO1: 44 Fragen in 3:38 min (alle mit gültiger Überschrift, 3 Diagramm-Fragen). Dienst `lernquest-pipeline` aktiv (≈100 MB RSS), Timer `lernquest-watchdog.timer` (00:30) aktiv.
 
@@ -29,5 +30,10 @@
 - **Trigger-Dienst** startet Läufe als losgelöste Kindprozesse (`KillMode=process`), damit ein Dienst-Neustart laufende Generierungen nicht abbricht. Verwaiste „running“-Läufe werden beim Start als abgebrochen markiert.
 - **n8n mit `network_mode: host`** und `N8N_LISTEN_ADDRESS=127.0.0.1` statt `host-gateway`: so muss der Pipeline-Trigger nur auf 127.0.0.1 lauschen.
 
+- **Antworten im Client**: Level-Payload enthält die richtigen Antworten (sofortiges Feedback, Offline-Spielen). Gewertet wird trotzdem nur serverseitig: Der Client schickt die Erstversuch-Auswahl aller Fragen, der Server prüft gegen die DB und berechnet XP/Coins/Streak. Unvollständige Abgaben werden abgelehnt.
+- **Passwort-Reset**: Admin erzeugt ein temporäres Passwort (einmalig angezeigt), alle Sessions werden widerrufen, Nutzer muss beim nächsten Login ein neues setzen.
+- **Achievements** werden aus Statistiken berechnet (keine eigene Tabelle), **Freundesliste** entfällt (geschlossene Gruppe = alle sehen sich).
+- **Liga**: Tiers Bronze→Diamant, Auswertung der Vorwoche beim ersten Request/Tick nach Montag 00:00 Berlin (genau einmal, `league_weeks`).
+
 ## Nächster Schritt
-- Phase 3: Backend. (Backfill läuft in tmux `lq-backfill`, Log `data/backfill.log`.) n8n-Testlauf über den manuellen Trigger folgt in Phase 7.
+- Phase 4: Frontend. (Backfill läuft in tmux `lq-backfill`, Log `data/backfill.log`.) n8n-Testlauf über den manuellen Trigger folgt in Phase 7.
