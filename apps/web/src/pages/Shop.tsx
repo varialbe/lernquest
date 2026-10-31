@@ -5,6 +5,7 @@ import { Page } from '../components/Shell.tsx';
 import { Button, Modal, SectionTitle, Spinner, Toast } from '../components/ui.tsx';
 import { api, assetUrl } from '../lib/api.ts';
 import { useMe, useMeMutation, useShop } from '../lib/queries.ts';
+import { fx } from '../lib/fx.ts';
 import { sfx } from '../lib/sound.ts';
 
 const SECTIONS: { cat: ShopCategory; title: string }[] = [
@@ -133,16 +134,18 @@ export default function Shop() {
                 variant="gold"
                 className="mt-5"
                 disabled={me.stats.coins < pick.price || buy.isPending}
-                onClick={() =>
+                onClick={(e) => {
+                  const at = e.currentTarget.getBoundingClientRect();
                   buy.mutate(pick.id, {
                     onSuccess: () => {
-                      sfx.coin();
+                      sfx.claim();
+                      fx.coins(at);
                       flash(`${pick.name} gekauft!`, 'success');
                       setPick(null);
                     },
-                    onError: (e) => flash((e as Error).message, 'error'),
-                  })
-                }
+                    onError: (err) => flash((err as Error).message, 'error'),
+                  });
+                }}
               >
                 <img src={assetUrl('item-coin')} alt="" className="h-5 w-5" />
                 {me.stats.coins < pick.price ? `Noch ${pick.price - me.stats.coins} Coins` : `Für ${pick.price} kaufen`}

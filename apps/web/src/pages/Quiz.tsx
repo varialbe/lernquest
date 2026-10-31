@@ -1,4 +1,3 @@
-import confetti from 'canvas-confetti';
 import { AnimatePresence, motion } from 'motion/react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -11,6 +10,7 @@ import { Mascot } from '../components/Pet.tsx';
 import { Button, Modal, ProgressBar, Spinner } from '../components/ui.tsx';
 import { api, ApiError } from '../lib/api.ts';
 import { queueSubmission } from '../lib/offline.ts';
+import { fx } from '../lib/fx.ts';
 import { useConfig } from '../lib/queries.ts';
 import { isMuted, setMuted, sfx } from '../lib/sound.ts';
 import { ExamResult } from './ExamResult.tsx';
@@ -26,6 +26,8 @@ const TYPE_LABEL: Record<Question['type'], string> = {
   diagram: 'Schau dir das Diagramm an',
   estimate: 'Schätze!',
 };
+/** Ab diesen Combos gibt es einen Extra-Moment */
+const COMBO_MILESTONES = new Set([3, 5, 10, 15, 20]);
 const PRAISE = ['Super!', 'Richtig!', 'Stark!', 'Genau so!', 'Klasse!', 'Volltreffer!'];
 
 type Phase = 'answering' | 'correct' | 'wrong';
@@ -109,6 +111,8 @@ function OptionCard({ q, opt, index, selected, phase, onToggle }: { q: Question;
       onClick={onToggle}
       disabled={reveal}
       whileTap={reveal ? undefined : { scale: 0.98 }}
+      animate={reveal && isRight ? { scale: [1, 1.035, 1] } : { scale: 1 }}
+      transition={{ duration: 0.35, ease: 'easeOut' }}
       className={`flex w-full items-center gap-3 rounded-2xl border-2 px-3 py-3 text-left transition-colors ${cls} ${reveal && !isRight && !selected ? 'opacity-60' : ''}`}
       aria-pressed={selected}
     >
@@ -251,19 +255,26 @@ export function Quiz({ levelId, practice, run: spec }: { levelId?: string; pract
     const ok = checkAnswer(q, selected);
     if (!(q.id in firstTry)) setFirstTry((f) => ({ ...f, [q.id]: selected }));
     if (ok) {
+      const nextCombo = combo + 1;
       setPhase('correct');
-      setCombo((c) => c + 1);
-      setPraise(PRAISE[Math.floor(Math.random() * PRAISE.length)]!);
+      setCombo(nextCombo);
+      setPraise(COMBO_MILESTONES.has(nextCombo) ? `${nextCombo}er-Combo!` : PRAISE[Math.floor(Math.random() * PRAISE.length)]!);
       setSolved((s) => new Set(s).add(q.id));
-      sfx.correct();
-      void confetti({ particleCount: 40, spread: 60, startVelocity: 28, origin: { y: 0.82 }, scalar: 0.8, colors: ['#22c55e', '#7c5cff', '#f5b301', '#38bdf8'], disableForReducedMotion: true });
+      sfx.correct(nextCombo);
+      fx.correct(nextCombo);
+      if (COMBO_MILESTONES.has(nextCombo)) {
+        setTimeout(() => {
+          sfx.combo(nextCombo);
+          fx.combo(document.querySelector('[data-combo]'));
+        }, 180);
+      }
     } else {
       setPhase('wrong');
       setCombo(0);
       setShake((n) => n + 1);
       sfx.wrong();
     }
-  }, [q, selected, phase, firstTry, exam, queue, finish]);
+  }, [q, selected, phase, firstTry, exam, queue, finish, combo]);
 
   const next = useCallback(() => {
     if (!q) return;
@@ -273,7 +284,10 @@ export function Quiz({ levelId, practice, run: spec }: { levelId?: string; pract
     setSelected([]);
     setPhase('answering');
     if (!newQueue.length) finish(firstTry);
-    else setQueue(newQueue);
+    else {
+      setQueue(newQueue);
+      sfx.whoosh();
+    }
   }, [q, queue, phase, firstTry, onePass, finish]);
 
   // Klausur-Check: Countdown, bei 0 wird automatisch abgegeben
@@ -283,8 +297,12 @@ export function Quiz({ levelId, practice, run: spec }: { levelId?: string; pract
     if (!exam || !run?.timeLimitSec || result) return;
     const end = started + run.timeLimitSec * 1000;
     let done = false;
+    let lastSec = -1;
     const t = setInterval(() => {
       const s = Math.round((end - Date.now()) / 1000);
+      // letzte 10 Sekunden: leises Ticken, jede Sekunde einmal
+      if (s !== lastSec && s > 0 && s <= 10) sfx.clock(s <= 3);
+      lastSec = s;
       setLeft(s);
       if (s <= 0 && !done) {
         done = true;
@@ -298,7 +316,7 @@ export function Quiz({ levelId, practice, run: spec }: { levelId?: string; pract
   const toggle = useCallback(
     (id: string) => {
       if (!q || phase !== 'answering') return;
-      sfx.tap();
+      sfx.select();
       if (q.type === 'multi') setSelected((s) => (s.includes(id) ? s.filter((x) => x !== id) : [...s, id]));
       else setSelected([id]);
     },
@@ -401,7 +419,16 @@ export function Quiz({ levelId, practice, run: spec }: { levelId?: string; pract
           )}
           <AnimatePresence>
             {combo >= 2 && (
-              <motion.span key={combo} initial={{ scale: 0.4, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.4, opacity: 0 }} className="flex shrink-0 items-center gap-0.5 font-black text-flame" aria-label={`${combo}er-Combo`}>
+              <motion.span
+                key={combo}
+                data-combo
+                initial={{ scale: 0.4, opacity: 0 }}
+                animate={COMBO_MILESTONES.has(combo) ? { scale: [0.4, 1.45, 1], opacity: 1, rotate: [0, -8, 6, 0] } : { scale: 1, opacity: 1 }}
+                transition={{ duration: COMBO_MILESTONES.has(combo) ? 0.55 : 0.2 }}
+                exit={{ scale: 0.4, opacity: 0 }}
+                className="flex shrink-0 items-center gap-0.5 font-black text-flame"
+                aria-label={`${combo}er-Combo`}
+              >
                 <img src="/assets/item-flame.webp" alt="" className="h-6 w-6" />×{combo}
               </motion.span>
             )}

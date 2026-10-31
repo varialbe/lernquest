@@ -41,6 +41,16 @@ export function ProgressBar({ value, color = 'var(--c-success)', height = 16, cl
         transition={{ type: 'spring', stiffness: 120, damping: 20 }}
       >
         <div className="absolute left-2 right-2 top-[22%] h-[22%] rounded-full bg-white/35" />
+        {value > 0 && (
+          <motion.div
+            key={Math.round(value * 1000)}
+            aria-hidden
+            className="pointer-events-none absolute inset-y-0 w-10 -skew-x-12 bg-gradient-to-r from-transparent via-white/60 to-transparent motion-reduce:hidden"
+            initial={{ left: '-20%', opacity: 1 }}
+            animate={{ left: '110%', opacity: 0.2 }}
+            transition={{ duration: 0.7, ease: 'easeOut', delay: 0.15 }}
+          />
+        )}
       </motion.div>
     </div>
   );

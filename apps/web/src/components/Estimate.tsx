@@ -2,6 +2,7 @@ import { motion } from 'motion/react';
 import { useMemo } from 'react';
 import type { Slider } from '@lernquest/shared';
 import { Icon } from './icons.tsx';
+import { sfx } from '../lib/sound.ts';
 
 /** Zahl hübsch formatieren (de-DE, große Zahlen kompakt lesbar). */
 export function fmtNum(v: number): string {
@@ -44,6 +45,7 @@ export function EstimateInput({ slider, value, onChange, reveal, correct }: { sl
   const v = value ?? start;
   const pos = scale.toPos(v);
   const nudge = (dir: 1 | -1) => {
+    sfx.tick();
     if (slider.scale === 'log') onChange(scale.toValue(Math.min(scale.STEPS, Math.max(0, pos + dir * 10))));
     else onChange(Math.min(slider.max, Math.max(slider.min, +(v + dir * slider.step).toFixed(6))));
   };
@@ -89,7 +91,10 @@ export function EstimateInput({ slider, value, onChange, reveal, correct }: { sl
           disabled={reveal}
           aria-label="Schätzwert"
           aria-valuetext={`${fmtNum(v)} ${slider.unit ?? ''}`}
-          onChange={(e) => onChange(scale.toValue(Number(e.target.value)))}
+          onChange={(e) => {
+            sfx.tick();
+            onChange(scale.toValue(Number(e.target.value)));
+          }}
           className="lq-range absolute inset-0 h-full w-full cursor-pointer appearance-none bg-transparent"
         />
       </div>

@@ -1,4 +1,3 @@
-import confetti from 'canvas-confetti';
 import { animate, motion, useMotionValue, useTransform } from 'motion/react';
 import { useEffect } from 'react';
 import { ACHIEVEMENTS, DUEL, type DuelSummary, type PetDef, type RewardResponse } from '@lernquest/shared';
@@ -6,6 +5,7 @@ import { Icon } from '../components/icons.tsx';
 import { Mascot, PetImage } from '../components/Pet.tsx';
 import { Button } from '../components/ui.tsx';
 import { assetUrl } from '../lib/api.ts';
+import { fx } from '../lib/fx.ts';
 import { sfx } from '../lib/sound.ts';
 
 function CountUp({ to, delay = 0 }: { to: number; delay?: number }) {
@@ -65,14 +65,33 @@ export function Reward({
   note?: string;
   duel?: DuelSummary | null;
 }) {
+  // Ton und Effekte im Takt der Einblend-Animationen unten
   useEffect(() => {
     if (result === 'offline') return;
-    const fire = (x: number) => confetti({ particleCount: 70, angle: x < 0.5 ? 60 : 120, spread: 70, origin: { x, y: 0.7 }, colors: ['#7c5cff', '#22c55e', '#f5b301', '#38bdf8', '#f472b6'], disableForReducedMotion: true });
-    fire(0.1);
-    fire(0.9);
-    const t = setTimeout(() => sfx.coin(), 900);
-    return () => clearTimeout(t);
-  }, [result]);
+    const lost = duel?.winner === 'them';
+    if (!lost) fx.celebrate();
+    const at = (ms: number, f: () => void) => setTimeout(f, ms);
+    const timers = [at(900, () => sfx.coin())];
+    if (!practice) for (let s = 1; s <= result.stars; s++) timers.push(at(380 + s * 180, () => sfx.star(s)));
+    if (duel?.winner === 'me') timers.push(at(700, () => sfx.duelWin()));
+    if (lost) timers.push(at(700, () => sfx.duelLose()));
+    if (result.streakIncreased) timers.push(at(1050, () => sfx.streak()));
+    if (result.pet?.evolved)
+      timers.push(
+        at(1450, () => {
+          sfx.evolve();
+          fx.sparkle(document.querySelector('[data-fx="pet"]'), true);
+        }),
+      );
+    if (result.newAchievements.length)
+      timers.push(
+        at(1650, () => {
+          sfx.achievement();
+          fx.sparkle(document.querySelector('[data-fx="badge"]'));
+        }),
+      );
+    return () => timers.forEach(clearTimeout);
+  }, [result, practice, duel]);
 
   if (result === 'offline') {
     return (
@@ -141,7 +160,7 @@ export function Reward({
 
         {r.pet && pet && (
           <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 1.2 }} className="mt-5 flex w-full items-center gap-3 rounded-2xl border-2 border-line bg-surface p-3">
-            <motion.div animate={{ y: [0, -14, 0, -8, 0] }} transition={{ delay: 1.4, duration: 1 }}>
+            <motion.div data-fx="pet" animate={r.pet.evolved ? { y: [0, -14, 0, -8, 0], scale: [1, 1.25, 1], filter: ['brightness(1)', 'brightness(1.6)', 'brightness(1)'] } : { y: [0, -14, 0, -8, 0] }} transition={{ delay: 1.4, duration: 1 }}>
               <PetImage petId={r.pet.petId} stage={r.pet.stage} accessory={r.pet.accessory} size={72} />
             </motion.div>
             <div className="text-left">
@@ -157,7 +176,7 @@ export function Reward({
             {r.newAchievements.map((id) => {
               const a = ACHIEVEMENTS.find((x) => x.id === id);
               return a ? (
-                <motion.div key={id} initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ delay: 1.5 }} className="mb-2 flex items-center gap-3 rounded-2xl border-2 border-gold/50 bg-surface p-2.5 text-left">
+                <motion.div key={id} data-fx="badge" initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: [0.8, 1.06, 1], opacity: 1 }} transition={{ delay: 1.6, duration: 0.45 }} className="mb-2 flex items-center gap-3 rounded-2xl border-2 border-gold/50 bg-surface p-2.5 text-left">
                   <img src={assetUrl(a.icon)} alt="" className="h-12 w-12" />
                   <div>
                     <p className="font-black">{a.name}</p>

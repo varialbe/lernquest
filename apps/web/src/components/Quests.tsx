@@ -3,6 +3,7 @@ import { AnimatePresence, motion } from 'motion/react';
 import type { QuestsResponse } from '@lernquest/shared';
 import { api, assetUrl } from '../lib/api.ts';
 import { useQuests } from '../lib/queries.ts';
+import { fx } from '../lib/fx.ts';
 import { sfx } from '../lib/sound.ts';
 import { ProgressBar } from './ui.tsx';
 
@@ -11,9 +12,10 @@ export function QuestsCard() {
   const { data } = useQuests();
   const qc = useQueryClient();
   const claim = useMutation({
-    mutationFn: (id: string) => api<QuestsResponse>(`/api/quests/${id}/claim`, { method: 'POST', body: {} }),
-    onSuccess: (q) => {
-      sfx.coin();
+    mutationFn: (v: { id: string; at: DOMRect }) => api<QuestsResponse>(`/api/quests/${v.id}/claim`, { method: 'POST', body: {} }),
+    onSuccess: (q, v) => {
+      sfx.claim();
+      fx.coins(v.at);
       qc.setQueryData(['quests'], q);
       void qc.invalidateQueries({ queryKey: ['me'] });
     },
@@ -46,7 +48,7 @@ export function QuestsCard() {
                   initial={{ scale: 0.6 }}
                   animate={{ scale: [1, 1.08, 1] }}
                   transition={{ repeat: Infinity, duration: 1.6 }}
-                  onClick={() => claim.mutate(q.id)}
+                  onClick={(e) => claim.mutate({ id: q.id, at: e.currentTarget.getBoundingClientRect() })}
                   disabled={claim.isPending}
                   className="flex shrink-0 items-center gap-1 rounded-xl bg-gold px-2.5 py-1.5 text-sm font-black text-[#4a3300] shadow-[0_3px_0_var(--c-gold-dark)]"
                 >
