@@ -1,4 +1,4 @@
-import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
 import { join, relative } from 'node:path';
 import { eq } from 'drizzle-orm';
 import { getDb } from '@lernquest/api/db';
@@ -39,7 +39,7 @@ export async function audit(only: string[] = [], opts: { notify?: boolean } = {}
   const results: AuditUnit[] = [];
   try {
     const files = readdirSync(config.contentDir)
-      .flatMap((m) => (existsSync(join(config.contentDir, m)) ? readdirSync(join(config.contentDir, m)).filter((f) => f.endsWith('.json')).map((f) => join(config.contentDir, m, f)) : []))
+      .flatMap((m) => (statSync(join(config.contentDir, m)).isDirectory() ? readdirSync(join(config.contentDir, m)).filter((f) => f.endsWith('.json')).map((f) => join(config.contentDir, m, f)) : []))
       .sort();
     const todo = files
       .map((file) => ({ file, unit: Unit.parse(JSON.parse(readFileSync(file, 'utf8'))) }))

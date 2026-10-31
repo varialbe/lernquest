@@ -1,6 +1,7 @@
 ## Selbsttragende Fragen (wichtigste Regel)
 Wer die App benutzt, sieht **nur** die Frage, den `context` darüber und die Optionen – keine Vorlesung, keine Mitschrift, keine Abbildung daraus.
 - Jede Frage muss **ohne die Vorlesung lösbar** sein. Alle Daten, die man zum Lösen braucht (Eingaben, Kosten, Gewichte, Graph, Tabelle, Code, Startwerte, Definitionen ungewöhnlicher Notation), stehen im `prompt` oder im `context`.
+- Auch Fragen zu einem **Szenario aus der Vorlesung** (z. B. einer Programmieraufgabe wie einem Routenplaner, einem Beispielprogramm, konkreten Anforderungen) beschreiben das Szenario im Prompt selbst: worum es geht, welche Daten es gibt, welche Anforderungen gelten. „In der Aufgabe“ ohne Beschreibung ist unlösbar.
 - **Verboten** sind Verweise wie „das Beispiel aus der Vorlesung“, „der obige Algorithmus“, „die Treppe aus VO 2“, „im gezeigten Beispiel“ (wenn nichts gezeigt wird), „wie besprochen“, „laut Mitschrift“.
 - Bei Algorithmen und Rechenverfahren lieber eine **neue, kleine Instanz** erfinden (z. B. eine Treppe mit 5 Stufen und konkreten Kosten) statt das Vorlesungsbeispiel abzufragen. Das Verfahren selbst muss aus der Mitschrift stammen.
 - Steht die Antwort nur in einem Diagramm/Code/einer Tabelle, gehört genau dieses Material in `context`:
