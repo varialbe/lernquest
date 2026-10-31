@@ -8,6 +8,7 @@ import { Button, Card, Pill, ProgressBar, Segmented } from '../components/ui.tsx
 import { assetUrl } from '../lib/api.ts';
 import { savedModule, useDuels, useMastery, useMe } from '../lib/queries.ts';
 import { MathText } from '../components/MathText.tsx';
+import { moduleColor } from '../lib/theme.ts';
 
 export const LEVEL_COLOR: Record<ConceptMastery['level'], string> = {
   weak: 'var(--c-error)',
@@ -63,7 +64,7 @@ export default function Train() {
   const concepts = mastery?.modules.find((m) => m.id === mod)?.concepts ?? [];
   const weakest = concepts.filter((c) => c.level !== 'new').slice(0, 3);
   const myTurn = duels?.duels.filter((d) => d.status === 'open' && !d.me.played).length ?? 0;
-  const color = MODULE_INFO[mod].color;
+  const color = moduleColor(mod);
 
   return (
     <Page topLeft={<h1 className="text-xl font-black">Üben</h1>}>
@@ -73,7 +74,7 @@ export default function Train() {
           setMod(m);
           localStorage.setItem('lq.module', m);
         }}
-        options={(['DS', 'EIP', 'ERA'] as const).map((m) => ({ value: m, label: m, color: MODULE_INFO[m].color }))}
+        options={(['DS', 'EIP', 'ERA'] as const).map((m) => ({ value: m, label: m, color: moduleColor(m) }))}
       />
 
       <Section icon="badge-practice" title="Wiederholen" sub={due ? `${due} Fragen sind heute fällig` : 'Alles wiederholt – stark!'} delay={0} accent="var(--c-error)">

@@ -10,6 +10,7 @@ import { ChangePassword, Login, Register } from './pages/Auth.tsx';
 import { Home } from './pages/Home.tsx';
 import { Quiz, type RunSpec } from './pages/Quiz.tsx';
 import { initNative, rescheduleReminders } from './lib/native.ts';
+import { applyTheme } from './lib/theme.ts';
 
 const League = lazy(() => import('./pages/League.tsx'));
 const Pets = lazy(() => import('./pages/Pets.tsx'));
@@ -79,7 +80,7 @@ function Authed({ onLogin, onLogout }: { onLogin: (t: string) => void; onLogout:
   const qc = useQueryClient();
   useEffect(() => {
     if (!me) return;
-    document.documentElement.dataset.theme = me.settings.theme;
+    applyTheme(me.settings.theme);
     setMuted(!me.settings.soundOn);
     void rescheduleReminders(me.stats);
   }, [me]);

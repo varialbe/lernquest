@@ -1,4 +1,5 @@
 import confetti from 'canvas-confetti';
+import { primaryHex } from './theme.ts';
 
 /** Dezente Partikel-Effekte. Bei „Bewegung reduzieren“ (System) passiert nichts. */
 const reduced = () => window.matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -23,7 +24,7 @@ export const fx = {
       startVelocity: 28,
       origin: { y: 0.82 },
       scalar: 0.8,
-      colors: ['#22c55e', '#7c5cff', '#f5b301', '#38bdf8'],
+      colors: ['#22c55e', primaryHex(), '#f5b301', '#38bdf8'],
       disableForReducedMotion: true,
     });
   },
@@ -50,7 +51,7 @@ export const fx = {
   /** Seitliche Kanonen (Level fertig, Duell gewonnen) */
   celebrate() {
     if (reduced()) return;
-    const fire = (x: number) => confetti({ particleCount: 70, angle: x < 0.5 ? 60 : 120, spread: 70, origin: { x, y: 0.7 }, colors: ['#7c5cff', '#22c55e', '#f5b301', '#38bdf8', '#f472b6'], disableForReducedMotion: true });
+    const fire = (x: number) => confetti({ particleCount: 70, angle: x < 0.5 ? 60 : 120, spread: 70, origin: { x, y: 0.7 }, colors: [primaryHex(), '#22c55e', '#f5b301', '#38bdf8', '#f472b6'], disableForReducedMotion: true });
     void fire(0.1);
     void fire(0.9);
   },

@@ -5,6 +5,7 @@ import { registerSW } from 'virtual:pwa-register';
 import { App } from './App.tsx';
 import { ApiError } from './lib/api.ts';
 import { initAudioLifecycle } from './lib/sound.ts';
+import { restoreTheme } from './lib/theme.ts';
 import './index.css';
 
 const queryClient = new QueryClient({
@@ -18,6 +19,8 @@ const queryClient = new QueryClient({
 
 // Safari ignoriert user-scalable=no: Pinch-Zoom der ganzen Seite hier abfangen (Diagramm-Zoom läuft über Pointer-Events)
 document.addEventListener('gesturestart', (e) => e.preventDefault());
+
+restoreTheme();
 
 // Sounds/Haptik nach Mitteilungen und Hintergrund wiederbeleben (iOS)
 initAudioLifecycle();

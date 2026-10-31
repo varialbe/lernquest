@@ -9,6 +9,7 @@ import { Page } from '../components/Shell.tsx';
 import { Pill, Segmented, Spinner } from '../components/ui.tsx';
 import { api, assetUrl } from '../lib/api.ts';
 import { MathText } from '../components/MathText.tsx';
+import { moduleColor } from '../lib/theme.ts';
 
 /** Praxis-Bereich: Transfer in die echte Welt + Schätzfragen – je Unit ein Bonus-Level. */
 export default function Praxis() {
@@ -16,7 +17,7 @@ export default function Praxis() {
   const [mod, setMod] = useState<ModuleId>(() => (localStorage.getItem('lq.module') as ModuleId) || 'DS');
   const [, navigate] = useLocation();
   const module = data?.modules.find((m) => m.id === mod);
-  const color = MODULE_INFO[mod].color;
+  const color = moduleColor(mod);
 
   return (
     <Page topLeft={<h1 className="text-xl font-black">Praxis</h1>}>
@@ -38,7 +39,7 @@ export default function Praxis() {
             setMod(m);
             localStorage.setItem('lq.module', m);
           }}
-          options={(['DS', 'EIP', 'ERA'] as const).map((m) => ({ value: m, label: m, color: MODULE_INFO[m].color }))}
+          options={(['DS', 'EIP', 'ERA'] as const).map((m) => ({ value: m, label: m, color: moduleColor(m) }))}
         />
       </div>
 

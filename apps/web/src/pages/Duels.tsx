@@ -9,6 +9,7 @@ import { Page } from '../components/Shell.tsx';
 import { Button, Modal, Pill, SectionTitle, Segmented, Spinner, Toast } from '../components/ui.tsx';
 import { api } from '../lib/api.ts';
 import { savedModule, useDuels } from '../lib/queries.ts';
+import { moduleColor } from '../lib/theme.ts';
 
 const hoursLeft = (iso: string) => Math.max(0, Math.round((new Date(iso).getTime() - Date.now()) / 3600_000));
 
@@ -39,7 +40,7 @@ function DuelRow({ d, onDecline }: { d: DuelSummary; onDecline: (id: string) => 
       <div className="min-w-0 flex-1">
         <div className="flex items-center gap-2">
           <p className="truncate font-black">{d.opponent.displayName}</p>
-          <span className="text-xs font-black" style={{ color: MODULE_INFO[d.module].color }}>
+          <span className="text-xs font-black" style={{ color: moduleColor(d.module) }}>
             {MODULE_INFO[d.module].short}
           </span>
         </div>
@@ -104,7 +105,7 @@ export default function Duels() {
         </Link>
       }
     >
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#7c5cff] to-[#38bdf8] p-4 text-white shadow-card">
+      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-primary to-[#38bdf8] p-4 text-white shadow-card">
         <div className="absolute -right-8 -top-10 h-32 w-32 rounded-full bg-white/15" />
         <div className="relative flex items-center gap-3">
           <Mascot pose="cheer" size={80} />
@@ -172,7 +173,7 @@ export default function Duels() {
           ))}
         </div>
         <p className="mb-2 mt-4 text-sm font-black uppercase tracking-wider text-muted">Modul</p>
-        <Segmented value={mod} onChange={setMod} options={(['DS', 'EIP', 'ERA'] as const).map((m) => ({ value: m, label: MODULE_INFO[m].short, color: MODULE_INFO[m].color }))} />
+        <Segmented value={mod} onChange={setMod} options={(['DS', 'EIP', 'ERA'] as const).map((m) => ({ value: m, label: MODULE_INFO[m].short, color: moduleColor(m) }))} />
         <Button full className="mt-5" disabled={!opponent || create.isPending} onClick={() => create.mutate()}>
           Herausfordern & vorlegen
         </Button>

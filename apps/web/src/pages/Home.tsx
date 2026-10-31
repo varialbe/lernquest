@@ -10,6 +10,7 @@ import { Button, Card, Modal, Pill, ProgressBar, Segmented, Spinner } from '../c
 import { assetUrl } from '../lib/api.ts';
 import { useMe, usePath } from '../lib/queries.ts';
 import { MathText } from '../components/MathText.tsx';
+import { moduleColor } from '../lib/theme.ts';
 
 const OFFSETS = [0, 56, 84, 56, 0, -56, -84, -56];
 const KIND_ICON = { basics: 'star', apply: 'dumbbell', deepen: 'book' } as const;
@@ -148,7 +149,7 @@ export function Home() {
 
   useEffect(() => localStorage.setItem('lq.module', mod), [mod]);
   const module = data?.modules.find((m) => m.id === mod);
-  const color = MODULE_INFO[mod].color;
+  const color = moduleColor(mod);
   const currentId = useMemo(() => module?.units.flatMap((u) => u.levels).find((l) => l.status === 'open')?.id ?? null, [module]);
 
   useEffect(() => {
@@ -164,7 +165,7 @@ export function Home() {
         <Segmented
           value={mod}
           onChange={setMod}
-          options={(['DS', 'EIP', 'ERA'] as const).map((m) => ({ value: m, label: m, color: MODULE_INFO[m].color }))}
+          options={(['DS', 'EIP', 'ERA'] as const).map((m) => ({ value: m, label: m, color: moduleColor(m) }))}
         />
         {module && <span className="shrink-0 text-sm font-black text-muted">{Math.round(module.progress * 100)} %</span>}
       </div>

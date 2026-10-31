@@ -7,6 +7,7 @@ import { Page } from '../components/Shell.tsx';
 import { Button, Card, Segmented, Spinner } from '../components/ui.tsx';
 import { savedModule, useMastery } from '../lib/queries.ts';
 import { ConceptBar, LEVEL_COLOR } from './Train.tsx';
+import { moduleColor } from '../lib/theme.ts';
 
 const GROUPS: { level: MasteryLevel; title: string }[] = [
   { level: 'weak', title: 'Unsicher' },
@@ -38,7 +39,7 @@ export default function Mastery() {
           setMod(v);
           localStorage.setItem('lq.module', v);
         }}
-        options={(['DS', 'EIP', 'ERA'] as const).map((x) => ({ value: x, label: x, color: MODULE_INFO[x].color }))}
+        options={(['DS', 'EIP', 'ERA'] as const).map((x) => ({ value: x, label: x, color: moduleColor(x) }))}
       />
       {isLoading && <Spinner />}
       {m && !m.concepts.length && (

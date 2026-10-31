@@ -10,6 +10,7 @@ import { APP_VERSION, isNative, localRemindersOn, rescheduleReminders, setLocalR
 import { pushSupported, currentSubscription, enablePush, disablePush } from '../lib/push.ts';
 import { useConfig, useMe, useMeMutation, useProfile } from '../lib/queries.ts';
 import { ChangePassword } from './Auth.tsx';
+import { moduleColor } from '../lib/theme.ts';
 
 function StatBox({ img, value, label }: { img: string; value: React.ReactNode; label: string }) {
   return (
@@ -215,7 +216,7 @@ export default function Profile({ username, onLogout, onLogin }: { username?: st
                 {m.done}/{m.total}
               </span>
             </div>
-            <ProgressBar value={m.total ? m.done / m.total : 0} color={MODULE_INFO[m.module].color} height={12} />
+            <ProgressBar value={m.total ? m.done / m.total : 0} color={moduleColor(m.module)} height={12} />
           </div>
         ))}
       </Card>

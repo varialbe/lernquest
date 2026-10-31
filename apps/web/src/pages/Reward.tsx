@@ -128,7 +128,7 @@ export function Reward({
         )}
 
         <div className="mt-6 grid w-full grid-cols-3 gap-3">
-          <Tile label="XP" color="#7c5cff" icon="item-xp" delay={0.3}>
+          <Tile label="XP" color="var(--c-primary)" icon="item-xp" delay={0.3}>
             <CountUp to={r.xp} delay={0.4} />
           </Tile>
           <Tile label="Coins" color="#e0a100" icon="item-coin" delay={0.45}>
