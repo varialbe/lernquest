@@ -101,6 +101,29 @@ Zu jeder Unit erzeugt die Pipeline nach den vier Hauptleveln ein fünftes Level 
 - Eigener Prompt plus Review mit `bonus-output.schema.json`. Zod prüft z. B.: `answer` liegt im Bereich, Toleranz ≤ ⅓ der Spanne, log-Skala braucht `min > 0`. Ein Level braucht mindestens 8 gültige Fragen.
 - Schlägt das Praxis-Level fehl, bleibt die Unit trotzdem gültig. Der Report vermerkt es, und `pnpm pipeline bonus` holt es nach. Abschalten mit `GENERATE_BONUS=false`.
 
+## Backups
+Jede Nacht um 03:30 läuft `lernquest-backup.service`:
+1. **Lokal** (`deploy/backup-db.sh`): konsistente SQLite-Kopie mit Integritätsprüfung nach `~/backups/lernquest/`, 14 Tage.
+2. **Außer Haus** (`deploy/backup-offsite.sh`): mit [`age`](https://age-encryption.org) verschlüsselt ins private Repo **`varialbe/lernquest-backups`**. Jede Version ist ein Commit.
+   - täglich `lernquest.tar.age`: Datenbank, `.env`, `CREDENTIALS.local.md`
+   - sonntags `n8n.tar.age`: n8n-Datenbank und -Konfiguration
+3. Schlägt etwas fehl, kommt eine Telegram-Warnung (`lernquest-backup-alert.service`).
+
+Der **private Schlüssel** liegt auf dem Server in `~/.config/lernquest/backup-age.key` und muss **zusätzlich außerhalb** aufbewahrt werden (Passwort-Manager). Ohne ihn ist kein Backup lesbar.
+
+**Wiederherstellen** (auf einem neuen Server: erst Repo klonen und `pnpm install`):
+```bash
+git clone https://github.com/varialbe/lernquest-backups.git && cd lernquest-backups
+git log --oneline                       # gewünschte Version wählen, ggf. git checkout <commit>
+age -d -i backup-age.key -o l.tgz lernquest.tar.age && tar -xzf l.tgz
+sudo systemctl stop lernquest-api lernquest-pipeline
+gunzip -c lernquest/lernquest.db.gz > ~/lernquest/data/lernquest.db && rm -f ~/lernquest/data/lernquest.db-{wal,shm}
+cp lernquest/env ~/lernquest/.env && cp lernquest/CREDENTIALS.local.md ~/lernquest/ && chmod 600 ~/lernquest/.env ~/lernquest/CREDENTIALS.local.md
+sudo systemctl start lernquest-api lernquest-pipeline
+# n8n: age -d … n8n.tar.age | tar -xz, Inhalt von n8n/ ins Volume n8n_n8n_data, Container neu starten
+```
+Die Fragen selbst (`content/`) liegen ohnehin versioniert im Haupt-Repo.
+
 ## Troubleshooting
 
 | Problem | Lösung |
@@ -114,6 +137,7 @@ Zu jeder Unit erzeugt die Pipeline nach den vier Hauptleveln ein fünftes Level 
 | API startet nicht | `journalctl -u lernquest-api -n 50`; ungültige `content/*.json` werden beim Start übersprungen und geloggt |
 | PWA-Icons 404 unter `/icons/` | Apache hat global `Alias /icons/` (autoindex). Deshalb liegen die App-Icons unter `/app-icons/`. |
 | Zertifikat | `sudo certbot renew --cert-name lern.varialbe.xyz --dry-run` (Renew-Hook lädt Apache neu) |
+| Backup kam nicht an | `journalctl -u lernquest-backup -n 50`; `git -C ~/backups/lernquest-offsite log -3` |
 | Backup zurückspielen | `sudo systemctl stop lernquest-api lernquest-pipeline`, `gunzip -c ~/backups/lernquest/<datei>.db.gz > data/lernquest.db`, `rm -f data/lernquest.db-wal data/lernquest.db-shm`, Dienste starten |
 
 ## Wie füge ich einen neuen Fragetyp hinzu?

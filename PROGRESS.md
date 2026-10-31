@@ -46,9 +46,11 @@
 - **Runden statt freier Abgaben**: Schwächen, Klausur-Check und Duelle laufen über `quiz_runs`. Der Server legt die Fragen fest und wertet genau einmal, sonst könnte man (Antworten liegen im Client) beliebig XP farmen. Zusätzlich Tageslimits für Belohnungen.
 - **Live-Updates selbst gehostet** (capgo-Plugin, manueller Modus) statt Capgo-Cloud: keine Fremdabhängigkeit, Manifest über die API wegen CORS. Prüfsumme wird nicht an das Plugin übergeben (Format plugin-versionsabhängig, ein Fehler würde jedes Update blockieren); Integrität über HTTPS.
 - **Lokale statt Server-Push in der iOS-App**: Sideloading mit kostenloser Apple-ID erlaubt kein APNs.
+- **Offsite-Backups** ins private Repo `varialbe/lernquest-backups`, mit `age` verschlüsselt (öffentlicher Schlüssel auf dem Server reicht zum Verschlüsseln). n8n nur wöchentlich, damit das Repo klein bleibt (ca. 250 KB pro Tag). Wiederherstellung am 31.10. getestet: frischer Klon, entschlüsselt, alle Tabellen identisch mit live.
 - **Mermaid wird mit precacht** (≈ 9 MB Precache, einmalig im Hintergrund), damit Diagramm-Fragen offline funktionieren.
 
 ## Offene Punkte / Ideen
+- **Backup-Schlüssel sichern:** `~/.config/lernquest/backup-age.key` gehört zusätzlich in deinen Passwort-Manager (`ssh varialbe@varialbe.xyz cat ~/.config/lernquest/backup-age.key`). Ohne ihn sind die Offsite-Backups unbrauchbar.
 - Duell-Benachrichtigungen kommen nur per Web-Push (PWA). In der iOS-App sieht man offene Duelle beim Öffnen (Badge im Üben-Hub); echte Pushs bräuchten APNs und damit einen bezahlten Account.
 - Live-Update-Pfad auf einem echten iPhone noch nicht beobachtet (kein Gerät hier). Prüfen: Nach einem Deploy zeigt Profil → „App-Version“ beim übernächsten Öffnen den neuen Commit-Hash.
 - Optional: Bot-Token rotieren (siehe oben).
