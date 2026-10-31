@@ -1,12 +1,12 @@
 import { createHash } from 'node:crypto';
-import { readdirSync, readFileSync, statSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import { and, eq, notInArray, sql } from 'drizzle-orm';
 import { Unit } from '@lernquest/shared';
 import type { DB } from '../db/index.ts';
 import { levels, questions, units } from '../db/schema.ts';
 
-export type ImportResult = { unitId: string; status: 'created' | 'updated' | 'unchanged'; questions: number };
+export type ImportResult = { unitId: string; status: 'created' | 'updated' | 'unchanged' | 'failed'; questions: number; error?: string };
 
 const hashOf = (u: Unit) => createHash('sha256').update(JSON.stringify(u.levels)).update(u.title).update(u.summary).digest('hex');
 
@@ -80,11 +80,17 @@ export function importUnit(db: DB, raw: unknown): ImportResult {
 /** Importiert alle content/<modul>/*.json (z. B. nach frischem Deploy). */
 export function importContentDir(db: DB, dir: string): ImportResult[] {
   const results: ImportResult[] = [];
+  if (!existsSync(dir)) return results;
   for (const mod of readdirSync(dir)) {
     const modDir = join(dir, mod);
     if (!statSync(modDir).isDirectory()) continue;
     for (const f of readdirSync(modDir).filter((x) => x.endsWith('.json')).sort()) {
-      results.push(importUnit(db, JSON.parse(readFileSync(join(modDir, f), 'utf8'))));
+      try {
+        results.push(importUnit(db, JSON.parse(readFileSync(join(modDir, f), 'utf8'))));
+      } catch (e) {
+        // eine kaputte Datei darf den Start nicht verhindern
+        results.push({ unitId: `${mod}/${f}`, status: 'failed', questions: 0, error: (e as Error).message.slice(0, 500) });
+      }
     }
   }
   return results;
