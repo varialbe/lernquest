@@ -15,14 +15,36 @@ const fs = require('fs');
 const a = process.argv;
 const out = a[a.indexOf('-o') + 1];
 console.log('tokens used'); console.log('1,234');
+const schema = a[a.indexOf('--output-schema') + 1];
+const input = fs.readFileSync(0, 'utf8');
+if (schema.includes('blind')) {
+  // Blind-Test: richtig ist immer „zwei“/„Wahr“/„Navi“; Verweis auf die Vorlesung = fehlende Info
+  const results = input.split('### Frage \`').slice(1).map((block) => {
+    const key = block.slice(0, block.indexOf('\`'));
+    const missing = block.includes('aus der Vorlesung');
+    const opt = /- \`([a-z]+)\`: (zwei|Wahr|Navi)/.exec(block);
+    const value = block.includes('Teilmengen') ? 64 : block.includes('PINs') ? 10000 : null;
+    return { key, missingInfo: missing, missing: missing ? 'Treppe fehlt' : null, answer: opt ? [opt[1]] : [], value, confidence: 0.9, note: null };
+  });
+  fs.writeFileSync(out, JSON.stringify({ results }));
+  process.exit(0);
+}
+if (schema.includes('repair')) {
+  const keys = [...input.matchAll(/### Frage \`([^\`]+)\`/g)].map((m) => m[1]);
+  const questions = keys.map((key) => ({ key, type: 'calc', prompt: 'Treppe mit Stufenkosten 1, 1, 3: minimale Kosten, wenn man 1 oder 2 Stufen nimmt?', options: [{ id: 'a', text: 'drei' }, { id: 'b', text: 'zwei' }, { id: 'c', text: 'fünf' }], correct: ['b'], explanation: '1 + 1 = 2.', source: { file: 'x', heading: null }, difficulty: 2, concepts: ['K'], slider: null, context: { type: 'table', content: '| Stufe | Kosten |\\n|---|---|\\n| 1 | 1 |\\n| 2 | 1 |\\n| 3 | 3 |', language: null, caption: null, frames: [] }, verify: 'c=[1,1,3]\\nbest=min(c[0]+c[1], c[1])\\nprint("ANSWER: " + {3:"a",2:"b",5:"c"}.get(c[0]+c[1], "?"))' }));
+  fs.writeFileSync(out, JSON.stringify({ questions }));
+  process.exit(0);
+}
 const kinds = ['basics', 'apply', 'deepen', 'boss'];
 const levels = kinds.map((kind, li) => ({
   kind, title: kind,
-  questions: Array.from({ length: 10 }, (_, i) => i % 3 === 0
+  questions: Array.from({ length: 10 }, (_, i) => li === 1 && i === 1
+    ? { type: 'single', prompt: 'Was ist die schnellste Route über die Treppe aus der Vorlesung?', options: [{ id: 'a', text: 'links' }, { id: 'b', text: 'zwei' }, { id: 'c', text: 'rechts' }], correct: ['b'], explanation: 'Siehe VO.', source: { file: 'x', heading: null }, difficulty: 3, concepts: ['K'], context: null, verify: null }
+    : i % 3 === 0
     ? { type: 'truefalse', prompt: 'Aussage ' + li + '-' + i + ' stimmt?', options: [{ id: 'true', text: 'Wahr' }, { id: 'false', text: 'Falsch' }], correct: ['true'], explanation: 'Weil es so ist.', source: { file: 'x', heading: 'mengen' }, difficulty: 2, concepts: ['K'] }
     : { type: 'single', prompt: 'Frage ' + li + '-' + i + '?', options: [{ id: 'a', text: 'eins' }, { id: 'b', text: 'zwei' }, { id: 'c', text: 'drei' }, { id: 'd', text: 'vier' }], correct: ['b'], explanation: 'Zwei ist richtig.', source: { file: 'x', heading: 'mengen' }, difficulty: 9, concepts: ['K'] }),
 }));
-if (a[a.indexOf('--output-schema') + 1].includes('bonus')) {
+if (schema.includes('bonus')) {
   // Praxis-Level: 7 Anwendungsfragen + 3 Schätzfragen (eine davon ungültig → wird verworfen)
   const questions = Array.from({ length: 7 }, (_, i) => ({ type: 'single', prompt: 'Welcher Alltagsfall ' + i + '?', options: [{ id: 'a', text: 'Navi' }, { id: 'b', text: 'Toaster' }, { id: 'c', text: 'Ampel' }], correct: ['a'], explanation: 'Weil Graphen.', source: { file: 'x', heading: null }, difficulty: 2, concepts: ['K'], slider: null }));
   questions.push({ type: 'estimate', prompt: 'Wie viele Teilmengen hat eine 6-elementige Menge?', options: [], correct: [], explanation: '2^6 = 64.', source: { file: 'x', heading: null }, difficulty: 2, concepts: ['K'], slider: { min: 0, max: 100, step: 1, answer: 64, tolerance: 0, unit: null, scale: 'linear' } });
@@ -94,7 +116,10 @@ describe('pipeline', () => {
     expect(r.status).toBe('success');
     expect(r.totals.processed).toBe(1);
     expect(r.totals.questions).toBe(49); // 4 × 10 + Praxis 9 (1 Schätzfrage verworfen)
-    expect(r.totals.tokens).toBe(4 * 1234); // generate + review, Praxis generate + review
+    // generate + review, Praxis generate + review, Blind-Test (49 Fragen = 3 Batches), Reparatur + Blind-Test des Ersatzes
+    expect(r.totals.tokens).toBe(9 * 1234);
+    expect(r.files[0]!.gate).toMatchObject({ checked: 49, failedFirst: 1, dropped: [] });
+    expect(r.files[0]!.gate!.repaired).toEqual([expect.objectContaining({ oldId: 'ds-01-l2-q02', newId: 'ds-01-l2-q02-r1' })]);
     expect(r.rateLimited).toBe(false);
     const files = readdirSync(join(lq, 'content/ds'));
     expect(files).toEqual(['01-mengen-relationen.json']);
@@ -104,6 +129,7 @@ describe('pipeline', () => {
     expect(unit.levels[0].questions[1].difficulty).toBe(5);
     expect(unit.levels[0].questions[1].source).toEqual({ file: 'DS/01_Vorlesungen/DS VO1.md', heading: 'Mengen' });
     expect(unit.levels).toHaveLength(5);
+    expect(unit.levels[1].questions[1]).toMatchObject({ id: 'ds-01-l2-q02-r1', type: 'calc', context: { type: 'table' } });
     expect(unit.levels[4]).toMatchObject({ id: 'ds-01-l5', kind: 'bonus', title: 'Praxis: Mengen im Alltag' });
     expect(unit.levels[4].questions.filter((q: { type: string }) => q.type === 'estimate').map((q: { slider: { answer: number } }) => q.slider.answer)).toEqual([64, 10000]);
     expect(r.files[0]!.dropped!.join()).toContain('answer außerhalb');

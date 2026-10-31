@@ -84,7 +84,7 @@ export function mermaidNodeCount(code: string): number {
     const segments = l
       .replace(/\|[^|]*\|/g, ' ')
       .replace(/"[^"]*"/g, '""')
-      .split(/\s*(?:<?-+\.?-*>|<?=+>|-{2,}[xo]?|-\.-+|~~~|--\s[^-]*-->|&)\s*/);
+      .split(/\s*(?:--\s[^-]+?-->|<?-+\.?-*>|<?=+>|-{2,}[xo]?|-\.-+|~~~|&)\s*/);
     for (const s of segments) {
       const m = /^(\[\*\]|[A-Za-z_][\w]*)/.exec(s.trim());
       if (m && !/^(state)$/.test(m[1]!)) ids.add(m[1]!);
