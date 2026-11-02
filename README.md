@@ -40,6 +40,7 @@ flowchart LR
 | `pipeline/` | CLI + Trigger-Dienst: Diff-Erkennung, Obsidian-Parser, Codex-Aufrufe, Validierung, Git, Import, Telegram |
 | `pipeline/prompts/` | versionierte Prompt-Vorlagen `generate-unit.md`, `review-unit.md`, `generate-bonus.md`, `review-bonus.md` |
 | `content/` | generierte Units `content/<modul>/<nr>-<slug>.json` (Quelle der Wahrheit, wird beim API-Start importiert) |
+| `wissen/` | Wissenssammlung `wissen/<modul>/<unit-id>.json` (Glossar je Unit, von der API direkt gelesen) |
 | `apps/api` | Fastify + Drizzle + SQLite: Auth, Fortschritt, Ökonomie, Ligen, Admin, Web Push |
 | `apps/web` | React + Vite + Tailwind + motion + KaTeX + Mermaid, PWA, Capacitor (iOS) |
 | `n8n/` | Docker Compose + Workflow „LernQuest Nightly“ |
@@ -55,6 +56,7 @@ pnpm pipeline run                     # Normalbetrieb (macht n8n jede Nacht)
 pnpm pipeline backfill                # alle Vorlesungen chronologisch nachholen
 pnpm pipeline regenerate "DS/01_Vorlesungen/Diskrete Strukturen VO3.md"
 pnpm pipeline bonus                   # fehlende Praxis-Level nachziehen (oder: bonus ds-03 → nur diese Unit neu)
+pnpm pipeline knowledge [ds-03]       # Wissenssammlung für Units ohne (aktuelle) Sammlung erzeugen (oder eine Unit neu)
 pnpm pipeline audit [ds-03 …]         # Blind-Test über bestehende Units, Durchgefallene neu generieren (--no-notify: ohne Telegram)
 pnpm pipeline audit eip-01 --force eip-01-l1-q02,eip-01-l3-q09 --reason "Regel fehlt"   # gezielt neu generieren
 pnpm pipeline watchdog                # lief heute schon ein Lauf?
@@ -97,6 +99,12 @@ Alle drei Rundenarten stellt der **Server** zusammen (`quiz_runs`). Gewertet wer
 - **Tagesaufgaben** (`/api/quests`): 3 pro Person und Tag (immer XP plus 2 zufällige, deterministisch), Coins beim Einlösen.
 - XP/Coins nur für die ersten 3 Schwächen-Runden, 2 Klausur-Checks und 3 Duelle pro Tag (`packages/shared/src/game.ts`: `WEAK`, `EXAM`, `DUEL`).
 - **Neue Vorlesung**: Der API-Tick kündigt neue Units per Push an, aber erst ab 08:00 (der Lauf ist um Mitternacht).
+
+## Wissenssammlung (Üben → Wissen)
+Zu jeder Unit gibt es ein Nachschlagewerk mit **allen Begriffen, Konzepten, Sätzen/Regeln, Verfahren und Notationen** der Vorlesung. In der App: Üben → **Wissen** (Modul wählen, Units aufklappen oder über alle Begriffe suchen). Jeder Eintrag hat Kurzfassung, Erklärung (Markdown + KaTeX), optional Beispiel, „Achtung“ (typische Fehler) und „Siehe auch“. Konzepte unter „Schwächen“ verlinken direkt auf ihren Eintrag (`/wissen?m=DS&q=…`).
+- **Erzeugung** (`pipeline/src/knowledge.ts`, Prompts `generate-knowledge.md` + `review-knowledge.md`, Schema `knowledge-output.schema.json`): Codex schreibt das Glossar aus der Mitschrift (`CODEX_EFFORT`), ein zweiter Lauf prüft fachlich und ergänzt Fehlendes (`CODEX_REVIEW_EFFORT`). Doppelte Begriffe werden verworfen, IDs vergibt die Pipeline (`ds-03-k07`).
+- **Wann**: in jedem Lauf direkt nach einer neuen Unit (eigener Commit `wissen: …`). Fehlt eine Sammlung oder stammt sie von einer älteren Fassung der Unit (`sourceSha`), holt jeder normale Lauf bis zu `KNOWLEDGE_CATCH_UP` (Standard 3) nach – Fehler dabei sind nur Warnungen. Gezielt: `pnpm pipeline knowledge [unit-id]` oder im Bot **📖 Wissenssammlung nachholen**. Abschalten: `GENERATE_KNOWLEDGE=false`.
+- **API**: `GET /api/knowledge/:module` liest die Dateien (Cache nach mtime), also sofort sichtbar ohne Neustart. Offline über den Service Worker (`lq-api`).
 
 ## iOS-App: Live-Updates
 Die App enthält den Web-Code des Builds, holt sich aber neue Versionen selbst ([`@capgo/capacitor-updater`](https://github.com/Cap-go/capacitor-updater) im manuellen Modus, ohne Cloud):
@@ -188,6 +196,12 @@ Keine Neustarts nötig. Jeder Lauf liest `.env` neu. Das verwendete Modell steht
 - **Google** (`apps/api/src/routes/account.ts`): Authorization Code + PKCE, `GOOGLE_CLIENT_ID/SECRET` in `.env`. Callback-URLs (in der Google Cloud Console eintragen): `https://lern.varialbe.xyz/api/auth/google/callback` und `https://mateenbatt.de/lernen/api/auth/google/callback`. Die iOS-App öffnet Google in Safari und holt das Ergebnis per Polling ab (Google verbietet Logins in eingebetteten WebViews). Gleiche, dort bestätigte E-Mail → Konto wird automatisch verknüpft.
 - **E-Mails** per SMTP an den lokalen Postfix (`127.0.0.1:25`, DKIM `mail2026`): Account-Mails von `lernquest.reset@varialbe.xyz`, Newsletter von `news.quest@varialbe.xyz` (beide Aliase → `varialbe`, also Antworten/Bounces landen im normalen Postfach). Nicht über `sendmail`: die Dienste laufen mit `NoNewPrivileges`.
 - **Admin → Nutzer**: Suche, Details (E-Mail, Anmeldearten, Sitzungen, Einladung, Newsletter), Bearbeiten, Reset-Mail, temporäres Passwort, Sperren, Abmelden erzwingen, Google trennen, Admin-Rolle, Fortschritt zurücksetzen, Konto löschen.
+
+## Telegram-Bot: neue Inhalte sofort holen
+Statt bis zum n8n-Lauf um 00:00 zu warten: im Bot **🔄 Neue Inhalte holen**, `/fetch` (auch `/hol`, `/update`) oder einfach eine Nachricht wie „hol die neuen Sachen“. Der Bot startet über den Trigger-Dienst (`127.0.0.1:3461`, `PIPELINE_TOKEN`) denselben Lauf wie n8n und aktualisiert seine Nachricht alle 20 s mit den letzten Log-Zeilen. Am Ende kommt die gewohnte Zusammenfassung der Pipeline. Läuft schon etwas, zeigt er diesen Lauf.
+- **🔍 Was ist neu?** (`/neu`): Vorschau (dry-run), was verarbeitet würde – mit Button „Jetzt holen“.
+- **📡 Status** (`/status`): laufender Lauf live bzw. die letzten Läufe; dort **📖 Wissenssammlung nachholen** (`/wissen`, Modus `knowledge`).
+- Code: `apps/api/src/bot.ts`, `apps/api/src/lib/botPipeline.ts`.
 
 ## Newsletter (Double-Opt-in, Telegram-Bot)
 - Anmeldung (Registrierung oder Profil) → Bestätigungs-Mail → erst nach Klick `newsletter = true` (Zeitpunkte als Nachweis). Jede Ausgabe hat einen signierten Abmeldelink plus `List-Unsubscribe` (One-Click).

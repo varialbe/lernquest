@@ -6,6 +6,11 @@
 1. ~~Telegram-Chat-ID~~ ✔ erledigt am 31.10. (Chat „Ray“, `pnpm pipeline telegram-setup`, Dienst neu gestartet).
 2. Den Bot-Token hast du im Chat geteilt – wenn du auf Nummer sicher gehen willst: bei @BotFather `/revoke` und den neuen Token in `~/lernquest/.env` (`TELEGRAM_BOT_TOKEN=`) eintragen.
 
+## Nachtrag 02.11.2026
+- **Bot: neue Inhalte sofort holen** – 🔄-Button, `/fetch`/`/hol` oder Freitext („hol die neuen Sachen“) startet den Pipeline-Lauf über den Trigger-Dienst, Live-Fortschritt im Chat; dazu 🔍 Vorschau (`/neu`) und 📡 Status (`/status`).
+- **Wissenssammlung** (Üben → Wissen): Glossar je Unit mit allen Begriffen/Konzepten (Codex generiert + Fachkorrektur), `wissen/<modul>/<unit-id>.json`, `GET /api/knowledge/:module`, Suche in der App, Konzepte aus „Schwächen“ verlinkt. Backfill für alle 18 Units am 02.11. per Modus `knowledge`. Neue Units bekommen sie automatisch.
+- iOS: nur Live-Update (kein neues IPA nötig, keine nativen Änderungen).
+
 ## Stand (31.10.2026) – alle Phasen abgeschlossen
 - Nachtrag 31.10. (Wunsch „einmal richtig kompilieren“): Üben-Hub mit Schwächen (Konzept-Trefferquoten), Klausur-Check (20 Fragen, Timer, Note), asynchronen Duellen, Tagesaufgaben. Push für neue Units (ab 08:00) und Duelle. iOS: Live-Updates (selbst gehostet), lokale Erinnerungen, Haptik, Statusleiste. 68 Tests grün (12 shared, 37 API, 19 Pipeline), Feature-Screenshots hell/dunkel geprüft. Migration 0001 (rein additiv, Backup davor in `~/backups/lernquest/pre-migration-0001-*.db`).
 - Phase 7 ✔: Backfill aller 18 Vorlesungen (DS 6, EIP 5, ERA 7), 0 Fehler, je 44–45 Fragen + Praxis-Level (10–12 Fragen, davon 3 Schätzfragen). 976 aktive Fragen. n8n-Testlauf über „Manuell testen“ (`n8n execute`): Trigger → Lauf → Status-Polling → Ergebnis „nichts Neues“, Telegram-Nachricht gesendet. README mit Betrieb, Troubleshooting, Fragetyp, Modell, Praxis-Bereich.
