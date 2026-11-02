@@ -15,6 +15,17 @@ if (cmd === 'telegram-setup') {
   await telegramSetup();
   process.exit(0);
 }
+if (cmd === 'wissen-check') {
+  // Wissenssammlung + Voraussetzungen aktuell und konsistent? (Exit 1 bei Problemen)
+  const { allContentUnits } = await import('./knowledge.ts');
+  const { checkKnowledge } = await import('./prereqs.ts');
+  const problems = checkKnowledge(allContentUnits());
+  console.log(problems.length ? `✗ ${problems.length} Problem(e):
+${problems.map((x) => `  - ${x}`).join('
+')}
+→ beheben mit: pnpm pipeline knowledge [unit-id]` : '✓ Wissenssammlung und Voraussetzungen sind für alle Units aktuell.');
+  process.exit(problems.length ? 1 : 0);
+}
 if (cmd === 'watchdog') process.exit((await watchdog()) ? 0 : 2);
 if (cmd === 'audit') {
   const { audit } = await import('./audit.ts');
@@ -31,7 +42,8 @@ if (!(cmd in modes)) {
   pnpm pipeline dry-run             nur anzeigen, was neu wäre
   pnpm pipeline regenerate <datei>  eine Notiz neu generieren (Pfad relativ zum Studium-Repo)
   pnpm pipeline bonus [unit-id]      Praxis-Level für Units ohne Bonus (oder eine Unit neu) erzeugen
-  pnpm pipeline knowledge [unit-id]  Wissenssammlung für Units ohne (aktuelle) Sammlung (oder eine Unit neu) erzeugen
+  pnpm pipeline knowledge [unit-id]  Wissenssammlung + Voraussetzungen für Units ohne (aktuelle) Fassung (oder eine Unit neu) erzeugen
+  pnpm pipeline wissen-check        prüfen, ob Wissenssammlung und Voraussetzungen für alle Units aktuell sind
   pnpm pipeline audit [unit-id …]  Blind-Test über bestehende Units, Durchgefallene neu generieren (--no-notify: ohne Telegram)
   pnpm pipeline watchdog            prüfen, ob heute ein nächtlicher Lauf stattfand (sonst Warnung)
   pnpm pipeline telegram-setup      einmalig: Chat-ID nach /start an den Bot in .env eintragen`);

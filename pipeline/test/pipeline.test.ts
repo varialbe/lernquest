@@ -243,6 +243,10 @@ describe('pipeline', () => {
     const r2 = await run.execute('run', { quiet: true });
     expect(r2.files.filter((f) => f.knowledge).map((f) => f.unitId)).toContain('ds-02');
     expect(readdirSync(join(lq, 'wissen/ds'))).toContain('ds-02.json');
+    // danach ist alles konsistent (pnpm pipeline wissen-check)
+    const { checkKnowledge } = await import('../src/prereqs.ts');
+    const { allContentUnits } = await import('../src/knowledge.ts');
+    expect(checkKnowledge(allContentUnits())).toEqual([]);
   });
 
   it('refuses to run twice in parallel', async () => {

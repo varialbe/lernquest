@@ -77,6 +77,15 @@ export function applyPrereqs(target: UnitKnowledge, raw: RawLinks, all: UnitKnow
   const unitOf = new Map<string, number>();
   for (const k of all) for (const e of k.entries) unitOf.set(e.id, k.unitNumber);
   const own = new Set(target.entries.map((e) => e.id));
+  // Wurde die Wissenssammlung dieser Unit neu erzeugt, bedeuten ihre IDs evtl. andere Begriffe:
+  // spätere Units, die auf sie verweisen, als veraltet markieren → werden beim nächsten Lauf neu verknüpft
+  const before = g.units[target.unitId]?.knowledgeAt;
+  if (before && before !== target.generator.generatedAt) {
+    for (const [id, links] of Object.entries(g.requires)) {
+      const unit = id.replace(/-k\d+$/, '');
+      if (unit !== target.unitId && links.some((l) => l.id.startsWith(`${target.unitId}-k`))) delete g.units[unit];
+    }
+  }
   // alte Kanten dieser Unit raus; Kanten auf nicht (mehr) existierende Einträge ebenso
   const requires: Record<string, PrereqLink[]> = {};
   for (const [id, links] of Object.entries(g.requires)) {
@@ -139,4 +148,35 @@ export async function generatePrereqs(target: UnitKnowledge, all: UnitKnowledge[
   const applied = applyPrereqs(target, r.data as RawLinks, all);
   log(`  ✓ Voraussetzungen ${target.unitId}: ${applied.edges} Kanten${applied.dropped.length ? `, ${applied.dropped.length} verworfen` : ''}`);
   return { ...applied, tokens: r.tokens };
+}
+
+/**
+ * Prüft, ob Wissenssammlung und Voraussetzungs-Graph zu allen Units passen (pnpm pipeline wissen-check).
+ * Liefert eine Liste von Problemen; leer = alles aktuell.
+ */
+export function checkKnowledge(units: { id: string; module: ModuleId; source: { sha256: string } }[]): string[] {
+  const problems: string[] = [];
+  for (const module of [...new Set(units.map((u) => u.module))]) {
+    const all = moduleKnowledge(module);
+    const byUnit = new Map(all.map((k) => [k.unitId, k]));
+    const g = readGraph(module);
+    const unitOf = new Map<string, number>();
+    for (const k of all) for (const e of k.entries) unitOf.set(e.id, k.unitNumber);
+    for (const u of units.filter((x) => x.module === module)) {
+      const k = byUnit.get(u.id);
+      if (!k) problems.push(`${u.id}: keine Wissenssammlung`);
+      else if (k.sourceSha !== u.source.sha256) problems.push(`${u.id}: Wissenssammlung stammt von einer älteren Fassung der Unit`);
+      else if (prereqsStale(k, g)) problems.push(`${u.id}: Voraussetzungen fehlen oder passen nicht zur aktuellen Wissenssammlung`);
+      else for (const e of k.entries) if (!(e.id in g.requires)) problems.push(`${e.id} (${e.term}): kein Eintrag im Voraussetzungs-Graph`);
+    }
+    for (const [id, links] of Object.entries(g.requires)) {
+      if (!unitOf.has(id)) problems.push(`${module}: Graph enthält unbekannten Eintrag ${id}`);
+      for (const l of links) {
+        if (!unitOf.has(l.id)) problems.push(`${id} → ${l.id}: Voraussetzung existiert nicht`);
+        else if (unitOf.get(l.id)! > (unitOf.get(id) ?? Infinity)) problems.push(`${id} → ${l.id}: Voraussetzung aus späterer Unit`);
+      }
+    }
+    for (const id of Object.keys(g.requires)) for (const l of g.requires[id]!) if (reaches(g.requires, l.id, id)) problems.push(`${id} → ${l.id}: Zyklus`);
+  }
+  return problems;
 }

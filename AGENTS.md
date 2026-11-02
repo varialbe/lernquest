@@ -1,0 +1,37 @@
+# AGENTS.md – Regeln für KI-Agenten (Codex, Claude) in diesem Repo
+
+LernQuest: Lern-App für DS, EIP, ERA. Überblick, Betrieb und Architektur: `README.md`, Stand: `PROGRESS.md`.
+Quelle der Wahrheit ist das Repo `~/lernquest` auf dem VPS (Dienste, Daten, `.env` liegen nur dort).
+
+## ⚠️ Pflicht: Wissenssammlung und Voraussetzungen immer aktuell halten
+
+Zu jeder Unit gehören **drei** Dinge, die zusammenpassen müssen:
+
+| Was | Datei | Erzeugt von |
+|---|---|---|
+| Unit (Level, Fragen) | `content/<modul>/<nr>-<slug>.json` | `pnpm pipeline run` / `regenerate` |
+| Wissenssammlung (Begriffe, Konzepte) | `wissen/<modul>/<unit-id>.json` | `pnpm pipeline knowledge <unit-id>` |
+| Voraussetzungen („Dafür brauchst du“, Lernpfad „Von Grund auf“) | `wissen/<modul>/_voraussetzungen.json` | läuft in `knowledge` mit (`pipeline/src/prereqs.ts`) |
+
+**Immer, wenn du neue Inhalte hinzufügst oder bestehende änderst** (neue Unit, Unit neu generiert, Wissenseinträge ergänzt/umbenannt/gelöscht, Begriffe zusammengelegt), müssen die Voraussetzungen danach stimmen:
+
+1. Wissenssammlung **nicht von Hand** in `wissen/*.json` editieren, sondern neu erzeugen: `pnpm pipeline knowledge <unit-id>`. Das schreibt Wissenssammlung **und** Voraussetzungen dieser Unit neu.
+2. Wurde eine **frühere** Unit neu erzeugt, ändern sich ihre Eintrags-IDs (`ds-03-k07` kann danach ein anderer Begriff sein). Spätere Units, die darauf verweisen, werden automatisch als veraltet markiert – danach `pnpm pipeline knowledge` (ohne Argument) laufen lassen, bis nichts mehr fehlt.
+3. **Zum Schluss immer prüfen:** `pnpm pipeline wissen-check` muss `✓` melden (Exit 0). Er findet fehlende/veraltete Wissenssammlungen, fehlende Voraussetzungen, Kanten auf unbekannte Einträge oder spätere Units und Zyklen.
+4. Regeln für Voraussetzungen (prüft `applyPrereqs` deterministisch, gilt aber auch für Vorschläge): nur **direkte** Voraussetzungen, nur Einträge derselben oder **früherer** Units desselben Moduls, kein Selbstbezug, max. 6, **keine Zyklen**, kurze Begründung (`why`). Lieber wenige sichere Kanten als viele vage.
+5. Ändert sich das Format (Felder in `packages/shared/src/knowledge.ts`), müssen Pipeline (`pipeline/src/knowledge.ts`, `prereqs.ts`), API (`apps/api/src/lib/knowledge.ts`, `cards.ts`) und App (`apps/web/src/pages/Knowledge.tsx`, `Cards.tsx`) mitziehen.
+
+Der normale Lauf (`pnpm pipeline run`, nachts per n8n oder im Telegram-Bot per 🔄) erzeugt für neue Units Wissenssammlung + Voraussetzungen automatisch und holt Fehlendes nach (bis zu `KNOWLEDGE_CATCH_UP` Units pro Lauf). Manuelle Änderungen musst du selbst nachziehen (siehe oben).
+
+Karteikarten-Fortschritt (`card_items`) hängt an den Eintrags-IDs: Eine neu erzeugte Wissenssammlung setzt die Karten dieser Unit zurück. Nur neu erzeugen, wenn es inhaltlich nötig ist.
+
+## Weitere Regeln
+
+- **Formeln** in allen Lerntexten nur als `$…$` / `$$…$$` (KaTeX), nie `\(…\)` oder `\[…\]`. Code in Backticks.
+- **Fragen müssen ohne Vorlesung lösbar sein** (`pipeline/prompts/_self-contained.md`); nach Änderungen an Fragen: `pnpm pipeline audit <unit-id>`.
+- **Tests** vor jedem Deploy: `pnpm test` und `pnpm -r --if-present typecheck`. Neue API-Routen brauchen Auth (sonst wird `apps/api/test/security.test.ts` rot).
+- **Datenschutz**: Werden neue personenbezogene Daten gespeichert, neue Mitteilungen verschickt oder neue Daten lokal gespeichert, die Datenschutzerklärung (`apps/web/src/pages/Legal.tsx`, `UPDATED`) im selben Schritt anpassen. Keine Cookies, kein Tracking.
+- **App-Struktur**: Die Anzahl der Tabs unten bleibt gleich; neue Funktionen in bestehende Tabs einbauen (z. B. Üben).
+- **DB-Änderungen** nur additiv per Drizzle-Migration (`pnpm db:generate`), vorher Backup nach `~/backups/lernquest/`.
+- **Deploy**: `deploy/deploy-web.sh` (Web + iOS-Live-Update), nach API-Änderungen `sudo systemctl restart lernquest-api`. Neues IPA nur bei nativen Änderungen.
+- Läuft gerade eine Pipeline (`curl 127.0.0.1:3461/health` → `running`), nicht auf `main` im VPS-Repo arbeiten (die Pipeline committet dort) – Worktree oder Branch benutzen.

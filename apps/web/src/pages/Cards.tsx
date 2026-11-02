@@ -216,7 +216,9 @@ export default function Cards() {
               <FlashCard key={`${card.entry.id}-${queue.length}`} card={card} color={color} flipped={flipped} onFlip={() => (sfx.tap(), setFlipped(true))} onAnswer={answer} />
             </AnimatePresence>
           </div>
-          <div className="sticky bottom-20 mt-4 grid grid-cols-2 gap-3">
+          {flipped && <p className="mt-2 text-center text-xs font-bold text-muted">Tipp: nach rechts wischen = gewusst, nach links = nochmal</p>}
+          {/* eigene Leiste direkt über der Navigation: deckt den Kartentext ab statt darüber zu schweben */}
+          <div className="sticky bottom-[calc(4rem+2px+env(safe-area-inset-bottom))] z-20 -mx-4 mt-3 grid grid-cols-2 gap-3 border-t-2 border-line bg-bg/95 px-4 pb-3 pt-3 backdrop-blur-md">
             {flipped ? (
               <>
                 <Button variant="danger-outline" onClick={() => answer(false)}>
@@ -232,7 +234,6 @@ export default function Cards() {
               </Button>
             )}
           </div>
-          {flipped && <p className="mt-2 text-center text-xs font-bold text-muted">Tipp: nach rechts wischen = gewusst, nach links = nochmal</p>}
         </>
       )}
 
