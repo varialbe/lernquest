@@ -1,0 +1,430 @@
+{
+  "schemaVersion": 1,
+  "unitId": "era-03",
+  "module": "ERA",
+  "unitNumber": 3,
+  "unitTitle": "Vom Quelltext zum Maschinenbefehl",
+  "sourceSha": "5d3181f500186c4cbc5c77a73950ebcb7abb98c09870e0b80a745c83a3696601",
+  "overview": "Diese Unit verfolgt den Weg vom C-Quelltext über Compiler und Binärdatei bis zu den Maschinenbefehlen, die ein Prozessor ausführt. Die ISA legt diese Befehle und ihr Verhalten fest; Header- und Abschnittsinformationen sowie eine Disassembly helfen, eine Binärdatei zu untersuchen. An RISC-V werden Befehlsformate, grundlegende Befehlsklassen, Mnemonics, Operanden und Register erklärt. Das Wissen hilft, nachvollzuziehen, wie Quelltext in elementare Schritte auf Prozessorebene umgesetzt wird.",
+  "entries": [
+    {
+      "id": "era-03-k01",
+      "term": "Befehlssatzarchitektur (Instruction Set Architecture, ISA)",
+      "kind": "definition",
+      "short": "Die ISA legt fest, welche Maschinenbefehle ein Prozessor ausführen kann und wie sie sich verhalten.",
+      "explanation": "Eine ISA beschreibt die für Programme sichtbare Schnittstelle eines Prozessors, insbesondere seine Maschinenbefehle, deren Codierung und Verhalten. Sie legt außerdem programmierbare Register fest. Verschiedene Prozessoren können dieselbe ISA unabhängig voneinander implementieren und dadurch kompatible Maschinenprogramme ausführen.",
+      "example": "Intel- und AMD-Prozessoren können dieselbe ISA unterstützen, obwohl ihre Mikroarchitekturen unterschiedlich sind.",
+      "pitfalls": [
+        "Die ISA beschreibt nicht den inneren Aufbau oder die konkrete Implementierung des Prozessors."
+      ],
+      "related": [
+        "Mikroarchitektur",
+        "Abstraktionsebenen"
+      ],
+      "heading": "Vom Quelltext zum Maschinenprogramm"
+    },
+    {
+      "id": "era-03-k02",
+      "term": "Compiler",
+      "kind": "definition",
+      "short": "Ein Compiler übersetzt Quelltext unter Berücksichtigung der Ziel-ISA und des Betriebssystems in ein Binärprogramm.",
+      "explanation": "Quellcode ist zunächst lesbarer Text und nicht direkt ausführbar. Der Compiler erzeugt daraus ein Programm für eine Ziel-ISA und berücksichtigt das jeweilige Betriebssystem. Die erzeugten Befehle sind nicht ohne Weiteres als ursprünglicher C-Quelltext lesbar.",
+      "example": "`gcc -o count -O0 -g count.c` kompiliert `count.c` und benennt die Ausgabedatei `count`.",
+      "pitfalls": [
+        "Eine C-Datei ist nicht schon deshalb ausführbar, weil sie Programmbefehle enthält."
+      ],
+      "related": [
+        "Befehlssatzarchitektur (Instruction Set Architecture, ISA)",
+        "Binärdatei"
+      ],
+      "heading": "Vom Quelltext zum Maschinenprogramm"
+    },
+    {
+      "id": "era-03-k03",
+      "term": "Binärdatei",
+      "kind": "definition",
+      "short": "Eine Binärdatei enthält codierten Programmcode sowie Startwerte und Metadaten für ein Zielsystem.",
+      "explanation": "Eine Binärdatei bündelt unter anderem Maschinenbefehle, initiale Daten und Metadaten, die das Betriebssystem oder weitere Werkzeuge benötigen. Format und Inhalt hängen von Betriebssystem und Hardware ab. Der Prozessor führt die codierten Maschinenbefehle aus, nicht den ursprünglichen C-Text.",
+      "example": "Nach dem Compileraufruf kann die erzeugte Datei `count` das ausführbare Programm enthalten.",
+      "pitfalls": [
+        "Eine Binärdatei besteht nicht ausschließlich aus ausführbaren Maschinenbefehlen."
+      ],
+      "related": [
+        "Compiler",
+        ".text-Abschnitt",
+        "Maschinenbefehl"
+      ],
+      "heading": "Vom Quelltext zum Maschinenprogramm"
+    },
+    {
+      "id": "era-03-k04",
+      "term": "Vom Quelltext zum Maschinenprogramm",
+      "kind": "method",
+      "short": "Der Weg vom C-Programm zur Ausführung führt über die Übersetzung in eine Binärdatei mit Maschinenbefehlen.",
+      "explanation": "C-Quelltext beschreibt ein Programm zunächst als lesbaren Text. Der Compiler übersetzt ihn mit Blick auf Ziel-ISA und Betriebssystem in ein Binärprogramm mit Code, Startwerten und Metadaten. Der Prozessor führt die codierten Maschinenbefehle aus; ein Disassembler kann sie zur Untersuchung als Assemblerbefehle darstellen. Eine einzelne C-Zeile muss dabei nicht genau einem Maschinenbefehl entsprechen.",
+      "example": "Die Schleife `for (int i = 0; i < 10; i++) c = c + i;` addiert die Werte von 0 bis 9 und ergibt 45.",
+      "pitfalls": [
+        "Compileroptimierungen können die Zuordnung zwischen Quelltext und Maschinenbefehlen verändern."
+      ],
+      "related": [
+        "Compiler",
+        "Binärdatei",
+        "Disassembly"
+      ],
+      "heading": "Vom Quelltext zum Maschinenprogramm"
+    },
+    {
+      "id": "era-03-k05",
+      "term": "Header und Disassembly",
+      "kind": "concept",
+      "short": "Header-Werkzeuge zeigen Dateiinformationen und Abschnitte, während eine Disassembly codierte Befehle lesbar darstellt.",
+      "explanation": "Der Aufruf `objdump -h` zeigt eine Übersicht über Header- und Abschnittsinformationen einer Binärdatei. Eine Disassembly stellt codierte Maschinenbefehle als Assemblerbefehle dar und zeigt häufig auch deren Codewörter. Die Hexdarstellung in der Code-Spalte ist die lesbare Darstellung eines Maschinenbefehls, nicht des Hochsprachen-Quelltexts.",
+      "example": "`objdump -h count` zeigt eine Abschnittsübersicht der Datei `count`.",
+      "pitfalls": [
+        "Eine Abschnittsübersicht und eine Disassembly sind unterschiedliche Ansichten auf eine Binärdatei."
+      ],
+      "related": [
+        "Binärdatei",
+        ".text-Abschnitt",
+        "Disassembly",
+        "Disassembly-Zeile"
+      ],
+      "heading": "Header und Disassembly"
+    },
+    {
+      "id": "era-03-k06",
+      "term": ".text-Abschnitt",
+      "kind": "definition",
+      "short": "Der Abschnitt `.text` einer Binärdatei enthält ausführbaren Programmcode.",
+      "explanation": "Eine Binärdatei kann in Abschnitte mit unterschiedlichen Aufgaben gegliedert sein. `.text` bezeichnet den Abschnitt, in dem Programmcode abgelegt ist. Werkzeuge wie `objdump` können diesen Abschnitt in einer Disassembly anzeigen.",
+      "example": "`Disassembly of section .text:` kennzeichnet den Beginn einer Darstellung der Befehle aus diesem Abschnitt.",
+      "pitfalls": [
+        "`.text` bezeichnet einen Abschnitt in einer Binärdatei, nicht den ursprünglichen Quelltext."
+      ],
+      "related": [
+        "Binärdatei",
+        "Header und Disassembly",
+        "Disassembly-Zeile"
+      ],
+      "heading": "Header und Disassembly"
+    },
+    {
+      "id": "era-03-k07",
+      "term": "Disassembly",
+      "kind": "method",
+      "short": "Disassembly decodiert Maschinenbefehle und zeigt sie als lesbare Assemblerbefehle an.",
+      "explanation": "Beim Disassemblieren wird die Bitcodierung eines Maschinenbefehls anhand der ISA interpretiert und als Mnemonic mit Operanden dargestellt. Die Ausgabe kann außerdem Adressen und eine Hexdarstellung der Codewörter enthalten. Die Zuordnung zu Quelltextzeilen kann durch Compileroptimierungen verändert oder unübersichtlich werden.",
+      "example": "Ein Codewort kann in einer Disassembly als `add t2, t0, t1` erscheinen.",
+      "pitfalls": [
+        "Eine Disassembly rekonstruiert nicht zuverlässig den ursprünglichen C-Quelltext.",
+        "Optimierungen können Befehle umordnen, zusammenfassen oder entfernen."
+      ],
+      "related": [
+        "Befehlssatzarchitektur (Instruction Set Architecture, ISA)",
+        "Assemblersprache",
+        "Disassembly-Zeile"
+      ],
+      "heading": "Header und Disassembly"
+    },
+    {
+      "id": "era-03-k08",
+      "term": "Disassembly-Zeile",
+      "kind": "notation",
+      "short": "Eine Disassembly-Zeile verbindet eine Befehlsadresse und ein Codewort mit einem lesbaren Assemblerbefehl.",
+      "explanation": "Eine typische Zeile zeigt die Adresse des Befehls, danach dessen Codewort und anschließend Mnemonic und Operanden. Die Adresse bezeichnet die Stelle des Befehls im Programm; das Codewort ist seine codierte Maschinenform. Eine Routine wie `main` besteht üblicherweise aus mehreren Befehlen.",
+      "example": "`68c: [Codewort C] add t2, t0, t1` zeigt schematisch einen Additionsbefehl an Adresse `68c`.",
+      "pitfalls": [
+        "Die Hexzahl oder Bitfolge in der Code-Spalte ist weder die Adresse noch der Quelltext."
+      ],
+      "related": [
+        "Disassembly",
+        "Maschinenbefehl",
+        "Assemblersprache"
+      ],
+      "heading": "Header und Disassembly"
+    },
+    {
+      "id": "era-03-k09",
+      "term": "Assemblersprache",
+      "kind": "definition",
+      "short": "Assemblersprache stellt Maschinenbefehle als lesbare Mnemonics mit expliziten Operanden dar.",
+      "explanation": "Assemblersprache ist eine sehr niedrige, für Menschen direkt lesbare Abstraktionsebene. Sie verwendet primitive Befehle statt komplexer Datenstrukturen und verlangt, Register, Speicherstellen und Datenübertragungen ausdrücklich zu verwalten. Ein Assemblerbefehl entspricht grundsätzlich einem codierten Maschinenbefehl; Pseudobefehle können beim Übersetzen in andere Befehle umgesetzt werden.",
+      "example": "`add t2, t0, t1` bezeichnet eine Addition mit zwei Quellregistern und einem Zielregister.",
+      "pitfalls": [
+        "Assemblersprache ist lesbarer als die Bitcodierung, aber keine Hochsprache wie C."
+      ],
+      "related": [
+        "Maschinenbefehl",
+        "Mnemonic, Quelloperand und Zieloperand",
+        "Disassembly"
+      ],
+      "heading": "Assembler und ISA"
+    },
+    {
+      "id": "era-03-k10",
+      "term": "RISC und CISC",
+      "kind": "concept",
+      "short": "RISC und CISC bezeichnen klassische Entwurfsansätze mit eher reduziertem beziehungsweise umfangreichem Befehlssatz.",
+      "explanation": "RISC steht für *Reduced Instruction Set Computer* und setzt klassisch auf einen reduzierten, einfachen Grundbefehlssatz. CISC steht für *Complex Instruction Set Computer* und bezeichnet einen umfangreichen Befehlssatz, dessen einzelne Befehle viel leisten können. In der klassischen Gegenüberstellung werden RISC-Befehle häufig fest verdrahtet und CISC-Befehle häufig mit Mikroprogrammen realisiert; bei RISC übernimmt der Compiler mehr Arbeit. Diese Gegenüberstellung beschreibt heutige Implementierungen nur eingeschränkt.",
+      "example": "RISC-V ist ein Beispiel für eine RISC-ISA; IA-32 ist ein typisches CISC-Beispiel.",
+      "pitfalls": [
+        "Die Begriffe legen nicht für jeden heutigen Prozessor fest, wie sein Kern intern umgesetzt ist.",
+        "Feste oder variable Befehlslänge ist eine typische Gegenüberstellung, aber keine vollständige Definition von RISC und CISC."
+      ],
+      "related": [
+        "RISC-V",
+        "IA-32",
+        "Maschinenbefehlsformat"
+      ],
+      "heading": "RISC und CISC"
+    },
+    {
+      "id": "era-03-k11",
+      "term": "IA-32",
+      "kind": "example",
+      "short": "IA-32 ist die 32-Bit-Variante aus der Intel-ISA-Familie und ein Beispiel für eine historisch gewachsene CISC-ISA.",
+      "explanation": "IA-32 bezeichnet eine 32-Bit-Architektur aus der Intel-Familie, die durch ältere Entwicklungen geprägt ist. Sie wird als typisches CISC-Beispiel verwendet. Die ISA kann von unabhängig entwickelten Prozessoren unterstützt werden, obwohl deren interne Umsetzung verschieden ist.",
+      "example": "Ein Prozessor eines anderen Herstellers kann IA-32-kompatible Maschinenbefehle ausführen, wenn er diese ISA implementiert.",
+      "pitfalls": [
+        "IA-32 ist nicht die Bezeichnung für jede ISA, die von Intel-Prozessoren unterstützt wird."
+      ],
+      "related": [
+        "RISC und CISC",
+        "Befehlssatzarchitektur (Instruction Set Architecture, ISA)"
+      ],
+      "heading": "RISC und CISC"
+    },
+    {
+      "id": "era-03-k12",
+      "term": "RISC-V",
+      "kind": "definition",
+      "short": "RISC-V ist eine offene, bewusst einfach gehaltene und erweiterbare RISC-Befehlssatzarchitektur.",
+      "explanation": "RISC-V ist eine offen spezifizierte ISA mit einem einfachen Grundentwurf und Erweiterungsmöglichkeiten. Der Name steht in dieser Unit für den fünften Ansatz in der Entwicklung von RISC-Architekturen. RISC-V dient als Beispiel-ISA, an der sich Maschinenbefehle und ihre Ausführung untersuchen lassen.",
+      "example": "Ein Prozessor, der RISC-V implementiert, führt die für seine konkrete RISC-V-Ausprägung definierten Maschinenbefehle aus.",
+      "pitfalls": [
+        "RISC-V bezeichnet die ISA, nicht einen einzelnen Prozessortyp."
+      ],
+      "related": [
+        "RISC und CISC",
+        "RISC-V-Basisbefehlssatz und Erweiterungen",
+        "Befehlssatzarchitektur (Instruction Set Architecture, ISA)"
+      ],
+      "heading": "RISC-V als Beispiel-ISA"
+    },
+    {
+      "id": "era-03-k13",
+      "term": "RISC-V-Basisbefehlssatz und Erweiterungen",
+      "kind": "concept",
+      "short": "Der RISC-V-Basisbefehlssatz konzentriert sich auf Ganzzahloperationen und kann durch optionale Erweiterungen ergänzt werden.",
+      "explanation": "Der Basisbefehlssatz stellt grundlegende Operationen für ganze Zahlen bereit. Die Unit nennt 32-, 64- und 128-Bit-Varianten; die Grundbreite beschreibt die Bitzahl eines Werts beziehungsweise Wortes, mit der grundlegende Operationen arbeiten. Erweiterungen betreffen unter anderem Fließkomma, Vektoren, Mehrbenutzerbetrieb und Mehrkernsysteme. Es gibt standardisierte und nicht standardisierte Spezialerweiterungen, die von der RISC-V Foundation verwaltet werden.",
+      "example": "Eine RISC-V-Implementierung kann neben dem Ganzzahl-Basissatz eine Vektor- oder Fließpunkterweiterung unterstützen.",
+      "pitfalls": [
+        "Nicht jede RISC-V-Implementierung unterstützt jede Erweiterung.",
+        "Eine größere Grundbreite bedeutet nicht, dass jedes einzelne Befehlsfeld proportional länger wird."
+      ],
+      "related": [
+        "RISC-V",
+        "Maschinenbefehlsformat"
+      ],
+      "heading": "RISC-V als Beispiel-ISA"
+    },
+    {
+      "id": "era-03-k14",
+      "term": "Maschinenbefehl",
+      "kind": "definition",
+      "short": "Ein Maschinenbefehl ist eine codierte Anweisung, die eine Operation und die dafür benötigten Operanden festlegt.",
+      "explanation": "Ein Maschinenbefehl ist eine Bitfolge, die ein Prozessor gemäß seiner ISA decodiert und ausführt. Die Codierung enthält Angaben zur Operation und kann außerdem Operanden oder weitere Steuerinformationen enthalten. Ein Befehl kann beispielsweise rechnen, Daten übertragen oder den Programmablauf steuern.",
+      "example": "Eine codierte Addition kann zwei Registerwerte lesen und das Ergebnis in ein drittes Register schreiben.",
+      "pitfalls": [
+        "Der Maschinenbefehl ist seine codierte Form; der passende Assemblertext ist eine lesbare Darstellung davon."
+      ],
+      "related": [
+        "Befehlssatzarchitektur (Instruction Set Architecture, ISA)",
+        "Opcode und Operanden",
+        "Maschinenbefehlsformat"
+      ],
+      "heading": "Was steckt in einem Maschinenbefehl?"
+    },
+    {
+      "id": "era-03-k15",
+      "term": "Opcode und Operanden",
+      "kind": "definition",
+      "short": "Der Opcode kennzeichnet die auszuführende Operation; Operanden geben Eingaben oder das Ziel der Operation an.",
+      "explanation": "Ein Maschinenbefehl codiert üblicherweise einen Opcode und die Operanden, auf die sich die Operation bezieht. Bei einer Addition können zwei Operanden die Eingaben und ein weiterer Operand das Ziel für das Ergebnis bezeichnen. Welche Informationen genau codiert werden, hängt vom Befehlsformat der ISA ab.",
+      "example": "Bei `add a, b, c` steht die Addition für die Operation; `b` und `c` sind Eingaben und `a` ist das Ziel.",
+      "pitfalls": [
+        "Ein Zieloperand ist nicht automatisch eine Eingabe für dieselbe Operation."
+      ],
+      "related": [
+        "Maschinenbefehl",
+        "Maschinenbefehlsformat",
+        "Mnemonic, Quelloperand und Zieloperand"
+      ],
+      "heading": "Was steckt in einem Maschinenbefehl?"
+    },
+    {
+      "id": "era-03-k16",
+      "term": "Maschinenbefehlsformat",
+      "kind": "concept",
+      "short": "Ein Maschinenbefehlsformat legt fest, wie die Bits eines Befehls in Opcode-, Operanden- und weitere Felder aufgeteilt sind.",
+      "explanation": "Das Befehlsformat bestimmt Position und Bedeutung der codierten Felder innerhalb eines Maschinenbefehls. Bei Befehlen einheitlicher Länge hat jeder Befehl dieselbe Gesamtlänge; bei variabler Länge können Befehle verschieden lang sein und unterschiedlich viele oder unterschiedlich formatierte Angaben enthalten. Feste Länge ist klassisch mit RISC und variable Länge häufig mit CISC verbunden, doch diese Zuordnung allein definiert die ISA-Kategorie nicht.",
+      "example": "Ein schematischer Additionsbefehl kann Felder für Opcode, Funktionsinformation, zwei Quellen und ein Ziel enthalten.",
+      "pitfalls": [
+        "Aus der Gesamtlänge eines Befehls folgt nicht, dass jedes einzelne Feld gleichmäßig länger wird.",
+        "Ein schematisches Feldlayout ist noch keine konkrete Bitcodierung einer ISA."
+      ],
+      "related": [
+        "Opcode und Operanden",
+        "RISC und CISC",
+        "Schematische Befehlsfelder OP | F | Q1 | Q2 | Z"
+      ],
+      "heading": "Was steckt in einem Maschinenbefehl?"
+    },
+    {
+      "id": "era-03-k17",
+      "term": "Schematische Befehlsfelder OP | F | Q1 | Q2 | Z",
+      "kind": "notation",
+      "short": "Das Schema zeigt beispielhaft die Aufteilung eines Additionsbefehls in Operation, Zusatzinformation, zwei Quellen und ein Ziel.",
+      "explanation": "`OP` bezeichnet die Operation, hier Addition, und `F` steht für weitere Funktionsinformation, falls das Format sie benötigt. `Q1` und `Q2` sind die Felder für die Quelloperanden; `Z` bezeichnet das Zielfeld. Das Schema erklärt die Rollen der Felder, gibt aber weder ihre Bitbreiten noch eine konkrete RISC-V-Codierung an.",
+      "example": "Für `add a, b, c` lassen sich `Q1` und `Q2` den Quellen `b` und `c` sowie `Z` dem Ziel `a` zuordnen.",
+      "pitfalls": [
+        "`OP | F | Q1 | Q2 | Z` ist keine vollständige Maschineninstruktion und keine festgelegte RISC-V-Bitcodierung."
+      ],
+      "related": [
+        "Maschinenbefehlsformat",
+        "Opcode und Operanden",
+        "Mnemonic, Quelloperand und Zieloperand"
+      ],
+      "heading": "Was steckt in einem Maschinenbefehl?"
+    },
+    {
+      "id": "era-03-k18",
+      "term": "Drei grundlegende Befehlsklassen",
+      "kind": "concept",
+      "short": "Die drei grundlegenden Befehlsklassen sind arithmetische und logische Operationen, Datentransfer sowie Steuerung des Programmablaufs.",
+      "explanation": "Arithmetische und logische Befehle rechnen mit Werten oder verknüpfen Bits. Datentransferbefehle bewegen Daten zwischen Registern und Speicher. Befehle zur Steuerung des Programmablaufs ändern den nächsten Ausführungsschritt, etwa durch Sprünge oder Unterprogrammaufrufe; daneben gibt es System- und Verwaltungsbefehle sowie Ein-/Ausgabefunktionen.",
+      "example": "`add` ist arithmetisch, `lw` lädt Daten und ein Sprungbefehl steuert den Programmablauf.",
+      "pitfalls": [
+        "Ein Lade- oder Speicherbefehl führt nicht selbst die arithmetische Operation auf dem geladenen Wert aus."
+      ],
+      "related": [
+        "Ganzzahlige arithmetische Befehle",
+        "Lade- und Speicherbefehle",
+        "Maschinenbefehl"
+      ],
+      "heading": "Drei grundlegende Befehlsklassen"
+    },
+    {
+      "id": "era-03-k19",
+      "term": "Ganzzahlige arithmetische Befehle",
+      "kind": "concept",
+      "short": "Befehle wie `add`, `sub` und `neg` führen elementare Ganzzahloperationen auf Bitmustern aus.",
+      "explanation": "`add` addiert, `sub` subtrahiert und `neg` negiert einen Ganzzahlwert. Für vorzeichenbehaftete Werte wird die Zweierkomplementdarstellung verwendet; grundlegende Addition und Subtraktion verarbeiten dasselbe Bitmuster unabhängig davon, ob es als signed oder unsigned interpretiert wird. Manche ISAs bieten zusätzlich Befehle wie `cmp` für Vergleiche oder `inc` zum Inkrementieren. In RISC-V ist `neg` üblicherweise ein Assembleralias für eine Subtraktion von `x0`.",
+      "example": "`neg a, b` bedeutet in RISC-V sinngemäß `a = 0 - b`.",
+      "pitfalls": [
+        "Die signed- oder unsigned-Interpretation eines Bitmusters ändert nicht automatisch den Additionsbefehl.",
+        "Mnemonics wie `cmp` oder `inc` gibt es nicht zwingend in jeder ISA."
+      ],
+      "related": [
+        "Zweierkomplement",
+        "RISC-V",
+        "Mnemonic, Quelloperand und Zieloperand"
+      ],
+      "heading": "Ganzzahlige Arithmetik und Register"
+    },
+    {
+      "id": "era-03-k20",
+      "term": "Mnemonic, Quelloperand und Zieloperand",
+      "kind": "notation",
+      "short": "In `add a, b, c` ist `add` das Mnemonic, `b` und `c` sind Quelloperanden und `a` ist der Zieloperand.",
+      "explanation": "Ein Mnemonic ist der lesbare Kurzname für eine Operation. In der RISC-V-Schreibweise `add a, b, c` steht das Ziel zuerst und danach folgen die beiden Quellen. Der Befehl entspricht der Bedeutung `a = b + c`.",
+      "example": "```asm\nadd t2, t0, t1    # t2 = t0 + t1\n```",
+      "pitfalls": [
+        "In dieser RISC-V-Schreibweise ist der erste Operand das Ziel und nicht die erste Quelle.",
+        "Die Buchstaben `a`, `b` und `c` sind Platzhalter und keine vorgeschriebenen Registernamen."
+      ],
+      "related": [
+        "Assemblersprache",
+        "Opcode und Operanden",
+        "Register",
+        "Ganzzahlige arithmetische Befehle"
+      ],
+      "heading": "Ganzzahlige Arithmetik und Register"
+    },
+    {
+      "id": "era-03-k21",
+      "term": "Register",
+      "kind": "definition",
+      "short": "Register sind wenige, schnell zugängliche Speicherzellen im Prozessor, die jeweils ein Wort in der ISA-Breite speichern.",
+      "explanation": "Register halten Werte, auf die Befehle direkt zugreifen können. Ihre Anzahl ist im Vergleich zum Hauptspeicher klein; dafür sind sie schnell verfügbar. Bei RISC-V gehören die Integerregister `x0` bis `x31` dazu; außerdem gibt es Spezialregister wie den Program Counter.",
+      "example": "Bei einer Addition können zwei Register die Eingaben und ein weiteres Register das Ergebnis aufnehmen.",
+      "pitfalls": [
+        "Register und Hauptspeicher sind unterschiedliche Speicherorte.",
+        "Nicht jedes Register ist für allgemeine Rechenwerte frei verwendbar."
+      ],
+      "related": [
+        "Nullregister x0",
+        "Program Counter (PC)",
+        "Mnemonic, Quelloperand und Zieloperand",
+        "Lade- und Speicherbefehle"
+      ],
+      "heading": "Ganzzahlige Arithmetik und Register"
+    },
+    {
+      "id": "era-03-k22",
+      "term": "Lade- und Speicherbefehle",
+      "kind": "definition",
+      "short": "Lade- und Speicherbefehle übertragen Daten zwischen Registern und Speicher.",
+      "explanation": "Ein Ladebefehl liest einen Wert aus dem Speicher in ein Register; ein Speicherbefehl schreibt einen Registerwert in den Speicher. In RISC-V steht `lw` für das Laden eines Wortes und `sw` für das Speichern eines Wortes. Arithmetische Befehle arbeiten üblicherweise mit Registeroperanden, daher muss ein Wert erst geladen und das Ergebnis bei Bedarf wieder gespeichert werden.",
+      "example": "```asm\nlw  t0, -20(sp)    # Wert aus Speicher in t0 laden\nsw  t2, -20(sp)    # Wert aus t2 im Speicher ablegen\n```",
+      "pitfalls": [
+        "`lw` und `sw` sind Beispiele für Datentransfer und keine Additionsbefehle."
+      ],
+      "related": [
+        "Drei grundlegende Befehlsklassen",
+        "Register",
+        "Ganzzahlige arithmetische Befehle"
+      ],
+      "heading": "Ganzzahlige Arithmetik und Register"
+    },
+    {
+      "id": "era-03-k23",
+      "term": "Nullregister x0",
+      "kind": "definition",
+      "short": "Das RISC-V-Register `x0` liefert immer den Wert null; Schreibzugriffe darauf ändern seinen Wert nicht.",
+      "explanation": "`x0` ist ein besonderes Integerregister der RISC-V-Architektur und enthält dauerhaft den Wert null. Es kann als Quelle für die Konstante null verwendet werden, und ein in `x0` geschriebenes Ergebnis wird verworfen. Dadurch lassen sich einfache Instruktionen und Assembleraliasse wie `neg` ausdrücken.",
+      "example": "`sub a, x0, b` berechnet `a = 0 - b`.",
+      "pitfalls": [
+        "`x0` ist kein gewöhnliches Register, dessen Wert ein Programm verändern kann."
+      ],
+      "related": [
+        "Register",
+        "Ganzzahlige arithmetische Befehle",
+        "RISC-V"
+      ],
+      "heading": "Ganzzahlige Arithmetik und Register"
+    },
+    {
+      "id": "era-03-k24",
+      "term": "Program Counter (PC)",
+      "kind": "notation",
+      "short": "Der Program Counter ist ein Spezialregister, das die Adresse für den nächsten auszuführenden Befehl festhält.",
+      "explanation": "Der Program Counter (PC) gehört zu den Spezialregistern des Prozessors. Seine Adresse verändert sich im normalen Programmablauf und kann durch Befehle zur Ablaufsteuerung beeinflusst werden. Die Unit nennt den PC, führt seine Details aber nicht weiter aus.",
+      "example": null,
+      "pitfalls": [
+        "Der PC ist kein allgemeines Integerregister für beliebige Rechenwerte."
+      ],
+      "related": [
+        "Register",
+        "Drei grundlegende Befehlsklassen"
+      ],
+      "heading": "Ganzzahlige Arithmetik und Register"
+    }
+  ],
+  "generator": {
+    "model": "gpt-6-luna",
+    "effort": "xhigh",
+    "promptVersion": "k1",
+    "generatedAt": "2026-11-02T12:28:48.446Z"
+  }
+}
