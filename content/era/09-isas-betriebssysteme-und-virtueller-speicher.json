@@ -1,0 +1,2042 @@
+{
+  "schemaVersion": 1,
+  "id": "era-09",
+  "module": "ERA",
+  "number": 9,
+  "slug": "isas-betriebssysteme-und-virtueller-speicher",
+  "title": "ISAs, Betriebssysteme und virtueller Speicher",
+  "summary": "Diese Unit vergleicht x86, RISC-V und ARM anhand von Registern, Aufrufkonventionen, Adressierungsarten und Befehlsformen. Danach geht es um Mehrbenutzersysteme, Unterbrechungen und die Übersetzung virtueller Adressen mit Seitentabellen, TLB und Paging.",
+  "concepts": [
+    "IA-32 und x86",
+    "Register und Teilsichten",
+    "Aufrufkonventionen",
+    "Adressierungsarten",
+    "Adressformen",
+    "ARM",
+    "Mehrbenutzersysteme und Modi",
+    "Interrupts, Exceptions und Traps",
+    "Virtueller Speicher und MMU",
+    "Seitentabellen und Berechtigungen",
+    "Sv32 und mehrstufige Tabellen",
+    "TLB",
+    "Paging und Lazy Allocation",
+    "Little Endian"
+  ],
+  "keyFacts": [
+    "x86 ist eine CISC-ISA mit vielen komplexen Befehlen, variablen Befehlslängen und Unterstützung älterer Ausführungsmodi.",
+    "IA-32 bezeichnet die 32-Bit-Variante; x86_64 beziehungsweise Intel 64 ist eine spätere 64-Bit-Erweiterung, die ursprünglich von AMD stammt.",
+    "Dieselben x86-Register können als RAX (64 Bit), EAX (32 Bit), AX (16 Bit) oder AH/AL (je 8 Bit) angesprochen werden.",
+    "In der notierten x86_64-Aufrufkonvention liegen die ersten sechs Parameter in rdi, rsi, rdx, rcx, r8 und r9; weitere liegen auf dem Stack. Der Rückgabewert steht in rax.",
+    "Bei IA-32 legt call die Rücksprungadresse auf dem Stack ab; bei RISC-V speichert jal die Rücksprungadresse typischerweise in ra.",
+    "Die effektive Adresse bei Basisrelativadressierung ist Registerinhalt plus Offset; bei skalierter Indizierung ist sie Basis plus Index mal Operandenlänge.",
+    "Bei der 2-Adressform ist das Ziel zugleich eine Quelle. Bei der 3-Adress-Register-Register-Form stehen zwei Quellen und ein Ziel getrennt.",
+    "ARMv8 (AArch64) ist ARMs erste 64-Bit-ISA. Die beschriebenen Gemeinsamkeiten mit RISC-V umfassen RISC, 4-Byte-Befehle und Load/Store.",
+    "Time Sharing sichert den Zustand eines unterbrochenen Programms, lässt den Scheduler das nächste auswählen und lädt dessen Zustand.",
+    "Interrupts sind asynchron und werden von externen Ereignissen ausgelöst; Exceptions sind synchron und hängen mit einem ausgeführten Befehl zusammen.",
+    "Die MMU übersetzt bei Speicherzugriffen virtuelle in physische Adressen; virtuelle Seiten können auf nicht zusammenhängende physische Kacheln abgebildet werden.",
+    "Bei 4-KiB-Seiten umfasst der Offset 12 Bit und bleibt bei der Übersetzung unverändert.",
+    "Ein Sv32-Seitentabelleneintrag enthält unter anderem V, R/W/X, U, G, A und D. Ungültige Einträge oder unzulässige Zugriffe führen zu einer Exception.",
+    "Die X/W/R-Bitmuster 001, 011, 100, 101 und 111 stehen für Lesen, Lesen/Schreiben, Ausführen, Lesen/Ausführen und Lesen/Schreiben/Ausführen; 010 und 110 sind reserviert.",
+    "Mehrstufige Seitentabellen vermeiden, für ungenutzte Bereiche des virtuellen Adressraums Einträge einer großen einstufigen Tabelle vorzuhalten.",
+    "Ein TLB speichert kürzlich verwendete Adressübersetzungen zwischen; ohne TLB benötigt Sv39 drei Tabellenzugriffe vor dem eigentlichen Datenzugriff.",
+    "Bei Lazy Allocation erhält eine virtuelle Seite erst nach einem Zugriff und der dadurch ausgelösten Exception eine physische Kachel.",
+    "Beim Paging wird eine ausgewählte Seite als nicht vorhanden markiert und ausgelagert; ein späterer Zugriff löst das Zurückladen aus. Gepinnte Seiten werden nicht ausgelagert."
+  ],
+  "tags": [],
+  "links": [],
+  "source": {
+    "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO9.md",
+    "sha256": "8d81f6a4c75f79659c1b63d7be915f2f32c6cfd8f9557707a14a91872deb795d",
+    "commit": "7323156457fc7de1e05720d4d6409f86fb0b437b"
+  },
+  "generator": {
+    "model": "gpt-6-luna",
+    "effort": "xhigh",
+    "reviewEffort": "high",
+    "promptVersion": "v3",
+    "generatedAt": "2026-11-02T12:51:28.818Z",
+    "review": {
+      "checked": 45,
+      "fixed": 4,
+      "removed": 0,
+      "notes": "45 Fragen geprüft. Präzisiert: die Sv39-Frage zum TLB-Miss, die Bedeutung von U und X/W/R sowie die Byte-Reihenfolge bei Little Endian. Alle Rechenprüfungen und Antwortmengen stimmen; jedes Level hat mindestens 8 Fragen."
+    }
+  },
+  "levels": [
+    {
+      "id": "era-09-l1",
+      "index": 1,
+      "kind": "basics",
+      "title": "Grundlagen",
+      "questions": [
+        {
+          "id": "era-09-l1-q01",
+          "type": "single",
+          "prompt": "Welche Beschreibung passt zu x86?",
+          "options": [
+            {
+              "id": "a",
+              "text": "CISC-ISA mit komplexen Befehlen und variablen Befehlslängen"
+            },
+            {
+              "id": "b",
+              "text": "ISA, die ausschließlich Fließkommabefehle enthält"
+            },
+            {
+              "id": "c",
+              "text": "RISC-ISA mit ausschließlich 4 Byte langen Befehlen"
+            },
+            {
+              "id": "d",
+              "text": "ISA mit nur einem Ausführungsmodus und ohne ältere Modi"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "x86 wird als CISC-ISA mit vielen komplexen Befehlen, variablen Längen und Unterstützung älterer Modi beschrieben.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO9.md",
+            "heading": "IA-32 und die x86-Familie"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "IA-32 und x86"
+          ]
+        },
+        {
+          "id": "era-09-l1-q02",
+          "type": "single",
+          "prompt": "Welche Wortbreite hat x86_64 beziehungsweise Intel 64?",
+          "options": [
+            {
+              "id": "a",
+              "text": "128 Bit"
+            },
+            {
+              "id": "b",
+              "text": "32 Bit"
+            },
+            {
+              "id": "c",
+              "text": "16 Bit"
+            },
+            {
+              "id": "d",
+              "text": "64 Bit"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "x86_64 beziehungsweise Intel 64 ist die 64-Bit-Erweiterung der x86-Familie.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO9.md",
+            "heading": "IA-32 und die x86-Familie"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "IA-32 und x86"
+          ]
+        },
+        {
+          "id": "era-09-l1-q03",
+          "type": "multi",
+          "prompt": "Welche Zuordnungen der x86-Erweiterungen stimmen? Wähle alle richtigen Aussagen.",
+          "options": [
+            {
+              "id": "a",
+              "text": "Transactional Memory steht im Zusammenhang mit spekulativer Ausführung und atomaren Zugriffen."
+            },
+            {
+              "id": "b",
+              "text": "F16C konvertiert Half-Precision-Gleitkommawerte."
+            },
+            {
+              "id": "c",
+              "text": "F16C ist die Erweiterung für zusätzliche Stackregister."
+            },
+            {
+              "id": "d",
+              "text": "VMX unterstützt virtuelle Maschinen."
+            },
+            {
+              "id": "e",
+              "text": "VMX führt die Übersetzung virtueller Adressen in der MMU aus."
+            }
+          ],
+          "correct": [
+            "a",
+            "b",
+            "d"
+          ],
+          "explanation": "VMX, F16C und Transactional Memory sind mit den jeweils in a, b und c genannten Zwecken aufgeführt. Die anderen Beschreibungen werden diesen Erweiterungen nicht zugeordnet.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO9.md",
+            "heading": "Genannte Erweiterungen von IA-32 / x86"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "IA-32 und x86"
+          ]
+        },
+        {
+          "id": "era-09-l1-q04",
+          "type": "cloze",
+          "prompt": "Die 64-Bit-Sicht eines x86-Registers heißt `RAX`, die 32-Bit-Sicht `EAX`, die 16-Bit-Sicht `AX` und die 8-Bit-Teilsichten heißen `AH` und `___`.",
+          "options": [
+            {
+              "id": "a",
+              "text": "AL"
+            },
+            {
+              "id": "b",
+              "text": "EAX"
+            },
+            {
+              "id": "c",
+              "text": "R8"
+            },
+            {
+              "id": "d",
+              "text": "BL"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "AH und AL sind die beiden 8-Bit-Teilsichten des AX-Registers.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO9.md",
+            "heading": "Register und Teilsichten"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Register und Teilsichten"
+          ]
+        },
+        {
+          "id": "era-09-l1-q05",
+          "type": "single",
+          "prompt": "Wo legt `call` bei der beschriebenen IA-32-Aufrufkonvention die Rücksprungadresse ab?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Im Register `ra`"
+            },
+            {
+              "id": "b",
+              "text": "Auf dem Stack"
+            },
+            {
+              "id": "c",
+              "text": "Im Register `eax`"
+            },
+            {
+              "id": "d",
+              "text": "In einem TLB-Eintrag"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "Beim gezeigten IA-32-Aufruf legt `call` die Rücksprungadresse auf dem Stack ab. `ra` ist die hier gegenübergestellte RISC-V-Konvention.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO9.md",
+            "heading": "Aufrufkonventionen"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Aufrufkonventionen"
+          ]
+        },
+        {
+          "id": "era-09-l1-q06-r1",
+          "type": "multi",
+          "prompt": "Betrachte für diese Frage ausschließlich die folgende x86_64-Aufrufkonvention: Die ersten sechs Parameter werden der Reihe nach in `rdi`, `rsi`, `rdx`, `rcx`, `r8` und `r9` übergeben; weitere Parameter liegen auf dem Stack. Der Rückgabewert steht in `rax`. Welche Aussagen stimmen? Wähle alle richtigen Aussagen.",
+          "options": [
+            {
+              "id": "a",
+              "text": "Der Rückgabewert steht in `rax`."
+            },
+            {
+              "id": "b",
+              "text": "Die ersten sechs Parameter liegen in `rdi`, `rsi`, `rdx`, `rcx`, `r8` und `r9`."
+            },
+            {
+              "id": "c",
+              "text": "Der siebte und jeder weitere Parameter liegt auf dem Stack."
+            },
+            {
+              "id": "d",
+              "text": "Alle Parameter liegen zwingend auf dem Stack."
+            },
+            {
+              "id": "e",
+              "text": "Der Rückgabewert steht in `eax`, auch bei x86_64."
+            }
+          ],
+          "correct": [
+            "a",
+            "b",
+            "c"
+          ],
+          "explanation": "Nach der in der Frage festgelegten Konvention werden die ersten sechs Parameter in den genannten Registern übergeben und weitere auf dem Stack. Der Rückgabewert steht in `rax`.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO9.md",
+            "heading": "Aufrufkonventionen"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "x86_64-Aufrufkonvention",
+            "Parameterübergabe",
+            "Rückgabewert"
+          ]
+        },
+        {
+          "id": "era-09-l1-q07",
+          "type": "cloze",
+          "prompt": "Bei der basisrelativen Adressierung gilt: effektive Adresse = Registerinhalt + ___.",
+          "options": [
+            {
+              "id": "a",
+              "text": "Operandenlänge"
+            },
+            {
+              "id": "b",
+              "text": "Offset"
+            },
+            {
+              "id": "c",
+              "text": "Seitennummer"
+            },
+            {
+              "id": "d",
+              "text": "Rücksprungadresse"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "Die Basisregisteradresse wird um den Offset verschoben, um die effektive Adresse zu erhalten.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO9.md",
+            "heading": "Adressierungsarten – Folien 15–23"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Adressierungsarten"
+          ]
+        },
+        {
+          "id": "era-09-l1-q08",
+          "type": "truefalse",
+          "prompt": "RISC-V unterstützt direkte Adressierung, bei der die Speicheradresse selbst im Befehl steht.",
+          "options": [
+            {
+              "id": "true",
+              "text": "Wahr"
+            },
+            {
+              "id": "false",
+              "text": "Falsch"
+            }
+          ],
+          "correct": [
+            "false"
+          ],
+          "explanation": "Direkte Adressierung ist in der Tabelle für RISC-V mit „nein“ markiert; Registerindirekt- und Displacement-Adressierung sind dagegen unterstützt.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO9.md",
+            "heading": "Adressierungsarten – Folien 15–23"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Adressierungsarten"
+          ]
+        },
+        {
+          "id": "era-09-l1-q09",
+          "type": "single",
+          "prompt": "Was bewirkt `add edx, eax` in der beschriebenen x86-2-Adressform?",
+          "options": [
+            {
+              "id": "a",
+              "text": "`eax = edx + eax`"
+            },
+            {
+              "id": "b",
+              "text": "Der Wert aus `edx` wird in den Speicher geschrieben."
+            },
+            {
+              "id": "c",
+              "text": "`edx = edx + eax`"
+            },
+            {
+              "id": "d",
+              "text": "`edx = eax`"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Bei dieser 2-Adressform ist der erste Operand zugleich Ziel und Quelle; das Ergebnis überschreibt `edx`.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO9.md",
+            "heading": "Unterschiede im Assemblercode"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Adressformen"
+          ]
+        },
+        {
+          "id": "era-09-l1-q10",
+          "type": "diagram",
+          "prompt": "Nach welchem Schritt setzt Programm B seinen Ablauf fort?",
+          "context": {
+            "type": "mermaid",
+            "content": "flowchart LR\n  A[\"Programm A unterbrechen\"] --> S[\"Zustand sichern\"]\n  S --> P[\"Scheduler wählt Programm\"]\n  P --> L[\"Zustand von B laden\"]\n  L --> B[\"Programm B fortsetzen\"]",
+            "caption": "Vereinfachter Ablauf beim Time Sharing"
+          },
+          "options": [
+            {
+              "id": "a",
+              "text": "Erst nachdem Programm A beendet wurde"
+            },
+            {
+              "id": "b",
+              "text": "Sofort nachdem Programm A unterbrochen wurde, ohne Zustandswechsel"
+            },
+            {
+              "id": "c",
+              "text": "Nachdem der Scheduler Programm B ausgewählt und dessen Zustand geladen hat"
+            },
+            {
+              "id": "d",
+              "text": "Bevor der Zustand von Programm A gesichert wird"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Der Ablauf sichert zunächst den Zustand von A, wählt dann B aus und lädt Bs Zustand, bevor B fortgesetzt wird.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO9.md",
+            "heading": "Mehrbenutzersysteme – Folien 39–47"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Mehrbenutzersysteme und Modi"
+          ]
+        },
+        {
+          "id": "era-09-l1-q11",
+          "type": "single",
+          "prompt": "Welche Aufgabe hat die MMU im beschriebenen virtuellen Speicher?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Sie legt die Befehlsreihenfolge eines Compilers fest."
+            },
+            {
+              "id": "b",
+              "text": "Sie speichert alle Rücksprungadressen eines Prozesses."
+            },
+            {
+              "id": "c",
+              "text": "Sie übersetzt virtuelle in physische Adressen."
+            },
+            {
+              "id": "d",
+              "text": "Sie wählt das nächste Programm für den Scheduler aus."
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Die MMU führt die Adressübersetzung bei Speicherzugriffen in Hardware aus; das Betriebssystem kontrolliert die Abbildung.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO9.md",
+            "heading": "Virtueller Speicher – Folien 59–74"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Virtueller Speicher und MMU"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "era-09-l2",
+      "index": 2,
+      "kind": "apply",
+      "title": "Anwenden",
+      "questions": [
+        {
+          "id": "era-09-l2-q01",
+          "type": "calc",
+          "prompt": "Ein Befehl nutzt die basisrelative Adressierung `EA = Registerinhalt + Offset`. Bei Registerinhalt `0x1000` und Offset `0x18`: Welche effektive Adresse entsteht?",
+          "options": [
+            {
+              "id": "a",
+              "text": "0x1018"
+            },
+            {
+              "id": "b",
+              "text": "0x0FE8"
+            },
+            {
+              "id": "c",
+              "text": "0x1810"
+            },
+            {
+              "id": "d",
+              "text": "0x1008"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "`0x1000 + 0x18 = 0x1018`. Der Offset wird zur Basis addiert.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO9.md",
+            "heading": "Adressierungsarten – Folien 15–23"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Adressierungsarten"
+          ]
+        },
+        {
+          "id": "era-09-l2-q02",
+          "type": "calc",
+          "prompt": "Bei skalierter Indizierung gilt `EA = Basis + Index × Operandenlänge`. Mit Basis `0x2000`, Index `3` und Operandenlänge `4` Byte: Welche effektive Adresse entsteht?",
+          "options": [
+            {
+              "id": "a",
+              "text": "0x2007"
+            },
+            {
+              "id": "b",
+              "text": "0x2003"
+            },
+            {
+              "id": "c",
+              "text": "0x200C"
+            },
+            {
+              "id": "d",
+              "text": "0x2030"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Der Indexbeitrag ist `3 × 4 = 12 = 0xC`; daher ist `EA = 0x2000 + 0xC = 0x200C`.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO9.md",
+            "heading": "Adressierungsarten – Folien 15–23"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Adressierungsarten"
+          ]
+        },
+        {
+          "id": "era-09-l2-q03",
+          "type": "single",
+          "prompt": "Ein IA-32-Stackframe verwendet `ebp` als Bezugspunkt. Was liegt laut Layout bei `[ebp+8]`?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Die Rücksprungadresse"
+            },
+            {
+              "id": "b",
+              "text": "Parameter 2"
+            },
+            {
+              "id": "c",
+              "text": "Parameter 1"
+            },
+            {
+              "id": "d",
+              "text": "Eine lokale Variable"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Im angegebenen Layout liegt Parameter 1 bei `[ebp+8]`, Parameter 2 bei `[ebp+12]` und die Rücksprungadresse bei `[ebp+4]`.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO9.md",
+            "heading": "Aufrufkonventionen"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Aufrufkonventionen"
+          ]
+        },
+        {
+          "id": "era-09-l2-q04",
+          "type": "multi",
+          "prompt": "Ein Programm führt `c += i` aus und möchte `c` im Speicher aktualisieren. Welche Aussagen zu den gezeigten ISA-Beispielen stimmen? Wähle alle richtigen Aussagen.",
+          "options": [
+            {
+              "id": "a",
+              "text": "Bei `add edx, eax` wird das Ergebnis in einem neuen dritten Register abgelegt."
+            },
+            {
+              "id": "b",
+              "text": "x86 kann mit `add DWORD PTR [ebp-0x10], eax` direkt in den Speicher rechnen."
+            },
+            {
+              "id": "c",
+              "text": "RISC-V führt denselben Speicherzugriff direkt mit einem einzelnen `add`-Befehl aus."
+            },
+            {
+              "id": "d",
+              "text": "RISC-V benötigt dafür typischerweise `lw`, `add` und `sw`."
+            }
+          ],
+          "correct": [
+            "b",
+            "d"
+          ],
+          "explanation": "Das x86-Beispiel erlaubt eine Addition direkt am Speicherort. RISC-V verwendet dafür Laden, Rechnen im Register und Zurückschreiben; `add edx, eax` überschreibt außerdem den ersten Operanden.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO9.md",
+            "heading": "Unterschiede im Assemblercode"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Adressformen",
+            "Adressierungsarten"
+          ]
+        },
+        {
+          "id": "era-09-l2-q05",
+          "type": "calc",
+          "prompt": "Eine Schleife startet mit `i=0` und `c=0`. In jedem Durchlauf addiert sie `i` zu `c`, erhöht `i` um 1 und läuft weiter, solange das neue `i ≤ 9` ist. Welchen Wert hat `c` am Ende?",
+          "options": [
+            {
+              "id": "a",
+              "text": "45"
+            },
+            {
+              "id": "b",
+              "text": "10"
+            },
+            {
+              "id": "c",
+              "text": "54"
+            },
+            {
+              "id": "d",
+              "text": "36"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "Die Schleife addiert die Werte 0 bis 9 einschließlich. Ihre Summe ist 45; das Prüfen nach dem Inkrement beendet sie bei `i=10`.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO9.md",
+            "heading": "Die gezeigten Beispiele mit -O0 und -O2"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "IA-32 und x86"
+          ]
+        },
+        {
+          "id": "era-09-l2-q06",
+          "type": "single",
+          "prompt": "Was ist der Effekt von `add [ebp-0x10], eax` im gezeigten x86-Code?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Der Speicherinhalt wird nach `eax` kopiert, ohne Addition."
+            },
+            {
+              "id": "b",
+              "text": "Der Befehl vergleicht den Speicherinhalt mit `eax` und setzt Flags."
+            },
+            {
+              "id": "c",
+              "text": "Der Wert von `eax` wird zum Speicherinhalt bei `[ebp-0x10]` addiert; das Ergebnis bleibt dort."
+            },
+            {
+              "id": "d",
+              "text": "Der Wert von `eax` wird an die Adresse `[ebp-0x10]` angehängt."
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Der gezeigte Befehl rechnet direkt im Speicher: Der Speicherwert wird um `eax` erhöht und dort überschrieben.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO9.md",
+            "heading": "Unterschiede im Assemblercode"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Adressierungsarten",
+            "Adressformen"
+          ]
+        },
+        {
+          "id": "era-09-l2-q07",
+          "type": "calc",
+          "prompt": "Im RISC-V-Modus `Vectored` gilt für asynchrone Interrupts `Einsprungadresse = BASE + 4 × cause`. Bei `BASE = 0x1000` und `cause = 7`: Welche Einsprungadresse ergibt sich?",
+          "options": [
+            {
+              "id": "a",
+              "text": "0x1010"
+            },
+            {
+              "id": "b",
+              "text": "0x1007"
+            },
+            {
+              "id": "c",
+              "text": "0x101C"
+            },
+            {
+              "id": "d",
+              "text": "0x11C0"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "`4 × 7 = 28 = 0x1C`; addiert zu `0x1000` ergibt das `0x101C`.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO9.md",
+            "heading": "Traps, Interrupts und Exceptions – Folien 48–58"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Interrupts, Exceptions und Traps"
+          ]
+        },
+        {
+          "id": "era-09-l2-q08",
+          "type": "cloze",
+          "prompt": "In der X/W/R-Reihenfolge bedeutet das Muster `101`: Lesen und ___.",
+          "options": [
+            {
+              "id": "a",
+              "text": "Zeiger auf die nächste Tabellenstufe"
+            },
+            {
+              "id": "b",
+              "text": "nur Schreiben"
+            },
+            {
+              "id": "c",
+              "text": "Ausführen"
+            },
+            {
+              "id": "d",
+              "text": "Schreiben"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "`101` setzt X und R: Die Seite ist ausführbar und lesbar, aber nicht beschreibbar.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO9.md",
+            "heading": "X/W/R-Kodierung"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Seitentabellen und Berechtigungen"
+          ]
+        },
+        {
+          "id": "era-09-l2-q09",
+          "type": "calc",
+          "prompt": "Eine virtuelle Seite wird auf die physische Seitennummer `0x12345` abgebildet. Bei 4-KiB-Seiten bleibt der Offset `0xABC` gleich. Welche physische Adresse entsteht?",
+          "options": [
+            {
+              "id": "a",
+              "text": "0x12345ABC"
+            },
+            {
+              "id": "b",
+              "text": "0x12345"
+            },
+            {
+              "id": "c",
+              "text": "0x12344ABC"
+            },
+            {
+              "id": "d",
+              "text": "0xABC12345"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "Die physische Seitenbasis ist `0x12345 × 0x1000 = 0x12345000`. Mit dem unveränderten Offset `0xABC` ergibt sich `0x12345ABC`.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO9.md",
+            "heading": "Übersetzungsvorgang – Folie 72"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Virtueller Speicher und MMU",
+            "Sv32 und mehrstufige Tabellen"
+          ]
+        },
+        {
+          "id": "era-09-l2-q10",
+          "type": "diagram",
+          "prompt": "Bei der dargestellten Übersetzung findet sich kein Eintrag im TLB. Welcher Schritt folgt im Diagramm?",
+          "context": {
+            "type": "mermaid",
+            "content": "flowchart TD\n  VA[\"Virtuelle Adresse\"] --> T{\"Übersetzung im TLB?\"}\n  T -->|Ja| C{\"Eintrag und Zugriff gültig?\"}\n  T -->|Nein| W[\"Seitentabellen auslesen\"]\n  W --> C\n  C -->|Ja| PA[\"Physische Adresse\"]\n  C -->|Nein| E[\"Exception\"]\n  PA --> M[\"Speicherzugriff\"]",
+            "caption": "Schematischer Ablauf bei TLB-Treffer oder -Fehlzugriff"
+          },
+          "options": [
+            {
+              "id": "a",
+              "text": "Der Offset wird durch die physische Seitennummer ersetzt."
+            },
+            {
+              "id": "b",
+              "text": "Die Seitentabellen werden ausgelesen."
+            },
+            {
+              "id": "c",
+              "text": "Der Datenzugriff erfolgt sofort ohne Übersetzung."
+            },
+            {
+              "id": "d",
+              "text": "Der Scheduler wählt einen anderen Prozess."
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "Bei einem TLB-Miss werden die Seitentabellen ausgelesen; danach werden Eintrag und Zugriff geprüft.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO9.md",
+            "heading": "TLB – Translation Look-Aside Buffer"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "TLB",
+            "Seitentabellen und Berechtigungen"
+          ]
+        },
+        {
+          "id": "era-09-l2-q11-r1",
+          "type": "single",
+          "prompt": "Für diese Frage gilt folgende RISC-V-Systemaufrufkonvention: Bei einem Systemaufruf mit `ecall` steht die Systemaufrufnummer in `a7`; die Parameter werden in `a0` bis `a6` übergeben. Wo stehen Nummer und Parameter?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Nummer in `a0`, Parameter in `a1` bis `a7`"
+            },
+            {
+              "id": "b",
+              "text": "Nummer in `sp`, Parameter in `t0` bis `t6`"
+            },
+            {
+              "id": "c",
+              "text": "Nummer auf dem Stack, Parameter in `ra`"
+            },
+            {
+              "id": "d",
+              "text": "Nummer in `a7`, Parameter in `a0` bis `a6`"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Die in der Frage vorgegebene Konvention legt die Nummer in `a7` und die Parameter in `a0` bis `a6`.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO9.md",
+            "heading": "Traps, Interrupts und Exceptions – Folien 48–58"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "RISC-V",
+            "Systemaufruf",
+            "ecall"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "era-09-l3",
+      "index": 3,
+      "kind": "deepen",
+      "title": "Vertiefen",
+      "questions": [
+        {
+          "id": "era-09-l3-q01",
+          "type": "calc",
+          "prompt": "Eine einstufige Sv32-Tabelle enthält `2^20` Einträge mit je 4 Byte. Wie viel Speicher benötigt sie pro Prozess?",
+          "options": [
+            {
+              "id": "a",
+              "text": "4 KiB"
+            },
+            {
+              "id": "b",
+              "text": "1 MiB"
+            },
+            {
+              "id": "c",
+              "text": "4 MiB"
+            },
+            {
+              "id": "d",
+              "text": "4 GiB"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "`2^20 × 4 Byte = 2^22 Byte`, also 4 MiB.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO9.md",
+            "heading": "Warum mehrere Stufen?"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Sv32 und mehrstufige Tabellen"
+          ]
+        },
+        {
+          "id": "era-09-l3-q02",
+          "type": "calc",
+          "prompt": "Bei Sv32 wird `VA = 0x00403ABC` in zwei 10-Bit-VPN-Felder und einen 12-Bit-Offset zerlegt. Welcher Wert ist `VPN[1]`?",
+          "options": [
+            {
+              "id": "a",
+              "text": "0xABC"
+            },
+            {
+              "id": "b",
+              "text": "3"
+            },
+            {
+              "id": "c",
+              "text": "4"
+            },
+            {
+              "id": "d",
+              "text": "1"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Die oberen 10 Bit der virtuellen Seitennummer ergeben `VPN[1]=1`; das mittlere VPN-Feld ist 3 und der Offset `0xABC`.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO9.md",
+            "heading": "Rechenbeispiel Sv32"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Sv32 und mehrstufige Tabellen"
+          ]
+        },
+        {
+          "id": "era-09-l3-q03",
+          "type": "calc",
+          "prompt": "Für `VA = 0x00403ABC` liefern die Seitentabellen die physische Seitennummer `0x12345`. Bei 4-KiB-Seiten bleibt der Offset unverändert. Welche physische Adresse entsteht?",
+          "options": [
+            {
+              "id": "a",
+              "text": "0x12344ABC"
+            },
+            {
+              "id": "b",
+              "text": "0x12345000"
+            },
+            {
+              "id": "c",
+              "text": "0x00403ABC"
+            },
+            {
+              "id": "d",
+              "text": "0x12345ABC"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Die Seitennummer bildet die physische Basis `0x12345000`; der virtuelle Offset `0xABC` bleibt erhalten. Zusammen ergibt das `0x12345ABC`.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO9.md",
+            "heading": "Rechenbeispiel Sv32"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Sv32 und mehrstufige Tabellen",
+            "Virtueller Speicher und MMU"
+          ]
+        },
+        {
+          "id": "era-09-l3-q04-r1",
+          "type": "multi",
+          "prompt": "Die Zugriffsbits stehen in der Reihenfolge X, W, R (Ausführen, Schreiben, Lesen). Ein als „reserviert“ bezeichnetes Muster ist kein gültiges Zugriffsrecht und darf nicht als Kombination der gesetzten Einzelbits interpretiert werden. Welche Aussagen zur Tabelle stimmen? Wähle alle richtigen Aussagen.",
+          "context": {
+            "type": "table",
+            "content": "| X/W/R | Bedeutung |\n|---|---|\n| `000` | Zeiger auf die nächste Tabellenstufe |\n| `001` | Nur Lesen |\n| `011` | Lesen und Schreiben |\n| `100` | Nur Ausführen |\n| `101` | Lesen und Ausführen |\n| `111` | Lesen, Schreiben und Ausführen |\n| `010` / `110` | Reserviert: kein gültiges Zugriffsrecht |",
+            "caption": "Bedeutung der X/W/R-Muster"
+          },
+          "options": [
+            {
+              "id": "a",
+              "text": "`100` erlaubt nur Ausführen."
+            },
+            {
+              "id": "b",
+              "text": "`011` erlaubt Lesen und Schreiben."
+            },
+            {
+              "id": "c",
+              "text": "`000` ist ein Zeiger auf die nächste Tabellenstufe."
+            },
+            {
+              "id": "d",
+              "text": "`110` erlaubt Lesen und Schreiben."
+            },
+            {
+              "id": "e",
+              "text": "`010` bedeutet nur Schreiben."
+            }
+          ],
+          "correct": [
+            "a",
+            "b",
+            "c"
+          ],
+          "explanation": "Bei X/W/R bedeutet `011` Lesen und Schreiben, `100` nur Ausführen und `000` einen Zeiger auf die nächste Tabellenstufe. `010` und `110` sind reserviert, also keine gültigen Zugriffsrechte.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO9.md",
+            "heading": "X/W/R-Kodierung"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Seitentabelleneintrag",
+            "X/W/R-Kodierung",
+            "Zugriffsrechte"
+          ]
+        },
+        {
+          "id": "era-09-l3-q05",
+          "type": "single",
+          "prompt": "Ein Prozess läuft im Benutzermodus. Für diesen Zugriff gilt: `U=1` erlaubt den Zugriff im Benutzermodus, `U=0` kennzeichnet eine privilegierte Seite. Der Seitentabelleneintrag ist gültig, aber `U=0`. Was geschieht beim Zugriff?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Der Zugriff wird automatisch in den Systemmodus verschoben."
+            },
+            {
+              "id": "b",
+              "text": "Der Zugriff wird ausgeführt, wenn der TLB einen Treffer hat."
+            },
+            {
+              "id": "c",
+              "text": "Es wird eine Exception ausgelöst."
+            },
+            {
+              "id": "d",
+              "text": "Die MMU setzt `U` automatisch auf 1."
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Eine privilegierte Seite darf im Benutzermodus nicht verwendet werden. Ein gültiger Eintrag oder TLB-Treffer hebt die Zugriffsprüfung nicht auf.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO9.md",
+            "heading": "Übersetzungsvorgang – Folie 72"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Seitentabellen und Berechtigungen",
+            "Virtueller Speicher und MMU"
+          ]
+        },
+        {
+          "id": "era-09-l3-q06",
+          "type": "single",
+          "prompt": "Sv39 hat drei Seitentabellenstufen. Wie viele Seitentabellenzugriffe braucht eine Übersetzung ohne TLB vor dem eigentlichen Datenzugriff?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Einen"
+            },
+            {
+              "id": "b",
+              "text": "Zwei"
+            },
+            {
+              "id": "c",
+              "text": "Drei"
+            },
+            {
+              "id": "d",
+              "text": "Vier"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Sv39 verwendet drei Tabellenstufen. Ohne TLB wären deshalb drei Tabellenzugriffe plus der eigentliche Datenzugriff nötig.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO9.md",
+            "heading": "TLB – Translation Look-Aside Buffer"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "TLB",
+            "Sv32 und mehrstufige Tabellen"
+          ]
+        },
+        {
+          "id": "era-09-l3-q07",
+          "type": "single",
+          "prompt": "Ein Programm fordert neuen virtuellen Speicher an, aber zunächst wird keine physische Seite zugeordnet. Was geschieht beim ersten Zugriff?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Der Zugriff wird dauerhaft verworfen, weil virtuelle Seiten keine Kacheln erhalten können."
+            },
+            {
+              "id": "b",
+              "text": "Eine Exception führt dazu, dass das Betriebssystem eine Kachel sucht und den Seitentabelleneintrag ergänzt."
+            },
+            {
+              "id": "c",
+              "text": "Der Scheduler kopiert die Seite automatisch in den TLB."
+            },
+            {
+              "id": "d",
+              "text": "Die virtuelle Adresse wird unverändert als physische Adresse verwendet."
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "Bei Lazy Allocation wird die physische Seite erst beim ersten Zugriff zugeordnet. Die dadurch ausgelöste Exception veranlasst das Betriebssystem, eine Kachel zu suchen und die Tabelle zu aktualisieren.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO9.md",
+            "heading": "Lazy Allocation"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Paging und Lazy Allocation",
+            "Virtueller Speicher und MMU"
+          ]
+        },
+        {
+          "id": "era-09-l3-q08",
+          "type": "multi",
+          "prompt": "Der physische Speicher ist voll und eine neue Seite soll geladen werden. Welche Schritte passen zum beschriebenen Paging-Ablauf? Wähle alle richtigen Aussagen.",
+          "options": [
+            {
+              "id": "a",
+              "text": "Das Betriebssystem wählt eine Seite aus und markiert sie als nicht vorhanden."
+            },
+            {
+              "id": "b",
+              "text": "Die ausgewählte Seite wird auf die Festplatte geschrieben; ihre Kachel kann für die neue Seite verwendet werden."
+            },
+            {
+              "id": "c",
+              "text": "Ein späterer Zugriff auf die ausgelagerte Seite löst eine Exception aus, damit sie zurückgeladen werden kann."
+            },
+            {
+              "id": "d",
+              "text": "Der TLB wird als Festplattenbereich für die ausgelagerte Seite verwendet."
+            },
+            {
+              "id": "e",
+              "text": "Alle Seiten des Betriebssystems müssen zuerst ausgelagert werden."
+            }
+          ],
+          "correct": [
+            "a",
+            "b",
+            "c"
+          ],
+          "explanation": "Beim Paging wird eine ausgewählte Seite ausgelagert und ihre Kachel neu belegt. Der spätere Zugriff auf die ausgelagerte Seite löst eine Exception aus, woraufhin sie zurückgeladen werden kann.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO9.md",
+            "heading": "Paging: Auslagern, wenn keine Kachel frei ist"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Paging und Lazy Allocation",
+            "TLB"
+          ]
+        },
+        {
+          "id": "era-09-l3-q09",
+          "type": "truefalse",
+          "prompt": "Ein gültiger Sv32-Leaf-Eintrag der ersten Stufe kann direkt auf eine große Seite von 4 MiB zeigen.",
+          "options": [
+            {
+              "id": "true",
+              "text": "Wahr"
+            },
+            {
+              "id": "false",
+              "text": "Falsch"
+            }
+          ],
+          "correct": [
+            "true"
+          ],
+          "explanation": "Ein Leaf-Eintrag auf der ersten Stufe zeigt bei Sv32 direkt auf eine große Seite von 4 MiB, statt auf eine weitere Tabelle.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO9.md",
+            "heading": "Rechenbeispiel Sv32"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Sv32 und mehrstufige Tabellen"
+          ]
+        },
+        {
+          "id": "era-09-l3-q10",
+          "type": "multi",
+          "prompt": "Welche Aussagen unterscheiden Interrupts und Exceptions passend? Wähle alle richtigen Aussagen.",
+          "options": [
+            {
+              "id": "a",
+              "text": "Eine Exception kann nie durch einen gezielten Systemaufruf ausgelöst werden."
+            },
+            {
+              "id": "b",
+              "text": "Interrupts und Exceptions sind beide immer synchrone Fehler eines Befehls."
+            },
+            {
+              "id": "c",
+              "text": "Ein Interrupt ist asynchron und kann durch ein externes Ereignis ausgelöst werden."
+            },
+            {
+              "id": "d",
+              "text": "Ein Timer-Ereignis ist ein Beispiel für einen Interrupt."
+            },
+            {
+              "id": "e",
+              "text": "Eine Exception ist synchron und hängt mit einem ausgeführten Befehl zusammen."
+            }
+          ],
+          "correct": [
+            "c",
+            "d",
+            "e"
+          ],
+          "explanation": "Interrupts entstehen asynchron durch externe Ereignisse wie Timer oder Ein-/Ausgabe. Exceptions sind synchron; ein gezielter Systemaufruf ist als mögliches Beispiel genannt.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO9.md",
+            "heading": "Traps, Interrupts und Exceptions – Folien 48–58"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Interrupts, Exceptions und Traps"
+          ]
+        },
+        {
+          "id": "era-09-l3-q11",
+          "type": "single",
+          "prompt": "Warum werden Seitentabellen und bestimmte Bereiche des Betriebssystems beim beschriebenen Paging gepinnt?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Damit sie nicht ausgelagert werden."
+            },
+            {
+              "id": "b",
+              "text": "Damit der Scheduler sie bei jedem Kontextwechsel löscht."
+            },
+            {
+              "id": "c",
+              "text": "Damit sie automatisch in allen virtuellen Adressräumen identische Adressen erhalten."
+            },
+            {
+              "id": "d",
+              "text": "Damit der TLB sie als ausführbare Befehle behandelt."
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "Gepinnte Seiten bleiben im physischen Speicher. Als Beispiele werden Seitentabellen, Teile des Betriebssystems und Seiten für Geräte ohne MMU genannt.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO9.md",
+            "heading": "Paging: Auslagern, wenn keine Kachel frei ist"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Paging und Lazy Allocation",
+            "Seitentabellen und Berechtigungen"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "era-09-l4",
+      "index": 4,
+      "kind": "boss",
+      "title": "Boss",
+      "questions": [
+        {
+          "id": "era-09-l4-q01",
+          "type": "single",
+          "prompt": "Ein Programm ruft eine Funktion auf, die ihrerseits eine weitere Funktion aufruft. Bei RISC-V speichert `jal ra, ...` die Rücksprungadresse in `ra`; bei IA-32 legt `call` sie auf dem Stack ab. Was muss der RISC-V-Code beim verschachtelten Aufruf beachten?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Die bisherige Rücksprungadresse in `ra` sichern, bevor der nächste `jal` sie überschreibt."
+            },
+            {
+              "id": "b",
+              "text": "Die Rücksprungadresse in `eax` kopieren, weil IA-32 `ra` verwendet."
+            },
+            {
+              "id": "c",
+              "text": "`ra` sichern, weil `call` bei RISC-V die Adresse auf dem Stack ablegt."
+            },
+            {
+              "id": "d",
+              "text": "Nichts: `jal` legt jede Rücksprungadresse automatisch in einem eigenen Register ab."
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "Ein weiterer `jal` überschreibt `ra`, daher muss ein noch benötigter Rücksprungwert vorher gesichert werden. Bei IA-32 legt `call` die Rücksprungadresse stattdessen auf dem Stack ab.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO6.md",
+            "heading": null
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Aufrufkonventionen"
+          ]
+        },
+        {
+          "id": "era-09-l4-q02-r1",
+          "type": "calc",
+          "prompt": "Eine virtuelle Adresse `0x00403ABC` wird bei einer Seitengröße von 4 KiB auf die physische Seitennummer `0x12345` abgebildet. Bei der Übersetzung bleibt der Offset erhalten. Lies vier Bytes ab der resultierenden physischen Adresse, in aufsteigender Adressreihenfolge. Little Endian bedeutet hier: Das Byte an der niedrigsten Adresse bildet die Bits 7–0, das nächste Byte die Bits 15–8 usw. Welchen 32-Bit-Wert erhältst du?",
+          "context": {
+            "type": "table",
+            "content": "| Physische Adresse | Byte |\n|---|---|\n| `0x12345ABC` | `0x78` |\n| `0x12345ABD` | `0x56` |\n| `0x12345ABE` | `0x34` |\n| `0x12345ABF` | `0x12` |",
+            "caption": "Bytes im Speicher in aufsteigender Adressreihenfolge"
+          },
+          "options": [
+            {
+              "id": "a",
+              "text": "`0x78563412`"
+            },
+            {
+              "id": "b",
+              "text": "`0x12345678`"
+            },
+            {
+              "id": "c",
+              "text": "`0x56341278`"
+            },
+            {
+              "id": "d",
+              "text": "`0x12345ABC`"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "Der Offset der virtuellen Adresse ist `0xABC`. Damit ergibt sich die physische Adresse `0x12345 × 0x1000 + 0xABC = 0x12345ABC`. Die Bytes an dieser Adresse und den drei folgenden sind `78 56 34 12`. In Little Endian ergibt das `0x12345678`.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO9.md",
+            "heading": "Übersetzungsvorgang – Folie 72"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "virtueller Speicher",
+            "Seitentabellenübersetzung",
+            "Offset",
+            "Little Endian"
+          ]
+        },
+        {
+          "id": "era-09-l4-q03",
+          "type": "calc",
+          "prompt": "Ein Array aus 4-Byte-Elementen beginnt bei der virtuellen Adresse `0x00403000`. Element 2 liegt bei `Basis + Index × Elementgröße`. Die virtuelle Seite wird auf die physische Seitennummer `0x12345` abgebildet; der Offset bleibt erhalten. Welche physische Adresse hat Element 2?",
+          "options": [
+            {
+              "id": "a",
+              "text": "0x12345008"
+            },
+            {
+              "id": "b",
+              "text": "0x1234500C"
+            },
+            {
+              "id": "c",
+              "text": "0x12345002"
+            },
+            {
+              "id": "d",
+              "text": "0x00403008"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "Element 2 liegt bei `0x00403000 + 2 × 4 = 0x00403008`, also mit Offset `0x008`. Die physische Seitenbasis ist `0x12345000`; damit lautet die physische Adresse `0x12345008`.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO8.md",
+            "heading": null
+          },
+          "difficulty": 5,
+          "concepts": [
+            "Adressierungsarten",
+            "Virtueller Speicher und MMU"
+          ]
+        },
+        {
+          "id": "era-09-l4-q04",
+          "type": "multi",
+          "prompt": "Ein Timer unterbricht Programm A, damit das Betriebssystem Programm B laufen lassen kann. Welche Aussagen passen zum beschriebenen Time Sharing? Wähle alle richtigen Aussagen.",
+          "options": [
+            {
+              "id": "a",
+              "text": "Der Scheduler wählt, welches Programm als Nächstes läuft."
+            },
+            {
+              "id": "b",
+              "text": "Der Zustand von B muss nicht geladen werden, bevor B fortgesetzt wird."
+            },
+            {
+              "id": "c",
+              "text": "Das Betriebssystem sichert unter anderem Register, SP und PC von A."
+            },
+            {
+              "id": "d",
+              "text": "Programm A darf selbst direkt in den Systemmodus wechseln, indem es beliebigen privilegierten Code ausführt."
+            },
+            {
+              "id": "e",
+              "text": "Ein Timer-Ereignis ist ein asynchroner Interrupt."
+            }
+          ],
+          "correct": [
+            "a",
+            "c",
+            "e"
+          ],
+          "explanation": "Time Sharing sichert den Zustand des unterbrochenen Programms, lässt den Scheduler das nächste Programm wählen und lädt dessen Zustand. Ein Timer ist ein externes, asynchrones Interrupt-Ereignis; Benutzercode kann nicht beliebig privilegierte Rechte annehmen.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO9.md",
+            "heading": "Mehrbenutzersysteme – Folien 39–47"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Mehrbenutzersysteme und Modi",
+            "Interrupts, Exceptions und Traps"
+          ]
+        },
+        {
+          "id": "era-09-l4-q05",
+          "type": "single",
+          "prompt": "Ein Prozess nutzt Sv32 nur in einem kleinen Teil seines virtuellen Adressraums. Warum können mehrstufige Seitentabellen dafür Speicher sparen?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Jeder Prozess erhält dadurch automatisch größere physische Kacheln."
+            },
+            {
+              "id": "b",
+              "text": "Der TLB übernimmt dauerhaft die Seitentabelle."
+            },
+            {
+              "id": "c",
+              "text": "Nicht benötigte Tabellenbereiche müssen nicht angelegt werden."
+            },
+            {
+              "id": "d",
+              "text": "Die virtuellen Adressen werden auf 12 Bit verkürzt."
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Mehrstufige Tabellen erlauben es, nur Tabellen für tatsächlich genutzte Bereiche anzulegen. Eine einstufige Sv32-Tabelle hätte dagegen 4 MiB pro Prozess.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO9.md",
+            "heading": "Warum mehrere Stufen?"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Sv32 und mehrstufige Tabellen",
+            "TLB"
+          ]
+        },
+        {
+          "id": "era-09-l4-q06",
+          "type": "single",
+          "prompt": "Eine Instruktion wird im Benutzermodus aus einer Seite geholt. Der Eintrag ist gültig, `U=1` erlaubt den Zugriff im Benutzermodus. Die X/W/R-Bits stehen in dieser Reihenfolge für Ausführen/Schreiben/Lesen; `101` bedeutet also Ausführen und Lesen. Ist der Zugriff erlaubt?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Nein, `101` erlaubt nur Schreiben und Ausführen."
+            },
+            {
+              "id": "b",
+              "text": "Ja, die Seite ist für den Benutzermodus lesbar und ausführbar."
+            },
+            {
+              "id": "c",
+              "text": "Ja, aber nur wenn der Eintrag ungültig ist."
+            },
+            {
+              "id": "d",
+              "text": "Nein, `U=1` verbietet Instruktionszugriffe."
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "`101` in der Reihenfolge X/W/R bedeutet Ausführen und Lesen. Mit gültigem Eintrag und `U=1` ist der Instruktionszugriff im Benutzermodus erlaubt.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO9.md",
+            "heading": "X/W/R-Kodierung"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Seitentabellen und Berechtigungen",
+            "Virtueller Speicher und MMU"
+          ]
+        },
+        {
+          "id": "era-09-l4-q07",
+          "type": "single",
+          "prompt": "Ein TLB-Treffer liefert eine gültige Übersetzung, aber der Eintrag erlaubt Lesen und verbietet Schreiben. Der Prozess versucht einen Store. Was passiert?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Der Offset wird auf null gesetzt und der Store wiederholt."
+            },
+            {
+              "id": "b",
+              "text": "Der Scheduler setzt das Schreibbit automatisch."
+            },
+            {
+              "id": "c",
+              "text": "Der Store gelingt, weil der TLB getroffen wurde."
+            },
+            {
+              "id": "d",
+              "text": "Eine Exception wegen des unzulässigen Schreibzugriffs"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Ein TLB-Treffer liefert die Übersetzung, hebt aber den Zugriffsschutz nicht auf. Ein Schreibzugriff auf eine Nur-Lesen-Seite löst eine Exception aus.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO9.md",
+            "heading": "Übersetzungsvorgang – Folie 72"
+          },
+          "difficulty": 5,
+          "concepts": [
+            "TLB",
+            "Seitentabellen und Berechtigungen"
+          ]
+        },
+        {
+          "id": "era-09-l4-q08",
+          "type": "multi",
+          "prompt": "Zwei Zugriffe lösen eine Exception aus: Zugriff A trifft eine noch nie physisch zugeordnete virtuelle Seite; Zugriff B trifft eine zuvor ausgelagerte Seite. Welche Aussagen unterscheiden die Fälle richtig? Wähle alle richtigen Aussagen.",
+          "options": [
+            {
+              "id": "a",
+              "text": "Beide Exceptions können Teil der Seitenverwaltung sein."
+            },
+            {
+              "id": "b",
+              "text": "Bei A kann Lazy Allocation erstmals eine Kachel zuordnen."
+            },
+            {
+              "id": "c",
+              "text": "Bei B ist die MMU dafür zuständig, die Seite selbstständig von der Festplatte zu lesen."
+            },
+            {
+              "id": "d",
+              "text": "Bei B kann das Betriebssystem die ausgelagerte Seite von der Festplatte zurückladen."
+            },
+            {
+              "id": "e",
+              "text": "Bei A muss zwingend eine Seite von der Festplatte zurückgeladen werden."
+            }
+          ],
+          "correct": [
+            "a",
+            "b",
+            "d"
+          ],
+          "explanation": "Lazy Allocation ordnet beim ersten Zugriff eine bisher nicht belegte virtuelle Seite zu. Beim Zugriff auf eine ausgelagerte Seite muss das Betriebssystem die Seite zurückholen; in beiden Fällen kann die Exception den Verwaltungsablauf starten.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO9.md",
+            "heading": "Lazy Allocation"
+          },
+          "difficulty": 5,
+          "concepts": [
+            "Paging und Lazy Allocation",
+            "Virtueller Speicher und MMU"
+          ]
+        },
+        {
+          "id": "era-09-l4-q09",
+          "type": "truefalse",
+          "prompt": "Zugriffsschutz kann gezielt genutzt werden, um etwa Array-Überläufe beim Debugging als Exception abzufangen.",
+          "options": [
+            {
+              "id": "true",
+              "text": "Wahr"
+            },
+            {
+              "id": "false",
+              "text": "Falsch"
+            }
+          ],
+          "correct": [
+            "true"
+          ],
+          "explanation": "Die Mitschrift nennt das gezielte Blockieren von Zugriffen zur Erkennung von Array-Over- und Underflow beim Debugging.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO9.md",
+            "heading": "Zugriffsschutz gezielt nutzen"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Seitentabellen und Berechtigungen"
+          ]
+        },
+        {
+          "id": "era-09-l4-q10",
+          "type": "single",
+          "prompt": "Welche Gegenüberstellung der Befehlsformen ist korrekt?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Bei der 3-Adressform überschreibt das Ziel zwingend eine der beiden Quellen."
+            },
+            {
+              "id": "b",
+              "text": "x86 ist eine 3-Adress-Register-Register-ISA; RISC-V ist eine 2-Adress-Speicher-ISA."
+            },
+            {
+              "id": "c",
+              "text": "x86 kann als 2-Adressform das Ziel zugleich als Quelle verwenden; RISC-V nutzt für `x = y + z` eine 3-Adress-Register-Register-Form."
+            },
+            {
+              "id": "d",
+              "text": "Beide Formen müssen das Ergebnis immer direkt im Speicher ablegen."
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Die beschriebene x86-Registermaschine verwendet die 2-Adressform, bei der das Ziel eine Quelle überdeckt. RISC-V steht für die Load/Store-Register-Register-Form mit getrennten Quell- und Zieloperanden.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO9.md",
+            "heading": "Adressformen – Folien 24–30"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Adressformen",
+            "Adressierungsarten"
+          ]
+        },
+        {
+          "id": "era-09-l4-q11",
+          "type": "single",
+          "prompt": "Ein RISC-V-Prozess wechselt nach einer Exception zurück in den Benutzermodus. Welche Aussage beschreibt den kontrollierten Übergang passend?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Der Rückweg kann über einen privilegierten Befehl wie `mret` oder `sret` erfolgen."
+            },
+            {
+              "id": "b",
+              "text": "Der Rückweg erfolgt, indem der Scheduler den TLB leert und `ra` lädt."
+            },
+            {
+              "id": "c",
+              "text": "Der Wechsel ist unmöglich, weil RISC-V nur einen Modus besitzt."
+            },
+            {
+              "id": "d",
+              "text": "Jeder Benutzercode kann durch Ausführen von `mret` beliebige privilegierte Rechte erhalten."
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "Die beschriebenen Übergänge zwischen System- und Benutzermodus sind kontrolliert; `mret` und `sret` sind privilegierte Rückkehrbefehle.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO9.md",
+            "heading": "Mehrbenutzersysteme – Folien 39–47"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Mehrbenutzersysteme und Modi",
+            "Interrupts, Exceptions und Traps"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "era-09-l5",
+      "index": 5,
+      "kind": "bonus",
+      "title": "Praxis: Wenn Adressen Alltag werden",
+      "questions": [
+        {
+          "id": "era-09-l5-q01",
+          "type": "single",
+          "prompt": "Du startest auf einem x86_64-PC ein älteres 32-Bit-Programm. Welches ISA-Merkmal kann die Kompatibilität ermöglichen?",
+          "options": [
+            {
+              "id": "a",
+              "text": "x86-Befehle sind immer genau 4 Byte lang."
+            },
+            {
+              "id": "b",
+              "text": "x86 verwendet nur Befehle mit drei Operanden."
+            },
+            {
+              "id": "c",
+              "text": "x86_64 behält ältere Ausführungsmodi bei."
+            },
+            {
+              "id": "d",
+              "text": "Alle x86-Register haben dieselbe Breite."
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "x86_64 ergänzt ältere Wortbreiten durch zusätzliche Ausführungsmodi. Die Unterstützung eines passenden älteren Modus kann ermöglichen, 32-Bit-Programme auszuführen.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO9.md",
+            "heading": "IA-32 und die x86-Familie"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "IA-32 und x86"
+          ]
+        },
+        {
+          "id": "era-09-l5-q02",
+          "type": "single",
+          "prompt": "Eine Datenbank greift häufig auf dieselben Speicherseiten zu. Welche Hardwarehilfe kann dabei unnötige Seitentabellenzugriffe verringern?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Der Stack Pointer zeigt auf den Programmstack."
+            },
+            {
+              "id": "b",
+              "text": "Der Scheduler wählt den nächsten Prozess aus."
+            },
+            {
+              "id": "c",
+              "text": "Die Auslagerungsdatei speichert inaktive Seiten."
+            },
+            {
+              "id": "d",
+              "text": "Der TLB speichert kürzlich verwendete Adressübersetzungen."
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Der TLB (Translation Look-Aside Buffer) speichert kürzlich verwendete Übersetzungen von virtuellen zu physischen Adressen. Bei einem Treffer kann die Seitentabellensuche entfallen.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO9.md",
+            "heading": "TLB – Translation Look-Aside Buffer"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "TLB",
+            "Virtueller Speicher und MMU"
+          ]
+        },
+        {
+          "id": "era-09-l5-q03",
+          "type": "estimate",
+          "prompt": "Eine Speicher-Seite ist 4 KiB groß. Wie viele Byte sind das? Verwende 1 KiB = 1024 Byte.",
+          "options": [],
+          "correct": [],
+          "slider": {
+            "min": 2048,
+            "max": 8192,
+            "step": 16,
+            "answer": 4096,
+            "tolerance": 0,
+            "unit": "Byte",
+            "scale": "linear"
+          },
+          "explanation": "Eine KiB sind 1024 Byte. Daher enthält eine 4-KiB-Seite 4 × 1024 = 4096 Byte. Die Seitengröße bestimmt auch, wie viele Bits für den Offset benötigt werden.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO9.md",
+            "heading": "Virtueller Speicher – Folien 59–74"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Virtueller Speicher und MMU"
+          ]
+        },
+        {
+          "id": "era-09-l5-q04",
+          "type": "multi",
+          "prompt": "Während du am Smartphone tippst, laufen andere Programme weiter. Welche zwei Ereignisse sind Beispiele für Interrupts, die von außen eintreffen?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Ein Hardware-Timer meldet sich."
+            },
+            {
+              "id": "b",
+              "text": "Ein Speicherzugriff des Programms verletzt eine Berechtigung."
+            },
+            {
+              "id": "c",
+              "text": "Das laufende Programm führt einen ungültigen Befehl aus."
+            },
+            {
+              "id": "d",
+              "text": "Ein Netzwerkpaket kommt an."
+            }
+          ],
+          "correct": [
+            "a",
+            "d"
+          ],
+          "explanation": "Interrupts entstehen asynchron durch externe Ereignisse wie Netzwerk- oder Timer-Signale. Ein ungültiger Befehl und ein unzulässiger Speicherzugriff hängen mit einem ausgeführten Befehl zusammen und lösen Exceptions aus.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO9.md",
+            "heading": "Traps, Interrupts und Exceptions – Folien 48–58"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Interrupts",
+            "Exceptions"
+          ]
+        },
+        {
+          "id": "era-09-l5-q05",
+          "type": "single",
+          "prompt": "Du reservierst für eine Simulation einen großen virtuellen Speicherbereich, nutzt zunächst aber nur einen kleinen Teil. Wie kann das Betriebssystem vermeiden, sofort für jede Seite eine physische Kachel bereitzustellen?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Es nutzt Lazy Allocation und weist eine Kachel erst beim ersten Zugriff zu."
+            },
+            {
+              "id": "b",
+              "text": "Es speichert jede virtuelle Adresse dauerhaft im TLB."
+            },
+            {
+              "id": "c",
+              "text": "Es schaltet die MMU für das Programm ab."
+            },
+            {
+              "id": "d",
+              "text": "Es lagert alle Seiten sofort auf die Festplatte aus."
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "Bei Lazy Allocation erhält eine virtuelle Seite erst nach ihrem ersten Zugriff eine physische Kachel. Ein Zugriff auf eine noch nicht bereitgestellte Seite kann eine Exception auslösen, die das Betriebssystem behandelt.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO9.md",
+            "heading": "Lazy Allocation"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Lazy Allocation",
+            "Seitentabellen und Berechtigungen"
+          ]
+        },
+        {
+          "id": "era-09-l5-q06",
+          "type": "estimate",
+          "prompt": "Eine Seite ist 4 KiB groß. Wie viele Adressbits werden für den Offset innerhalb der Seite benötigt? Verwende 1 KiB = 1024 Byte.",
+          "options": [],
+          "correct": [],
+          "slider": {
+            "min": 4,
+            "max": 21,
+            "step": 1,
+            "answer": 12,
+            "tolerance": 0,
+            "unit": "Bit",
+            "scale": "linear"
+          },
+          "explanation": "4 KiB sind 4 × 1024 = 4096 = 2¹² Byte. Daher werden 12 Offset-Bits benötigt; diese Bits bleiben bei der Übersetzung von virtueller zu physischer Adresse unverändert.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO9.md",
+            "heading": "Virtueller Speicher – Folien 59–74"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Virtueller Speicher und MMU",
+            "Seitentabellen und Berechtigungen"
+          ]
+        },
+        {
+          "id": "era-09-l5-q07",
+          "type": "single",
+          "prompt": "Der Arbeitsspeicher ist voll. Das Betriebssystem markiert eine lange ungenutzte Seite als nicht vorhanden und schreibt sie auf einen Datenträger. Später greift das Programm wieder darauf zu. Welches Konzept steckt dahinter?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Register-Umbenennung: Ein Register erhält einen neuen Namen."
+            },
+            {
+              "id": "b",
+              "text": "Paging: Die Seite wird bei Bedarf zurückgeladen."
+            },
+            {
+              "id": "c",
+              "text": "Time Sharing: Der Scheduler wechselt den Prozess."
+            },
+            {
+              "id": "d",
+              "text": "Lazy Allocation: Die Seite erhält zum ersten Mal Speicher."
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "Beim Paging kann eine ausgewählte Seite ausgelagert und als nicht vorhanden markiert werden. Ein späterer Zugriff löst eine Exception aus, damit das Betriebssystem die Seite zurückladen kann.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO9.md",
+            "heading": "Paging: Auslagern, wenn keine Kachel frei ist"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Paging",
+            "Exceptions"
+          ]
+        },
+        {
+          "id": "era-09-l5-q08",
+          "type": "estimate",
+          "prompt": "Ein hypothetisches Verfahren übersetzt eine virtuelle Adresse ohne TLB-Treffer über drei Seitentabellenstufen. Danach wird ein Datenwert aus dem Speicher gelesen. Wie viele Speicherzugriffe sind insgesamt nötig? Zähle einen Zugriff pro Tabellenstufe und einen für den Datenwert.",
+          "options": [],
+          "correct": [],
+          "slider": {
+            "min": 1,
+            "max": 8,
+            "step": 1,
+            "answer": 4,
+            "tolerance": 0,
+            "unit": "Speicherzugriffe",
+            "scale": "linear"
+          },
+          "explanation": "Die drei Tabellenstufen benötigen drei Speicherzugriffe. Der anschließende Lesezugriff auf den Datenwert ergibt insgesamt vier Zugriffe.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO9.md",
+            "heading": "TLB – Translation Look-Aside Buffer"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "TLB",
+            "Mehrstufige Seitentabellen"
+          ]
+        },
+        {
+          "id": "era-09-l5-q09",
+          "type": "single",
+          "prompt": "Eine Smartphone-App läuft ohne privilegierte Rechte und möchte eine Datei lesen. Wie fordert sie einen Betriebssystemdienst kontrolliert an?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Indem sie den TLB selbst umgeht und die Seitentabelle ändert."
+            },
+            {
+              "id": "b",
+              "text": "Indem sie den Prozessor dauerhaft in den Systemmodus versetzt."
+            },
+            {
+              "id": "c",
+              "text": "Über einen Systemaufruf, den das Betriebssystem prüfen kann."
+            },
+            {
+              "id": "d",
+              "text": "Indem sie im Benutzermodus direkt privilegierte Gerätebefehle ausführt."
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Ein Systemaufruf ermöglicht einen kontrollierten Übergang vom Benutzermodus zum Betriebssystem. Dieses kann Parameter und Berechtigungen prüfen, bevor es den Dienst ausführt.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO9.md",
+            "heading": "Mehrbenutzersysteme – Folien 39–47"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Mehrbenutzersysteme und Modi",
+            "Exceptions und Traps"
+          ]
+        },
+        {
+          "id": "era-09-l5-q10",
+          "type": "single",
+          "prompt": "Du liest x86-Assembler. Vor dem Befehl gilt: `eax` enthält 7 und `ebx` enthält 5. Was gilt nach `add eax, ebx`?",
+          "options": [
+            {
+              "id": "a",
+              "text": "eax enthält danach 12."
+            },
+            {
+              "id": "b",
+              "text": "ebx enthält danach 12."
+            },
+            {
+              "id": "c",
+              "text": "eax bleibt 7; das Ergebnis steht in einem neuen Register."
+            },
+            {
+              "id": "d",
+              "text": "Der Befehl schreibt 12 direkt in den Speicher."
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "Bei dieser x86-Zwei-Adressform ist das Ziel zugleich eine Quelle: Der Befehl addiert `ebx` zu `eax` und überschreibt `eax` mit 12. In einer Drei-Adress-Registerform wären die Quellen und das Ziel getrennt.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO9.md",
+            "heading": "Unterschiede im Assemblercode"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Adressformen",
+            "IA-32 und x86"
+          ]
+        }
+      ]
+    }
+  ]
+}
