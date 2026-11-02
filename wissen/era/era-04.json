@@ -1,0 +1,448 @@
+{
+  "schemaVersion": 1,
+  "unitId": "era-04",
+  "module": "ERA",
+  "unitNumber": 4,
+  "unitTitle": "Arithmetik, Speicher und Sprünge",
+  "sourceSha": "09649143182adc74786d4fe6deddb7560290a1660ba0e0627dee29f47cf2136b",
+  "overview": "Diese Unit behandelt Immediate- und arithmetische Befehle, die M-Erweiterung sowie logische Operationen und Shifts in RISC-V. Sie erklärt Byteadressierung, Wortbreite, Alignment, Endianness und Datentransfers zwischen Hauptspeicher und Registern. Sprünge und Branches ändern den Program Counter und steuern so Verzweigungen und Schleifen.",
+  "entries": [
+    {
+      "id": "era-04-k01",
+      "term": "Immediate Operand",
+      "kind": "definition",
+      "short": "Ein Immediate Operand ist ein Zahlenwert, der als Konstante direkt in einem Befehl codiert ist.",
+      "explanation": "Ein Immediate Operand steht im Maschinenbefehl und muss nicht zuerst aus einem Register gelesen werden. Bei `addi a, b, imm` ist `imm` der Immediate Operand. Seine mögliche Größe und Interpretation hängen vom jeweiligen Befehlsformat ab.",
+      "example": "`addi t0, t1, 7` addiert die codierte Konstante `7` zum Wert in `t1`.",
+      "pitfalls": [
+        "Ein Immediate Operand ist kein Registeroperand.",
+        "Nicht jeder RISC-V-Befehl besitzt eine Immediate-Variante."
+      ],
+      "related": [
+        "addi (Add Immediate)",
+        "Register, Operanden und Mnemonics"
+      ],
+      "heading": "Konstanten und arithmetische Befehle"
+    },
+    {
+      "id": "era-04-k02",
+      "term": "addi (Add Immediate)",
+      "kind": "notation",
+      "short": "`addi a, b, imm` addiert ein vorzeichenerweitertes Immediate zu `b` und schreibt das Ergebnis nach `a`.",
+      "explanation": "Die Operandenreihenfolge lautet `addi ziel, quelle, immediate`: Der Befehl berechnet den Wert des Quellregisters plus die Konstante und legt die Summe im Zielregister ab. Das Immediate ist ein vorzeichenbehafteter 12-Bit-Wert im Bereich von $-2048$ bis $2047$ und wird auf die Registerbreite vorzeichenerweitert. Für eine Subtraktion mit Konstante wird ein negatives Immediate verwendet; einen eigenen `subi`-Befehl gibt es nicht. Da `x0` stets null enthält, übernimmt `addi a, x0, imm` den Immediate-Wert in `a`.",
+      "example": "```asm\naddi t0, t1, -3   # t0 = t1 - 3\naddi t2, x0, 12   # t2 = 12\n```",
+      "pitfalls": [
+        "Das Immediate ist auf 12 Bit beschränkt.",
+        "Ein negatives Immediate wird vor der Addition vorzeichenerweitert."
+      ],
+      "related": [
+        "Immediate Operand",
+        "Sign Extension für Zweierkomplementzahlen",
+        "Nullregister x0",
+        "Register, Operanden und Mnemonics"
+      ],
+      "heading": "Konstanten und arithmetische Befehle"
+    },
+    {
+      "id": "era-04-k03",
+      "term": "Sign Extension für Zweierkomplementzahlen",
+      "kind": "method",
+      "short": "Bei der Vorzeichenerweiterung wird das Vorzeichenbit in die neu hinzukommenden höheren Bits kopiert.",
+      "explanation": "Sign Extension (Vorzeichenerweiterung) vergrößert einen vorzeichenbehafteten Binärwert, ohne seinen Zahlenwert zu ändern. Bei einer Zweierkomplementdarstellung werden dazu Kopien des höchstwertigen Bits links ergänzt. So wird der 12-Bit-Wert `111111111111` zu einem 32-Bit-Wert aus lauter Einsen und stellt weiterhin $-1$ dar. RISC-V verwendet diese Erweiterung unter anderem für negative Immediate-Werte von `addi`.",
+      "example": "Der 8-Bit-Zweierkomplementwert `11111101` ($-3$) wird auf 12 Bit zu `111111111101` erweitert.",
+      "pitfalls": [
+        "Bei einer negativen Zahl werden nicht links Nullen ergänzt.",
+        "Zero Extension ergänzt links Nullen und kann daher einen negativen Zweierkomplementwert verändern."
+      ],
+      "related": [
+        "addi (Add Immediate)",
+        "Zweierkomplement"
+      ],
+      "heading": "Konstanten und arithmetische Befehle"
+    },
+    {
+      "id": "era-04-k04",
+      "term": "Konstanten mit lui und addi laden",
+      "kind": "method",
+      "short": "`lui` setzt einen oberen Konstantenteil, und `addi` ergänzt einen vorzeichenbehafteten unteren Teil.",
+      "explanation": "`lui` (load upper immediate) setzt den 20-Bit-Immediate-Teil in die oberen Bits; in RV32 entspricht das einer Verschiebung um 12 Bit nach links. Anschließend kann `addi` einen vorzeichenbehafteten 12-Bit-Teil addieren. Der obere Teil muss so gewählt werden, dass die Summe nach der Vorzeichenerweiterung des unteren Teils die gewünschte Konstante ergibt. Ist das höchste Bit des unteren 12-Bit-Teils `1`, muss der obere Teil entsprechend angepasst werden.",
+      "example": "```asm\nlui  t0, 0x12345\naddi t0, t0, 0x678   # t0 = 0x12345678\n```",
+      "pitfalls": [
+        "Der untere Teil wird bei `addi` vorzeichenerweitert und nicht als vorzeichenlose 12-Bit-Zahl behandelt.",
+        "`lui` setzt den Immediate-Teil in die oberen Bits, nicht in die niedrigsten Bits."
+      ],
+      "related": [
+        "Immediate Operand",
+        "addi (Add Immediate)",
+        "Sign Extension für Zweierkomplementzahlen"
+      ],
+      "heading": "Konstanten und arithmetische Befehle"
+    },
+    {
+      "id": "era-04-k05",
+      "term": "M-Erweiterung",
+      "kind": "definition",
+      "short": "Die M-Erweiterung ergänzt RISC-V um ganzzahlige Multiplikations-, Divisions- und Restbefehle.",
+      "explanation": "Die M-Erweiterung ist eine RISC-V-ISA-Erweiterung für Multiplikation und Division mit ganzzahligen Operanden. Ihre Befehle gehören nicht zum Basisbefehlssatz und stehen nur zur Verfügung, wenn die Erweiterung unterstützt wird. Zu den Befehlen gehören Varianten für untere und obere Produktteile sowie für vorzeichenbehaftete und vorzeichenlose Operanden.",
+      "example": "Zu den Befehlen der M-Erweiterung gehören `mul`, `mulh`, `div` und `rem`.",
+      "pitfalls": [
+        "Die M-Erweiterung bezeichnet eine ISA-Erweiterung und keine Speicherart."
+      ],
+      "related": [
+        "RISC-V",
+        "Multiplikationsbefehle der M-Erweiterung",
+        "Division und Rest in der M-Erweiterung"
+      ],
+      "heading": "Multiplikation, Division und Rest: M-Erweiterung"
+    },
+    {
+      "id": "era-04-k06",
+      "term": "Multiplikationsbefehle der M-Erweiterung",
+      "kind": "definition",
+      "short": "`mul`, `mulh`, `mulhsu` und `mulhu` liefern Produktteile mit festgelegten Vorzeicheninterpretationen.",
+      "explanation": "Das vollständige Produkt zweier XLEN-Bit-Werte kann bis zu 2 × XLEN Bit breit sein. `mul` liefert die unteren XLEN Bits des Produkts; diese Bits sind unabhängig davon, ob die Operanden signed oder unsigned interpretiert werden. `mulh` liefert den oberen Teil für zwei signed Operanden, `mulhsu` für einen signed ersten und einen unsigned zweiten Operanden und `mulhu` für zwei unsigned Operanden.",
+      "example": "`mulh t0, t1, t2` schreibt den oberen XLEN-Bit-Teil des Produkts der vorzeichenbehafteten Werte in `t1` und `t2` nach `t0`.",
+      "pitfalls": [
+        "Das `h` in `mulh` steht für den oberen Produktteil; `mul` liefert den unteren Teil.",
+        "`mulhsu` interpretiert den ersten Operanden signed und den zweiten unsigned."
+      ],
+      "related": [
+        "M-Erweiterung",
+        "Zweierkomplement",
+        "signed/unsigned-Interpretation"
+      ],
+      "heading": "Multiplikation, Division und Rest: M-Erweiterung"
+    },
+    {
+      "id": "era-04-k07",
+      "term": "Division und Rest in der M-Erweiterung",
+      "kind": "definition",
+      "short": "`div` und `rem` rechnen signed, während `divu` und `remu` ihre Operanden unsigned interpretieren.",
+      "explanation": "`div rd, rs1, rs2` schreibt den Quotienten der vorzeichenbehafteten Operanden in `rd`; `rem rd, rs1, rs2` schreibt den Rest. Die Varianten `divu` und `remu` interpretieren beide Operanden als vorzeichenlose Zahlen. Bei signed Division wird der Quotient in Richtung null gerundet, und der Rest gehört zu dieser Division.",
+      "example": "`rem t0, t1, t2` berechnet den Rest der Division von `t1` durch `t2` und legt ihn in `t0` ab.",
+      "pitfalls": [
+        "Das `u` kennzeichnet die vorzeichenlose Interpretation.",
+        "`rem` liefert den Rest und nicht den Quotienten."
+      ],
+      "related": [
+        "M-Erweiterung",
+        "Zweierkomplement",
+        "signed/unsigned-Interpretation",
+        "Register, Operanden und Mnemonics"
+      ],
+      "heading": "Multiplikation, Division und Rest: M-Erweiterung"
+    },
+    {
+      "id": "era-04-k08",
+      "term": "Bitweise logische Befehle",
+      "kind": "definition",
+      "short": "`and`, `or` und `xor` wenden ihre jeweilige logische Operation unabhängig auf jedes Bitpaar an.",
+      "explanation": "Die Befehle `and`, `or` und `xor` verknüpfen zwei Quellregister Bit für Bit. `and` ergibt nur dann `1`, wenn beide Bits `1` sind; `or` ergibt `1`, wenn mindestens eines `1` ist; `xor` ergibt `1`, wenn die Bits verschieden sind. Das Ergebnis wird im Zielregister abgelegt.",
+      "example": "```asm\nand s3, s1, s2\nor  s4, s1, s2\nxor s5, s1, s2\n```\nFür `s1 = 1010` und `s2 = 1100` ergeben sich `1000`, `1110` und `0110`.",
+      "pitfalls": [
+        "Die Operationen werden bitweise ausgeführt und addieren keine Zahlenwerte.",
+        "`xor` ergibt bei zwei gleichen Bits `0`."
+      ],
+      "related": [
+        "AND-Maske",
+        "Register, Operanden und Mnemonics"
+      ],
+      "heading": "Logische Befehle und Shifts"
+    },
+    {
+      "id": "era-04-k09",
+      "term": "AND-Maske",
+      "kind": "concept",
+      "short": "Eine AND-Maske erhält nur Bits, an deren Position der andere Operand ebenfalls eine Eins hat.",
+      "explanation": "Eine Bitmaske wird mit `and` bitweise auf einen Wert angewendet. An jeder Position bleibt eine Eins nur dann erhalten, wenn sowohl der Wert als auch die Maske dort eine Eins haben. Nullen in der Maske setzen daher die entsprechenden Bits des Ergebnisses auf null.",
+      "example": "`1010 AND 1100 = 1000`: Nur an der zweiten Position von links steht in beiden Operanden eine Eins.",
+      "pitfalls": [
+        "Eine Null in der Maske löscht das entsprechende Bit des Ergebnisses.",
+        "Die Maske wird Bit für Bit angewendet, nicht als Ganzzahl subtrahiert."
+      ],
+      "related": [
+        "Bitweise logische Befehle"
+      ],
+      "heading": "Logische Befehle und Shifts"
+    },
+    {
+      "id": "era-04-k10",
+      "term": "Shift-Befehle",
+      "kind": "definition",
+      "short": "`sll`, `srl` und `sra` verschieben Registerbits mit unterschiedlichen Regeln für neu entstehende Bits.",
+      "explanation": "`sll` und `slli` verschieben nach links und ergänzen rechts Nullen. `srl` und `srli` verschieben logisch nach rechts und ergänzen links Nullen; `sra` und `srai` verschieben arithmetisch nach rechts und kopieren das Vorzeichenbit in die frei werdenden hohen Bits. Bei den Registervarianten stammt die Verschiebungsweite aus einem Register, bei den Immediate-Varianten aus einem vorzeichenlosen Immediate. Die Immediate-Verschiebungsweite ist in RV32 fünf Bit und in RV64 sechs Bit breit.",
+      "example": "Bei einer 8-Bit-Veranschaulichung wird `10110100` logisch um eine Stelle nach rechts zu `01011010` und arithmetisch zu `11011010`.",
+      "pitfalls": [
+        "`srl` und `sra` verhalten sich bei gesetztem höchstem Bit unterschiedlich.",
+        "`>>` und `>>>` sind keine eindeutigen RISC-V-Mnemonics; maßgeblich sind `srl` und `sra`."
+      ],
+      "related": [
+        "Zweierkomplement",
+        "signed/unsigned-Interpretation"
+      ],
+      "heading": "Logische Befehle und Shifts"
+    },
+    {
+      "id": "era-04-k11",
+      "term": "Gleitkommazahlen und Gleitkomma-Arithmetik in RISC-V",
+      "kind": "concept",
+      "short": "Gleitkomma-Arithmetik gehört nicht zum RISC-V-Basisbefehlssatz und wird durch Erweiterungen bereitgestellt.",
+      "explanation": "Gleitkommazahlen stellen reelle Zahlen in einem begrenzten binären Format dar. Die RISC-V-Basisbefehle für Ganzzahlen enthalten keine Gleitkommaoperationen; dafür gibt es Erweiterungen wie F für einfache und D für doppelte Genauigkeit. `fadd` und `fsub` bezeichnen Addition und Subtraktion schematisch; konkrete Befehle nennen meist das Format, etwa `.s` oder `.d`.",
+      "example": "```asm\nfadd.s ft0, ft1, ft2   # Addition mit einfacher Genauigkeit\nfsub.d ft0, ft1, ft2   # Subtraktion mit doppelter Genauigkeit\n```",
+      "pitfalls": [
+        "Gleitkomma-Arithmetik ist nicht automatisch im RISC-V-Basisbefehlssatz enthalten.",
+        "Format und erforderliche Operanden hängen von der konkreten Gleitkommainstruktion ab."
+      ],
+      "related": [
+        "Gleitkomma",
+        "IEEE 754",
+        "RISC-V"
+      ],
+      "heading": "Gleitkommazahlen"
+    },
+    {
+      "id": "era-04-k12",
+      "term": "Hauptspeicher (RAM)",
+      "kind": "definition",
+      "short": "Der Hauptspeicher ist ein großer, adressierbarer Speicher, in dem ein Programm seine aktuell benötigten Daten ablegt.",
+      "explanation": "Der Hauptspeicher, meist als RAM (Random Access Memory) bezeichnet, hält Daten, auf die der Prozessor während der Ausführung zugreift. Er hat üblicherweise mehr Kapazität als die Register, während Register besonders schnelle Zwischenspeicher sind. „Random Access“ bedeutet, dass eine angegebene Adresse direkt angesprochen werden kann; der Begriff bezeichnet keinen Hintergrundspeicher wie eine Festplatte.",
+      "example": "Ein Programm kann eine Zahl im RAM ablegen und sie später mit einem Load-Befehl in ein Register holen.",
+      "pitfalls": [
+        "Hauptspeicher ist nicht dasselbe wie Hintergrundspeicher.",
+        "Ein RAM-Zugriff erfolgt über eine Adresse, ein Registerzugriff über einen Registerbezeichner."
+      ],
+      "related": [
+        "Register, Operanden und Mnemonics",
+        "Load/Store-Architektur in RISC-V",
+        "Byteadressierung"
+      ],
+      "heading": "Datentransfer und Hauptspeicher"
+    },
+    {
+      "id": "era-04-k13",
+      "term": "Load/Store-Architektur in RISC-V",
+      "kind": "concept",
+      "short": "In RISC-V übertragen Load- und Store-Befehle Daten zwischen Hauptspeicher und Registern, während Rechenbefehle mit Registern arbeiten.",
+      "explanation": "Ein Load liest ein Datum aus dem Hauptspeicher in ein Register. Ein Store schreibt ein Registerdatum in den Hauptspeicher. Rechen- und Logikbefehle verwenden Registerwerte, statt direkt einen Speicheroperanden zu verarbeiten. Andere ISAs können Speicheroperanden in Rechenbefehlen zulassen.",
+      "example": "Ein Wert wird mit einem Load in ein Register geholt, dort addiert und anschließend mit einem Store wieder in den Hauptspeicher geschrieben.",
+      "pitfalls": [
+        "Ein Rechenbefehl wie `add` liest nicht automatisch einen Operanden aus dem RAM.",
+        "Load und Store übertragen Daten, führen aber nicht selbst die anschließende Arithmetik aus."
+      ],
+      "related": [
+        "Hauptspeicher (RAM)",
+        "Byteadressierung",
+        "RISC-V",
+        "Register, Operanden und Mnemonics"
+      ],
+      "heading": "Datentransfer und Hauptspeicher"
+    },
+    {
+      "id": "era-04-k14",
+      "term": "Byteadressierung",
+      "kind": "definition",
+      "short": "Bei Byteadressierung bezeichnet jede Speicheradresse genau ein Byte mit 8 Bit.",
+      "explanation": "Ein byteadressierter Speicher ordnet jeder einzelnen 8-Bit-Speicherzelle eine Adresse zu. Ein Mehrbytewert belegt mehrere aufeinanderfolgende Byteadressen. Ein 32-Bit-Wert belegt vier Bytes und ein 64-Bit-Wert acht Bytes.",
+      "example": "Ein 32-Bit-Wert, der bei Adresse `100` beginnt, belegt die Byteadressen `100` bis `103`.",
+      "pitfalls": [
+        "Eine Adresse bezeichnet ein Byte, nicht automatisch ein ganzes 32-Bit- oder 64-Bit-Wort.",
+        "Byteadressierung legt nicht fest, in welcher Reihenfolge die Bytes eines Werts gespeichert werden."
+      ],
+      "related": [
+        "Hauptspeicher (RAM)",
+        "Adressbreite und Adressraum",
+        "Wortbreite",
+        "Little Endian und Big Endian"
+      ],
+      "heading": "Adressen, Speicherzellen und Wortbreite"
+    },
+    {
+      "id": "era-04-k15",
+      "term": "Adressbreite und Adressraum",
+      "kind": "theorem",
+      "short": "Mit einer Adressbreite von $n$ Bit lassen sich höchstens $2^n$ verschiedene Byteadressen darstellen.",
+      "explanation": "Ein Adressfeld aus $n$ Bits hat $2^n$ verschiedene Bitmuster und kann damit höchstens $2^n$ Adressen benennen. Bei Byteadressierung entspricht jede dieser Adressen einer Byteposition. Die Formel beschreibt die Zahl darstellbarer Adressen; tatsächlich nutzbarer Speicher kann durch die Plattform begrenzt sein.",
+      "example": "Mit drei Adressbits gibt es die Adressen `000` bis `111`, also $2^3=8$ Byteadressen.",
+      "pitfalls": [
+        "Die Zahl der darstellbaren Adressen hängt von der Adressbreite ab, nicht von der Wortbreite des Prozessors.",
+        "Die Formel sagt nicht, ob jede Adresse auf einer konkreten Plattform tatsächlich nutzbar ist."
+      ],
+      "related": [
+        "Byteadressierung",
+        "Wortbreite"
+      ],
+      "heading": "Adressen, Speicherzellen und Wortbreite"
+    },
+    {
+      "id": "era-04-k16",
+      "term": "Wortbreite",
+      "kind": "definition",
+      "short": "Die Wortbreite beschreibt eine zentrale Verarbeitungsbreite des Prozessors und ist nicht die Größe einer Speicherzelle.",
+      "explanation": "Die Wortbreite bezeichnet eine zentrale Breite, mit der der Prozessor typischerweise Daten verarbeitet; Beispiele sind 16, 32, 64 oder 128 Bit. Eine einzelne adressierbare Speicherzelle kann trotzdem nur ein Byte mit 8 Bit groß sein. Ein 32-Bit-Wert belegt deshalb vier Byteadressen, und eine 32-Bit-Instruktion belegt vier Bytes im Adressraum, ohne dass daraus vier einzelne Bytezugriffe folgen müssen.",
+      "example": "Bei byteadressiertem Speicher belegt ein 64-Bit-Wert acht aufeinanderfolgende Byteadressen.",
+      "pitfalls": [
+        "Wortbreite und Größe der kleinsten adressierbaren Speicherzelle sind verschiedene Eigenschaften.",
+        "Die Wortbreite legt nicht allein die Byte-Reihenfolge eines Mehrbytewerts fest."
+      ],
+      "related": [
+        "Byteadressierung",
+        "Adressbreite und Adressraum",
+        "Wortbreite und Interpretation"
+      ],
+      "heading": "Adressen, Speicherzellen und Wortbreite"
+    },
+    {
+      "id": "era-04-k17",
+      "term": "Ausrichtung (Alignment)",
+      "kind": "definition",
+      "short": "Ein Datum ist auf eine $n$-Byte-Grenze ausgerichtet, wenn seine Startadresse $A$ durch $n$ teilbar ist.",
+      "explanation": "Für eine Ausrichtung auf eine $n$-Byte-Grenze gilt $A \\bmod n=0$. Ein 4-Byte-Datum ist beispielsweise an den Startadressen `0`, `4` und `8` ausgerichtet, nicht aber an `1` oder `6`. Ausrichtung kann Zugriffe effizienter machen und wird je nach Architektur oder Plattform verlangt oder unterstützt.",
+      "example": "Ein 8-Byte-Wert an Adresse `24` ist auf eine 8-Byte-Grenze ausgerichtet, denn $24 \\bmod 8=0$.",
+      "pitfalls": [
+        "Die Ausrichtungsgrenze wird in Bytes angegeben.",
+        "Unausgerichtete Zugriffe werden nicht auf jeder Plattform gleich behandelt."
+      ],
+      "related": [
+        "Byteadressierung",
+        "Wortbreite",
+        "64-Bit-Transfers mit ld und sd"
+      ],
+      "heading": "Ausrichtung (*Alignment*)"
+    },
+    {
+      "id": "era-04-k18",
+      "term": "Little Endian und Big Endian",
+      "kind": "definition",
+      "short": "Endianness legt fest, welches Byte eines Mehrbytewerts an der niedrigsten Speicheradresse steht.",
+      "explanation": "Bei Little Endian steht das niederwertigste Byte eines Mehrbytewerts an der niedrigsten Adresse. Bei Big Endian steht dort das höchstwertige Byte. Die Wahl ändert nicht den Zahlenwert im Register, sondern nur die Reihenfolge, in der seine Bytes im Speicher angeordnet sind.",
+      "example": "Für `0x10325476` stehen bei Little Endian an den Adressen `n` bis `n+3` die Bytes `76 54 32 10`; bei Big Endian stehen dort `10 32 54 76`.",
+      "pitfalls": [
+        "Little Endian kehrt nicht die Bits innerhalb eines einzelnen Bytes um.",
+        "Die Byte-Reihenfolge folgt nicht aus der Wortbreite."
+      ],
+      "related": [
+        "Byteadressierung",
+        "Wortbreite",
+        "64-Bit-Transfers mit ld und sd"
+      ],
+      "heading": "Little Endian und Big Endian"
+    },
+    {
+      "id": "era-04-k19",
+      "term": "Adressierungsform offset(base)",
+      "kind": "notation",
+      "short": "Die Schreibweise `offset(base)` bezeichnet die Adresse aus Basisregisterwert plus Immediate-Offset.",
+      "explanation": "In einem Speicherbefehl wie `ld a1, 8(s0)` wird `8(s0)` als Wert des Basisregisters `s0` plus Offset `8` gelesen. Die effektive Adresse ist also der Wert in `s0` plus `8`. Der Offset ist eine vorzeichenbehaftete Anzahl von Bytes.",
+      "example": "Wenn `s0 = 1000`, ist die effektive Adresse von `8(s0)` gleich `1008`.",
+      "pitfalls": [
+        "Der Offset ist eine Anzahl von Bytes und kein Registerindex.",
+        "Die Schreibweise gibt die effektive Adresse an, nicht den Speicherinhalt an dieser Adresse."
+      ],
+      "related": [
+        "64-Bit-Transfers mit ld und sd",
+        "Byteadressierung",
+        "Load/Store-Architektur in RISC-V"
+      ],
+      "heading": "Laden und Speichern von 64 Bit"
+    },
+    {
+      "id": "era-04-k20",
+      "term": "64-Bit-Transfers mit ld und sd",
+      "kind": "notation",
+      "short": "`ld` lädt in RV64 ein 64-Bit-Datum aus dem Speicher, und `sd` speichert ein 64-Bit-Datum aus einem Register.",
+      "explanation": "Die Schreibweise `ld ziel, offset(base)` berechnet zuerst die effektive Adresse und überträgt dann das dort beginnende 64-Bit-Datum in das Zielregister. Bei `sd quelle, offset(base)` stammt der Wert aus dem Quellregister und wird ab der effektiven Adresse in den Speicher geschrieben. In RV64 belegt ein solcher Wert acht aufeinanderfolgende Byteadressen.",
+      "example": "Bei `s0 = 1000` greifen `ld a1, 8(s0)` und `sd a1, 8(s0)` ab Adresse `1008` zu; der 64-Bit-Wert belegt die Bytes `1008` bis `1015`.",
+      "pitfalls": [
+        "Bei `ld` ist das erste Register das Ziel; bei `sd` ist es die Quelle.",
+        "`ld` und `sd` übertragen in RV64 jeweils 64 Bit."
+      ],
+      "related": [
+        "Adressierungsform offset(base)",
+        "Byteadressierung",
+        "Little Endian und Big Endian",
+        "Ausrichtung (Alignment)"
+      ],
+      "heading": "Laden und Speichern von 64 Bit"
+    },
+    {
+      "id": "era-04-k21",
+      "term": "Program Counter (PC) und Kontrollfluss",
+      "kind": "concept",
+      "short": "Der Program Counter enthält die Adresse der Instruktion, die ausgeführt wird, und bestimmt damit den Programmablauf.",
+      "explanation": "Der Program Counter (PC) ist ein Prozessorregister, das während der Ausführung die Adresse der aktuellen Instruktion enthält. Im normalen Ablauf wird er auf die nächste Instruktion aktualisiert. Ein Sprung setzt den PC auf ein anderes Ziel, und ein bedingter Sprung tut dies nur, wenn sein Vergleich erfüllt ist.",
+      "example": "Ein Branch kann den PC zum Anfang einer Schleife zurücksetzen, solange die Sprungbedingung erfüllt ist.",
+      "pitfalls": [
+        "Ein Sprung ändert den Kontrollfluss, auch wenn er keinen gewöhnlichen Datenwert berechnet.",
+        "Eine Sprungmarke benennt eine Programmstelle und ist kein eigener Datenwert."
+      ],
+      "related": [
+        "Sprungmarke (Label)",
+        "Unbedingter Sprung",
+        "Bedingter Sprung (Branch)"
+      ],
+      "heading": "Steuerung des Programmablaufs"
+    },
+    {
+      "id": "era-04-k22",
+      "term": "Sprungmarke (Label)",
+      "kind": "definition",
+      "short": "Eine Sprungmarke ist ein Name für eine Stelle im Programm, auf die ein Sprungbefehl zielen kann.",
+      "explanation": "Eine Sprungmarke benennt eine Instruktionsadresse im Assemblerprogramm. Der Assembler ordnet dem Namen die entsprechende Adresse beziehungsweise den für den Sprung benötigten Abstand zu. Marken dürfen keine reservierten Bezeichner sein.",
+      "example": "```asm\nloop:\n    add t0, t0, t1\n    j loop\n```",
+      "pitfalls": [
+        "Die Marke ist ein Zielname und keine auszuführende Instruktion.",
+        "Ein reservierter Befehlname eignet sich nicht als frei gewählter Markenname."
+      ],
+      "related": [
+        "Program Counter (PC) und Kontrollfluss",
+        "Unbedingter Sprung",
+        "Bedingter Sprung (Branch)"
+      ],
+      "heading": "Steuerung des Programmablaufs"
+    },
+    {
+      "id": "era-04-k23",
+      "term": "Unbedingter Sprung",
+      "kind": "concept",
+      "short": "Ein unbedingter Sprung setzt die Ausführung immer an seinem Ziel fort.",
+      "explanation": "Ein unbedingter Sprung überträgt den Kontrollfluss zum angegebenen Ziel, ohne eine Datenbedingung zu prüfen. In RISC-V ist `j label` eine Assembler-Pseudoinstruktion für `jal x0, label`; `jal` ist der eigentliche Sprungbefehl. `jr rs1` ist eine Pseudoinstruktion für `jalr x0, 0(rs1)` und springt zu der im Register angegebenen Adresse.",
+      "example": "```asm\nj target\nadd s2, s2, s3   # wird auf diesem Weg übersprungen\ntarget:\nadd s1, s1, s0\n```",
+      "pitfalls": [
+        "Der Sprung erfolgt unabhängig von den Registerwerten.",
+        "`j` und `jr` sind Pseudoinstruktionen; die zugrunde liegenden Befehle heißen `jal` und `jalr`."
+      ],
+      "related": [
+        "Program Counter (PC) und Kontrollfluss",
+        "Sprungmarke (Label)",
+        "Bedingter Sprung (Branch)"
+      ],
+      "heading": "Unbedingter Sprung"
+    },
+    {
+      "id": "era-04-k24",
+      "term": "Bedingter Sprung (Branch)",
+      "kind": "concept",
+      "short": "Ein Branch verändert den Kontrollfluss nur dann, wenn der Vergleich seiner Registeroperanden die Bedingung erfüllt.",
+      "explanation": "Ein bedingter Sprung vergleicht zwei Register und springt zum Ziel, falls seine Bedingung wahr ist. `beq` prüft Gleichheit, `bne` Verschiedenheit, `blt` einen signed Kleiner-Vergleich und `bge` einen signed Größer-oder-gleich-Vergleich. Der Zielabstand ist im Befehl codiert und wird relativ zum PC bestimmt; eine Sprungmarke kann dem Assembler als lesbarer Zielname dienen.",
+      "example": "```asm\nbne s3, s4, L1\nadd s0, s1, s2\nL1:\nsub s0, s0, s3\n```\nWenn `s3` und `s4` verschieden sind, wird die Addition übersprungen; die Subtraktion bei `L1` wird in beiden Fällen ausgeführt.",
+      "pitfalls": [
+        "`blt` und `bge` vergleichen vorzeichenbehaftet; für unsigned-Vergleiche gibt es Varianten wie `bltu` und `bgeu`.",
+        "Wenn die Bedingung falsch ist, läuft das Programm mit der nächsten Instruktion weiter."
+      ],
+      "related": [
+        "Program Counter (PC) und Kontrollfluss",
+        "Sprungmarke (Label)",
+        "Unbedingter Sprung",
+        "Zweierkomplement",
+        "signed/unsigned-Interpretation"
+      ],
+      "heading": "Bedingter Sprung (*Branch*)"
+    }
+  ],
+  "generator": {
+    "model": "gpt-6-luna",
+    "effort": "xhigh",
+    "promptVersion": "k1",
+    "generatedAt": "2026-11-02T12:29:58.832Z"
+  }
+}
