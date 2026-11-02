@@ -88,7 +88,7 @@ function useSwipeToClose(onClose: () => void) {
     const finish = (dy: number, dt: number) => {
       const fast = dy > 60 && dy / Math.max(dt, 1) > 0.6; // px/ms
       if (dy > 120 || fast) {
-        void animate(y, el.offsetHeight + 40, { duration: 0.18 }).then(onClose);
+        onClose(); // Ausblenden übernimmt die exit-Animation (läuft von der aktuellen Position weiter nach unten)
       } else void animate(y, 0, { type: 'spring', stiffness: 500, damping: 40 });
     };
     const onStart = (e: TouchEvent) => {
@@ -137,7 +137,7 @@ function useSwipeToClose(onClose: () => void) {
       window.removeEventListener('pointermove', move);
       window.removeEventListener('pointerup', up);
       const dy = ev.clientY - startY;
-      if (dy > 120 || (dy > 60 && dy / Math.max(Date.now() - startT, 1) > 0.6)) void animate(y, (ref.current?.offsetHeight ?? 600) + 40, { duration: 0.18 }).then(onClose);
+      if (dy > 120 || (dy > 60 && dy / Math.max(Date.now() - startT, 1) > 0.6)) onClose();
       else void animate(y, 0, { type: 'spring', stiffness: 500, damping: 40 });
     };
     window.addEventListener('pointermove', move);
@@ -173,7 +173,8 @@ function Sheet({ onClose, children, title }: { onClose: () => void; children: Re
             className="relative max-h-[92dvh] w-full overscroll-contain max-w-md overflow-y-auto rounded-t-3xl bg-surface p-5 pb-[calc(1.5rem+env(safe-area-inset-bottom))] shadow-2xl sm:rounded-3xl"
             initial={{ y: 60, opacity: 0.6 }}
             animate={{ y: 0, opacity: 1 }}
-            exit={{ y: 80, opacity: 0 }}
+            variants={{ out: () => ({ y: Math.max(swipe.y.get() + 160, 80), opacity: 0, transition: { duration: 0.2 } }) }}
+            exit="out"
             transition={{ type: 'spring', stiffness: 380, damping: 32 }}
             onClick={(e) => e.stopPropagation()}
           >
