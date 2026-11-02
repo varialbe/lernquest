@@ -1,0 +1,2003 @@
+{
+  "schemaVersion": 1,
+  "id": "eip-06",
+  "module": "EIP",
+  "number": 6,
+  "slug": "methoden-und-sortieren",
+  "title": "Methoden und Sortieren",
+  "summary": "Du lernst, wie Java-Methoden Parameter, Rückgaben und Arrays verwenden. Insertion Sort fügt jedes neue Element in ein sortiertes Präfix ein. Dabei sind Referenzkopien, die Reihenfolge der Bedingungen, Stabilität und die quadratischen Kosten wichtige Punkte.",
+  "concepts": [
+    "Methode",
+    "Parameter und Argument",
+    "Lokale Variable und Vorbedingung",
+    "Kommandozeilenargumente",
+    "Call und Return",
+    "Wertkopie",
+    "Array-Referenz und Aliasing",
+    "Mutation und echte Kopie",
+    "Insertion Sort",
+    "Sortiertes Präfix",
+    "locate und shift",
+    "Short-Circuit",
+    "Stabilität",
+    "Laufzeit Θ(n²)",
+    "Invariante"
+  ],
+  "keyFacts": [
+    "Eine Methode ist ein benannter, wiederverwendbarer Codeblock, der Aufgaben verpackt und Probleme zerlegt.",
+    "Ein formaler Parameter steht in der Methodendefinition; ein aktuelles Argument ist der konkrete Wert beim Aufruf.",
+    "Eine void-Methode gibt keinen Wert zurück und heißt auch Prozedur.",
+    "Eine Vorbedingung muss vor dem Aufruf gelten; min braucht ein nichtleeres Array, weil es b[0] liest.",
+    "Die Wörter hinter dem Klassennamen landen als Strings in main(String[] args).",
+    "Bei einer Zuweisung wie int result = min(a) wird result erst nach der Rückkehr von min initialisiert.",
+    "Java kopiert beim Aufruf jeden Argumentwert; bei einem Basistyp wird der Wert, bei einem Array die Referenz kopiert.",
+    "Eine Methode kann durch b[0] = 9 das gemeinsam referenzierte Array ändern; b = new int[2] weist dagegen nur die lokale Referenz neu zu.",
+    "Zwei Variablen, die auf dasselbe Array zeigen, bilden Aliasing; eine echte Kopie entsteht durch ein neues Array und das Kopieren seiner Elemente.",
+    "Insertion Sort baut schrittweise ein sortiertes Präfix auf und liefert eine sortierte Kopie der Eingabe.",
+    "locate bestimmt die Einfügeposition; shift kopiert die betroffenen Elemente nach rechts, danach wird x an Position j geschrieben.",
+    "shift läuft von rechts nach links, damit Werte nicht überschrieben werden, bevor sie kopiert wurden.",
+    "In j < i && x >= b[j] wird bei falschem linken Teil der rechte nicht ausgewertet; dadurch wird b[i] nicht gelesen.",
+    "Mit x >= b[j] läuft locate an gleichen Elementen vorbei, sodass das neue Element dahinter landet und die Sortierung stabil bleibt.",
+    "In Iteration i betragen locate und shift zusammen ungefähr i Schritte; insgesamt ergibt sich 1 + 2 + … + (n − 1) = n(n − 1)/2 ∈ Θ(n²).",
+    "Nach dem Einfügen von a[i] ist b[0..i] sortiert und enthält genau die ersten i + 1 Eingabewerte."
+  ],
+  "tags": [
+    "tum",
+    "eip",
+    "java",
+    "algorithmen",
+    "sortieren"
+  ],
+  "links": [],
+  "source": {
+    "file": "EIP/01_Vorlesungen/EIP VO6.md",
+    "sha256": "2ad35cf807cadc6cb19c575de28bf5ba46592e9743a5933aec3648e33f589d6b",
+    "commit": "d753f1de08b43cff26ee1c8aaec44b0af24d4bc4"
+  },
+  "generator": {
+    "model": "gpt-6-luna",
+    "effort": "xhigh",
+    "reviewEffort": "high",
+    "promptVersion": "v3",
+    "generatedAt": "2026-11-02T17:01:21.221Z",
+    "review": {
+      "checked": 44,
+      "fixed": 1,
+      "removed": 0,
+      "notes": "Geprüft: 44 Fragen. Ergänzt wurde beim Boss-Sortierbeispiel der fehlende Algorithmus im Kontext, damit die Instanz ohne Vorlesung lösbar ist. Antworten, Distraktoren, Erklärungen, Mermaid-Diagramme und verify-Skripte geprüft."
+    }
+  },
+  "levels": [
+    {
+      "id": "eip-06-l1",
+      "index": 1,
+      "kind": "basics",
+      "title": "Grundlagen",
+      "questions": [
+        {
+          "id": "eip-06-l1-q01",
+          "type": "single",
+          "prompt": "Was ist eine Methode in Java?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Eine Variable, die nur in main existiert"
+            },
+            {
+              "id": "b",
+              "text": "Ein Ausdruck, der immer einen Wert zurückgibt"
+            },
+            {
+              "id": "c",
+              "text": "Ein Array mit festgelegter Länge"
+            },
+            {
+              "id": "d",
+              "text": "Ein benannter, wiederverwendbarer Codeblock"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Eine Methode fasst Anweisungen unter einem Namen zusammen. Sie kann wiederverwendet werden und hilft, ein Problem in Teilaufgaben zu zerlegen.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO6.md",
+            "heading": "1. Methoden"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Methode"
+          ]
+        },
+        {
+          "id": "eip-06-l1-q02",
+          "type": "cloze",
+          "prompt": "In `public static int min(int[] b)` ist `b` ein ___ .",
+          "options": [
+            {
+              "id": "a",
+              "text": "Rückgabewert"
+            },
+            {
+              "id": "b",
+              "text": "Kommandozeilenargument"
+            },
+            {
+              "id": "c",
+              "text": "aktuelles Argument"
+            },
+            {
+              "id": "d",
+              "text": "formaler Parameter"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Ein formaler Parameter ist die Eingabevariable in der Methodendefinition. Ein aktuelles Argument wäre der konkrete Wert beim Aufruf, etwa `a` in `min(a)`.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO6.md",
+            "heading": "Begriffe"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Parameter und Argument"
+          ]
+        },
+        {
+          "id": "eip-06-l1-q03",
+          "type": "truefalse",
+          "prompt": "Eine `return`-Anweisung beendet den aktuellen Methodenaufruf und kann dabei einen Wert liefern.",
+          "options": [
+            {
+              "id": "true",
+              "text": "Wahr"
+            },
+            {
+              "id": "false",
+              "text": "Falsch"
+            }
+          ],
+          "correct": [
+            "true"
+          ],
+          "explanation": "`return result;` beendet den Aufruf und gibt `result` an die aufrufende Stelle zurück.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO6.md",
+            "heading": "Aufbau"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Methode",
+            "Call und Return"
+          ]
+        },
+        {
+          "id": "eip-06-l1-q04",
+          "type": "multi",
+          "prompt": "Welche Aussagen beschreiben Vorteile von Methoden? Mehrere Antworten können richtig sein.",
+          "options": [
+            {
+              "id": "a",
+              "text": "Ein Problem lässt sich in kleinere Teilaufgaben zerlegen."
+            },
+            {
+              "id": "b",
+              "text": "Jede Methode muss ein Array zurückgeben."
+            },
+            {
+              "id": "c",
+              "text": "Ein einmal geschriebener Codeblock kann wiederholt aufgerufen werden."
+            },
+            {
+              "id": "d",
+              "text": "Mehrere Schritte bekommen einen Namen."
+            }
+          ],
+          "correct": [
+            "a",
+            "c",
+            "d"
+          ],
+          "explanation": "Methoden verpacken Aufgaben, erlauben Wiederverwendung und unterstützen die Zerlegung eines Problems. Ein Rückgabetyp kann auch `void` sein.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO6.md",
+            "heading": "1. Methoden"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Methode"
+          ]
+        },
+        {
+          "id": "eip-06-l1-q05",
+          "type": "single",
+          "prompt": "Wie heißt eine Methode mit Rückgabetyp `void` auch?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Invariante"
+            },
+            {
+              "id": "b",
+              "text": "Prozedur"
+            },
+            {
+              "id": "c",
+              "text": "Konstruktor"
+            },
+            {
+              "id": "d",
+              "text": "Aktuelles Argument"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "Eine `void`-Methode gibt keinen Wert zurück und wird auch Prozedur genannt.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO6.md",
+            "heading": "Begriffe"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Methode"
+          ]
+        },
+        {
+          "id": "eip-06-l1-q06",
+          "type": "code_output",
+          "prompt": "Der Aufruf lautet `java Test Hel lo World!`. Was gibt dieses Programm aus?\n\n```java\npublic static void main(String[] args) {\n    write(args[0] + args[1] + args[2]);\n}\n```\n\nDabei gibt `write` den übergebenen Text aus.",
+          "options": [
+            {
+              "id": "a",
+              "text": "Hel lo World!"
+            },
+            {
+              "id": "b",
+              "text": "HelloWorld!"
+            },
+            {
+              "id": "c",
+              "text": "World!loHel"
+            },
+            {
+              "id": "d",
+              "text": "TestHelloWorld!"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "`args[0]`, `args[1]` und `args[2]` sind die Strings `Hel`, `lo` und `World!`. Die Konkatenation fügt sie ohne zusätzliche Leerzeichen zusammen.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO6.md",
+            "heading": "und Kommandozeilenargumente"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Kommandozeilenargumente"
+          ]
+        },
+        {
+          "id": "eip-06-l1-q07",
+          "type": "diagram",
+          "prompt": "Im Diagramm wartet `main` während `min(a)` ausgeführt wird. Was bedeutet der Rückkehrpfeil von `min`?",
+          "context": {
+            "type": "mermaid",
+            "content": "flowchart LR\n  M[\"main: int result = min(a)\"] -. \"call\" .-> F[\"min: Werte prüfen\"]\n  F --> R[\"return result\"]\n  R -. \"return\" .-> W[\"main: result setzen, dann write\"]",
+            "caption": "Aufruf und Rückkehr zwischen main und min"
+          },
+          "options": [
+            {
+              "id": "a",
+              "text": "`min` wird ohne Argumente erneut gestartet."
+            },
+            {
+              "id": "b",
+              "text": "Die lokale Variable von `min` wird zur lokalen Variable von `main`."
+            },
+            {
+              "id": "c",
+              "text": "Die Ausführung springt zurück zum Programmanfang."
+            },
+            {
+              "id": "d",
+              "text": "Der Rückgabewert geht zurück zum wartenden Aufruf in `main`."
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Nach `return result` kehrt die Ausführung zum wartenden Methodenaufruf zurück. Dort kann `main` den Rückgabewert weiterverwenden.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO6.md",
+            "heading": "Call und Return für"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Call und Return",
+            "Kontrollflussdiagramm"
+          ]
+        },
+        {
+          "id": "eip-06-l1-q08",
+          "type": "single",
+          "prompt": "Die Methode `min(int[] b)` beginnt mit `int result = b[0];`. Welche Vorbedingung braucht sie, damit dieser Zugriff gültig ist?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Das Array muss genau zwei Elemente enthalten."
+            },
+            {
+              "id": "b",
+              "text": "Alle Elemente müssen positiv sein."
+            },
+            {
+              "id": "c",
+              "text": "Das Array muss bereits sortiert sein."
+            },
+            {
+              "id": "d",
+              "text": "Das Array muss mindestens ein Element enthalten."
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Bei einem leeren Array gibt es kein Element an Index 0. Für diesen Zugriff muss das Array daher nichtleer sein.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO6.md",
+            "heading": "Begriffe"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Lokale Variable und Vorbedingung"
+          ]
+        },
+        {
+          "id": "eip-06-l1-q09",
+          "type": "truefalse",
+          "prompt": "Eine lokale Variable namens `result` in `main` und eine lokale Variable namens `result` in `min` sind dieselbe Variable.",
+          "options": [
+            {
+              "id": "true",
+              "text": "Wahr"
+            },
+            {
+              "id": "false",
+              "text": "Falsch"
+            }
+          ],
+          "correct": [
+            "false"
+          ],
+          "explanation": "Lokale Variablen gelten nur in ihrem jeweiligen Block. Gleiche Namen in zwei Methoden machen sie nicht zu derselben Variable.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO6.md",
+            "heading": "Begriffe"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Lokale Variable und Vorbedingung"
+          ]
+        },
+        {
+          "id": "eip-06-l1-q10",
+          "type": "multi",
+          "prompt": "Welche Aussagen zu `main(String[] args)` treffen zu? Mehrere Antworten können richtig sein.",
+          "options": [
+            {
+              "id": "a",
+              "text": "`args[0]` enthält immer den Klassennamen."
+            },
+            {
+              "id": "b",
+              "text": "Wörter hinter dem Klassennamen werden als Strings in `args` abgelegt."
+            },
+            {
+              "id": "c",
+              "text": "`main` ist der Einstiegspunkt des Programms."
+            },
+            {
+              "id": "d",
+              "text": "`args` enthält nur Zahlen."
+            }
+          ],
+          "correct": [
+            "b",
+            "c"
+          ],
+          "explanation": "`main` ist der Programmeinstieg. Die Wörter, die beim Start hinter dem Klassennamen stehen, werden als Strings in `args` abgelegt.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO6.md",
+            "heading": "und Kommandozeilenargumente"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Kommandozeilenargumente"
+          ]
+        },
+        {
+          "id": "eip-06-l1-q11",
+          "type": "cloze",
+          "prompt": "Im Methodenkopf `public static int[] readArray(int number)` ist `int[]` der ___ .",
+          "options": [
+            {
+              "id": "a",
+              "text": "Rückgabetyp"
+            },
+            {
+              "id": "b",
+              "text": "Rumpf"
+            },
+            {
+              "id": "c",
+              "text": "Methodenname"
+            },
+            {
+              "id": "d",
+              "text": "formale Parameter"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "Der Rückgabetyp gibt an, welchen Typ die Methode zurückliefert. Hier ist es ein Array von `int`-Werten.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO6.md",
+            "heading": "Aufbau"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Methode"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "eip-06-l2",
+      "index": 2,
+      "kind": "apply",
+      "title": "Anwenden",
+      "questions": [
+        {
+          "id": "eip-06-l2-q01",
+          "type": "code_output",
+          "prompt": "Was gibt der Code aus? `write` gibt den übergebenen Wert aus.\n\n```java\npublic static void zero(int number) {\n    number = 0;\n}\n\nint n = 2;\nzero(n);\nwrite(n);\n```",
+          "options": [
+            {
+              "id": "a",
+              "text": "Der Aufruf verursacht einen Fehler."
+            },
+            {
+              "id": "b",
+              "text": "0"
+            },
+            {
+              "id": "c",
+              "text": "Es gibt keine Ausgabe."
+            },
+            {
+              "id": "d",
+              "text": "2"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "`zero` erhält eine Kopie des `int`-Werts. Die Zuweisung `number = 0` ändert diese lokale Kopie, während `n` den Wert 2 behält.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO6.md",
+            "heading": "Basistyp: Die Methode bekommt eine Kopie"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Wertkopie"
+          ]
+        },
+        {
+          "id": "eip-06-l2-q02",
+          "type": "code_output",
+          "prompt": "Was gibt der Code aus? `write` gibt den übergebenen Wert aus.\n\n```java\npublic static void setFirst(int[] b) {\n    b[0] = 9;\n}\n\nint[] a = {7, 2};\nsetFirst(a);\nwrite(a[0]);\n```",
+          "options": [
+            {
+              "id": "a",
+              "text": "7"
+            },
+            {
+              "id": "b",
+              "text": "9"
+            },
+            {
+              "id": "c",
+              "text": "0"
+            },
+            {
+              "id": "d",
+              "text": "Der Aufruf verursacht einen Fehler."
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "Der Wert des Arguments ist eine Referenz auf dasselbe Array. `b[0] = 9` mutiert dieses gemeinsame Array, deshalb liest `a[0]` anschließend 9.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO6.md",
+            "heading": "Array-Element ändern: sichtbar für den Aufrufer"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Array-Referenz und Aliasing",
+            "Mutation und echte Kopie"
+          ]
+        },
+        {
+          "id": "eip-06-l2-q03",
+          "type": "code_output",
+          "prompt": "Was gibt der Code aus? `write` gibt den übergebenen Wert aus.\n\n```java\npublic static void replace(int[] b) {\n    b = new int[2];\n}\n\nint[] a = {7, 2};\nreplace(a);\nwrite(a[0]);\n```",
+          "options": [
+            {
+              "id": "a",
+              "text": "0"
+            },
+            {
+              "id": "b",
+              "text": "7"
+            },
+            {
+              "id": "c",
+              "text": "Der Aufruf verursacht einen Fehler."
+            },
+            {
+              "id": "d",
+              "text": "2"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "`b` ist eine lokale Kopie der Referenz. Die Neuzuweisung lässt nur `b` auf das neue Array zeigen; `a` zeigt weiterhin auf das ursprüngliche Array.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO6.md",
+            "heading": "Parameter neu zuweisen: unsichtbar für den Aufrufer"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Wertkopie",
+            "Array-Referenz und Aliasing"
+          ]
+        },
+        {
+          "id": "eip-06-l2-q04",
+          "type": "single",
+          "prompt": "Bei `int[] a = {4, 8}; min(a);` was ist das aktuelle Argument des Aufrufs `min(a)`?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Der konkrete Wert, auf den `a` verweist"
+            },
+            {
+              "id": "b",
+              "text": "Der formale Parameter `b`"
+            },
+            {
+              "id": "c",
+              "text": "Der Methodenrumpf von `min`"
+            },
+            {
+              "id": "d",
+              "text": "Der Rückgabetyp `int`"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "Das aktuelle Argument ist der konkrete Wert, der beim Aufruf übergeben wird. Hier ist das der in `a` gespeicherte Array-Verweis.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO6.md",
+            "heading": "Begriffe"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Parameter und Argument",
+            "Array-Referenz und Aliasing"
+          ]
+        },
+        {
+          "id": "eip-06-l2-q05",
+          "type": "calc",
+          "prompt": "Für `locate(b, x, i)` gilt: `j` startet bei 0 und wird erhöht, solange `j < i && x >= b[j]` wahr ist. Für `b = [1, 4, 8, 10]`, `x = 6` und `i = 4`: Welchen Index gibt `locate` zurück?",
+          "options": [
+            {
+              "id": "a",
+              "text": "0"
+            },
+            {
+              "id": "b",
+              "text": "1"
+            },
+            {
+              "id": "c",
+              "text": "3"
+            },
+            {
+              "id": "d",
+              "text": "2"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "`6 >= 1` und `6 >= 4` sind wahr, also erreicht `j` den Wert 2. Dort ist `6 >= 8` falsch, deshalb wird 2 zurückgegeben.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO6.md",
+            "heading": "Code"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Insertion Sort",
+            "locate und shift"
+          ]
+        },
+        {
+          "id": "eip-06-l2-q06",
+          "type": "calc",
+          "prompt": "Für `shift(b, j, i)` wird `b[k + 1] = b[k]` ausgeführt, solange `k` von `i - 1` abwärts bis `j` läuft. Wie viele Zuweisungen erfolgen bei `j = 2` und `i = 5`?",
+          "options": [
+            {
+              "id": "a",
+              "text": "5"
+            },
+            {
+              "id": "b",
+              "text": "4"
+            },
+            {
+              "id": "c",
+              "text": "2"
+            },
+            {
+              "id": "d",
+              "text": "3"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "`k` nimmt die Werte 4, 3 und 2 an. Damit wird die Zuweisung genau dreimal ausgeführt.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO6.md",
+            "heading": "Code"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "locate und shift"
+          ]
+        },
+        {
+          "id": "eip-06-l2-q07",
+          "type": "diagram",
+          "prompt": "Im Ablauf gilt `j < i`, aber `x >= b[j]` ist falsch. Welcher Schritt wird danach ausgeführt?",
+          "context": {
+            "type": "mermaid",
+            "content": "flowchart TD\n  A[\"j = 0\"] --> B{\"j < i und x >= b[j]?\"}\n  B -- \"ja\" --> C[\"++j\"]\n  C --> B\n  B -- \"nein\" --> D[\"k = i - 1\"]\n  D --> E{\"k >= j?\"}\n  E -- \"ja\" --> F[\"b[k + 1] = b[k]\"]\n  F --> G[\"--k\"]\n  G --> E\n  E -- \"nein\" --> H[\"b[j] = x\"]",
+            "caption": "Position finden, Elemente verschieben und den Wert einsetzen"
+          },
+          "options": [
+            {
+              "id": "a",
+              "text": "`b[j] = x`"
+            },
+            {
+              "id": "b",
+              "text": "`k = i - 1`"
+            },
+            {
+              "id": "c",
+              "text": "`return j`"
+            },
+            {
+              "id": "d",
+              "text": "`++j`"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "Die Schleifenbedingung ist insgesamt falsch, weil der Vergleich mit `b[j]` fehlschlägt. Der Ablauf verlässt `locate` und beginnt anschließend das Verschieben mit `k = i - 1`.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO6.md",
+            "heading": "Ablauf einer Einfügung"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "locate und shift",
+            "Kontrollflussdiagramm"
+          ]
+        },
+        {
+          "id": "eip-06-l2-q08",
+          "type": "multi",
+          "prompt": "Welche Aussagen über `int[] b = a` treffen zu? Mehrere Antworten können richtig sein.",
+          "options": [
+            {
+              "id": "a",
+              "text": "`a` und `b` verweisen anschließend auf dasselbe Array."
+            },
+            {
+              "id": "b",
+              "text": "Die Zuweisung kopiert alle Array-Elemente in ein neues Array."
+            },
+            {
+              "id": "c",
+              "text": "Eine Änderung an `b[0]` ist auch über `a[0]` sichtbar."
+            },
+            {
+              "id": "d",
+              "text": "`a` wird automatisch auf ein neues Array umgebogen."
+            }
+          ],
+          "correct": [
+            "a",
+            "c"
+          ],
+          "explanation": "Die Zuweisung kopiert die Referenz, nicht das Array. Beide Variablen zeigen deshalb auf dieselben Elemente.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO6.md",
+            "heading": "Übersicht"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Array-Referenz und Aliasing",
+            "Mutation und echte Kopie"
+          ]
+        },
+        {
+          "id": "eip-06-l2-q09",
+          "type": "cloze",
+          "prompt": "In `insert` werden die Schritte in dieser Reihenfolge ausgeführt: `locate`, `shift`, dann `___`.",
+          "options": [
+            {
+              "id": "a",
+              "text": "`b = new int[i]`"
+            },
+            {
+              "id": "b",
+              "text": "`++j`"
+            },
+            {
+              "id": "c",
+              "text": "`b[j] = x`"
+            },
+            {
+              "id": "d",
+              "text": "`return b[j]`"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Zuerst wird die Einfügeposition bestimmt, dann werden Elemente nach rechts verschoben. Zum Schluss kommt `x` an die freigewordene Position `j`.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO6.md",
+            "heading": "Code"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Insertion Sort",
+            "locate und shift"
+          ]
+        },
+        {
+          "id": "eip-06-l2-q10",
+          "type": "truefalse",
+          "prompt": "Wenn `copy(a)` ein neues Array mit denselben Elementen erzeugt und zurückgibt, sind spätere Änderungen an diesem neuen Array nicht automatisch Änderungen an `a`.",
+          "options": [
+            {
+              "id": "true",
+              "text": "Wahr"
+            },
+            {
+              "id": "false",
+              "text": "Falsch"
+            }
+          ],
+          "correct": [
+            "true"
+          ],
+          "explanation": "Eine echte Kopie ist ein separates Array. Anders als bei einer bloßen Referenzzuweisung teilen die beiden Variablen nicht dasselbe Array.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO6.md",
+            "heading": "Echte Kopie erstellen"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Mutation und echte Kopie",
+            "Array-Referenz und Aliasing"
+          ]
+        },
+        {
+          "id": "eip-06-l2-q11",
+          "type": "single",
+          "prompt": "Beim Sortieren der Eingabe `{8, 3, 6}`: Was ist nach dem Einfügen des ersten Elements in das Ergebnisarray `b` das sortierte Präfix?",
+          "options": [
+            {
+              "id": "a",
+              "text": "`[8]`"
+            },
+            {
+              "id": "b",
+              "text": "`[3]`"
+            },
+            {
+              "id": "c",
+              "text": "`[8, 3]`"
+            },
+            {
+              "id": "d",
+              "text": "Das Präfix ist leer, bis alle Werte eingefügt wurden."
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "Nach der ersten Iteration wurde nur `a[0]`, also 8, eingefügt. Ein einzelnes Element bildet bereits ein sortiertes Präfix.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO6.md",
+            "heading": "Zerlegung in Teilprobleme"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Insertion Sort",
+            "Sortiertes Präfix"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "eip-06-l3",
+      "index": 3,
+      "kind": "deepen",
+      "title": "Vertiefen",
+      "questions": [
+        {
+          "id": "eip-06-l3-q01",
+          "type": "multi",
+          "prompt": "Warum steht in `while (j < i && x >= b[j])` die Indexprüfung links? Mehrere Antworten können richtig sein.",
+          "options": [
+            {
+              "id": "a",
+              "text": "Das Vertauschen wäre bei jedem möglichen Array und jedem `i` gleich sicher."
+            },
+            {
+              "id": "b",
+              "text": "Bei falschem `j < i` wird `b[j]` wegen Short-Circuit nicht gelesen."
+            },
+            {
+              "id": "c",
+              "text": "Die Reihenfolge sorgt dafür, dass `b[j]` immer den Wert `x` annimmt."
+            },
+            {
+              "id": "d",
+              "text": "So wird bei `j = i` der rechte Teil der Bedingung übersprungen."
+            }
+          ],
+          "correct": [
+            "b",
+            "d"
+          ],
+          "explanation": "Bei `&&` wird der rechte Teil nur geprüft, wenn der linke wahr ist. Ist `j = i`, verhindert `j < i` also einen Zugriff auf `b[j]`.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO6.md",
+            "heading": "Short-Circuit bei"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Short-Circuit",
+            "locate und shift"
+          ]
+        },
+        {
+          "id": "eip-06-l3-q02",
+          "type": "truefalse",
+          "prompt": "Bei `locate` mit der Bedingung `x >= b[j]` läuft `j` an gleichen Werten vorbei. Ein neues gleich großes Element wird dadurch dahinter eingefügt.",
+          "options": [
+            {
+              "id": "true",
+              "text": "Wahr"
+            },
+            {
+              "id": "false",
+              "text": "Falsch"
+            }
+          ],
+          "correct": [
+            "true"
+          ],
+          "explanation": "Der Vergleich `>=` lässt die Suche auch bei Gleichheit weiterlaufen. Das neue Element landet hinter den bereits vorhandenen gleichen Werten; ihre Reihenfolge bleibt erhalten.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO6.md",
+            "heading": "Stabilität durch"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Stabilität",
+            "locate und shift"
+          ]
+        },
+        {
+          "id": "eip-06-l3-q03",
+          "type": "single",
+          "prompt": "Beim Verschieben von `[1, 3, 7, 9, 0]` für eine Einfügung ab `j = 2`: Warum läuft `shift` von rechts nach links?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Damit jeder Wert kopiert wird, bevor sein Platz überschrieben wird."
+            },
+            {
+              "id": "b",
+              "text": "Damit das Array eine neue Länge bekommt."
+            },
+            {
+              "id": "c",
+              "text": "Damit `j` während des Verschiebens automatisch wächst."
+            },
+            {
+              "id": "d",
+              "text": "Damit die Werte im Ergebnis absteigend sortiert sind."
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "Von rechts nach links bleibt jeder noch zu kopierende Wert erhalten. Beim Verschieben von links nach rechts würde zum Beispiel die 9 überschrieben, bevor sie kopiert wird.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO6.md",
+            "heading": "Warum von rechts nach links schieben?"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "locate und shift"
+          ]
+        },
+        {
+          "id": "eip-06-l3-q04-r1",
+          "type": "calc",
+          "prompt": "Ein Array mit $n=6$ Werten wird mit der beschriebenen Insertion-Sort-Variante aufgebaut. Die Einfügungen erfolgen an den Indizes $i=1,2,3,4,5$. Im Kostenmodell braucht die Einfügung am Index $i$ genau $i$ Schritte. Wie viele Schritte ergeben sich insgesamt?",
+          "options": [
+            {
+              "id": "a",
+              "text": "36"
+            },
+            {
+              "id": "b",
+              "text": "15"
+            },
+            {
+              "id": "c",
+              "text": "21"
+            },
+            {
+              "id": "d",
+              "text": "10"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "Die Einfügungen benötigen $1+2+3+4+5=15$ Schritte.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO6.md",
+            "heading": "6. Kosten"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Insertion Sort",
+            "Summation",
+            "Schrittzahl"
+          ]
+        },
+        {
+          "id": "eip-06-l3-q05",
+          "type": "code_output",
+          "prompt": "Welche Werte schreibt der Code nach dem Sortieren? `write` gibt jeden Wert in einer eigenen Zeile aus.\n\n```java\nint[] a = {4, 1, 3};\nint[] b = new int[a.length];\nfor (int i = 0; i < a.length; ++i) {\n    int j = 0;\n    while (j < i && a[i] >= b[j]) ++j;\n    for (int k = i - 1; k >= j; --k)\n        b[k + 1] = b[k];\n    b[j] = a[i];\n}\nwrite(b[0]);\nwrite(b[1]);\nwrite(b[2]);\n```",
+          "options": [
+            {
+              "id": "a",
+              "text": "3, 1, 4"
+            },
+            {
+              "id": "b",
+              "text": "1, 3, 4"
+            },
+            {
+              "id": "c",
+              "text": "0, 1, 3"
+            },
+            {
+              "id": "d",
+              "text": "4, 1, 3"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "Zuerst wird 4 eingefügt, dann 1 davor gesetzt und schließlich 3 zwischen 1 und 4 eingefügt. Das Ergebnisarray enthält daher 1, 3, 4.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO6.md",
+            "heading": "Code"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Insertion Sort",
+            "locate und shift"
+          ]
+        },
+        {
+          "id": "eip-06-l3-q06",
+          "type": "single",
+          "prompt": "Was behauptet die Invariante nach dem Einfügen von `a[i]`?",
+          "options": [
+            {
+              "id": "a",
+              "text": "`b` ist nach jeder Iteration bereits vollständig sortiert."
+            },
+            {
+              "id": "b",
+              "text": "`b[i..n-1]` ist sortiert und enthält alle Eingabewerte."
+            },
+            {
+              "id": "c",
+              "text": "`b[0..i]` ist sortiert und enthält genau die ersten `i + 1` Eingabewerte."
+            },
+            {
+              "id": "d",
+              "text": "`b[0..i]` enthält nur Werte, die größer als `a[i]` sind."
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Nach jeder Iteration bildet der vordere Bereich bis Index `i` ein sortiertes Präfix. Er enthält genau die Eingabewerte, die bis einschließlich `a[i]` verarbeitet wurden.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO6.md",
+            "heading": "7. Korrektheit"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Invariante",
+            "Sortiertes Präfix"
+          ]
+        },
+        {
+          "id": "eip-06-l3-q07",
+          "type": "diagram",
+          "prompt": "Welche Aussage wird durch den Ablauf nach jeder Iteration gestützt?",
+          "context": {
+            "type": "mermaid",
+            "content": "flowchart LR\n  A[\"Vor Iteration i: b[0..i-1] sortiert\"] --> B[\"a[i] passend einfügen\"]\n  B --> C[\"Danach: b[0..i] sortiert\"]\n  C --> D{\"i = n - 1?\"}\n  D -- \"nein\" --> A\n  D -- \"ja\" --> E[\"b ist sortierte Kopie von a\"]",
+            "caption": "Die Invariante über die Iterationen"
+          },
+          "options": [
+            {
+              "id": "a",
+              "text": "Vor der ersten Iteration ist das ganze Ergebnisarray sortiert und gefüllt."
+            },
+            {
+              "id": "b",
+              "text": "Bei `i = n - 1` enthält `b` nur das letzte Eingabeelement."
+            },
+            {
+              "id": "c",
+              "text": "Nach der Iteration für `i` ist `b[0..i]` sortiert."
+            },
+            {
+              "id": "d",
+              "text": "Das Verfahren sortiert die Eingabe, indem es `a` direkt verändert."
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Jeder Schritt fügt `a[i]` passend in das bisher sortierte Präfix ein. Nach dem letzten Einfügen ist deshalb das ganze Array `b` sortiert.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO6.md",
+            "heading": "7. Korrektheit"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Invariante",
+            "Sortiertes Präfix"
+          ]
+        },
+        {
+          "id": "eip-06-l3-q08",
+          "type": "single",
+          "prompt": "Angenommen, `b` hat Länge 3 und eine veränderte Schleifenbedingung lautet `x >= b[j] && j < i`. Wenn `j = i = 3` erreicht wird, welcher Zugriff wird zuerst versucht?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Zuerst wird `b[3]` gelesen; dieser Index liegt außerhalb eines Arrays der Länge 3."
+            },
+            {
+              "id": "b",
+              "text": "Zuerst wird `j < i` geprüft und der Arrayzugriff übersprungen."
+            },
+            {
+              "id": "c",
+              "text": "Die Bedingung wird ohne Auswertung beider Teile als wahr behandelt."
+            },
+            {
+              "id": "d",
+              "text": "Der Wert `x` wird in `b[3]` geschrieben."
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "Bei `&&` wird links nach rechts ausgewertet. Mit der vertauschten Reihenfolge kommt `x >= b[j]` zuerst; bei `j = 3` greift das auf den ungültigen Index 3 zu.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO6.md",
+            "heading": "Short-Circuit bei"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Short-Circuit",
+            "locate und shift"
+          ]
+        },
+        {
+          "id": "eip-06-l3-q09",
+          "type": "multi",
+          "prompt": "Welche Aussagen über die Kosten einer Iteration `i` treffen zu? Mehrere Antworten können richtig sein.",
+          "options": [
+            {
+              "id": "a",
+              "text": "Zusammen sind es immer `i²` Schritte."
+            },
+            {
+              "id": "b",
+              "text": "Die Eingabe bestimmt, ob sich `j` in der Summe wegkürzt."
+            },
+            {
+              "id": "c",
+              "text": "`locate` braucht ungefähr `j` Schritte und `shift` genau `i - j` Schritte."
+            },
+            {
+              "id": "d",
+              "text": "Zusammen sind es ungefähr `i` Schritte, unabhängig von `j`."
+            }
+          ],
+          "correct": [
+            "c",
+            "d"
+          ],
+          "explanation": "Die Teilschritte summieren sich zu `j + (i - j) = i`. Der Wert von `j` kürzt sich heraus, sodass diese Abschätzung nicht von der Eingabe abhängt.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO6.md",
+            "heading": "6. Kosten"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Laufzeit Θ(n²)",
+            "locate und shift"
+          ]
+        },
+        {
+          "id": "eip-06-l3-q10",
+          "type": "truefalse",
+          "prompt": "Diese Variante braucht auch bei bereits sortierter Eingabe Θ(n²), weil `locate` in jeder Iteration von links durch das Präfix sucht.",
+          "options": [
+            {
+              "id": "true",
+              "text": "Wahr"
+            },
+            {
+              "id": "false",
+              "text": "Falsch"
+            }
+          ],
+          "correct": [
+            "true"
+          ],
+          "explanation": "Auch bei sortierter Eingabe läuft `locate` von Index 0 bis nahe `i`. Die Summe dieser Suchlängen wächst quadratisch.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO6.md",
+            "heading": "6. Kosten"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Laufzeit Θ(n²)",
+            "locate und shift"
+          ]
+        },
+        {
+          "id": "eip-06-l3-q11",
+          "type": "single",
+          "prompt": "Was bedeutet Inlining bei einem Methodenaufruf laut Mitschrift?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Die JVM kann den Aufruf automatisch durch den Methodenrumpf ersetzen."
+            },
+            {
+              "id": "b",
+              "text": "Die Methode wird immer in ein Array umgewandelt."
+            },
+            {
+              "id": "c",
+              "text": "Der Compiler löscht alle lokalen Variablen."
+            },
+            {
+              "id": "d",
+              "text": "Der Aufrufer wird nach dem Aufruf beendet."
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "Inlining bezeichnet das Ersetzen eines Aufrufs durch den Methodenrumpf. Die JVM kann diese Umformung automatisch vornehmen.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO6.md",
+            "heading": "Helfer oder alles in einer Methode?"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Methode"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "eip-06-l4",
+      "index": 4,
+      "kind": "boss",
+      "title": "Boss",
+      "questions": [
+        {
+          "id": "eip-06-l4-q01",
+          "type": "single",
+          "prompt": "Ein Routenprogramm betrachtet Routen in der Reihenfolge A, B, C. A dauert 7 Minuten und hat keine Treppen, B dauert 5 Minuten und hat keine Treppen, C dauert ebenfalls 5 Minuten und hat keine Treppen. Die Regel wählt die schnellste Route ohne Treppen; bei gleicher Dauer bleibt die zuerst ausgewählte Route. Was wird ausgewählt?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Keine geeignete Route"
+            },
+            {
+              "id": "b",
+              "text": "B, weil sie die erste schnellste Route ist"
+            },
+            {
+              "id": "c",
+              "text": "A, weil sie zuerst kommt"
+            },
+            {
+              "id": "d",
+              "text": "C, weil Gleichstand die spätere Route bevorzugt"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "A wird zunächst gewählt, dann durch die schnellere Route B ersetzt. C ist nicht schneller als B, daher bleibt B bei Gleichstand ausgewählt.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO1.md",
+            "heading": null
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Methode",
+            "Parameter und Argument"
+          ]
+        },
+        {
+          "id": "eip-06-l4-q02",
+          "type": "code_output",
+          "prompt": "Welche Werte schreibt der Code? `write` gibt jeden Wert in einer eigenen Zeile aus.\n\n```java\nint[] a = {4, 1};\nint[] b = a;\nb[1] = 8;\nwrite(a[0]);\nwrite(a[1]);\n```",
+          "options": [
+            {
+              "id": "a",
+              "text": "4, 8"
+            },
+            {
+              "id": "b",
+              "text": "8, 4"
+            },
+            {
+              "id": "c",
+              "text": "4, 1"
+            },
+            {
+              "id": "d",
+              "text": "0, 8"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "`b = a` kopiert die Referenz, deshalb zeigen beide Variablen auf dasselbe Array. Die Änderung über `b[1]` ist beim Lesen über `a[1]` sichtbar.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO4.md",
+            "heading": null
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Array-Referenz und Aliasing",
+            "Mutation und echte Kopie"
+          ]
+        },
+        {
+          "id": "eip-06-l4-q03",
+          "type": "code_output",
+          "prompt": "Ein `int`-Array darf Länge 0 haben. Wird `b[0]` ausgewertet? Was gibt der Code aus? `write` gibt den übergebenen Wert aus.\n\n```java\nint[] b = new int[0];\nint j = 0;\nboolean safe = j < b.length && b[j] == 7;\nwrite(safe);\n```",
+          "options": [
+            {
+              "id": "a",
+              "text": "Der Zugriff auf `b[0]` löst eine Exception aus."
+            },
+            {
+              "id": "b",
+              "text": "Es gibt keine Ausgabe."
+            },
+            {
+              "id": "c",
+              "text": "false"
+            },
+            {
+              "id": "d",
+              "text": "true"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "`b.length` ist 0, also ist `j < b.length` falsch. Wegen Short-Circuit wird `b[j]` nicht gelesen und `safe` bleibt `false`.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO5.md",
+            "heading": null
+          },
+          "difficulty": 5,
+          "concepts": [
+            "Short-Circuit",
+            "Array-Referenz und Aliasing"
+          ]
+        },
+        {
+          "id": "eip-06-l4-q04",
+          "type": "code_output",
+          "prompt": "Was gibt der Code aus? `write` gibt jeden Wert in einer eigenen Zeile aus.\n\n```java\npublic static void f(int[] x, int y) {\n    x[0] = y;\n    y = 100;\n    x = new int[]{1, 2};\n    x[1] = 50;\n}\n\nint[] a = {7, 8};\nint v = 3;\nf(a, v);\nwrite(a[0]);\nwrite(a[1]);\nwrite(v);\n```",
+          "options": [
+            {
+              "id": "a",
+              "text": "3, 8, 3"
+            },
+            {
+              "id": "b",
+              "text": "3, 50, 3"
+            },
+            {
+              "id": "c",
+              "text": "7, 50, 100"
+            },
+            {
+              "id": "d",
+              "text": "7, 8, 3"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "`x[0] = y` verändert zunächst das gemeinsame Array. `y = 100` ändert nur die lokale Kopie; nach der Neuzuweisung von `x` betrifft `x[1] = 50` nur das neue Array.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO6.md",
+            "heading": "Parameter neu zuweisen: unsichtbar für den Aufrufer"
+          },
+          "difficulty": 5,
+          "concepts": [
+            "Wertkopie",
+            "Array-Referenz und Aliasing",
+            "Mutation und echte Kopie"
+          ]
+        },
+        {
+          "id": "eip-06-l4-q05",
+          "type": "calc",
+          "prompt": "Die ungefähre Schrittzahl dieser Sortier-Variante ist $T(n)=\\frac{n(n-1)}{2}$. Wie viele Schritte ergeben sich für $n=1000$?",
+          "options": [
+            {
+              "id": "a",
+              "text": "49 950"
+            },
+            {
+              "id": "b",
+              "text": "500 000"
+            },
+            {
+              "id": "c",
+              "text": "499 500"
+            },
+            {
+              "id": "d",
+              "text": "999 000"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "$1000\\cdot999/2=499\\,500$. Der führende quadratische Anteil erklärt das Wachstum in Θ(n²).",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO6.md",
+            "heading": "6. Kosten"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Laufzeit Θ(n²)"
+          ]
+        },
+        {
+          "id": "eip-06-l4-q06",
+          "type": "multi",
+          "prompt": "Welche Aussagen zur Sortierung mit Hilfsmethoden treffen zu? Mehrere Antworten können richtig sein.",
+          "options": [
+            {
+              "id": "a",
+              "text": "`insert` verändert das Array `b`, obwohl es keinen Wert zurückgibt."
+            },
+            {
+              "id": "b",
+              "text": "`sort` legt `b` an und ruft für jedes Eingabeelement `insert` auf."
+            },
+            {
+              "id": "c",
+              "text": "`locate` verschiebt die Elemente nach rechts."
+            },
+            {
+              "id": "d",
+              "text": "`shift` bestimmt die Einfügeposition."
+            }
+          ],
+          "correct": [
+            "a",
+            "b"
+          ],
+          "explanation": "`sort` legt das Ergebnisarray an und fügt die Werte nacheinander ein. `insert` mutiert das gemeinsame Array; die Position findet `locate`, während `shift` die Elemente verschiebt.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO6.md",
+            "heading": "Zerlegung in Teilprobleme"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Insertion Sort",
+            "locate und shift",
+            "Array-Referenz und Aliasing"
+          ]
+        },
+        {
+          "id": "eip-06-l4-q07",
+          "type": "diagram",
+          "prompt": "Welches Ergebnis folgt aus dem letzten Pfad im Diagramm, wenn die Verarbeitung bis `i = n - 1` reicht?",
+          "context": {
+            "type": "mermaid",
+            "content": "flowchart LR\n  A[\"Vor Iteration i: b[0..i-1] sortiert\"] --> B[\"a[i] passend einfügen\"]\n  B --> C[\"Danach: b[0..i] sortiert\"]\n  C --> D{\"i = n - 1?\"}\n  D -- \"nein\" --> A\n  D -- \"ja\" --> E[\"b ist sortierte Kopie von a\"]",
+            "caption": "Vom sortierten Präfix zum vollständigen Ergebnis"
+          },
+          "options": [
+            {
+              "id": "a",
+              "text": "`b` enthält nur ein sortiertes Präfix, aber keine übrigen Werte."
+            },
+            {
+              "id": "b",
+              "text": "`a` ist vollständig überschrieben und enthält nur das letzte Element."
+            },
+            {
+              "id": "c",
+              "text": "`b` ist eine sortierte Kopie von `a`."
+            },
+            {
+              "id": "d",
+              "text": "`b` enthält die Werte in umgekehrter Reihenfolge."
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Nach jedem Einfügen ist das Präfix bis `i` sortiert. Wenn `i` den letzten Index erreicht, umfasst dieses Präfix das gesamte Ergebnisarray und enthält alle Eingabewerte.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO6.md",
+            "heading": "7. Korrektheit"
+          },
+          "difficulty": 5,
+          "concepts": [
+            "Invariante",
+            "Sortiertes Präfix",
+            "Insertion Sort"
+          ]
+        },
+        {
+          "id": "eip-06-l4-q08",
+          "type": "calc",
+          "prompt": "Führe Insertion Sort mit `locate` und `shift` auf `a = [17, 3, -2, 9, 0, 1, 7, 42, 5]` aus. Welche Werte enthält das zurückgegebene Array in aufsteigender Reihenfolge?",
+          "context": {
+            "type": "code",
+            "content": "public static int[] sort(int[] a) {\n    int[] b = new int[a.length];\n    for (int i = 0; i < a.length; ++i) {\n        int j = 0;\n        while (j < i && a[i] >= b[j]) ++j;\n        for (int k = i - 1; k >= j; --k) b[k + 1] = b[k];\n        b[j] = a[i];\n    }\n    return b;\n}",
+            "language": "java",
+            "caption": "Algorithmus zum Einfügen in ein sortiertes Präfix"
+          },
+          "options": [
+            {
+              "id": "a",
+              "text": "-2, 0, 1, 3, 5, 7, 9, 17, 42"
+            },
+            {
+              "id": "b",
+              "text": "0, 1, 3, 5, 7, 9, 17, 42"
+            },
+            {
+              "id": "c",
+              "text": "42, 17, 9, 7, 5, 3, 1, 0, -2"
+            },
+            {
+              "id": "d",
+              "text": "-2, 0, 1, 3, 7, 5, 9, 17, 42"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "Jedes Element wird in das sortierte Präfix eingesetzt. Alle neun Eingabewerte bleiben erhalten und ergeben in aufsteigender Reihenfolge `-2, 0, 1, 3, 5, 7, 9, 17, 42`.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO6.md",
+            "heading": "Ganzer Durchlauf"
+          },
+          "difficulty": 5,
+          "concepts": [
+            "Insertion Sort",
+            "Sortiertes Präfix",
+            "locate und shift"
+          ]
+        },
+        {
+          "id": "eip-06-l4-q09",
+          "type": "single",
+          "prompt": "Betrachte `int result = min(a); write(result);`. `min` berechnet intern einen eigenen lokalen `result` und gibt ihn mit `return result` zurück. Wann wird der lokale Wert in `main` zugewiesen?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Erst wenn `min` zurückgekehrt ist."
+            },
+            {
+              "id": "b",
+              "text": "Bei jeder Schleifeniteration von `min` direkt in `main`."
+            },
+            {
+              "id": "c",
+              "text": "Er wird nie zugewiesen, weil `min` eine lokale Variable hat."
+            },
+            {
+              "id": "d",
+              "text": "Schon vor dem Aufruf von `min`."
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "Während `min` läuft, wartet `main` an der Aufrufstelle. Erst der Rückgabewert initialisiert danach `result` in `main`; die beiden lokalen Variablen sind verschieden.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO6.md",
+            "heading": "Call und Return für"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Call und Return",
+            "Lokale Variable und Vorbedingung"
+          ]
+        },
+        {
+          "id": "eip-06-l4-q10",
+          "type": "multi",
+          "prompt": "Eine Methode erhält `int[] x` und `int y`. Sie führt `x[0] = y; y = 100; x = new int[1];` aus. Der Aufrufer hatte `a = {7}` und `v = 3`. Was gilt nach dem Aufruf? Mehrere Antworten können richtig sein.",
+          "options": [
+            {
+              "id": "a",
+              "text": "`a[0]` ist 3."
+            },
+            {
+              "id": "b",
+              "text": "`a` verweist nun auf das neue Array der Methode."
+            },
+            {
+              "id": "c",
+              "text": "`v` ist 100."
+            },
+            {
+              "id": "d",
+              "text": "`v` ist 3."
+            }
+          ],
+          "correct": [
+            "a",
+            "d"
+          ],
+          "explanation": "`x[0] = y` ändert das gemeinsame Array mit dem kopierten Wert 3. Die Änderung an `y` betrifft nur die lokale Kopie, und die Neuzuweisung von `x` ändert `a` nicht.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO6.md",
+            "heading": "Übersicht"
+          },
+          "difficulty": 5,
+          "concepts": [
+            "Wertkopie",
+            "Array-Referenz und Aliasing",
+            "Mutation und echte Kopie"
+          ]
+        },
+        {
+          "id": "eip-06-l4-q11",
+          "type": "truefalse",
+          "prompt": "`insert` kann ohne Rückgabewert das Ergebnisarray verändern, weil der kopierte Parameter `b` weiterhin auf dasselbe Array wie im Aufrufer zeigt.",
+          "options": [
+            {
+              "id": "true",
+              "text": "Wahr"
+            },
+            {
+              "id": "false",
+              "text": "Falsch"
+            }
+          ],
+          "correct": [
+            "true"
+          ],
+          "explanation": "Der Rückgabewert ist dafür nicht nötig: `b` enthält eine Kopie der Referenz und erlaubt der Methode, die gemeinsamen Array-Elemente zu ändern.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO6.md",
+            "heading": "Code"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Array-Referenz und Aliasing",
+            "Mutation und echte Kopie",
+            "Insertion Sort"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "eip-06-l5",
+      "index": 5,
+      "kind": "bonus",
+      "title": "Praxis: Sortiertricks im Alltag",
+      "questions": [
+        {
+          "id": "eip-06-l5-q01",
+          "type": "single",
+          "prompt": "Drei Ansichten einer Campus-App müssen dieselbe Folge von Schritten verwenden, um einen Ortsnamen einheitlich anzuzeigen. Welche Lösung nutzt Methoden sinnvoll?",
+          "options": [
+            {
+              "id": "a",
+              "text": "In jeder Ansicht eine eigene Kopie des gesamten Ortsdaten-Arrays anlegen."
+            },
+            {
+              "id": "b",
+              "text": "Den Ortsnamen als Kommandozeilenargument an die App übergeben."
+            },
+            {
+              "id": "c",
+              "text": "Die Ansichten nach dem Ortsnamen sortieren, damit der Code wiederverwendbar wird."
+            },
+            {
+              "id": "d",
+              "text": "Die Schritte einmal in einer benannten Methode bündeln und von allen drei Ansichten aufrufen."
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Eine Methode bündelt eine Aufgabe unter einem Namen und kann an mehreren Stellen wiederverwendet werden. Das hilft, die Ansichten konsistent zu halten.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO6.md",
+            "heading": "Aufbau"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Methode"
+          ]
+        },
+        {
+          "id": "eip-06-l5-q02",
+          "type": "single",
+          "prompt": "Du startest ein Java-Werkzeug im Terminal und möchtest ihm einen Dateinamen und eine Option mitgeben. Wo kommen die Wörter hinter dem Klassennamen in `main(String[] args)` an?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Als Elemente des Arrays `args`."
+            },
+            {
+              "id": "b",
+              "text": "Als Rückgabewert von `main`."
+            },
+            {
+              "id": "c",
+              "text": "Als lokale Variablen in jeder aufgerufenen Methode."
+            },
+            {
+              "id": "d",
+              "text": "Als Elemente eines automatisch sortierten Arrays."
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "Java übergibt die Wörter hinter dem Klassennamen als Strings im Array `args`. Das Werkzeug kann sie etwa als Dateinamen und Option auswerten.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO6.md",
+            "heading": "und Kommandozeilenargumente"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Kommandozeilenargumente",
+            "Array-Referenz und Aliasing"
+          ]
+        },
+        {
+          "id": "eip-06-l5-q03",
+          "type": "estimate",
+          "prompt": "Nutze dieses Kostenmodell für Insertion Sort: Bei `n` Werten braucht die Arbeit für `locate` und `shift` zusammen `1 + 2 + … + (n − 1)` Schritte. Wie viele Schritte sind es bei 40 Werten?",
+          "options": [],
+          "correct": [],
+          "slider": {
+            "min": 0,
+            "max": 1200,
+            "step": 3,
+            "answer": 780,
+            "tolerance": 0,
+            "unit": "Schritte",
+            "scale": "linear"
+          },
+          "explanation": "Die Summe ist $1 + 2 + \\dots + 39 = \\frac{40 \\cdot 39}{2} = 780$ Schritte.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO6.md",
+            "heading": "6. Kosten"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Laufzeit Θ(n²)",
+            "locate und shift"
+          ]
+        },
+        {
+          "id": "eip-06-l5-q04",
+          "type": "single",
+          "prompt": "Eine Java-App speichert Sitzplätze in einem `boolean[]`. Eine Methode erhält dieses Array und setzt `b[4] = true`; das Array hat mindestens fünf Elemente. Was sieht die aufrufende App nach dem Methodenaufruf?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Die Methode arbeitet automatisch auf einer vollständigen Kopie des Arrays."
+            },
+            {
+              "id": "b",
+              "text": "Die Referenz der App wird auf ein neues Array gesetzt."
+            },
+            {
+              "id": "c",
+              "text": "Auch ihr Array hat an Index 4 den Wert `true`."
+            },
+            {
+              "id": "d",
+              "text": "Nur die lokale Variable `b` ändert sich; das Array der App bleibt gleich."
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Beim Aufruf wird die Array-Referenz kopiert; beide Variablen zeigen weiterhin auf dasselbe Array. Eine Änderung eines Elements ist daher auch für die App sichtbar.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO6.md",
+            "heading": "Array-Element ändern: sichtbar für den Aufrufer"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Array-Referenz und Aliasing",
+            "Mutation und echte Kopie"
+          ]
+        },
+        {
+          "id": "eip-06-l5-q05",
+          "type": "single",
+          "prompt": "Eine Fahrplan-App zeigt Verbindungen zunächst in Eingabereihenfolge und sortiert sie dann nach Abfahrtsminute. Eine stabile Sortierung lässt Einträge mit gleichem Sortierwert in ihrer bisherigen Reihenfolge. Was gilt für zwei Verbindungen mit derselben Abfahrtsminute?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Sie werden immer nach dem Zielort alphabetisch angeordnet."
+            },
+            {
+              "id": "b",
+              "text": "Die Verbindung mit der späteren Eingabeposition kommt immer zuerst."
+            },
+            {
+              "id": "c",
+              "text": "Eine der beiden Verbindungen wird entfernt."
+            },
+            {
+              "id": "d",
+              "text": "Ihre bisherige Reihenfolge bleibt erhalten."
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Stabilität bewahrt die Reihenfolge gleicher Sortierwerte. So bleibt bei gleichen Abfahrtsminuten die vorherige Reihenfolge der Verbindungen erhalten.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO6.md",
+            "heading": "Stabilität durch"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Stabilität"
+          ]
+        },
+        {
+          "id": "eip-06-l5-q06",
+          "type": "estimate",
+          "prompt": "Nach demselben Kostenmodell ist die Arbeit für `n` Werte `1 + 2 + … + (n − 1)`. Um welchen Faktor steigt die Arbeit von 20 auf 40 Werte, auf eine Nachkommastelle gerundet?",
+          "options": [],
+          "correct": [],
+          "slider": {
+            "min": 0,
+            "max": 12,
+            "step": 0.1,
+            "answer": 4.1,
+            "tolerance": 0,
+            "unit": "×",
+            "scale": "linear"
+          },
+          "explanation": "Für 20 Werte sind es $190$ Schritte, für 40 Werte $780$. Das Verhältnis ist $780 / 190 \\approx 4{,}1$.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO6.md",
+            "heading": "6. Kosten"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Laufzeit Θ(n²)"
+          ]
+        },
+        {
+          "id": "eip-06-l5-q07",
+          "type": "single",
+          "prompt": "Ein Dashboard hält eine Liste von Verkäufen aufsteigend nach Betrag sortiert. Für jeden neuen Verkauf sucht es in der bereits sortierten Liste die passende Stelle und rückt die folgenden Einträge nach rechts. Welches Verfahren veranschaulicht dieses Vorgehen?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Short-Circuit: eine zweite Bedingung wird manchmal übersprungen."
+            },
+            {
+              "id": "b",
+              "text": "Insertion Sort: neue Werte schrittweise an der passenden Stelle einfügen."
+            },
+            {
+              "id": "c",
+              "text": "Aliasing: mehrere Variablen zeigen auf dasselbe Array."
+            },
+            {
+              "id": "d",
+              "text": "Call und Return: eine Methode liefert ihr Ergebnis zurück."
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "Insertion Sort hält ein Präfix sortiert und fügt jeden neuen Wert an der passenden Stelle ein. Die folgenden Einträge werden dafür nach rechts geschoben.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO6.md",
+            "heading": "Zerlegung in Teilprobleme"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Insertion Sort",
+            "Sortiertes Präfix",
+            "locate und shift"
+          ]
+        },
+        {
+          "id": "eip-06-l5-q08",
+          "type": "estimate",
+          "prompt": "Eine Galerie-App erstellt für 64 Bewertungen ein neues `int[]`. Eine Schleife kopiert jedes Element genau einmal in das neue Array. Wie viele Element-Zuweisungen führt die Schleife aus?",
+          "options": [],
+          "correct": [],
+          "slider": {
+            "min": 0,
+            "max": 100,
+            "step": 1,
+            "answer": 64,
+            "tolerance": 0,
+            "unit": "Zuweisungen",
+            "scale": "linear"
+          },
+          "explanation": "Für jedes der 64 Elemente gibt es genau eine Zuweisung in die neue Array-Kopie. Insgesamt sind das 64 Zuweisungen.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO6.md",
+            "heading": "Echte Kopie erstellen"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Mutation und echte Kopie",
+            "Array-Referenz und Aliasing"
+          ]
+        },
+        {
+          "id": "eip-06-l5-q09",
+          "type": "single",
+          "prompt": "Du prüfst in Java, ob ein Messwert an Position `pos` existiert und nicht negativ ist. Bei `&&` wird der rechte Teil nur ausgewertet, wenn der linke Teil wahr ist. Welche Bedingung prüft die Grenzen, bevor sie `samples[pos]` liest?",
+          "options": [
+            {
+              "id": "a",
+              "text": "`pos < samples.length && samples[pos] >= 0`"
+            },
+            {
+              "id": "b",
+              "text": "`samples[pos] >= 0 && pos >= 0 && pos < samples.length`"
+            },
+            {
+              "id": "c",
+              "text": "`pos >= 0 && pos < samples.length && samples[pos] >= 0`"
+            },
+            {
+              "id": "d",
+              "text": "`samples[pos] >= 0`"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Zuerst wird geprüft, ob `pos` nicht negativ und kleiner als die Array-Länge ist. Wegen Short-Circuit wird `samples[pos]` nur gelesen, wenn beide Grenzprüfungen wahr sind.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO6.md",
+            "heading": "Short-Circuit bei"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Short-Circuit",
+            "Vorbedingung"
+          ]
+        },
+        {
+          "id": "eip-06-l5-q10",
+          "type": "single",
+          "prompt": "Eine App berechnet mit `int total = priceFor(cart);` den Gesamtpreis und zeigt ihn danach an. Was muss passieren, bevor `total` den Rückgabewert enthält?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Die App muss erst `cart` sortieren, damit ein Rückgabewert möglich ist."
+            },
+            {
+              "id": "b",
+              "text": "`priceFor` muss die lokale Variable `total` direkt verändern."
+            },
+            {
+              "id": "c",
+              "text": "`total` wird bereits vor dem Aufruf automatisch auf den endgültigen Preis gesetzt."
+            },
+            {
+              "id": "d",
+              "text": "`priceFor` wird aufgerufen, berechnet den Wert und kehrt mit `return` zurück."
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Der synchrone Aufruf kehrt erst zurück, nachdem `priceFor` den Wert berechnet und zurückgegeben hat. Danach wird der gelieferte Wert `total` zugewiesen und kann angezeigt werden.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO6.md",
+            "heading": "Call und Return für"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Call und Return",
+            "Lokale Variable und Vorbedingung"
+          ]
+        }
+      ]
+    }
+  ]
+}
