@@ -1,4 +1,4 @@
-import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
+import { existsSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 import { KnowledgeEntry, MODULE_INFO, UnitKnowledge, type Unit } from '@lernquest/shared';
 import { codexJson } from './codex.ts';
@@ -38,7 +38,7 @@ export function allContentUnits(): Unit[] {
   if (!existsSync(config.contentDir)) return out;
   for (const mod of readdirSync(config.contentDir).sort()) {
     const dir = join(config.contentDir, mod);
-    if (!existsSync(dir)) continue;
+    if (!statSync(dir).isDirectory()) continue; // z. B. content/.gitkeep
     for (const f of readdirSync(dir).filter((x) => x.endsWith('.json')).sort()) {
       try {
         out.push(JSON.parse(readFileSync(join(dir, f), 'utf8')) as Unit);

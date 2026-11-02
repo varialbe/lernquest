@@ -82,6 +82,7 @@ beforeAll(async () => {
   sh(studium, 'branch', '-q', '--set-upstream-to=origin/main', 'main');
 
   mkdirSync(join(lq, 'content'), { recursive: true });
+  writeFileSync(join(lq, 'content/.gitkeep'), ''); // wie im echten Repo: Dateien neben den Modul-Ordnern
   sh(tmp, 'init', '-q', '-b', 'main', lq);
   sh(lq, 'config', 'user.email', 't@t');
   sh(lq, 'config', 'user.name', 't');
