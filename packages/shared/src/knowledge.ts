@@ -56,3 +56,30 @@ export type KnowledgeModuleResponse = {
   module: ModuleId;
   units: { unitId: string; unitNumber: number; unitTitle: string; overview: string | null; entries: KnowledgeEntry[] }[];
 };
+
+/**
+ * `\( … \)` → `$…$` und `\[ … \]` → `$$…$$` (KaTeX/remark-math kennen nur `$`).
+ * Code (```-Blöcke und `…`) bleibt unverändert.
+ */
+export function normalizeMathDelimiters(s: string): string {
+  if (!s.includes('\\(') && !s.includes('\\[')) return s;
+  return s
+    .split(/(```[\s\S]*?```|`[^`\n]*`)/g)
+    .map((part, i) =>
+      i % 2
+        ? part
+        : part
+            .replace(/\\\[([\s\S]+?)\\\]/g, (_, m: string) => `$$${m.trim()}$$`)
+            .replace(/\\\(([\s\S]+?)\\\)/g, (_, m: string) => `$${m.trim()}$`),
+    )
+    .join('');
+}
+
+/** Alle Texte eines Eintrags normalisieren */
+export const normalizeEntryMath = (e: KnowledgeEntry): KnowledgeEntry => ({
+  ...e,
+  short: normalizeMathDelimiters(e.short),
+  explanation: normalizeMathDelimiters(e.explanation),
+  example: e.example == null ? null : normalizeMathDelimiters(e.example),
+  pitfalls: e.pitfalls.map(normalizeMathDelimiters),
+});

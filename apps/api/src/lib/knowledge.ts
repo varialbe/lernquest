@@ -1,7 +1,7 @@
 import { existsSync, readFileSync, statSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { asc, eq } from 'drizzle-orm';
-import { UnitKnowledge, type KnowledgeModuleResponse, type ModuleId } from '@lernquest/shared';
+import { normalizeEntryMath, normalizeMathDelimiters, UnitKnowledge, type KnowledgeModuleResponse, type ModuleId } from '@lernquest/shared';
 import { ROOT } from '../env.ts';
 import type { DB } from '../db/index.ts';
 import { units } from '../db/schema.ts';
@@ -18,7 +18,9 @@ export function unitKnowledge(unitId: string): UnitKnowledge | null {
   if (hit && hit.mtime === mtime) return hit.data;
   let data: UnitKnowledge | null = null;
   try {
-    data = UnitKnowledge.parse(JSON.parse(readFileSync(file, 'utf8')));
+    const k = UnitKnowledge.parse(JSON.parse(readFileSync(file, 'utf8')));
+    // ältere Dateien können Formeln als \( … \) enthalten → für KaTeX auf $ … $ umstellen
+    data = { ...k, overview: normalizeMathDelimiters(k.overview), entries: k.entries.map(normalizeEntryMath) };
   } catch (e) {
     console.error(`wissen/${unitId}.json ungültig: ${(e as Error).message.slice(0, 300)}`);
   }

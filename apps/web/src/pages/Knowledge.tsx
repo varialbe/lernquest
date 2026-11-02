@@ -52,7 +52,7 @@ function EntryCard({ e, color, unitLabel, open, onToggle, onRelated }: { e: Know
             <Pill className="bg-surface-2 text-muted">{KNOWLEDGE_KIND_LABEL[e.kind]}</Pill>
           </div>
           {unitLabel && <p className="mt-0.5 text-xs font-black uppercase tracking-wider" style={{ color }}>{unitLabel}</p>}
-          <MathText text={e.short} className={`mt-1 block text-sm font-semibold text-muted ${open ? '' : 'line-clamp-2'}`} />
+          <Markdown inline text={e.short} className={`mt-1 block text-sm font-semibold text-muted ${open ? '' : 'line-clamp-2'}`} />
         </div>
         <Icon name="chevronRight" size={20} className={`mt-0.5 shrink-0 text-muted transition-transform ${open ? 'rotate-90' : ''}`} />
       </button>
@@ -73,7 +73,7 @@ function EntryCard({ e, color, unitLabel, open, onToggle, onRelated }: { e: Know
                   <ul className="list-disc space-y-1 pl-5 text-sm font-semibold">
                     {e.pitfalls.map((p) => (
                       <li key={p}>
-                        <MathText text={p} />
+                        <Markdown inline text={p} />
                       </li>
                     ))}
                   </ul>

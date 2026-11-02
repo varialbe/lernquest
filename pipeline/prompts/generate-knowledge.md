@@ -28,6 +28,7 @@ Studierende schlagen hier nach, wenn sie beim Üben einen Begriff nicht mehr wis
 ## Regeln
 - **Fachlich korrekt** und nah an der Vorlesung: Definitionen, Bezeichnungen und Notation so, wie sie in der Mitschrift stehen. Wo die Mitschrift ungenau oder lückenhaft ist, ergänzt du korrektes Standardwissen des Fachs – nie etwas erfinden, was der Vorlesung widerspricht.
 - Keine Verweise wie „siehe Vorlesung“, „wie oben“, „im Beispiel aus der Mitschrift“.
+- **Formeln nur mit `$…$` (inline) bzw. `$$…$$` (abgesetzt)** – niemals `\(…\)` oder `\[…\]`, die zeigt die App nicht an. Code und Bezeichner in Backticks.
 - Deutsch, du-Form wo nötig, sachlich und klar. LaTeX korrekt escapen (im JSON doppelter Backslash, z. B. `"$\\forall x$"`).
 
 Überschriften der Mitschrift:

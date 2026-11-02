@@ -8,11 +8,15 @@ import { rehypeHighlightLite } from '../lib/highlight.ts';
 const Mermaid = lazy(() => import('./Mermaid.tsx'));
 const GAP = '⁣GAP⁣';
 
-/** Markdown mit KaTeX ($…$), Code-Highlighting und Mermaid. Bei Lückentexten wird ___ durch `gap` ersetzt. */
-export const Markdown = memo(function Markdown({ text, gap, className = '' }: { text: string; gap?: ReactNode; className?: string }) {
+/**
+ * Markdown mit KaTeX ($…$), Code-Highlighting und Mermaid. Bei Lückentexten wird ___ durch `gap` ersetzt.
+ * `inline`: für einzeilige Texte (Kurzfassung, Aufzählungspunkte) – ohne Absatz-Abstände, in einem <span>.
+ */
+export const Markdown = memo(function Markdown({ text, gap, className = '', inline }: { text: string; gap?: ReactNode; className?: string; inline?: boolean }) {
+  const Wrap = inline ? 'span' : 'div';
   const src = gap !== undefined ? text.replace(/_{3,}/, `\`${GAP}\``) : text;
   return (
-    <div className={`prose-q ${className}`}>
+    <Wrap className={`prose-q ${className}`}>
       <ReactMarkdown
         remarkPlugins={[remarkGfm, remarkMath]}
         rehypePlugins={[[rehypeKatex, { throwOnError: false, strict: false }], rehypeHighlightLite]}
@@ -30,6 +34,7 @@ export const Markdown = memo(function Markdown({ text, gap, className = '' }: { 
             }
             return <code className={cls}>{children}</code>;
           },
+          ...(inline ? { p: ({ children }: { children?: ReactNode }) => <>{children}</> } : {}),
           pre({ children, node }) {
             // Mermaid-Blöcke nicht in <pre> einpacken
             const child = node?.children?.[0] as { properties?: { className?: string[] } } | undefined;
@@ -47,6 +52,6 @@ export const Markdown = memo(function Markdown({ text, gap, className = '' }: { 
       >
         {src}
       </ReactMarkdown>
-    </div>
+    </Wrap>
   );
 });

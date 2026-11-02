@@ -1,6 +1,6 @@
 import { existsSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
-import { KnowledgeEntry, MODULE_INFO, UnitKnowledge, type Unit } from '@lernquest/shared';
+import { KnowledgeEntry, MODULE_INFO, normalizeMathDelimiters, UnitKnowledge, type Unit } from '@lernquest/shared';
 import { codexJson } from './codex.ts';
 import { config } from './config.ts';
 import { FENCE, fill, fixLatexEscapes, formatHeadings, matchHeading, template } from './generate.ts';
@@ -55,7 +55,7 @@ export function normalizeKnowledge(raw: RawKnowledge, unit: Unit, headings: Head
   const dropped: string[] = [];
   const entries: KnowledgeEntry[] = [];
   const seen = new Set<string>();
-  const clean = (s: string | null | undefined) => (s == null ? s : fixLatexEscapes(s).trim());
+  const clean = (s: string | null | undefined) => (s == null ? s : normalizeMathDelimiters(fixLatexEscapes(s)).trim());
   for (const e of raw.entries ?? []) {
     const key = (e.term ?? '').trim().toLowerCase();
     if (!key || seen.has(key)) {
