@@ -86,7 +86,8 @@ beforeAll(async () => {
   sh(tmp, 'init', '-q', '-b', 'main', lq);
   sh(lq, 'config', 'user.email', 't@t');
   sh(lq, 'config', 'user.name', 't');
-  sh(lq, 'commit', '-q', '--allow-empty', '-m', 'init');
+  sh(lq, 'add', 'content/.gitkeep');
+  sh(lq, 'commit', '-q', '-m', 'init');
 
   const fake = join(tmp, 'fake-codex');
   writeFileSync(fake, FAKE_CODEX);
