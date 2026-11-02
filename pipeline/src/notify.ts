@@ -63,7 +63,7 @@ export function runMessage(r: Report): { level: Level; title: string; html: stri
   }
   if (wissen.length) {
     lines.push(`📖 Wissenssammlung für ${wissen.length} Unit(s):`);
-    for (const f of wissen) lines.push(`  • ${esc(f.unitId ?? '')} ${esc((f.title ?? '').replace(/ \(Wissen\)$/, ''))} – ${f.knowledge} Begriffe`);
+    for (const f of wissen) lines.push(`  • ${esc(f.unitId ?? '')} ${esc((f.title ?? '').replace(/ \((Wissen|Voraussetzungen)\)$/, ''))} – ${f.title?.endsWith('(Voraussetzungen)') ? 'Voraussetzungen verknüpft' : `${f.knowledge} Begriffe`}`);
   }
   if (failed.length) {
     lines.push(`❌ ${failed.length} fehlgeschlagen:`);

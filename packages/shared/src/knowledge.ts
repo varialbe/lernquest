@@ -54,8 +54,10 @@ export type UnitKnowledge = z.infer<typeof UnitKnowledge>;
 /** GET /api/knowledge/:module */
 export type KnowledgeModuleResponse = {
   module: ModuleId;
-  units: { unitId: string; unitNumber: number; unitTitle: string; overview: string | null; entries: KnowledgeEntry[] }[];
+  units: { unitId: string; unitNumber: number; unitTitle: string; overview: string | null; entries: KnowledgeEntryView[] }[];
 };
+/** Eintrag + direkte Voraussetzungen (IDs anderer Einträge des Moduls, mit kurzer Begründung) */
+export type KnowledgeEntryView = KnowledgeEntry & { requires: { id: string; why: string }[] };
 
 /**
  * `\( … \)` → `$…$` und `\[ … \]` → `$$…$$` (KaTeX/remark-math kennen nur `$`).
@@ -83,3 +85,20 @@ export const normalizeEntryMath = (e: KnowledgeEntry): KnowledgeEntry => ({
   example: e.example == null ? null : normalizeMathDelimiters(e.example),
   pitfalls: e.pitfalls.map(normalizeMathDelimiters),
 });
+
+/**
+ * Voraussetzungen: welche Einträge man verstanden haben muss, bevor ein Eintrag Sinn ergibt.
+ * Datei `wissen/<modul>/_voraussetzungen.json`, einmal pro Unit von Codex erzeugt, deterministisch geprüft
+ * (nur existierende Einträge derselben oder früherer Units, keine Zyklen).
+ */
+export const PrereqLink = z.object({ id: z.string().min(1).max(40), why: z.string().trim().max(240) });
+export type PrereqLink = z.infer<typeof PrereqLink>;
+export const KnowledgeGraph = z.object({
+  schemaVersion: z.literal(1),
+  module: ModuleId,
+  /** je Unit: aus welcher Fassung der Wissenssammlung die Verknüpfungen stammen */
+  units: z.record(z.string(), z.object({ knowledgeAt: z.string(), generatedAt: z.string(), model: z.string() })),
+  /** Eintrag → direkte Voraussetzungen */
+  requires: z.record(z.string(), z.array(PrereqLink).max(6)),
+});
+export type KnowledgeGraph = z.infer<typeof KnowledgeGraph>;

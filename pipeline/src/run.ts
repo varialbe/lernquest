@@ -12,7 +12,8 @@ import { prepareNote } from './prepare.ts';
 import { RateLimitError } from './codex.ts';
 import { generateBonus } from './bonus.ts';
 import { generateUnit } from './generate.ts';
-import { allContentUnits, generateKnowledge, knowledgeStale, writeKnowledge } from './knowledge.ts';
+import { allContentUnits, generateKnowledge, knowledgeStale, readKnowledge, writeKnowledge } from './knowledge.ts';
+import { generatePrereqs, moduleKnowledge, prereqsStale } from './prereqs.ts';
 import { qualityGate, type GateReport } from './quality.ts';
 import { notify, runMessage } from './notify.ts';
 import * as git from './git.ts';
@@ -207,9 +208,27 @@ function planBonus(only?: string): PlanItem[] {
   return items;
 }
 
-/** Units ohne (aktuelle) Wissenssammlung – oder eine bestimmte, per Unit-ID oder Quelldatei. */
+/** Units ohne (aktuelle) Wissenssammlung oder ohne Voraussetzungs-Graph – oder eine bestimmte, per Unit-ID oder Quelldatei. */
 function planKnowledge(only?: string): Unit[] {
-  return allContentUnits().filter((u) => (only ? only === u.id || only === u.source.file : knowledgeStale(u)));
+  return allContentUnits().filter((u) => {
+    if (only) return only === u.id || only === u.source.file;
+    if (knowledgeStale(u)) return true;
+    const k = readKnowledge(u.id);
+    return !!k && prereqsStale(k);
+  });
+}
+
+/** Voraussetzungen einer Unit erzeugen (Fehler → Warnung, die Wissenssammlung bleibt gültig). */
+async function buildPrereqs(unitId: string, workDir: string, log: (m: string) => void): Promise<{ file?: string; edges: number; tokens: number; error?: string; rateLimited?: boolean }> {
+  const k = readKnowledge(unitId);
+  if (!k) return { edges: 0, tokens: 0, error: 'keine Wissenssammlung' };
+  try {
+    const r = await generatePrereqs(k, moduleKnowledge(k.module), workDir, log);
+    return { file: r.file, edges: r.edges, tokens: r.tokens };
+  } catch (e) {
+    log(`  ✗ Voraussetzungen ${unitId}: ${(e as Error).message.slice(0, 300)}`);
+    return { edges: 0, tokens: 0, error: (e as Error).message.slice(0, 200), rateLimited: e instanceof RateLimitError };
+  }
 }
 
 /** Wissenssammlung einer Unit erzeugen, schreiben und committen. */
@@ -223,13 +242,15 @@ async function buildKnowledge(db: DB, unit: Unit, note: { text: string; headings
     .map((u) => ({ number: u.number, title: u.title, concepts: u.concepts }));
   const k = await generateKnowledge(unit, note, previous, workDir, log);
   const file = writeKnowledge(k.knowledge);
-  const committed = git.commitContent([relative(config.lernquestRepo, file)], `wissen: ${unit.module} Vorlesung ${unit.number} – ${unit.title}`);
   log(`  ✓ Wissenssammlung ${unit.id}: ${k.knowledge.entries.length} Einträge (Review: ${k.review.fixed} korrigiert, ${k.review.added} ergänzt${k.dropped.length ? `, ${k.dropped.length} verworfen` : ''})`);
-  return { entries: k.knowledge.entries.length, tokens: k.tokens, committed, dropped: k.dropped };
+  const p = await buildPrereqs(unit.id, workDir, log);
+  const committed = git.commitContent([file, ...(p.file ? [p.file] : [])].map((f) => relative(config.lernquestRepo, f)), `wissen: ${unit.module} Vorlesung ${unit.number} – ${unit.title}`);
+  const dropped = [...k.dropped, ...(p.error ? [`Voraussetzungen fehlgeschlagen (holt der nächste Lauf nach): ${p.error}`] : [])];
+  return { entries: k.knowledge.entries.length, prereqs: p.edges, tokens: k.tokens + p.tokens, committed, dropped, rateLimited: !!p.rateLimited };
 }
 
 /** Wissenssammlungen erzeugen (bis zu 3 parallel), z. B. Modus `knowledge` oder Nachholen im normalen Lauf. */
-async function runKnowledge(db: DB, list: Unit[], vault: Vault, runId: string, files: FileReport[], warnings: string[], log: (m: string) => void, limit = list.length, soft = false): Promise<{ committed: boolean; rateLimited: boolean }> {
+async function runKnowledge(db: DB, list: Unit[], vault: Vault, runId: string, files: FileReport[], warnings: string[], log: (m: string) => void, limit = list.length, soft = false, onlyRequested = false): Promise<{ committed: boolean; rateLimited: boolean }> {
   let committed = false;
   let rateLimited = false;
   const total = Math.min(limit, list.length);
@@ -242,10 +263,24 @@ async function runKnowledge(db: DB, list: Unit[], vault: Vault, runId: string, f
       const workDir = join(config.dataDir, 'work', runId, `k${i + 1}`);
       mkdirSync(workDir, { recursive: true });
       try {
+        const existing = readKnowledge(u.id);
+        if (existing && !knowledgeStale(u) && !onlyRequested) {
+          // Wissenssammlung aktuell, nur der Voraussetzungs-Graph fehlt
+          const p = await buildPrereqs(u.id, workDir, log);
+          if (p.rateLimited) throw new RateLimitError(p.error ?? 'Voraussetzungen');
+          if (p.error) throw new Error(`Voraussetzungen: ${p.error}`);
+          committed = git.commitContent([relative(config.lernquestRepo, p.file!)], `wissen: Voraussetzungen ${u.id}`) || committed;
+          files.push({ path: u.source.file, status: 'done', unitId: u.id, title: `${u.title} (Voraussetzungen)`, levels: 0, questions: 0, knowledge: existing.entries.length, tokens: p.tokens, durationSec: Math.round((Date.now() - t0) / 1000) });
+          continue;
+        }
         const current = db.select({ f: units.sourceFile }).from(units).where(eq(units.id, u.id)).get()?.f ?? u.source.file;
         const note = existsSync(git.studiumPath(current)) ? await prepareNote(vault, current, workDir) : null;
         const r = await buildKnowledge(db, u, note, workDir, log);
         committed ||= r.committed;
+        if (r.rateLimited) {
+          rateLimited = true;
+          warnings.push('Codex-Rate-Limit erreicht – restliche Wissenssammlungen im nächsten Lauf');
+        }
         files.push({ path: u.source.file, status: 'done', unitId: u.id, title: `${u.title} (Wissen)`, levels: 0, questions: 0, knowledge: r.entries, dropped: r.dropped, tokens: r.tokens, durationSec: Math.round((Date.now() - t0) / 1000) });
       } catch (e) {
         const msg = (e as Error).message.slice(0, 1000);
@@ -303,7 +338,8 @@ export async function execute(mode: Mode, opts: { runId?: string; file?: string;
     if (mode === 'knowledge') {
       const list = planKnowledge(opts.file);
       log(list.length ? `Wissenssammlung für ${list.length} Unit(s): ${list.map((u) => u.id).join(', ')}` : 'Alle Wissenssammlungen aktuell.');
-      const r = await runKnowledge(db, list, { root: config.studiumRepo, files: git.listAllFiles() }, runId, files, warnings, log);
+      // gezielt angeforderte Unit (pnpm pipeline knowledge ds-03): Wissenssammlung komplett neu
+      const r = await runKnowledge(db, list, { root: config.studiumRepo, files: git.listAllFiles() }, runId, files, warnings, log, list.length, false, !!opts.file);
       rateLimited = r.rateLimited;
       if (r.committed) {
         const pushErr = git.pushContent();
@@ -430,6 +466,8 @@ export async function execute(mode: Mode, opts: { runId?: string; file?: string;
               knowledgeCount = k.entries;
               tokens += k.tokens;
               committed ||= k.committed;
+              notes.push(...k.dropped.filter((d) => d.startsWith('Voraussetzungen')));
+              if (k.rateLimited) stopAfterThis = true;
             } catch (e) {
               notes.push(`Wissenssammlung fehlgeschlagen (holt der nächste Lauf nach): ${(e as Error).message.slice(0, 200)}`);
               if (e instanceof RateLimitError) stopAfterThis = true;

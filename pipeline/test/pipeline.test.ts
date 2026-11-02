@@ -29,6 +29,17 @@ if (schema.includes('blind')) {
   fs.writeFileSync(out, JSON.stringify({ results }));
   process.exit(0);
 }
+if (schema.includes('prereq')) {
+  // Voraussetzungen: jeder Eintrag braucht den vorherigen; dazu Müll, der verworfen werden muss
+  const targets = input.split('## Kandidaten')[0];
+  const ids = [...targets.matchAll(/- \`([a-z]+-\\d{2}-k\\d{2})\`/g)].map((m) => m[1]);
+  const links = ids.map((id, i) => ({ id, requires: [
+    ...(i > 0 ? [{ id: ids[i - 1], why: 'Baut darauf auf.' }] : [{ id: ids[ids.length - 1], why: 'Zyklus!' }]),
+    { id, why: 'selbst' }, { id: 'xx-99-k01', why: 'gibt es nicht' },
+  ] }));
+  fs.writeFileSync(out, JSON.stringify({ links }));
+  process.exit(0);
+}
 if (schema.includes('knowledge')) {
   // Wissenssammlung: 4 Einträge, einer doppelt (wird verworfen), ein Term mit $…$ (wird bereinigt)
   const e = (term, kind) => ({ term, kind, short: term + ' kurz erklärt.', explanation: 'Eine **Erklärung** zu ' + term + ' mit $A \\cup B$.', example: null, pitfalls: [], related: ['Menge'], heading: 'mengen' });
@@ -126,7 +137,7 @@ describe('pipeline', () => {
     expect(r.totals.processed).toBe(1);
     expect(r.totals.questions).toBe(49); // 4 × 10 + Praxis 9 (1 Schätzfrage verworfen)
     // generate + review, Praxis generate + review, Blind-Test (49 Fragen = 3 Batches), Reparatur + Blind-Test des Ersatzes, Wissen generate + review
-    expect(r.totals.tokens).toBe(11 * 1234);
+    expect(r.totals.tokens).toBe(12 * 1234); // + Voraussetzungen
     expect(r.files[0]!.knowledge).toBe(3);
     expect(r.files[0]!.gate).toMatchObject({ checked: 49, failedFirst: 1, dropped: [] });
     expect(r.files[0]!.gate!.repaired).toEqual([expect.objectContaining({ oldId: 'ds-01-l2-q02', newId: 'ds-01-l2-q02-r1' })]);
@@ -151,6 +162,11 @@ describe('pipeline', () => {
     expect(k.entries[0].heading).toBe('Mengen');
     expect(k.entries[0].related).toEqual([]); // Verweis auf sich selbst entfällt
     expect(sh(lq, 'log', '-1', '--format=%s')).toContain('wissen: DS Vorlesung 1');
+    // Voraussetzungen: Kette k01 ← k02 ← k03; Selbstbezug, unbekannte ID und der Zyklus k01 → k03 fliegen raus
+    const g = JSON.parse(readFileSync(join(lq, 'wissen/ds/_voraussetzungen.json'), 'utf8'));
+    expect(g.requires).toEqual({ 'ds-01-k01': [], 'ds-01-k02': [{ id: 'ds-01-k01', why: 'Baut darauf auf.' }], 'ds-01-k03': [{ id: 'ds-01-k02', why: 'Baut darauf auf.' }] });
+    expect(g.units['ds-01'].knowledgeAt).toBe(k.generator.generatedAt);
+    expect(sh(lq, 'show', '--name-only', '--format=', 'HEAD')).toContain('wissen/ds/_voraussetzungen.json');
   });
 
   it('second run reports nothing new and falls back to admin notifications without telegram', async () => {

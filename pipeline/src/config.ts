@@ -19,6 +19,7 @@ export const config = {
   schemaFile: resolve(ROOT, 'pipeline/schemas/unit-output.schema.json'),
   bonusSchemaFile: resolve(ROOT, 'pipeline/schemas/bonus-output.schema.json'),
   knowledgeSchemaFile: resolve(ROOT, 'pipeline/schemas/knowledge-output.schema.json'),
+  prereqSchemaFile: resolve(ROOT, 'pipeline/schemas/prereq-output.schema.json'),
   /** Wissenssammlung: wissen/<modul>/<unit-id>.json */
   knowledgeDir: resolve(ROOT, 'wissen'),
   studiumRepo: env('STUDIUM_REPO', resolve(process.env.HOME ?? '~', 'studium')),
