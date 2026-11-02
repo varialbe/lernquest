@@ -1,0 +1,500 @@
+{
+  "schemaVersion": 1,
+  "unitId": "era-06",
+  "module": "ERA",
+  "unitNumber": 6,
+  "unitTitle": "Unterprogramme und Stackframes",
+  "sourceSha": "225a15da0828339fef200ad573f811048a1c254dc280f9236350c8e609fe7658",
+  "overview": "Die Unit erklärt Unterprogrammaufrufe und Rücksprünge in RISC-V, die Aufgaben von Caller und Callee sowie die Registerkonvention. Verschachtelte Aufrufe benötigen getrennte Stackframes, die über den Stack nach dem LIFO-Prinzip verwaltet werden. Die Mitschrift behandelt außerdem die typische Speicheraufteilung, echte Sprungbefehle und Pseudobefehle, das Untersuchen von Binärdateien mit objdump und ein RV64-Summenprogramm, das 45 berechnet.",
+  "entries": [
+    {
+      "id": "era-06-k01",
+      "term": "Unterprogrammaufruf",
+      "kind": "concept",
+      "short": "Ein Unterprogrammaufruf springt zu einer Funktion und ermöglicht anschließend die Rückkehr zum aufrufenden Code.",
+      "explanation": "Ein vollständiger Aufruf benötigt einen Sprung zum Unterprogramm und eine gespeicherte Rücksprungadresse. Nach der Ausführung wird beim Caller mit dem Befehl nach dem Aufruf fortgesetzt. Bei verschachtelten Aufrufen muss jede noch benötigte Rücksprungadresse erhalten bleiben.",
+      "example": "Ruft `main` eine Funktion auf, wird diese ausgeführt und anschließend bei der Fortsetzung in `main` weitergemacht.",
+      "pitfalls": [
+        "Ein Sprung ohne gesicherte Rücksprungadresse ermöglicht keine verlässliche Rückkehr."
+      ],
+      "related": [
+        "Caller und Callee",
+        "Rücksprungadresse",
+        "jal",
+        "Calling Convention",
+        "Stackframe"
+      ],
+      "heading": "Unterprogramme: Aufruf und Rücksprung"
+    },
+    {
+      "id": "era-06-k02",
+      "term": "Caller und Callee",
+      "kind": "definition",
+      "short": "Der Caller ruft ein Unterprogramm auf, und der Callee ist das aufgerufene Unterprogramm.",
+      "explanation": "Caller und Callee bezeichnen die Rollen in einem konkreten Aufruf. Diese Rollen bestimmen unter anderem, wer Registerwerte über einen Funktionsaufruf hinweg sichern muss. Eine Funktion kann in einem Aufruf Callee und in einem anderen Caller sein.",
+      "example": "Beim Aufruf von `printf` ist `main` der Caller und `printf` der Callee.",
+      "pitfalls": [
+        "Caller und Callee sind keine festen Eigenschaften einer Funktion."
+      ],
+      "related": [
+        "Calling Convention",
+        "Caller-saved-Register",
+        "Callee-saved-Register"
+      ],
+      "heading": "Unterprogramme: Aufruf und Rücksprung"
+    },
+    {
+      "id": "era-06-k03",
+      "term": "Program Counter (PC)",
+      "kind": "definition",
+      "short": "Der PC enthält die Adresse des aktuellen Befehls.",
+      "explanation": "PC steht für Program Counter und bezeichnet die Befehlsadresse, an der die Ausführung gerade stattfindet. Ein Sprung verändert den PC, sodass die Ausführung an einer anderen Adresse weitergeht. Bei einem 32-Bit-Befehl liegt der nächste Befehl hier bei `PC+4`.",
+      "example": "Steht ein 32-Bit-Aufruf bei `0x00000300`, liegt der nächste Befehl bei `0x00000304`.",
+      "pitfalls": [
+        "Der PC ist eine Befehlsadresse und kein allgemeines Datenregister."
+      ],
+      "related": [
+        "jal",
+        "jalr",
+        "Rücksprungadresse"
+      ],
+      "heading": "Unterprogramme: Aufruf und Rücksprung"
+    },
+    {
+      "id": "era-06-k04",
+      "term": "Rücksprungadresse",
+      "kind": "definition",
+      "short": "Die Rücksprungadresse ist die Adresse, an der der Caller nach der Ausführung des Unterprogramms fortsetzt.",
+      "explanation": "In RISC-V wird die Rücksprungadresse üblicherweise im Register `ra` (`x1`) gehalten. Ein Aufruf mit `jal` speichert die Adresse des nächsten Befehls dort. Ein weiterer Aufruf kann `ra` überschreiben, weshalb ein Unterprogramm, das selbst Aufrufe ausführt, die bisherige Adresse sichern muss.",
+      "example": "Für einen 32-Bit-Aufruf bei `0x00000300` ist die Rücksprungadresse `0x00000304`.",
+      "pitfalls": [
+        "Die Rücksprungadresse bezeichnet die Fortsetzung im Caller, nicht den Anfang des Unterprogramms."
+      ],
+      "related": [
+        "jal",
+        "jalr",
+        "Stackframe"
+      ],
+      "heading": "Unterprogramme: Aufruf und Rücksprung"
+    },
+    {
+      "id": "era-06-k05",
+      "term": "jal",
+      "kind": "notation",
+      "short": "`jal rd, offset` speichert `PC+4` in `rd` und springt zu `PC+offset`.",
+      "explanation": "`jal` speichert bei einem 32-Bit-Befehl die Adresse des nächsten Befehls im Zielregister und berechnet das Sprungziel relativ zur Adresse des `jal`-Befehls. Für einen Unterprogrammaufruf ist `ra` das übliche Zielregister. Damit die Rückkehr funktioniert, darf eine noch benötigte Rücksprungadresse nicht ungesichert überschrieben werden.",
+      "example": "Bei `jal ra, 0x21c` an Adresse `0x00000300` wird `0x00000304` in `ra` geschrieben und zu `0x0000051c` gesprungen.",
+      "pitfalls": [
+        "Der Offset wird zur Adresse des `jal`-Befehls addiert, nicht zur Rücksprungadresse."
+      ],
+      "related": [
+        "Program Counter (PC)",
+        "Rücksprungadresse",
+        "jalr"
+      ],
+      "heading": ": springen und Rücksprungadresse speichern"
+    },
+    {
+      "id": "era-06-k06",
+      "term": "Rücksprung mit `jr ra`",
+      "kind": "method",
+      "short": "`jr ra` setzt die Ausführung an der in `ra` gespeicherten Adresse fort.",
+      "explanation": "`jr ra` ist die Pseudobefehl-Schreibweise für einen Registersprung ohne neue Rücksprungadresse. Sie entspricht `jalr x0, ra, 0`. Da Schreibzugriffe auf `x0` verworfen werden, wird keine neue Adresse gesichert.",
+      "example": "Enthält `ra` den Wert `0x00000304`, springt `jr ra` zu dieser Adresse.",
+      "pitfalls": [
+        "Der Rücksprung gelingt nur, wenn `ra` noch die richtige Rücksprungadresse enthält."
+      ],
+      "related": [
+        "Rücksprungadresse",
+        "jalr",
+        "Pseudobefehle"
+      ],
+      "heading": "Rücksprung mit"
+    },
+    {
+      "id": "era-06-k07",
+      "term": "Calling Convention",
+      "kind": "definition",
+      "short": "Die Calling Convention legt fest, wie Funktionen Argumente, Ergebnisse und Registerwerte austauschen.",
+      "explanation": "Die Aufrufkonvention weist Registern bestimmte Rollen zu und regelt, wer ihre Werte über einen Aufruf hinweg sichern muss. Argumente werden in der hier behandelten RISC-V-Konvention über `a0` bis `a7` übergeben; Rückgabewerte stehen typischerweise in `a0` und gegebenenfalls `a1`. Die Konvention lässt getrennt implementierte Funktionen zuverlässig zusammenarbeiten.",
+      "example": "Beim Aufruf von `printf` stehen die ersten beiden Argumente im Summenprogramm in `a0` und `a1`.",
+      "pitfalls": [
+        "Ein Registerwert bleibt nicht automatisch erhalten, nur weil er vor dem Aufruf dort stand."
+      ],
+      "related": [
+        "Caller und Callee",
+        "Argument- und Ergebnisregister",
+        "Caller-saved-Register",
+        "Callee-saved-Register"
+      ],
+      "heading": "Argumente, Ergebnisse und Calling Convention"
+    },
+    {
+      "id": "era-06-k08",
+      "term": "Argument- und Ergebnisregister",
+      "kind": "concept",
+      "short": "`a0` bis `a7` dienen als Argumentregister, und `a0` sowie `a1` dienen zusätzlich als Ergebnisregister.",
+      "explanation": "Die Register `a0` bis `a7` sind für Funktionsargumente vorgesehen. Rückgabewerte werden üblicherweise in `a0` und bei Bedarf zusätzlich in `a1` übergeben. Diese Register sind Caller-saved und dürfen daher vom aufgerufenen Unterprogramm verändert werden.",
+      "example": "Vor `printf` enthält `a0` im Summenprogramm die Adresse des Formatstrings und `a1` den auszugebenden Summenwert.",
+      "pitfalls": [
+        "Argumentregister sind nach einem Aufruf kein sicherer Ablageort für Werte, die unverändert gebraucht werden."
+      ],
+      "related": [
+        "Calling Convention",
+        "Caller-saved-Register",
+        "RV64-Summenprogramm"
+      ],
+      "heading": "Argumente, Ergebnisse und Calling Convention"
+    },
+    {
+      "id": "era-06-k09",
+      "term": "Caller-saved-Register",
+      "kind": "definition",
+      "short": "Der Callee darf Caller-saved-Register verändern, und benötigte Werte muss der Caller vorher selbst sichern.",
+      "explanation": "Der Caller trägt die Verantwortung, einen Wert über einen Aufruf hinweg zu erhalten. Der Callee darf ein Caller-saved-Register verändern, ohne den alten Wert wiederherzustellen. Zu dieser Gruppe gehören `t0` bis `t6` sowie `a0` bis `a7`.",
+      "example": "Benötigt der Caller den Wert in `t0` nach einem Aufruf noch, kann er ihn vorher im Stackframe sichern.",
+      "pitfalls": [
+        "Caller-saved bedeutet, dass der Caller für die Sicherung zuständig ist."
+      ],
+      "related": [
+        "Calling Convention",
+        "Callee-saved-Register",
+        "Stackframe"
+      ],
+      "heading": "Caller-saved und Callee-saved"
+    },
+    {
+      "id": "era-06-k10",
+      "term": "Callee-saved-Register",
+      "kind": "definition",
+      "short": "Verändert der Callee ein Callee-saved-Register, muss er dessen ursprünglichen Wert vor der Rückkehr wiederherstellen.",
+      "explanation": "Ein Callee-saved-Register muss für den Caller unverändert erscheinen. Der Callee darf es verwenden, muss dann aber den alten Wert sichern und vor dem Rücksprung wiederherstellen. Zu dieser Gruppe gehören `s0` bis `s11`.",
+      "example": "Verwendet eine Funktion `s0` als Bezugspunkt für lokale Variablen, sichert sie den vorherigen `s0`-Wert und stellt ihn vor der Rückkehr wieder her.",
+      "pitfalls": [
+        "Der Callee muss ein Callee-saved-Register nur sichern, wenn er dessen Wert verändert."
+      ],
+      "related": [
+        "Calling Convention",
+        "Caller-saved-Register",
+        "Stackframe"
+      ],
+      "heading": "Caller-saved und Callee-saved"
+    },
+    {
+      "id": "era-06-k11",
+      "term": "Zusätzlicher Speicher für Unterprogrammaufrufe",
+      "kind": "concept",
+      "short": "Zusätzlicher Speicher hält lokale Daten, temporäre Werte und gesicherte Register für jeden laufenden Aufruf getrennt bereit.",
+      "explanation": "Register sind begrenzt und reichen nicht immer für alle Parameter, lokalen Daten und temporären Werte aus. Speicher wird auch benötigt, wenn Werte einen Aufruf überstehen oder eine Rücksprungadresse gesichert werden soll. Feste Speicheradressen reichen für verschachtelte und rekursive Aufrufe nicht aus, weil sich diese sonst gegenseitig überschreiben könnten.",
+      "example": "Bei einer rekursiven Funktion benötigt jeder noch nicht beendete Aufruf eigene lokale Daten und gegebenenfalls eine eigene gesicherte Rücksprungadresse.",
+      "pitfalls": [
+        "Daten verschiedener aktiver Aufrufe dürfen nicht ungeschützt dieselbe Speicherstelle verwenden."
+      ],
+      "related": [
+        "Stackframe",
+        "Stack",
+        "Rücksprungadresse"
+      ],
+      "heading": "Warum zusätzlicher Speicher nötig ist"
+    },
+    {
+      "id": "era-06-k12",
+      "term": "Stackframe",
+      "kind": "definition",
+      "short": "Ein Stackframe ist der temporäre Speicherbereich, den ein einzelner laufender Unterprogrammaufruf verwendet.",
+      "explanation": "Ein Frame kann lokale Variablen, gesicherte Register und eine gesicherte Rücksprungadresse enthalten. Er wird beim Eintritt reserviert und vor der Rückkehr freigegeben. Jeder aktive Aufruf erhält einen eigenen Frame, sodass verschachtelte und rekursive Aufrufe ihre Daten getrennt halten.",
+      "example": "Im RV64-Summenprogramm reserviert `main` einen 32-Byte-Frame für `ra`, `s0` und lokale Variablen.",
+      "pitfalls": [
+        "Ein Frame darf keine noch benötigten Daten eines anderen Frames überschreiben."
+      ],
+      "related": [
+        "Stack",
+        "Stack Pointer (`sp`)",
+        "Zusätzlicher Speicher für Unterprogrammaufrufe",
+        "Callee-saved-Register"
+      ],
+      "heading": "Warum zusätzlicher Speicher nötig ist"
+    },
+    {
+      "id": "era-06-k13",
+      "term": "Stack",
+      "kind": "definition",
+      "short": "Der Stack ist ein Speicherbereich, in dem Stackframes nach dem LIFO-Prinzip verwaltet werden.",
+      "explanation": "Auf dem Stack liegen typischerweise lokale Daten, gesicherte Register und Rücksprungadressen aktiver Aufrufe. `push` bezeichnet das Ablegen und `pop` das Entfernen des obersten Elements; hier sind dies Bezeichnungen für Operationen und keine zusätzlich eingeführten RISC-V-Maschinenbefehle. Die zuletzt angelegten Aufrufdaten werden zuerst wieder freigegeben.",
+      "example": "Wenn A B aufruft und B anschließend C, wird zuerst Cs Frame freigegeben, danach Bs Frame.",
+      "pitfalls": [
+        "Ein Stack folgt LIFO und ist keine FIFO-Warteschlange."
+      ],
+      "related": [
+        "LIFO und FIFO",
+        "Stackframe",
+        "Stack Pointer (`sp`)"
+      ],
+      "heading": "Stack: LIFO statt FIFO"
+    },
+    {
+      "id": "era-06-k14",
+      "term": "LIFO und FIFO",
+      "kind": "concept",
+      "short": "LIFO verarbeitet das zuletzt abgelegte Element zuerst, während FIFO das zuerst abgelegte Element zuerst verarbeitet.",
+      "explanation": "LIFO steht für „Last In, First Out“ und beschreibt die Reihenfolge bei Stackoperationen. FIFO steht für „First In, First Out“ und beschreibt beispielsweise eine Warteschlange. Verschachtelte Unterprogrammaufrufe folgen LIFO, weil der zuletzt gestartete Aufruf zuerst zurückkehrt.",
+      "example": "Wer A und danach B auf einen Stack legt, nimmt bei LIFO zuerst B wieder herunter.",
+      "pitfalls": [
+        "Bei FIFO würde zuerst A entnommen; das ist nicht die Reihenfolge verschachtelter Aufrufe."
+      ],
+      "related": [
+        "Stack",
+        "Stackframe"
+      ],
+      "heading": "Stack: LIFO statt FIFO"
+    },
+    {
+      "id": "era-06-k15",
+      "term": "Stack Pointer (`sp`)",
+      "kind": "definition",
+      "short": "`sp` (`x2`) markiert das aktuelle Ende des Stackbereichs.",
+      "explanation": "Der Stack Pointer wird beim Reservieren und Freigeben eines Frames angepasst. Stackzugriffe können relativ zu `sp` adressiert werden. Die konkrete Anordnung der Daten innerhalb eines Frames hängt vom Frameaufbau ab.",
+      "example": "`sd ra, 24(sp)` speichert in einem RV64-Beispiel den Wert von `ra` an der Adresse `sp+24`.",
+      "pitfalls": [
+        "`sp` markiert die Stackgrenze; es bezeichnet nicht automatisch eine bestimmte lokale Variable."
+      ],
+      "related": [
+        "Stack",
+        "Stackframe",
+        "Stackwachstum nach unten"
+      ],
+      "heading": "Stack: LIFO statt FIFO"
+    },
+    {
+      "id": "era-06-k16",
+      "term": "Stackwachstum nach unten",
+      "kind": "concept",
+      "short": "In der gezeigten Konvention wird beim Reservieren eines Frames `sp` zu kleineren Adressen verändert.",
+      "explanation": "Beim Reservieren wird die Framegröße von `sp` abgezogen; beim Freigeben wird sie wieder addiert. Das lässt sich als `sp ← sp − Framegröße` beim Reservieren und `sp ← sp + Framegröße` beim Freigeben ausdrücken. Das Wachstum zu kleineren Adressen ist eine Konvention und keine technische Notwendigkeit.",
+      "example": "Für einen 32-Byte-Frame kann `addi sp, sp, -32` reservieren und `addi sp, sp, 32` freigeben.",
+      "pitfalls": [
+        "„Nach unten“ bedeutet zu kleineren Speicheradressen."
+      ],
+      "related": [
+        "Stack Pointer (`sp`)",
+        "Stackframe",
+        "Speicheraufteilung"
+      ],
+      "heading": "Warum wächst der Stack nach unten?"
+    },
+    {
+      "id": "era-06-k17",
+      "term": "Speicheraufteilung",
+      "kind": "concept",
+      "short": "Das schematische Speichermodell trennt Text, Static Data, Heap und Stack.",
+      "explanation": "Im dargestellten Modell liegt der Text-Bereich mit Programmcode bei niedrigen Adressen, darüber folgen Static Data mit globalen Variablen und der Heap für dynamische Daten. Der Stack liegt im hohen Adressbereich und wächst zu kleineren Adressen; der Heap wächst in Richtung höherer Adressen. Beide Bereiche können in den freien Zwischenraum hineinwachsen, und ihre genaue Anordnung hängt von Programm und Umgebung ab.",
+      "example": "Eine globale Zählvariable liegt in Static Data, dynamisch angelegte Daten im Heap und lokale Variablen typischerweise im Stackframe.",
+      "pitfalls": [
+        "Die gezeigte Speicherkarte und die Wachstumsrichtungen sind ein Modell; die Anordnung kann anders gewählt sein."
+      ],
+      "related": [
+        "Stack",
+        "Stackframe",
+        "Stackwachstum nach unten"
+      ],
+      "heading": "Typische Speicheraufteilung"
+    },
+    {
+      "id": "era-06-k18",
+      "term": "Stack Overflow",
+      "kind": "definition",
+      "short": "Ein Stack Overflow tritt auf, wenn der Stack mehr Speicher beansprucht, als ihm zur Verfügung steht.",
+      "explanation": "Viele gleichzeitig aktive Aufrufe können zahlreiche Frames auf dem Stack halten. Tiefe oder nicht endende Rekursion kann den verfügbaren Stackbereich aufbrauchen. Im dargestellten Modell kann der Stack bis an den Heap heranwachsen; die tatsächliche Grenze und die Erkennung eines Overflows hängen von der Umgebung ab.",
+      "example": "Eine Funktion, die sich ohne Abbruchbedingung rekursiv aufruft, kann immer mehr Frames anlegen und einen Stack Overflow verursachen.",
+      "pitfalls": [
+        "Ein Stack Overflow bedeutet nicht zwingend, dass in jeder Umgebung der Heap überschrieben wird."
+      ],
+      "related": [
+        "Stack",
+        "Stackframe",
+        "Speicheraufteilung"
+      ],
+      "heading": "Typische Speicheraufteilung"
+    },
+    {
+      "id": "era-06-k19",
+      "term": "Echte Sprungbefehle und Pseudobefehle",
+      "kind": "concept",
+      "short": "Echte Maschinenbefehle haben eine ISA-Codierung, während Pseudobefehle lesbare Schreibweisen sind, die der Assembler umsetzt.",
+      "explanation": "Ein echter Maschinenbefehl entspricht einer codierten Anweisung der Ziel-ISA. Ein Pseudobefehl ist eine zusätzliche Assembler-Schreibweise, die der Assembler in einen oder mehrere echte Befehle übersetzt. Eine direkte Zuordnung zwischen Assemblerdarstellung und Codierung gilt für die echten Maschinenbefehle.",
+      "example": "`j label` ist ein Pseudobefehl und entspricht `jal x0, label`.",
+      "pitfalls": [
+        "Ein Pseudobefehl ist nicht zwingend ein einzelner zusätzlicher Maschinenbefehl."
+      ],
+      "related": [
+        "jal",
+        "jalr",
+        "Pseudobefehle",
+        "Disassembly"
+      ],
+      "heading": "Echte Sprungbefehle und Pseudobefehle"
+    },
+    {
+      "id": "era-06-k20",
+      "term": "jalr",
+      "kind": "notation",
+      "short": "`jalr rd, rs1, imm` springt über eine Registeradresse und speichert `PC+4` in `rd`.",
+      "explanation": "`jalr` berechnet das Sprungziel aus dem Wert von `rs1` und dem Immediate-Offset. Gleichzeitig schreibt der Befehl die Adresse des nächsten Befehls in `rd`. Ein Zielregister von `x0` verwirft den Linkwert.",
+      "example": "`jalr x0, ra, 0` springt zur Adresse in `ra`, ohne eine neue Rücksprungadresse zu speichern.",
+      "pitfalls": [
+        "Wenn `rd` `x0` ist, wird die berechnete Rücksprungadresse verworfen."
+      ],
+      "related": [
+        "jal",
+        "Rücksprungadresse",
+        "Rücksprung mit `jr ra`"
+      ],
+      "heading": "Echte Sprungbefehle und Pseudobefehle"
+    },
+    {
+      "id": "era-06-k21",
+      "term": "j und jr",
+      "kind": "notation",
+      "short": "`j label` und `jr reg` sind Pseudobefehle für Sprünge ohne Speichern einer neuen Rücksprungadresse.",
+      "explanation": "`j label` entspricht `jal x0, label`. `jr reg` entspricht `jalr x0, reg, 0` und springt zu einer Registeradresse. Weil Schreibzugriffe auf `x0` verworfen werden, bleibt keine neue Rücksprungadresse erhalten.",
+      "example": "`j .Ltest` springt zur Schleifenbedingung zurück, ohne ein Linkregister zu verändern.",
+      "pitfalls": [
+        "`jr ra` verwendet `ra` als Sprungziel, speichert aber keine neue Rücksprungadresse."
+      ],
+      "related": [
+        "jal",
+        "jalr",
+        "Nullregister x0",
+        "Pseudobefehle"
+      ],
+      "heading": "Echte Sprungbefehle und Pseudobefehle"
+    },
+    {
+      "id": "era-06-k22",
+      "term": "mv",
+      "kind": "notation",
+      "short": "`mv rd, rs` ist ein Pseudobefehl, der den Wert von `rs` nach `rd` kopiert.",
+      "explanation": "`mv` ist eine lesbare Assembler-Schreibweise und keine eigenständige RISC-V-Instruktion. Mögliche Ersatzbefehle sind `add rd, rs, x0` und `addi rd, rs, 0`. Beide übernehmen den Wert unverändert, weil `x0` beziehungsweise das Immediate null ist.",
+      "example": "`mv t0, t1` kopiert den Wert aus `t1` nach `t0`.",
+      "pitfalls": [
+        "`mv` kopiert einen Registerwert und lädt keinen Wert aus dem Speicher."
+      ],
+      "related": [
+        "Echte Sprungbefehle und Pseudobefehle",
+        "Pseudobefehle",
+        "Nullregister x0"
+      ],
+      "heading": "Noch einmal"
+    },
+    {
+      "id": "era-06-k23",
+      "term": "Stackframe-Offsetnotation",
+      "kind": "notation",
+      "short": "`offset(register)` bezeichnet eine Speicheradresse aus Basisregisterwert plus Offset.",
+      "explanation": "Bei einem Speicherbefehl wie `lw t0, -24(s0)` wird die Adresse aus dem Inhalt von `s0` plus dem Offset berechnet. Der Offset ist in Byte angegeben. Der Load- oder Store-Befehl bestimmt, wie viele Bytes übertragen werden.",
+      "example": "`sw t0, -20(s0)` speichert den Wert aus `t0` an der Adresse `s0-20`.",
+      "pitfalls": [
+        "Der Offset ist eine Byteverschiebung und keine Registernummer."
+      ],
+      "related": [
+        "Stackframe",
+        "Stack Pointer (`sp`)",
+        "Load/Store-Architektur"
+      ],
+      "heading": "1. Stackframe anlegen und Variablen initialisieren"
+    },
+    {
+      "id": "era-06-k24",
+      "term": "objdump",
+      "kind": "method",
+      "short": "`objdump` zeigt Informationen zu einer Binärdatei und kann deren Maschinenbefehle disassemblieren.",
+      "explanation": "`objdump -h datei` zeigt eine Übersicht der Abschnitte. `objdump -d datei` stellt codierte Programmbefehle als Disassembly dar. Damit lassen sich sowohl die Abschnittsstruktur als auch die Befehle einer Binärdatei untersuchen.",
+      "example": "`objdump -d count` zeigt die Disassembly des Programms `count`.",
+      "pitfalls": [
+        "`-h` zeigt die Abschnittsübersicht; für die Disassembly wird `-d` verwendet."
+      ],
+      "related": [
+        "Disassembly",
+        "Compiler und Binärdatei"
+      ],
+      "heading": "Binärdatei mit           ansehen"
+    },
+    {
+      "id": "era-06-k25",
+      "term": "Disassembly",
+      "kind": "definition",
+      "short": "Eine Disassembly ist die lesbare Assemblerdarstellung codierter Maschinenbefehle.",
+      "explanation": "Eine Disassembly zeigt typischerweise die Befehlsadresse, die Codierung und eine lesbare Assemblerdarstellung. Sie wird aus den codierten Befehlen erzeugt und liegt nicht zusätzlich als Assemblertext im RAM. So lässt sich untersuchen, welche Befehle in einer Binärdatei enthalten sind.",
+      "example": "Eine Zeile kann eine Adresse, die Codierung und eine Darstellung wie `addi sp, sp, -32` enthalten.",
+      "pitfalls": [
+        "Die Darstellung ist eine Interpretation der codierten Befehle und nicht automatisch der ursprüngliche Quelltext."
+      ],
+      "related": [
+        "objdump",
+        "Echte Sprungbefehle und Pseudobefehle",
+        "Compiler und Binärdatei"
+      ],
+      "heading": "Binärdatei mit           ansehen"
+    },
+    {
+      "id": "era-06-k26",
+      "term": "Zielarchitektur mit `-march`",
+      "kind": "notation",
+      "short": "`-march` gibt beim Kompilieren die Ziel-ISA und die verfügbaren Erweiterungen an.",
+      "explanation": "Die Compileroption legt fest, für welche Architektur und welche Instruktionserweiterungen Code erzeugt werden darf. `rv64imafd` bezeichnet hier RV64 mit den Erweiterungen I, M, A, F und D; `rv64imafdc` ergänzt C. Im gezeigten Disassembly ohne C sind die betrachteten Befehle durchgehend 32 Bit breit und stehen in Vier-Byte-Abständen.",
+      "example": "`gcc -o count -O0 -g count.c -march=rv64imafd` wählt diese RISC-V-Zielarchitektur für die Übersetzung.",
+      "pitfalls": [
+        "Welche Zielarchitektur ohne `-march` verwendet wird, hängt von der installierten Toolchain ab."
+      ],
+      "related": [
+        "RISC-V",
+        "Maschinenbefehlsformat",
+        "Compiler und Binärdatei"
+      ],
+      "heading": "Zielarchitektur beim Kompilieren"
+    },
+    {
+      "id": "era-06-k27",
+      "term": "RV64-Summenprogramm",
+      "kind": "example",
+      "short": "Das RV64-Summenprogramm addiert in zehn Schleifendurchläufen die Werte 0 bis 9 und berechnet 45.",
+      "explanation": "Das C-Programm initialisiert `n=10`, `i=0` und `c=0`, addiert in jedem Schleifendurchlauf `i` zu `c` und erhöht danach `i`. Die Schleife endet bei `i=10`, nachdem sie genau die Werte 0 bis 9 addiert hat. Im schematischen RV64-Beispiel reserviert `main` einen 32-Byte-Stackframe, sichert `ra` und `s0`, legt lokale Variablen dort ab und setzt vor `printf` die Argumente in `a0` und `a1`. Nach dem Aufruf stellt es die gesicherten Register wieder her, gibt den Frame frei und kehrt zurück.",
+      "example": "`c = 0 + 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9 = 45`.",
+      "pitfalls": [
+        "Der Schleifenrumpf läuft zehnmal; `i=10` wird nur bei der Abbruchprüfung betrachtet.",
+        "Der gezeigte Assemblerablauf ist ein schematisches Beispiel und keine rekonstruierte Compiler-Ausgabe."
+      ],
+      "related": [
+        "Stackframe",
+        "Argument- und Ergebnisregister",
+        "Rücksprungadresse",
+        "Stackframe-Offsetnotation"
+      ],
+      "heading": "Ausgangspunkt in C"
+    },
+    {
+      "id": "era-06-k28",
+      "term": "Pseudobefehle `call`, `ret`, `la` und `li`",
+      "kind": "notation",
+      "short": "`call`, `ret`, `la` und `li` sind Pseudobefehle für Aufruf, Rückkehr, Adressladen und Laden eines Immediate-Werts.",
+      "explanation": "Die Mitschrift verwendet diese lesbaren Schreibweisen ergänzend im RV64-Summenprogramm. `call` ruft ein Unterprogramm auf, `ret` kehrt über `ra` zurück, `la` lädt eine Adresse und `li` lädt einen Immediate-Wert. Der Assembler setzt diese Schreibweisen in echte Instruktionen um.",
+      "example": "Im Beispiel lädt `la a0, .Lformat` die Adresse des Formatstrings und `ret` entspricht `jalr x0, ra, 0`.",
+      "pitfalls": [
+        "Pseudobefehle sind Assembler-Schreibweisen und keine eigenständigen Maschineninstruktionen."
+      ],
+      "related": [
+        "Echte Sprungbefehle und Pseudobefehle",
+        "jalr",
+        "Rücksprungadresse",
+        "RV64-Summenprogramm"
+      ],
+      "heading": "3. Ausgabe, Register wiederherstellen und zurückkehren"
+    }
+  ],
+  "generator": {
+    "model": "gpt-6-luna",
+    "effort": "xhigh",
+    "promptVersion": "k1",
+    "generatedAt": "2026-11-02T12:31:20.216Z"
+  }
+}
