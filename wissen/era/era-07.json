@@ -1,0 +1,361 @@
+{
+  "schemaVersion": 1,
+  "unitId": "era-07",
+  "module": "ERA",
+  "unitNumber": 7,
+  "unitTitle": "Von-Neumann-Konzept und Programmablauf",
+  "sourceSha": "9959580966f408e4f3b711f12c8ec7a3f848b501f4af5bd118b5411d6808bfbf",
+  "overview": "Diese Unit erklärt das Von-Neumann-Konzept: Ein allgemeiner Rechner wird durch ein Programm für unterschiedliche Aufgaben gesteuert und besteht aus vier Werken. Programme und Daten liegen im selben Hauptspeicher als codierte Inhalte; das Leitwerk arbeitet Befehle im Allgemeinen der Reihe nach ab. Sprünge verändern diesen Ablauf. Die Unit behandelt außerdem Harvard-Architektur, getrennte Caches, Linken, selbstmodifizierenden Code sowie Stackframes, Prolog und Epilog und Compileroptimierung.",
+  "entries": [
+    {
+      "id": "era-07-k01",
+      "term": "Stack",
+      "kind": "definition",
+      "short": "Der Stack ist ein Speicherbereich im byteweise adressierten Hauptspeicher.",
+      "explanation": "Der Stack ist kein eigener Speicher neben dem Hauptspeicher, sondern wird innerhalb des Hauptspeichers verwaltet. Seine Inhalte liegen wie andere Speicherinhalte an adressierbaren Bytes.",
+      "example": "Ein Programm kann einen Teil des Hauptspeichers für Stackframes verwenden.",
+      "pitfalls": [
+        "Den Stack nicht als separaten Speicherbaustein neben dem Hauptspeicher auffassen."
+      ],
+      "related": [
+        "Hauptspeicher",
+        "Stackframe",
+        "Stack und LIFO"
+      ],
+      "heading": "Rückblick: Stackframes und Unterprogramme"
+    },
+    {
+      "id": "era-07-k02",
+      "term": "Stackframe",
+      "kind": "definition",
+      "short": "Ein Stackframe ist der einem Routinenaufruf zugeordnete Speicherbereich auf dem Stack.",
+      "explanation": "Beim Entwurf oder Übersetzen einer Routine wird festgelegt, wie viel Speicher ihr Stackframe benötigt und wo ihre Variablen darin liegen. Auch nötige Sicherungen von Registerwerten und die Freigabe des Bereichs bei der Rückkehr müssen berücksichtigt werden.",
+      "example": "Ein Frame kann Platz für lokale Variablen und gesicherte Register enthalten.",
+      "pitfalls": [
+        "Nicht alle Routinen müssen gleich große Stackframes haben."
+      ],
+      "related": [
+        "Stack",
+        "Prolog und Epilog",
+        "Calling Convention"
+      ],
+      "heading": "Rückblick: Stackframes und Unterprogramme"
+    },
+    {
+      "id": "era-07-k03",
+      "term": "Prolog und Epilog",
+      "kind": "concept",
+      "short": "Prolog und Epilog richten den Stackframe einer Routine ein und bauen ihn bei der Rückkehr wieder ab.",
+      "explanation": "Der Prolog steht am Anfang einer Routine und reserviert typischerweise benötigten Stackplatz sowie erforderliche Sicherungen. Der Epilog stellt gesicherte Werte wieder her, gibt Stackplatz frei und bereitet die Rückkehr zum Aufrufer vor. Der Aufrufer kann anschließend mit dem vereinbarten Ergebnis weiterarbeiten.",
+      "example": "Eine Routine reserviert im Prolog Stackplatz für lokale Werte und gibt ihn im Epilog wieder frei.",
+      "pitfalls": [
+        "Die Rückkehr verlangt nicht, dass alle Register unverändert bleiben."
+      ],
+      "related": [
+        "Stack",
+        "Stackframe",
+        "Calling Convention",
+        "Unterprogrammaufruf"
+      ],
+      "heading": "Prolog und Epilog"
+    },
+    {
+      "id": "era-07-k04",
+      "term": "Calling Convention",
+      "kind": "definition",
+      "short": "Die Calling Convention legt fest, wie Routinen Argumente, Ergebnisse und Registerwerte beim Aufruf und bei der Rückkehr behandeln.",
+      "explanation": "Sie ist die Vereinbarung, die Aufrufer und aufgerufene Routine einhalten müssen, damit sie zusammenarbeiten. Dazu gehört auch, welche Registerwerte erhalten bleiben müssen; deshalb müssen nicht pauschal alle Register unverändert bleiben.",
+      "example": "Wenn ein Register laut Calling Convention erhalten bleiben muss, sichert und restauriert die zuständige Routine seinen Wert.",
+      "pitfalls": [
+        "Nicht jede Registeränderung nach einem Aufruf ist ein Fehler; entscheidend ist die Vereinbarung."
+      ],
+      "related": [
+        "Prolog und Epilog",
+        "Stackframe",
+        "Register und Registerkonventionen",
+        "Caller-saved und Callee-saved"
+      ],
+      "heading": "Prolog und Epilog"
+    },
+    {
+      "id": "era-07-k05",
+      "term": "Compileroptimierung und -O2",
+      "kind": "concept",
+      "short": "Compileroptimierung kann die Befehlsfolge verändern, und -O2 bezeichnet den Optimierungsgrad 2.",
+      "explanation": "Ein Compiler kann Code so umformen, dass sich beispielsweise Registerbelegung oder Befehlsfolge gegenüber einem unoptimierten Beispiel ändern. `-O2` bezeichnet den genannten Optimierungsgrad 2. Die vom Programm geforderte, von außen beobachtbare Wirkung muss bei Optimierungen erhalten bleiben.",
+      "example": "Ein Register, das in einem unoptimierten Beispiel einen Wert hält, kann im mit `-O2` übersetzten Programm anders verwendet werden.",
+      "pitfalls": [
+        "Eine konkrete Registerbelegung aus einem unoptimierten Beispiel nicht als zwingend ansehen."
+      ],
+      "related": [
+        "Register",
+        "Befehlszyklus"
+      ],
+      "heading": "Compileroptimierung"
+    },
+    {
+      "id": "era-07-k06",
+      "term": "Von-Neumann-Konzept",
+      "kind": "concept",
+      "short": "Das Von-Neumann-Konzept beschreibt einen allgemeinen Rechner, dessen Programm die Lösung für unterschiedliche Probleme steuert.",
+      "explanation": "Die Rechnerstruktur ist unabhängig vom konkreten Problem, das gelöst werden soll. Statt die Hardware für jede Aufgabe neu zu gestalten, steuert ein jeweils anderes Programm denselben allgemeinen Rechner. Das Konzept wird in einem EDVAC-Papier beschrieben.",
+      "example": "Derselbe Rechner kann mit unterschiedlichen Programmen eine Summe berechnen oder Zeichen verarbeiten.",
+      "pitfalls": [
+        "Das Konzept nicht mit einem einzelnen Maschinenbefehl oder einer bestimmten Anwendung gleichsetzen."
+      ],
+      "related": [
+        "Die vier Werke",
+        "Programme und Daten im selben Speicher",
+        "Von-Neumann-Modell",
+        "Mikroarchitektur und Abstraktionsebenen"
+      ],
+      "heading": "Das Von-Neumann-Konzept"
+    },
+    {
+      "id": "era-07-k07",
+      "term": "Die vier Werke",
+      "kind": "concept",
+      "short": "Das Von-Neumann-Modell gliedert den Rechner in Hauptspeicher, Leitwerk, Rechenwerk und Ein-/Ausgabewerk.",
+      "explanation": "Der Haupt- beziehungsweise Arbeitsspeicher enthält Programme und Daten. Das Leitwerk, auch Steuerwerk genannt, arbeitet den Befehlszyklus ab und steuert das Rechenwerk; das Rechenwerk, meist als ALU bezeichnet, führt arithmetische Operationen aus. Das Ein-/Ausgabewerk übernimmt Ein- und Ausgabe einschließlich Sekundärspeicher.",
+      "example": "Bei einer Berechnung holt das Leitwerk Befehle, steuert die ALU und verwendet Daten aus dem Hauptspeicher.",
+      "pitfalls": [
+        "Die Pfeile in einem schematischen Modell zeigen grundsätzliche Beziehungen, nicht alle konkreten Busse oder Datenleitungen."
+      ],
+      "related": [
+        "Von-Neumann-Konzept",
+        "Hauptspeicher",
+        "Befehlszyklus"
+      ],
+      "heading": "Die vier Werke"
+    },
+    {
+      "id": "era-07-k08",
+      "term": "Hauptspeicher",
+      "kind": "definition",
+      "short": "Der Hauptspeicher besteht aus gleich großen Zellen mit fortlaufenden Adressen und enthält im Von-Neumann-Modell Programme und Daten.",
+      "explanation": "Der Hauptspeicher wird als Folge gleich großer Zellen mit fortlaufenden Adressen aufgefasst. Er ist byteweise adressiert, und der Stack liegt in diesem Speicher. Im Von-Neumann-Modell enthält er sowohl Programmcode als auch Daten.",
+      "example": "Eine Folge von Speicherzellen mit Adressen 100, 101 und 102 veranschaulicht fortlaufende Adressen.",
+      "pitfalls": [
+        "Hauptspeicher nicht mit Sekundärspeicher wie einem dauerhaften Datenspeicher verwechseln."
+      ],
+      "related": [
+        "Die vier Werke",
+        "Stack",
+        "Programme und Daten im selben Speicher",
+        "Byteadressierung"
+      ],
+      "heading": "Die Merkpunkte mit bereinigter Nummerierung"
+    },
+    {
+      "id": "era-07-k09",
+      "term": "Programme und Daten im selben Speicher",
+      "kind": "concept",
+      "short": "Im Von-Neumann-Modell liegen Befehle und Daten gemeinsam im Hauptspeicher.",
+      "explanation": "Der Speicher ist nicht grundsätzlich in einen nur für Programme und einen nur für Daten bestimmten Hauptspeicher aufgeteilt. Befehle und Daten sind unterschiedliche Interpretationen codierter Speicherinhalte. Weil Programme im Speicher liegen, kann die Maschine Speicherinhalte grundsätzlich verändern.",
+      "example": "Programmcode und eine Zahl, die das Programm verarbeitet, können beide als Inhalte desselben Hauptspeichers vorliegen.",
+      "pitfalls": [
+        "Gemeinsamer Speicher bedeutet nicht automatisch, dass jeder Speicherbereich beschreibbar ist."
+      ],
+      "related": [
+        "Von-Neumann-Konzept",
+        "Hauptspeicher",
+        "Codierte Speicherinhalte: Daten und Befehle",
+        "Schreibschutz und Speichertrennung"
+      ],
+      "heading": "Die Merkpunkte mit bereinigter Nummerierung"
+    },
+    {
+      "id": "era-07-k10",
+      "term": "Codierte Speicherinhalte: Daten und Befehle",
+      "kind": "concept",
+      "short": "Daten und Befehle liegen als Bitmuster im Speicher, deren Bedeutung durch eine vereinbarte Codierung bestimmt wird.",
+      "explanation": "Zahlen werden im Rechner dual dargestellt; Daten erhalten ihre Bedeutung durch die verwendete Binärcodierung und Interpretation. Befehle sind gemäß der ISA codiert und können in einer lesbaren Assemblerdarstellung angezeigt werden. Im Speicher stehen somit codierte Inhalte, nicht die gedruckten Wörter der Assemblerdarstellung.",
+      "example": "Dasselbe Bitmuster kann je nach Interpretation eine Zahl oder einen codierten Befehl darstellen.",
+      "pitfalls": [
+        "Ein Bitmuster allein legt nicht fest, ob es als Zahl, Datenwert oder Befehl interpretiert wird."
+      ],
+      "related": [
+        "Programme und Daten im selben Speicher",
+        "Instruction Set Architecture (ISA)",
+        "Binär- und Hexadezimaldarstellung",
+        "Assemblersprache"
+      ],
+      "heading": "Daten und Befehle sind codierte Speicherinhalte"
+    },
+    {
+      "id": "era-07-k11",
+      "term": "MAR und MDR",
+      "kind": "notation",
+      "short": "MAR und MDR sind Bezeichnungen für Register, die beim Speicherzugriff eine Adresse beziehungsweise Daten betreffen.",
+      "explanation": "MDR steht für *Memory Data Register* und bezeichnet ein Register für Speicherdaten. Die Mitschrift notiert für MAR „Memory Access Register“, kennzeichnet diese Bezeichnung aber als zu prüfen; möglicherweise ist *Memory Address Register* gemeint. Der genaue Ablauf eines Speicherzugriffs ist nicht festgelegt.",
+      "example": "Bei der üblichen Benennung hält das MAR eine Speicheradresse und das MDR die dazu übertragenen Daten.",
+      "pitfalls": [
+        "Die ausgeschriebene Bezeichnung von MAR ist in der Mitschrift nicht eindeutig geklärt."
+      ],
+      "related": [
+        "Hauptspeicher",
+        "Befehlszyklus"
+      ],
+      "heading": "Daten und Befehle sind codierte Speicherinhalte"
+    },
+    {
+      "id": "era-07-k12",
+      "term": "Befehlszyklus",
+      "kind": "definition",
+      "short": "Der Befehlszyklus ist der vom Leitwerk abgearbeitete Ablauf zur Ausführung von Befehlen.",
+      "explanation": "Im Vier-Werke-Modell ist das Leitwerk für das Abarbeiten des Befehlszyklus zuständig. Die Mitschrift nennt keine konkreten Phasen des Zyklus. Der Begriff ordnet die Befehlsverarbeitung in die Steuerung des Rechners ein.",
+      "example": null,
+      "pitfalls": [
+        "Aus der Mitschrift keine konkrete Zahl oder Reihenfolge von Phasen ableiten."
+      ],
+      "related": [
+        "Die vier Werke",
+        "Sequenzielle Befehlsausführung",
+        "Sprünge"
+      ],
+      "heading": "Die vier Werke"
+    },
+    {
+      "id": "era-07-k13",
+      "term": "Sequenzielle Befehlsausführung",
+      "kind": "concept",
+      "short": "Bei sequenzieller Befehlsausführung werden Befehle im Allgemeinen in ihrer gespeicherten Reihenfolge ausgeführt.",
+      "explanation": "Ein Programm ist eine Folge von Befehlen beziehungsweise Instruktionen. Diese sind im Allgemeinen an aufsteigenden Adressen gespeichert und werden nacheinander abgearbeitet. Sprünge können die Reihenfolge verändern.",
+      "example": "Ohne Sprung kann ein Programm erst den Befehl an einer Adresse und danach den folgenden Befehl ausführen.",
+      "pitfalls": [
+        "„Im Allgemeinen sequenziell“ bedeutet nicht, dass ein Programm keine Sprünge enthalten kann."
+      ],
+      "related": [
+        "Befehlszyklus",
+        "Sprünge",
+        "Hauptspeicher"
+      ],
+      "heading": "Die Merkpunkte mit bereinigter Nummerierung"
+    },
+    {
+      "id": "era-07-k14",
+      "term": "Sprünge",
+      "kind": "definition",
+      "short": "Bedingte und unbedingte Sprünge lenken die Befehlsausführung an eine andere Stelle um.",
+      "explanation": "Ein Sprung verändert die sonst sequenzielle Reihenfolge der Befehle. Ein bedingter Sprung nimmt die Umleitung abhängig von einer Bedingung; ein unbedingter Sprung führt sie ohne diese Bedingungsprüfung aus. So kann ein Programm unterschiedliche Abläufe beschreiben.",
+      "example": "Ein bedingter Sprung kann bei erfüllter Bedingung zu einem späteren Befehl verzweigen.",
+      "pitfalls": [
+        "Sprünge ändern den Kontrollfluss; sie ändern nicht automatisch den Inhalt des Programmcodes."
+      ],
+      "related": [
+        "Sequenzielle Befehlsausführung",
+        "Sprünge und Branches",
+        "Befehlszyklus"
+      ],
+      "heading": "Die Merkpunkte mit bereinigter Nummerierung"
+    },
+    {
+      "id": "era-07-k15",
+      "term": "Harvard-Architektur",
+      "kind": "definition",
+      "short": "Die Harvard-Architektur verwendet getrennte Speicher für Programmcode und Daten.",
+      "explanation": "Sie unterscheidet sich in der Speicherorganisation vom Von-Neumann-Modell, in dem Programme und Daten im selben Hauptspeicher liegen. Die Trennung der Speicher ist eine Architekturentscheidung und sagt für sich genommen nichts darüber aus, ob einzelne Speicherbereiche schreibgeschützt sind.",
+      "example": "Ein System mit eigenem Programmspeicher und eigenem Datenspeicher entspricht der beschriebenen Harvard-Aufteilung.",
+      "pitfalls": [
+        "Harvard-Architektur nicht mit Schreibschutz gleichsetzen."
+      ],
+      "related": [
+        "Von-Neumann-Konzept",
+        "Programme und Daten im selben Speicher",
+        "Schreibschutz und Speichertrennung"
+      ],
+      "heading": "Gemeinsamer oder getrennter Speicher?"
+    },
+    {
+      "id": "era-07-k16",
+      "term": "Gemeinsamer Hauptspeicher mit getrennten Caches",
+      "kind": "concept",
+      "short": "Eine Mischform verwendet einen gemeinsamen Hauptspeicher, aber getrennte Zwischenspeicher für Befehle und Daten.",
+      "explanation": "Bei dieser Speicherorganisation liegen Programme und Daten im selben Hauptspeicher. Für den schnelleren Zugriff können Befehle und Daten jedoch in getrennten Caches gehalten werden. Hauptspeicherorganisation und Cache-Aufteilung beschreiben unterschiedliche Ebenen.",
+      "example": "Ein Prozessor kann Befehls- und Datencache besitzen, obwohl beide auf denselben Hauptspeicher zugreifen.",
+      "pitfalls": [
+        "Getrennte Caches bedeuten nicht automatisch getrennte Hauptspeicher."
+      ],
+      "related": [
+        "Hauptspeicher",
+        "Programme und Daten im selben Speicher",
+        "Harvard-Architektur"
+      ],
+      "heading": "Gemeinsamer oder getrennter Speicher?"
+    },
+    {
+      "id": "era-07-k17",
+      "term": "Schreibschutz und Speichertrennung",
+      "kind": "concept",
+      "short": "Schreibschutz und die Trennung von Programm- und Datenspeicher sind voneinander unabhängige Eigenschaften.",
+      "explanation": "Ein Speicherbereich kann als veränderbar oder nicht veränderbar behandelt werden. Diese Behandlung ist eine andere Frage als die, ob Programme und Daten in einem gemeinsamen oder in getrennten Speichern liegen. Ein gemeinsamer Hauptspeicher kann daher Bereiche mit unterschiedlicher Änderbarkeit enthalten.",
+      "example": "Ein gemeinsamer Speicher kann einen schreibgeschützten Bereich für Code und einen beschreibbaren Bereich für Daten enthalten.",
+      "pitfalls": [
+        "Aus einem gemeinsamen Speicher nicht schließen, dass jeder Inhalt überschrieben werden darf."
+      ],
+      "related": [
+        "Programme und Daten im selben Speicher",
+        "Harvard-Architektur",
+        "Gemeinsamer Hauptspeicher mit getrennten Caches"
+      ],
+      "heading": "Gemeinsamer oder getrennter Speicher?"
+    },
+    {
+      "id": "era-07-k18",
+      "term": "Programmänderungen im Speicher",
+      "kind": "concept",
+      "short": "Wenn Programme im Speicher liegen, kann die Maschine grundsätzlich auch deren Speicherinhalte verändern.",
+      "explanation": "Das Von-Neumann-Modell legt Programme und Daten in denselben Hauptspeicher, sodass Programmcode grundsätzlich als Speicherinhalt vorliegt. Änderungen an Programmen im Speicher sind unter anderem im Zusammenhang mit Betriebssystemen und mit der Anpassung von Programmen beim Linken relevant. Das bedeutet nicht, dass ein Programm im normalen Ablauf ständig seinen eigenen Code verändert.",
+      "example": "Ein Linker kann nach dem Zusammenfügen von Programmteilen bestimmte Adressangaben im Programm anpassen.",
+      "pitfalls": [
+        "Die Möglichkeit, Programmcode zu ändern, ist nicht gleichbedeutend mit selbstmodifizierendem Code."
+      ],
+      "related": [
+        "Programme und Daten im selben Speicher",
+        "Linken",
+        "Selbstmodifizierender Code"
+      ],
+      "heading": "Programme im Speicher verändern"
+    },
+    {
+      "id": "era-07-k19",
+      "term": "Linken",
+      "kind": "method",
+      "short": "Beim Linken verbindet ein Linker übersetzte Programmteile und Bibliotheken zu einem Programm und löst Verweise auf.",
+      "explanation": "Der Linker ordnet zusammengehörige übersetzte Programmteile und benötigte Bibliotheksbestandteile einem Programm zu. Dabei löst er Verweise zwischen den Teilen auf und passt gegebenenfalls Adressangaben an. Dieser Vorgang folgt auf die Übersetzung der Programmteile.\n\n1. Übersetzte Programmteile und benötigte Bibliotheksbestandteile zusammenstellen.\n2. Verweise zwischen den Teilen auflösen.\n3. Falls nötig, Adressangaben anpassen.",
+      "example": "Enthält ein Programm einen Aufruf von `printf`, muss der Verweis beim Linken einem passenden Ziel aus einer Bibliothek zugeordnet werden.",
+      "pitfalls": [
+        "Linken nicht mit dem Übersetzen des Quelltexts verwechseln."
+      ],
+      "related": [
+        "Compiler und Binärdatei",
+        "Programmänderungen im Speicher",
+        "Selbstmodifizierender Code"
+      ],
+      "heading": "Was bedeutet Linken?"
+    },
+    {
+      "id": "era-07-k20",
+      "term": "Selbstmodifizierender Code",
+      "kind": "definition",
+      "short": "Selbstmodifizierender Code verändert während seiner Ausführung seinen eigenen Programmcode.",
+      "explanation": "Dabei schreibt ein Programm in Speicherbereiche, in denen sein eigener Code liegt. Diese Technik ist heute eine seltene Ausnahme. Unterschiedliche Abläufe werden meist durch bedingte Sprünge und Änderungen von Adressen umgesetzt.",
+      "example": "Ein Programm, das zur Laufzeit eine eigene Instruktion überschreibt, wäre selbstmodifizierend.",
+      "pitfalls": [
+        "Ein Linker, der beim Zusammenfügen Adressangaben anpasst, ist deshalb nicht automatisch selbstmodifizierender Code."
+      ],
+      "related": [
+        "Programmänderungen im Speicher",
+        "Linken",
+        "Sprünge"
+      ],
+      "heading": "Selbstmodifizierender Code"
+    }
+  ],
+  "generator": {
+    "model": "gpt-6-luna",
+    "effort": "xhigh",
+    "promptVersion": "k1",
+    "generatedAt": "2026-11-02T12:31:49.615Z"
+  }
+}
