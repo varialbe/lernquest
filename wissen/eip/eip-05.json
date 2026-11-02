@@ -1,0 +1,462 @@
+{
+  "schemaVersion": 1,
+  "unitId": "eip-05",
+  "module": "EIP",
+  "unitNumber": 5,
+  "unitTitle": "Primitive Datentypen und Operatoren",
+  "sourceSha": "fe0238820c8455856ee82df0b7195ded002a67db66fbe28b86a6469fcb6c34d1",
+  "overview": "Diese Unit behandelt primitive Datentypen, ihre Wertebereiche und die Besonderheiten von Gleitkommazahlen und char. Typkonvertierungen und arithmetische Typregeln bestimmen, wie Ausdrücke berechnet werden; Casts können Werte abschneiden oder verändern. Boolean-Operatoren, Zuweisungen sowie Präfix- und Postfix-Inkremente beeinflussen die Auswertung von Bedingungen und Ausdrücken.",
+  "entries": [
+    {
+      "id": "eip-05-k01",
+      "term": "Primitive Datentypen",
+      "kind": "definition",
+      "short": "Primitive Datentypen legen fest, welche einfachen Werte eine Variable speichern kann.",
+      "explanation": "Java hat acht primitive Datentypen: sieben Zahlentypen und `boolean`. Die Zahlentypen unterscheiden sich in Wertebereich und Genauigkeit; `boolean` speichert Wahrheitswerte.\n\n| Typ | Breite oder Genauigkeit | Werte bzw. Besonderheit |\n|---|---:|---|\n| `byte` | 8 Bit | −128 bis 127 |\n| `short` | 16 Bit | ganze Zahlen |\n| `int` | 32 Bit | Standardtyp für Ganzzahlen |\n| `long` | 64 Bit | große Ganzzahlen |\n| `float` | 32 Bit | ungefähr 7 signifikante Stellen |\n| `double` | 64 Bit | ungefähr 15–16 signifikante Stellen |\n| `char` | 16 Bit | eine UTF-16-Codeeinheit |\n| `boolean` | nicht festgelegt | `true` oder `false` |\n\nDer Datentyp beeinflusst, welche Werte darstellbar sind und wie arithmetische Ausdrücke berechnet werden.",
+      "example": null,
+      "pitfalls": [
+        "Die Bitbreite eines Typs sagt bei Gleitkommatypen nicht direkt aus, wie viele Dezimalstellen exakt gespeichert werden.",
+        "`char` speichert eine UTF-16-Codeeinheit und kann in numerischen Ausdrücken vorkommen."
+      ],
+      "related": [
+        "Overflow",
+        "Widening (automatische Typkonvertierung)",
+        "Arithmetische Typkonvertierung"
+      ],
+      "heading": "1. Primitive Datentypen"
+    },
+    {
+      "id": "eip-05-k02",
+      "term": "byte",
+      "kind": "definition",
+      "short": "`byte` ist ein vorzeichenbehafteter Ganzzahltyp mit 8 Bit und dem Wertebereich −128 bis 127.",
+      "explanation": "`byte` speichert Ganzzahlen von −128 bis einschließlich 127. Werte außerhalb dieses Bereichs lassen sich nicht als `byte` darstellen und können bei einer expliziten Umwandlung einen anderen Wert ergeben. In arithmetischen Ausdrücken wird ein `byte`-Operand normalerweise zunächst zu `int` erweitert.",
+      "example": "```java\nbyte temperaturDifferenz = -12;\n```",
+      "pitfalls": [
+        "`byte + byte` hat in Java den Ergebnistyp `int`.",
+        "Ein Cast auf `byte` kann den Zahlenwert verändern, wenn er außerhalb des Wertebereichs liegt."
+      ],
+      "related": [
+        "Primitive Datentypen",
+        "Casting (explizite Typkonvertierung)",
+        "Arithmetische Typkonvertierung"
+      ],
+      "heading": "1. Primitive Datentypen"
+    },
+    {
+      "id": "eip-05-k03",
+      "term": "short",
+      "kind": "definition",
+      "short": "`short` ist ein vorzeichenbehafteter 16-Bit-Ganzzahltyp mit dem Wertebereich −32.768 bis 32.767.",
+      "explanation": "`short` speichert ganze Zahlen in einem größeren Bereich als `byte`, aber in einem kleineren als `int`. Sein Wertebereich reicht von −2¹⁵ bis 2¹⁵−1. Bei arithmetischen Operationen werden `short`-Werte in der Regel zu `int` erweitert.",
+      "example": "```java\nshort anzahl = 1200;\n```",
+      "pitfalls": [
+        "`short + short` ergibt nicht `short`, sondern `int`."
+      ],
+      "related": [
+        "Primitive Datentypen",
+        "Widening (automatische Typkonvertierung)",
+        "Arithmetische Typkonvertierung"
+      ],
+      "heading": "1. Primitive Datentypen"
+    },
+    {
+      "id": "eip-05-k04",
+      "term": "int",
+      "kind": "definition",
+      "short": "`int` ist der Standardtyp für Ganzzahlen und speichert vorzeichenbehaftete 32-Bit-Werte.",
+      "explanation": "Ein `int` kann Werte von −2³¹ bis 2³¹−1 speichern. Java verwendet `int` üblicherweise für ganzzahlige Variablen und ganzzahlige Literale ohne besonderen Suffix. Rechnungen mit `int` können über den darstellbaren Bereich hinauslaufen.",
+      "example": "```java\nint seitenzahl = 240;\n```",
+      "pitfalls": [
+        "Das spätere Speichern des Ergebnisses in einer `long`-Variablen macht eine zuvor mit `int` ausgeführte Berechnung nicht nachträglich zu einer `long`-Berechnung."
+      ],
+      "related": [
+        "Primitive Datentypen",
+        "Overflow",
+        "Integer-Division",
+        "Arithmetische Typkonvertierung"
+      ],
+      "heading": "1. Primitive Datentypen"
+    },
+    {
+      "id": "eip-05-k05",
+      "term": "long",
+      "kind": "definition",
+      "short": "`long` ist ein vorzeichenbehafteter 64-Bit-Ganzzahltyp für Werte, die über den `int`-Bereich hinausgehen.",
+      "explanation": "`long` kann Werte von −2⁶³ bis 2⁶³−1 speichern. Es hat einen größeren Ganzzahlbereich als `int`, aber auch Rechnungen mit `long` können überlaufen. Bei einer gemischten Rechnung mit `int` und `long` wird der `int`-Operand für die Rechnung zu `long` erweitert.",
+      "example": "```java\nlong weltbevoelkerung = 8_000_000_000L;\n```",
+      "pitfalls": [
+        "Ein Ausdruck mit ausschließlich `int`-Operanden wird zunächst als `int` berechnet, auch wenn das Ergebnis einer `long`-Variablen zugewiesen wird."
+      ],
+      "related": [
+        "Primitive Datentypen",
+        "Widening (automatische Typkonvertierung)",
+        "Overflow vermeiden durch Cast vor der Berechnung"
+      ],
+      "heading": "1. Primitive Datentypen"
+    },
+    {
+      "id": "eip-05-k06",
+      "term": "float",
+      "kind": "definition",
+      "short": "`float` ist ein 32-Bit-Gleitkommatyp mit ungefähr sieben signifikanten Dezimalstellen.",
+      "explanation": "`float` stellt Zahlen mit Nachkommastellen über eine Gleitkommadarstellung dar. Wegen seiner begrenzten Genauigkeit sind viele Dezimalwerte nur näherungsweise darstellbar. Ein Dezimalliteral muss mit `f` oder `F` gekennzeichnet werden, damit es den Typ `float` hat.",
+      "example": "```java\nfloat messwert = 3.5f;\n```",
+      "pitfalls": [
+        "Ein `float` speichert nicht automatisch jede Zahl mit Nachkommastellen exakt.",
+        "Das Literal `3.5` hat ohne Suffix den Typ `double`, nicht `float`."
+      ],
+      "related": [
+        "Primitive Datentypen",
+        "Gleitkommadarstellung (Floating Point)",
+        "Gleitkomma-Literale",
+        "Widening (automatische Typkonvertierung)"
+      ],
+      "heading": "1. Primitive Datentypen"
+    },
+    {
+      "id": "eip-05-k07",
+      "term": "double",
+      "kind": "definition",
+      "short": "`double` ist ein 64-Bit-Gleitkommatyp mit ungefähr 15–16 signifikanten Dezimalstellen.",
+      "explanation": "`double` stellt Gleitkommazahlen mit mehr Genauigkeit und größerem Wertebereich als `float` dar. Auch `double` kann viele Dezimalwerte nicht exakt speichern, weil die Darstellung binär und endlich genau ist. Dezimalliterale wie `3.5` haben in Java standardmäßig den Typ `double`.",
+      "example": "```java\ndouble durchschnitt = 7.0 / 2;\n```",
+      "pitfalls": [
+        "Mehr Genauigkeit bedeutet nicht, dass jede Dezimalzahl exakt darstellbar ist."
+      ],
+      "related": [
+        "Primitive Datentypen",
+        "Gleitkommadarstellung (Floating Point)",
+        "Gleitkomma-Literale",
+        "Widening (automatische Typkonvertierung)"
+      ],
+      "heading": "1. Primitive Datentypen"
+    },
+    {
+      "id": "eip-05-k08",
+      "term": "char",
+      "kind": "definition",
+      "short": "`char` speichert genau eine 16-Bit-UTF-16-Codeeinheit.",
+      "explanation": "Ein `char`-Wert ist eine UTF-16-Codeeinheit und wird in Java in einfachen Anführungszeichen geschrieben. Der Buchstabe `A` hat den Zeichencode 65, sodass `char c = 'A'` denselben numerischen Codewert speichert. Ein Unicode-Zeichen außerhalb der Basic Multilingual Plane benötigt in UTF-16 zwei Codeeinheiten und damit zwei `char`-Werte.",
+      "example": "```java\nchar buchstabe = 'A';\nint zeichencode = buchstabe; // 65\n```",
+      "pitfalls": [
+        "`char` ist keine beliebig lange Zeichenkette.",
+        "Ein einzelnes sichtbares Unicode-Zeichen kann aus zwei `char`-Codeeinheiten bestehen."
+      ],
+      "related": [
+        "Primitive Datentypen",
+        "Widening (automatische Typkonvertierung)",
+        "Arithmetische Typkonvertierung"
+      ],
+      "heading": "1. Primitive Datentypen"
+    },
+    {
+      "id": "eip-05-k09",
+      "term": "boolean",
+      "kind": "definition",
+      "short": "`boolean` speichert einen der beiden Wahrheitswerte `true` und `false`.",
+      "explanation": "`boolean` ist der primitive Datentyp für logische Bedingungen. Er hat genau zwei mögliche Werte und ist kein Zahlentyp. Die Java-Sprachdefinition legt keine feste Bitbreite für `boolean` fest.",
+      "example": "```java\nboolean istGueltig = true;\n```",
+      "pitfalls": [
+        "`true` und `false` lassen sich nicht wie Zahlen addieren oder mit `0` und `1` gleichsetzen."
+      ],
+      "related": [
+        "Primitive Datentypen",
+        "Boolean-Operatoren"
+      ],
+      "heading": "1. Primitive Datentypen"
+    },
+    {
+      "id": "eip-05-k10",
+      "term": "Overflow",
+      "kind": "concept",
+      "short": "Ein Overflow entsteht, wenn ein Rechenergebnis den darstellbaren Wertebereich eines Ganzzahltyps überschreitet.",
+      "explanation": "Bei Java-Ganzzahltypen wird ein Overflow nicht automatisch durch eine Exception gemeldet. Für einen `int` führt das Addieren von 1 zum größten darstellbaren Wert zum kleinsten darstellbaren Wert. Das Ergebnis ist dadurch oft überraschend, bleibt aber ein gültiger Wert des Typs.",
+      "example": "```java\nint maximum = 2_147_483_647;\nint danach = maximum + 1; // -2_147_483_648\n```",
+      "pitfalls": [
+        "Ein Ganzzahl-Overflow löst anders als eine Division durch null keine Exception aus.",
+        "Ein Cast des fertigen Ergebnisses auf einen größeren Typ kann einen bereits eingetretenen Overflow nicht rückgängig machen."
+      ],
+      "related": [
+        "int",
+        "Casting (explizite Typkonvertierung)",
+        "Overflow vermeiden durch Cast vor der Berechnung"
+      ],
+      "heading": "1. Primitive Datentypen"
+    },
+    {
+      "id": "eip-05-k11",
+      "term": "Gleitkommadarstellung (Floating Point)",
+      "kind": "concept",
+      "short": "Floating Point stellt Zahlen mit Nachkommastellen mit begrenzter Genauigkeit in binärer Form dar.",
+      "explanation": "Java speichert `float`- und `double`-Werte als Gleitkommazahlen mit endlicher binärer Genauigkeit. Viele Dezimalbrüche, darunter `0.1`, haben keine endliche Binärdarstellung und werden deshalb durch einen nahegelegenen Wert angenähert. Dadurch können Rechenergebnisse kleine Rundungsabweichungen enthalten.",
+      "example": "```java\ndouble x = 0.1 + 0.2; // kann geringfügig von 0.3 abweichen\n```",
+      "pitfalls": [
+        "Eine Dezimalzahl, die kurz aussieht, muss nicht exakt als Binärzahl darstellbar sein.",
+        "Direkte Gleichheitsvergleiche von Gleitkommaergebnissen können wegen Rundungsabweichungen unerwartet ausfallen."
+      ],
+      "related": [
+        "float",
+        "double",
+        "Gleitkomma-Literale"
+      ],
+      "heading": "1. Primitive Datentypen"
+    },
+    {
+      "id": "eip-05-k12",
+      "term": "Gleitkomma-Literale",
+      "kind": "notation",
+      "short": "Ein Gleitkommaliteral ohne Suffix hat den Typ `double`, mit `f` oder `F` den Typ `float`.",
+      "explanation": "Ein Gleitkommaliteral ist eine direkt im Quelltext geschriebene Zahl mit Dezimalpunkt oder Exponent. Java interpretiert `3.5` standardmäßig als `double`; der Suffix `f` oder `F` kennzeichnet ein `float`-Literal. Der Literaltyp beeinflusst den Ergebnistyp einer Rechnung.",
+      "example": "```java\ndouble d = 3.5;\nfloat f = 3.5f;\n```",
+      "pitfalls": [
+        "`3.5` kann nicht ohne Konvertierung einer `float`-Variablen zugewiesen werden, weil es ein `double`-Literal ist."
+      ],
+      "related": [
+        "float",
+        "double",
+        "Arithmetische Typkonvertierung"
+      ],
+      "heading": "1. Primitive Datentypen"
+    },
+    {
+      "id": "eip-05-k13",
+      "term": "Widening (automatische Typkonvertierung)",
+      "kind": "concept",
+      "short": "Widening bezeichnet eine von Java automatisch erlaubte Konvertierung eines primitiven Werts in einen anderen numerischen Typ.",
+      "explanation": "Java erlaubt unter anderem automatische Konvertierungen entlang der Folge `byte → short → int → long → float → double`. Auch `char` kann automatisch nach `int`, `long`, `float` oder `double` konvertiert werden. Eine solche Umwandlung ist bequem, aber nicht immer verlustfrei: Zum Beispiel kann `int` nach `float` an Genauigkeit verlieren.",
+      "example": "```java\nbyte klein = 12;\nint ganzzahl = klein;\ndouble komma = ganzzahl;\n```",
+      "pitfalls": [
+        "`char` wird nicht automatisch zu `short` konvertiert.",
+        "Ein Widening-Schritt garantiert nicht, dass jeder einzelne Wert exakt erhalten bleibt."
+      ],
+      "related": [
+        "Primitive Datentypen",
+        "Casting (explizite Typkonvertierung)",
+        "Arithmetische Typkonvertierung"
+      ],
+      "heading": "2. Typkonvertierung"
+    },
+    {
+      "id": "eip-05-k14",
+      "term": "Casting (explizite Typkonvertierung)",
+      "kind": "concept",
+      "short": "Ein Cast fordert eine Typkonvertierung ausdrücklich mit dem Zieltyp in Klammern an.",
+      "explanation": "Ein Cast wird in Java vor den zu konvertierenden Wert geschrieben, zum Beispiel `(int) wert`. Bei der Umwandlung von `double` nach `int` wird der Nachkommateil abgeschnitten; es wird nicht gerundet. Bei der Umwandlung einer Ganzzahl nach `byte` bleiben nur die niedrigsten acht Bits erhalten, die anschließend als vorzeichenbehafteter `byte`-Wert interpretiert werden.",
+      "example": "```java\nint a = (int) 3.9;    // 3\nint b = (int) -3.9;   // -3\nbyte c = (byte) 130;  // -126\n```",
+      "pitfalls": [
+        "Das Abschneiden bei einer Gleitkommazahl ist keine Rundung.",
+        "Ein Cast auf einen kleineren Ganzzahltyp kann den Zahlenwert verändern."
+      ],
+      "related": [
+        "Widening (automatische Typkonvertierung)",
+        "Overflow",
+        "Arithmetische Typkonvertierung"
+      ],
+      "heading": "2. Typkonvertierung"
+    },
+    {
+      "id": "eip-05-k15",
+      "term": "Arithmetische Typkonvertierung",
+      "kind": "theorem",
+      "short": "Vor einer arithmetischen Operation werden gemischte numerische Operanden nach den Regeln der numerischen Promotion auf einen gemeinsamen Typ gebracht.",
+      "explanation": "Bei einer binären arithmetischen Operation bestimmt der höchstrangige Operand den Rechentyp: `double > float > long > int`. Operanden eines niedrigeren Typs werden vor der Rechnung konvertiert. `byte`, `short` und `char` werden bei solchen Operationen mindestens zu `int` erweitert, weshalb auch `byte + byte` den Typ `int` hat.",
+      "example": "```java\nbyte a = 2;\nbyte b = 3;\nint summe = a + b;\ndouble ergebnis = 7.0 / 2; // 2 wird zu double erweitert\n```",
+      "pitfalls": [
+        "Der Typ einer Zielvariablen bestimmt nicht rückwirkend den Typ, in dem der Ausdruck berechnet wurde.",
+        "`byte + byte` ergibt nicht `byte`."
+      ],
+      "related": [
+        "byte",
+        "int",
+        "long",
+        "float",
+        "double",
+        "Widening (automatische Typkonvertierung)"
+      ],
+      "heading": "2. Typkonvertierung"
+    },
+    {
+      "id": "eip-05-k16",
+      "term": "Integer-Division",
+      "kind": "definition",
+      "short": "Die Division zweier Ganzzahloperanden ergibt einen ganzzahligen Quotienten, bei dem der Nachkommateil in Richtung null abgeschnitten wird.",
+      "explanation": "Wenn beide Operanden einer Division Ganzzahltypen haben, ist das Ergebnis ebenfalls ganzzahlig und wird in Richtung null abgeschnitten. Deshalb ergibt `7 / 2` den Wert `3`; bei `-7 / 2` ist das Ergebnis `-3`. Ein Cast nach der Division ändert den bereits berechneten Quotienten nicht.",
+      "example": "```java\nint a = 7 / 2;                 // 3\ndouble b = 7.0 / 2;           // 3.5\ndouble c = (double) (7 / 2);  // 3.0\n```",
+      "pitfalls": [
+        "`(double) (7 / 2)` wandelt erst das Ergebnis `3` um; der Cast macht die Division nicht zu einer Gleitkommadivision.",
+        "Ganzzahldivision rundet nicht auf den nächsten Wert."
+      ],
+      "related": [
+        "Arithmetische Typkonvertierung",
+        "Casting (explizite Typkonvertierung)",
+        "Division durch null"
+      ],
+      "heading": "2. Typkonvertierung"
+    },
+    {
+      "id": "eip-05-k17",
+      "term": "Restoperator (%)",
+      "kind": "notation",
+      "short": "Bei Ganzzahloperanden liefert `%` den Rest der Ganzzahldivision.",
+      "explanation": "Der Ausdruck `a % b` berechnet bei Ganzzahloperanden den Rest, der bei der ganzzahligen Division von `a` durch `b` bleibt. Java definiert `%` auch für Gleitkommaoperanden. Bei negativen Ganzzahloperanden hat der Rest das Vorzeichen des linken Operanden, also des Dividenden; daher ist `-7 % 2` gleich `-1`.",
+      "example": "```java\nint rest1 = 7 % 2;   // 1\nint rest2 = -7 % 2;  // -1\n```",
+      "pitfalls": [
+        "`%` bedeutet bei Ganzzahlen den Divisionsrest, nicht einen immer positiven Modulo.",
+        "Ein Restoperator mit ganzzahligem Divisor `0` löst eine `ArithmeticException` aus."
+      ],
+      "related": [
+        "Integer-Division",
+        "Division durch null"
+      ],
+      "heading": "2. Typkonvertierung"
+    },
+    {
+      "id": "eip-05-k18",
+      "term": "Division durch null",
+      "kind": "theorem",
+      "short": "Eine Division oder Restberechnung mit Ganzzahltypen und Divisor null löst eine `ArithmeticException` aus.",
+      "explanation": "Bei `int`- oder `long`-Operanden ist ein Divisor von null für `/` und `%` nicht zulässig und führt zur Laufzeit zu einer `ArithmeticException`. Das gilt für Ganzzahloperationen, nicht als allgemeine Regel für Gleitkommaoperationen: Diese folgen den IEEE-Gleitkommaregeln und werfen bei Division durch null keine solche Exception.",
+      "example": "```java\nint ergebnis = 7 / 0; // ArithmeticException zur Laufzeit\n```",
+      "pitfalls": [
+        "Ganzzahldivision durch null und Ganzzahl-Overflow sind unterschiedliche Fehlerfälle: Nur die Division durch null löst hier eine Exception aus."
+      ],
+      "related": [
+        "Integer-Division",
+        "Restoperator (%)",
+        "Overflow"
+      ],
+      "heading": "2. Typkonvertierung"
+    },
+    {
+      "id": "eip-05-k19",
+      "term": "Overflow vermeiden durch Cast vor der Berechnung",
+      "kind": "method",
+      "short": "Ein Operand muss vor einer Rechnung auf einen größeren Typ erweitert werden, damit die Rechnung in diesem Typ stattfindet.",
+      "explanation": "Wenn eine Rechnung mit `int`-Operanden den `int`-Bereich überschreitet, reicht es nicht, das fertige Ergebnis einer `long`-Variablen zuzuweisen. Wandle mindestens einen Operanden vor der Operation in `long` um. Java führt dann die Multiplikation als `long`-Rechnung aus.",
+      "example": "```java\nlong x = (long) 50000 * 50000;\n```",
+      "pitfalls": [
+        "`long x = 50000 * 50000;` kann zuerst als `int` überlaufen und erst danach zu `long` konvertiert werden."
+      ],
+      "related": [
+        "Overflow",
+        "int",
+        "long",
+        "Casting (explizite Typkonvertierung)",
+        "Arithmetische Typkonvertierung"
+      ],
+      "heading": "2. Typkonvertierung"
+    },
+    {
+      "id": "eip-05-k20",
+      "term": "Boolean-Operatoren",
+      "kind": "definition",
+      "short": "`&&`, `||` und `!` verknüpfen oder negieren Wahrheitswerte.",
+      "explanation": "`&&` bedeutet logisches UND: Das Ergebnis ist nur dann `true`, wenn beide Bedingungen wahr sind. `||` bedeutet logisches ODER und ist `true`, wenn mindestens eine Bedingung wahr ist; `!` negiert einen Wahrheitswert. Diese Operatoren werden typischerweise zum Zusammensetzen von Bedingungen verwendet.",
+      "example": "```java\nboolean imBereich = i >= 0 && i < a.length;\n```",
+      "pitfalls": [
+        "`&&` und `||` sind logische Operatoren für Bedingungen; `!` negiert den folgenden Ausdruck."
+      ],
+      "related": [
+        "boolean",
+        "Priorität der Boolean-Operatoren",
+        "Short-Circuit-Auswertung",
+        "Bedingung und Join"
+      ],
+      "heading": "3. Boolean-Operatoren"
+    },
+    {
+      "id": "eip-05-k21",
+      "term": "Priorität der Boolean-Operatoren",
+      "kind": "theorem",
+      "short": "Bei Boolean-Ausdrücken bindet `!` stärker als `&&`, und `&&` stärker als `||`.",
+      "explanation": "Ohne Klammern wird zuerst `!`, danach `&&` und zuletzt `||` ausgewertet. Die Reihenfolge entspricht also `!` > `&&` > `||`. Klammern machen die gewünschte Gruppierung sichtbar und verhindern Missverständnisse beim Lesen.",
+      "example": "```java\nboolean ergebnis = !a || b && c; // entspricht (!a) || (b && c)\n```",
+      "pitfalls": [
+        "Die Prioritätsreihenfolge legt fest, wie ein Ausdruck gruppiert wird, nicht in welcher Reihenfolge alle Operanden ausgewertet werden.",
+        "Klammern sind sinnvoll, wenn die Gruppierung eines längeren Ausdrucks nicht sofort klar ist."
+      ],
+      "related": [
+        "Boolean-Operatoren",
+        "Operatorvorrang"
+      ],
+      "heading": "3. Boolean-Operatoren"
+    },
+    {
+      "id": "eip-05-k22",
+      "term": "Short-Circuit-Auswertung",
+      "kind": "concept",
+      "short": "`&&` und `||` werten den rechten Operanden nur aus, wenn er das Ergebnis noch beeinflussen kann.",
+      "explanation": "Bei `a && b` wird `b` nur ausgewertet, wenn `a` den Wert `true` hat; andernfalls steht das Ergebnis schon fest. Bei `a || b` wird `b` nur ausgewertet, wenn `a` den Wert `false` hat. Dadurch können unnötige Berechnungen und bestimmte ungültige Zugriffe vermieden werden.",
+      "example": "```java\nif (i >= 0 && i < a.length && a[i] != 0) {\n    // a[i] wird nur geprüft, wenn i im gültigen Bereich liegt.\n}\n```",
+      "pitfalls": [
+        "Die Auswertung des rechten Operanden ist nicht garantiert; dort sollten keine nötigen Seiteneffekte versteckt werden."
+      ],
+      "related": [
+        "Boolean-Operatoren",
+        "Priorität der Boolean-Operatoren",
+        "Arrays und Indizes"
+      ],
+      "heading": "3. Boolean-Operatoren"
+    },
+    {
+      "id": "eip-05-k23",
+      "term": "Zuweisung (=)",
+      "kind": "notation",
+      "short": "`=` weist einer Variablen einen Wert zu und liefert in Java selbst diesen zugewiesenen Wert.",
+      "explanation": "Eine Zuweisung schreibt den Wert auf der rechten Seite in die Variable auf der linken Seite. Ein Zuweisungsausdruck hat selbst einen Wert, sodass er in einem größeren Ausdruck verwendet werden kann. Im Beispiel wird zuerst `5` nach `y` geschrieben und dann `5 + 2` nach `x`.",
+      "example": "```java\nint y;\nint x = (y = 5) + 2; // x ist 7, y ist 5\n```",
+      "pitfalls": [
+        "`=` weist zu; es prüft nicht, ob zwei Werte gleich sind.",
+        "Eine Zuweisung in einem größeren Ausdruck kann schwerer lesbar sein als getrennte Anweisungen."
+      ],
+      "related": [
+        "Vergleichsoperator (==)",
+        "Variable",
+        "Wertzuweisung"
+      ],
+      "heading": "4. Assignments & Increments"
+    },
+    {
+      "id": "eip-05-k24",
+      "term": "Vergleichsoperator (==)",
+      "kind": "notation",
+      "short": "`==` vergleicht zwei Werte und ergibt einen Wahrheitswert.",
+      "explanation": "Bei primitiven Werten prüft `==`, ob die beiden Werte gleich sind. Bei Referenztypen vergleicht `==`, ob beide Referenzen auf dasselbe Objekt zeigen; gleiche Inhalte genügen dafür nicht. Das Ergebnis des Vergleichs ist `true` oder `false`.",
+      "example": "```java\nint punkte = 5;\nboolean bestanden = punkte == 5;\n```",
+      "pitfalls": [
+        "Bei Strings vergleicht `==` nicht den Textinhalt; dafür wird in Java üblicherweise `equals` verwendet.",
+        "`==` ist nicht dasselbe wie die Zuweisung mit `=`."
+      ],
+      "related": [
+        "Zuweisung (=)",
+        "boolean",
+        "Stringvergleich mit equals"
+      ],
+      "heading": "4. Assignments & Increments"
+    },
+    {
+      "id": "eip-05-k25",
+      "term": "Inkrement und Dekrement",
+      "kind": "notation",
+      "short": "`++` erhöht eine Variable um 1 und `--` verringert sie um 1; Präfix und Postfix unterscheiden sich im verwendeten Ausdruckswert.",
+      "explanation": "Beim Präfix `++i` oder `--i` wird die Variable zuerst geändert und danach wird der neue Wert im Ausdruck verwendet. Beim Postfix `i++` oder `i--` wird zuerst der alte Wert im Ausdruck verwendet und anschließend die Variable geändert. Als einzelne Anweisung erhöhen beide Formen um 1 beziehungsweise verringern sie um 1.",
+      "example": "```java\nint i = 5;\na[i++] = 7;  // schreibt nach a[5], danach ist i gleich 6\n\ni = 5;\na[++i] = 7;  // schreibt nach a[6], danach ist i gleich 6\n```",
+      "pitfalls": [
+        "Präfix und Postfix verändern die Variable beide, liefern in einem größeren Ausdruck aber unterschiedliche Werte.",
+        "Bei `a[i++]` wird der alte Index verwendet; bei `a[++i]` der erhöhte Index."
+      ],
+      "related": [
+        "Zuweisung (=)",
+        "Arrays und Indizes"
+      ],
+      "heading": "4. Assignments & Increments"
+    }
+  ],
+  "generator": {
+    "model": "gpt-6-luna",
+    "effort": "xhigh",
+    "promptVersion": "k1",
+    "generatedAt": "2026-11-02T12:26:54.987Z"
+  }
+}
