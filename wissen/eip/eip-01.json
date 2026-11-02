@@ -1,0 +1,448 @@
+{
+  "schemaVersion": 1,
+  "unitId": "eip-01",
+  "module": "EIP",
+  "unitNumber": 1,
+  "unitTitle": "Von Anforderungen zum Algorithmus",
+  "sourceSha": "f308f409c8ffffb1b770b9f97d5d35a5834e1e450116e8b2ba7329d6cf767acf",
+  "overview": "Eine alltagssprachliche Aufgabe wird in Routendaten, eine präzise Anforderung und einen Algorithmus übersetzt. Gesucht ist die schnellste Route ohne Treppen; bei gleicher Dauer bleibt die erste Route in der vorgegebenen Reihenfolge gewählt, und wenn keine Route geeignet ist, lautet das Ergebnis „Keine geeignete Route“. Der Algorithmus merkt sich die bisher beste Route und prüft jede neue Route einmal. So benötigt er bei konstantem Aufwand pro Route Θ(n) Arbeit; erneutes Durchgehen aller bisherigen Routen nach jeder neuen Route benötigt Θ(n²). Anforderungen, Tests und Korrektheit müssen auch beim Einsatz von KI und bei der Umsetzung in Java geprüft werden.",
+  "entries": [
+    {
+      "id": "eip-01-k01",
+      "term": "Route als Daten",
+      "kind": "concept",
+      "short": "Eine Route wird durch ihre Kennung, ihre Dauer und die Angabe beschrieben, ob sie Treppen enthält.",
+      "explanation": "Ein Programm kann Routen nur anhand ihrer gespeicherten Eigenschaften vergleichen. Für die Auswahl der schnellsten Route ohne Treppen braucht es eine Kennung, eine Dauer und eine Treppenangabe.",
+      "example": "Route C kann als „C, 9 Minuten, keine Treppen“ beschrieben werden.",
+      "pitfalls": [
+        "Die Route mit der kürzesten Dauer ist nicht automatisch geeignet, wenn sie Treppen enthält."
+      ],
+      "related": [
+        "Präzise Anforderung",
+        "Eignung einer Route"
+      ],
+      "heading": "Ein Ort wird zu Daten"
+    },
+    {
+      "id": "eip-01-k02",
+      "term": "Geordnete Routenliste",
+      "kind": "definition",
+      "short": "Eine geordnete Routenliste enthält Routen in einer festgelegten Reihenfolge, die der Algorithmus beim Prüfen einhält.",
+      "explanation": "Die Eingabe besteht aus einer Liste von Routen mit Kennung, Dauer und Treppenangabe. Die Reihenfolge ist relevant, weil bei gleicher Dauer die erste geeignete Route ausgewählt wird.",
+      "example": "In der Liste A, B, C kommt A vor B und B vor C.",
+      "pitfalls": [
+        "Wird die Reihenfolge vor der Auswahl verändert, kann sich die bei Gleichstand ausgewählte Route ändern."
+      ],
+      "related": [
+        "Präzise Anforderung",
+        "Gleichstandsregel"
+      ],
+      "heading": "Präzise Anforderung"
+    },
+    {
+      "id": "eip-01-k03",
+      "term": "Präzise Anforderung",
+      "kind": "definition",
+      "short": "Eine präzise Anforderung beschreibt Eingabe, gewünschte Auswahl, Gleichstandsverhalten und das Ergebnis, wenn keine Route geeignet ist.",
+      "explanation": "Die Eingabe ist eine geordnete Liste von Routen mit Kennung, Dauer und Treppenangabe. Ausgewählt wird die schnellste Route ohne Treppen; bei gleicher Dauer bleibt die erste Route in der vorgegebenen Reihenfolge ausgewählt. Gibt es keine geeignete Route, wird „Keine geeignete Route“ gemeldet. So ist eindeutig festgelegt, welches Verhalten das Programm leisten soll.",
+      "example": "Bei A (12 Minuten, ohne Treppen), B (7 Minuten, mit Treppen) und C (9 Minuten, ohne Treppen) ist C die gewünschte Auswahl.",
+      "pitfalls": [
+        "„Finde die beste Route“ ist unpräzise, solange nicht feststeht, was „beste“ bedeutet.",
+        "Eine Route mit Treppen darf nicht ausgewählt werden, wenn die Anforderung Treppen ausschließt."
+      ],
+      "related": [
+        "Geordnete Routenliste",
+        "Eignung einer Route",
+        "Gleichstandsregel",
+        "Keine geeignete Route"
+      ],
+      "heading": "Präzise Anforderung"
+    },
+    {
+      "id": "eip-01-k04",
+      "term": "Eignung einer Route",
+      "kind": "definition",
+      "short": "Eine Route ist für diese Aufgabe geeignet, wenn sie keine Treppen enthält.",
+      "explanation": "Eignung wird durch die Anforderung bestimmt und getrennt von der Dauer geprüft. Erst unter den geeigneten Routen wird die schnellste gesucht.",
+      "example": "Eine Route mit 7 Minuten und Treppen ist ungeeignet, auch wenn sie kürzer dauert als eine Route ohne Treppen.",
+      "pitfalls": [
+        "Die kürzeste Dauer allein entscheidet nicht über die Eignung."
+      ],
+      "related": [
+        "Treppenfilter",
+        "Präzise Anforderung"
+      ],
+      "heading": "Übung: Regeln für beliebige Routenlisten formulieren"
+    },
+    {
+      "id": "eip-01-k05",
+      "term": "Treppenfilter",
+      "kind": "method",
+      "short": "Der Treppenfilter ignoriert alle Routen mit Treppen, damit nur geeignete Routen verglichen werden.",
+      "explanation": "Der Filter setzt die Bedingung „ohne Treppen“ aus der Anforderung um. Danach werden nur geeignete Routen anhand ihrer Dauer verglichen. Prüfe bei jeder Route die Treppenangabe, ignoriere Routen mit Treppen und berücksichtige Routen ohne Treppen bei der Auswahl.",
+      "example": "Bei A (12 Minuten, ohne Treppen), B (7 Minuten, mit Treppen) und C (9 Minuten, ohne Treppen) wird B ignoriert.",
+      "pitfalls": [
+        "Der Filter erlaubt keine Ersatzwahl einer Route mit Treppen, falls keine geeignete Route vorhanden ist."
+      ],
+      "related": [
+        "Eignung einer Route",
+        "Rückfallregel",
+        "Algorithmus mit einer bisher besten Route"
+      ],
+      "heading": "Übung: Regeln für beliebige Routenlisten formulieren"
+    },
+    {
+      "id": "eip-01-k06",
+      "term": "Keine geeignete Route",
+      "kind": "definition",
+      "short": "„Keine geeignete Route“ ist das Ergebnis, wenn keine Route die Bedingung „ohne Treppen“ erfüllt.",
+      "explanation": "Der Algorithmus muss diesen Fall ausdrücklich behandeln, weil sonst keine Route ausgegeben werden kann. Die Meldung ist ein reguläres Ergebnis, wenn die Anforderung unverändert bleibt.",
+      "example": "Enthalten A, B und C alle Treppen, lautet das Ergebnis „Keine geeignete Route“.",
+      "pitfalls": [
+        "Bei unveränderter Anforderung darf nicht einfach die schnellste Route mit Treppen ausgegeben werden."
+      ],
+      "related": [
+        "Eignung einer Route",
+        "Rückfallregel",
+        "Präzise Anforderung"
+      ],
+      "heading": "Sonderfall: Alle Routen enthalten Treppen"
+    },
+    {
+      "id": "eip-01-k07",
+      "term": "Rückfallregel",
+      "kind": "concept",
+      "short": "Eine Rückfallregel, die bei fehlenden geeigneten Routen eine Route mit Treppen auswählt, ändert die Anforderung.",
+      "explanation": "Eine mögliche Zusatzregel wäre, bei ausschließlich Routen mit Treppen die schnellste davon auszuwählen. Das widerspricht der ursprünglichen Bedingung „ohne Treppen“ und passt nur zu einer ausdrücklich entsprechend geänderten Anforderung. Ohne diese Änderung lautet das Ergebnis „Keine geeignete Route“.",
+      "example": "Bei drei Routen mit Treppen würde eine Rückfallregel die schnellste davon auswählen, während die unveränderte Anforderung die Meldung „Keine geeignete Route“ verlangt.",
+      "pitfalls": [
+        "Eine zusätzliche Programmregel darf das gewünschte Verhalten nicht unbemerkt verändern."
+      ],
+      "related": [
+        "Präzise Anforderung",
+        "Keine geeignete Route",
+        "Treppenfilter"
+      ],
+      "heading": "Sonderfall: Alle Routen enthalten Treppen"
+    },
+    {
+      "id": "eip-01-k08",
+      "term": "Gleichstand",
+      "kind": "definition",
+      "short": "Ein Gleichstand liegt vor, wenn mindestens zwei geeignete Routen dieselbe Dauer haben.",
+      "explanation": "Bei gleicher Dauer legt die Dauer allein keine eindeutige Auswahl fest. Deshalb muss die Anforderung bestimmen, welche der gleich schnellen Routen ausgegeben wird.",
+      "example": "A und C sind beide geeignet und dauern jeweils 9 Minuten.",
+      "pitfalls": [
+        "Ohne eine zusätzliche Regel ist die Auswahl bei gleicher Dauer nicht eindeutig."
+      ],
+      "related": [
+        "Gleichstandsregel",
+        "Geordnete Routenliste"
+      ],
+      "heading": "Sonderfall: Gleichstand"
+    },
+    {
+      "id": "eip-01-k09",
+      "term": "Gleichstandsregel",
+      "kind": "concept",
+      "short": "Bei gleicher Dauer bleibt die erste geeignete Route in der vorgegebenen Reihenfolge ausgewählt.",
+      "explanation": "Der Algorithmus ersetzt die bisherige Wahl nur, wenn er eine geeignete Route mit strikt kürzerer Dauer findet. Bei gleicher Dauer bleibt die bisherige Route erhalten. Damit ist das Ergebnis eindeutig und hängt nachvollziehbar von der Reihenfolge der Eingabe ab.",
+      "example": "Sind A und C beide 9 Minuten lang und geeignet, wird A gewählt, wenn A vor C in der Liste steht.",
+      "pitfalls": [
+        "Eine gleich schnelle Route zu speichern würde die Regel verletzen, wenn sie nach der bisher ausgewählten Route kommt."
+      ],
+      "related": [
+        "Gleichstand",
+        "Geordnete Routenliste",
+        "Algorithmus mit einer bisher besten Route"
+      ],
+      "heading": "Sonderfall: Gleichstand"
+    },
+    {
+      "id": "eip-01-k10",
+      "term": "Algorithmus",
+      "kind": "definition",
+      "short": "Ein Algorithmus ist eine eindeutige Folge von Anweisungen, die eine Aufgabe für die vorgesehenen Eingaben löst.",
+      "explanation": "Für die Routenaufgabe muss das Verfahren jede Route nach denselben Regeln prüfen und ein Ergebnis liefern. Die Anweisungen müssen Sonderfälle wie Gleichstand und das Fehlen geeigneter Routen abdecken.",
+      "example": "Das Routenverfahren prüft die Liste der Reihe nach, ignoriert Routen mit Treppen und merkt sich die schnellste geeignete Route.",
+      "pitfalls": [
+        "„Nimm die beste Route“ ist noch kein eindeutiger Algorithmus, solange „beste“ nicht definiert ist."
+      ],
+      "related": [
+        "Präzise Anforderung",
+        "Algorithmus mit einer bisher besten Route",
+        "Korrektheit"
+      ],
+      "heading": "Algorithmus mit einer bisher besten Route"
+    },
+    {
+      "id": "eip-01-k11",
+      "term": "best = none",
+      "kind": "notation",
+      "short": "Die Schreibweise `best = none` bedeutet, dass am Anfang noch keine Route ausgewählt wurde.",
+      "explanation": "`best` bezeichnet den Speicherplatz für die bisher beste geeignete Route. `none` ist ein Pseudocodewert für „keine Route“ und nicht der Name einer Route. Bleibt `best` am Ende auf `none`, ist keine geeignete Route vorhanden.",
+      "example": "Vor der Prüfung der ersten Route gilt `best = none`.",
+      "pitfalls": [
+        "Den Wert `none` nicht als tatsächliche Routenkennung interpretieren.",
+        "Die Anfangsmarkierung muss von jeder ausgewählten Route unterscheidbar bleiben."
+      ],
+      "related": [
+        "Bisher beste Route",
+        "Algorithmus mit einer bisher besten Route",
+        "Keine geeignete Route"
+      ],
+      "heading": "Algorithmus mit einer bisher besten Route"
+    },
+    {
+      "id": "eip-01-k12",
+      "term": "Bisher beste Route",
+      "kind": "concept",
+      "short": "Die bisher beste Route ist die schnellste geeignete Route unter den bereits geprüften Routen.",
+      "explanation": "Nach jedem Prüfschritt enthält die gespeicherte Wahl die schnellste Route ohne Treppen aus dem bereits gesehenen Teil der Liste. Eine noch schnellere geeignete Route ersetzt die bisherige Wahl; andernfalls bleibt sie erhalten.",
+      "example": "Nach A (12 Minuten, ohne Treppen) und B (7 Minuten, mit Treppen) bleibt A die bisher beste Route, weil B ungeeignet ist.",
+      "pitfalls": [
+        "Die bisher beste Route bezieht sich nur auf bereits geprüfte Routen, nicht auf noch ungeprüfte Einträge."
+      ],
+      "related": [
+        "best = none",
+        "Treppenfilter",
+        "Gleichstandsregel",
+        "Algorithmus mit einer bisher besten Route"
+      ],
+      "heading": "Algorithmus mit einer bisher besten Route"
+    },
+    {
+      "id": "eip-01-k13",
+      "term": "Algorithmus mit einer bisher besten Route",
+      "kind": "method",
+      "short": "Das Verfahren prüft jede Route einmal und aktualisiert die gespeicherte Wahl nur bei einer geeigneten, schnelleren Route.",
+      "explanation": "Das Verfahren findet die schnellste Route ohne Treppen und behandelt Gleichstände sowie den Fall ohne geeignete Route eindeutig. Beginne mit `best = none`, prüfe jede Route in der vorgegebenen Reihenfolge und ignoriere Routen mit Treppen. Speichere eine geeignete Route, wenn `best = none` ist; ersetze die Wahl sonst nur durch eine strikt schnellere geeignete Route. Gib am Ende `best` aus oder melde „Keine geeignete Route“, falls `best = none` geblieben ist.",
+      "example": "Für A (12 Minuten, ohne Treppen), B (7 Minuten, mit Treppen) und C (9 Minuten, ohne Treppen) wird zuerst A gespeichert, B ignoriert und schließlich C gespeichert.",
+      "pitfalls": [
+        "Gleich schnelle Routen ersetzen die bisherige Wahl nicht.",
+        "Eine Route mit Treppen darf die gespeicherte Wahl nicht ersetzen."
+      ],
+      "related": [
+        "Bisher beste Route",
+        "Treppenfilter",
+        "Gleichstandsregel",
+        "Keine geeignete Route"
+      ],
+      "heading": "Algorithmus mit einer bisher besten Route"
+    },
+    {
+      "id": "eip-01-k14",
+      "term": "Ablauf für A, dann B, dann C",
+      "kind": "example",
+      "short": "Der Ablauf zeigt, wie sich die bisher beste Route beim Prüfen der drei Ausgangsrouten verändert.",
+      "explanation": "Zunächst wird A mit 12 Minuten ohne Treppen als erste geeignete Route gespeichert. B mit 7 Minuten wird ignoriert, weil sie Treppen enthält. C ist geeignet und mit 9 Minuten schneller als A, daher wird C gespeichert und ausgegeben.",
+      "example": "Nach A ist `best = A`; nach B bleibt `best = A`; nach C gilt `best = C`.",
+      "pitfalls": [
+        "B wird trotz ihrer kürzeren Dauer nicht ausgewählt, weil sie Treppen enthält."
+      ],
+      "related": [
+        "Algorithmus mit einer bisher besten Route",
+        "Bisher beste Route",
+        "Treppenfilter"
+      ],
+      "heading": "Ablauf für A, dann B, dann C"
+    },
+    {
+      "id": "eip-01-k15",
+      "term": "Einmaliges Durchgehen",
+      "kind": "method",
+      "short": "Für eine einzige Auswahl am Ende genügt es, die gesamte Routenliste einmal der Reihe nach zu prüfen.",
+      "explanation": "Bei diesem Vorgehen wird jede Route genau einmal betrachtet und die bisher beste geeignete Route laufend aktualisiert. Am Ende enthält `best` die gesuchte Auswahl oder zeigt an, dass keine geeignete Route vorhanden war.",
+      "example": "Bei vier Routen prüft das Verfahren jede der vier Routen einmal und gibt danach das Ergebnis aus.",
+      "pitfalls": [
+        "Ein Ergebnis nach jeder neu eingegangenen Route ist eine andere Anforderung als eine einzige Auswahl am Ende."
+      ],
+      "related": [
+        "Algorithmus mit einer bisher besten Route",
+        "Laufzeit Θ(n)",
+        "Erneutes Durchgehen der bisherigen Routen"
+      ],
+      "heading": "Was spart das Merken der besten Route?"
+    },
+    {
+      "id": "eip-01-k16",
+      "term": "Laufzeitannahme pro Route",
+      "kind": "concept",
+      "short": "Für die Laufzeitbetrachtung wird angenommen, dass Prüfen und Aktualisieren pro Route konstante Arbeit benötigen.",
+      "explanation": "Die Analyse zählt, wie viele Routen geprüft werden, und behandelt die Arbeit an einer einzelnen Route als unabhängig von der Listengröße. So lässt sich vergleichen, wie der Gesamtaufwand mit der Anzahl `n` der Routen wächst.",
+      "example": "Wenn jede Route einmal geprüft wird und jeder Prüfschritt gleich viel Arbeit kostet, ist die Anzahl der Prüfschritte proportional zu `n`.",
+      "pitfalls": [
+        "Die Laufzeitaussagen setzen voraus, dass Prüfen und Aktualisieren pro Route konstante Arbeit bleiben."
+      ],
+      "related": [
+        "Laufzeit Θ(n)",
+        "Laufzeit Θ(n²)",
+        "Einmaliges Durchgehen"
+      ],
+      "heading": "Was spart das Merken der besten Route?"
+    },
+    {
+      "id": "eip-01-k17",
+      "term": "Merken der bisher besten Route",
+      "kind": "method",
+      "short": "Wenn nach jeder neuen Route ein Ergebnis benötigt wird, muss eine gespeicherte Wahl nur um die neu eingegangene Route aktualisiert werden.",
+      "explanation": "Die bisherige Wahl wird aus dem vorigen Schritt weiterverwendet. Bei jeder neu eingegangenen Route genügt ein Prüfschritt, sodass über `n` Routen insgesamt `n` Routen geprüft werden.",
+      "example": "Nach Route 1 wurde eine Route geprüft, nach Route 2 insgesamt zwei und nach Route 3 insgesamt drei.",
+      "pitfalls": [
+        "Diese Aussage betrifft wiederholte Abfragen bei eintreffenden Routen und setzt voraus, dass die bisherige Wahl gespeichert wird."
+      ],
+      "related": [
+        "Bisher beste Route",
+        "Laufzeit Θ(n)",
+        "Erneutes Durchgehen der bisherigen Routen"
+      ],
+      "heading": "Was spart das Merken der besten Route?"
+    },
+    {
+      "id": "eip-01-k18",
+      "term": "Laufzeit Θ(n)",
+      "kind": "notation",
+      "short": "Die Schreibweise Θ(n) beschreibt bei konstantem Aufwand pro Route eine Arbeit, die proportional zur Anzahl `n` der Routen wächst.",
+      "explanation": "Θ(n) heißt asymptotisch lineare Laufzeit. Beim Merken der besten Route wird jede der `n` Routen einmal geprüft, sodass die Gesamtarbeit unter der Laufzeitannahme proportional zu `n` ist.",
+      "example": "Bei 100 Routen werden 100 Routen geprüft; verdoppelt sich die Routenzahl, verdoppelt sich auch die Zahl der Prüfungen.",
+      "pitfalls": [
+        "Θ(n) beschreibt das Wachstum der Arbeit, nicht eine konkrete Anzahl Sekunden."
+      ],
+      "related": [
+        "Laufzeitannahme pro Route",
+        "Merken der bisher besten Route",
+        "Laufzeit Θ(n²)"
+      ],
+      "heading": "Was spart das Merken der besten Route?"
+    },
+    {
+      "id": "eip-01-k19",
+      "term": "Erneutes Durchgehen der bisherigen Routen",
+      "kind": "method",
+      "short": "Beim erneuten Durchgehen wird nach jeder neuen Route die gesamte bis dahin eingegangene Liste noch einmal geprüft.",
+      "explanation": "Nach der ersten Route wird eine Route geprüft, nach der zweiten werden zwei geprüft und so weiter bis zu `n` Prüfungen nach der letzten Route. Die Gesamtzahl der Prüfungen ist daher `1 + 2 + … + n`, also `\\(\\sum_{k=1}^{n} k = \\frac{n(n+1)}{2}\\)`. Dieses Vorgehen braucht mehr Arbeit als das fortlaufende Merken der bisher besten Route.",
+      "example": "Bei vier eingegangenen Routen sind insgesamt `1 + 2 + 3 + 4 = 10` Prüfungen nötig.",
+      "pitfalls": [
+        "Das wiederholte Prüfen entsteht, wenn nach jeder neuen Route die komplette bisherige Liste erneut verarbeitet wird."
+      ],
+      "related": [
+        "Merken der bisher besten Route",
+        "Laufzeit Θ(n²)",
+        "Laufzeitannahme pro Route"
+      ],
+      "heading": "Was spart das Merken der besten Route?"
+    },
+    {
+      "id": "eip-01-k20",
+      "term": "Laufzeit Θ(n²)",
+      "kind": "notation",
+      "short": "Die Schreibweise Θ(n²) beschreibt bei konstantem Aufwand pro Route eine Arbeit, die proportional zum Quadrat der Routenzahl wächst.",
+      "explanation": "Θ(n²) heißt asymptotisch quadratische Laufzeit. Beim erneuten Prüfen der bisherigen Liste ist die Gesamtzahl der Prüfungen `\\(\\sum_{k=1}^{n} k = \\frac{n(n+1)}{2}\\)`, was asymptotisch wie `n²` wächst. Diese Einordnung gilt, wenn nach jeder neuen Route die gesamte bisherige Liste neu geprüft wird.",
+      "example": "Bei 4 Routen sind es 10 Prüfungen; bei 100 Routen sind es 5050.",
+      "pitfalls": [
+        "Θ(n²) gilt hier für das wiederholte Prüfen nach jeder neuen Route, nicht für eine einzige Auswahl am Ende."
+      ],
+      "related": [
+        "Erneutes Durchgehen der bisherigen Routen",
+        "Laufzeit Θ(n)",
+        "Laufzeitannahme pro Route"
+      ],
+      "heading": "Was spart das Merken der besten Route?"
+    },
+    {
+      "id": "eip-01-k21",
+      "term": "Anforderungen und KI",
+      "kind": "concept",
+      "short": "KI kann ein Verfahren vorschlagen, aber nicht festlegen, was der eigene Dienst tun soll.",
+      "explanation": "Welche Route ein Dienst auswählt, muss als Anforderung festgelegt werden. KI kann Code schreiben, Zeilen erklären und Tests vorschlagen; Entscheidungen wie die Gleichstandsregel und die Zulässigkeit einer Rückfallregel bleiben von Menschen festzulegen und zu prüfen.",
+      "example": "Ob bei zwei gleich schnellen Routen die erste oder die letzte gewählt wird, muss für den Dienst festgelegt werden.",
+      "pitfalls": [
+        "Ein plausibel wirkender KI-Vorschlag ersetzt nicht die Prüfung, ob er die gewünschte Anforderung erfüllt."
+      ],
+      "related": [
+        "Präzise Anforderung",
+        "Gleichstandsregel",
+        "Testen",
+        "Korrektheit"
+      ],
+      "heading": "KI: Was bleibt wichtig zu lernen?"
+    },
+    {
+      "id": "eip-01-k22",
+      "term": "Testen",
+      "kind": "method",
+      "short": "Beim Testen wird das Programm mit ausgewählten Eingaben ausgeführt und geprüft, ob die Ergebnisse den Anforderungen entsprechen.",
+      "explanation": "Tests sollten typische Eingaben und wichtige Sonderfälle abdecken. Für die Routenaufgabe gehören dazu ein Gleichstand und der Fall, dass keine Route ohne Treppen vorhanden ist. Tests zeigen, ob sich das Programm für die geprüften Eingaben wie erwartet verhält.",
+      "example": "Ein Test mit A und C als gleich schnelle, treppenfreie Routen prüft, ob die erste Route gewählt wird.",
+      "pitfalls": [
+        "Ein Test des normalen Falls allein deckt Gleichstand oder fehlende geeignete Routen nicht ab.",
+        "Bestehende Tests beweisen nicht automatisch die Korrektheit für alle möglichen Eingaben."
+      ],
+      "related": [
+        "Gleichstandsregel",
+        "Keine geeignete Route",
+        "Korrektheit",
+        "Anforderungen und KI"
+      ],
+      "heading": "KI: Was bleibt wichtig zu lernen?"
+    },
+    {
+      "id": "eip-01-k23",
+      "term": "Korrektheit",
+      "kind": "concept",
+      "short": "Ein Algorithmus ist korrekt, wenn er für jede zulässige Eingabe ein Ergebnis liefert, das die Anforderung erfüllt.",
+      "explanation": "Für die Routenaufgabe muss der Algorithmus die schnellste Route ohne Treppen auswählen, bei gleicher Dauer die erste behalten und bei fehlender geeigneter Route die passende Meldung ausgeben. Tests prüfen das Verhalten an konkreten Eingaben; eine Korrektheitsbegründung erklärt, warum das Verfahren für alle zulässigen Eingaben das verlangte Ergebnis liefert.",
+      "example": "Wenn alle Routen Treppen enthalten, ist die Meldung „Keine geeignete Route“ korrekt.",
+      "pitfalls": [
+        "Ein Programm kann fehlerfrei ausgeführt werden und trotzdem ein falsches Ergebnis liefern."
+      ],
+      "related": [
+        "Präzise Anforderung",
+        "Testen",
+        "Algorithmus"
+      ],
+      "heading": "KI: Was bleibt wichtig zu lernen?"
+    },
+    {
+      "id": "eip-01-k24",
+      "term": "Effizienz",
+      "kind": "concept",
+      "short": "Effizienz beschreibt, wie viel Arbeit ein Algorithmus für eine Eingabe benötigt.",
+      "explanation": "Für die Routenaufgabe wird die Arbeit anhand der Zahl geprüfter Routen verglichen und konstante Prüfarbeit pro Route angenommen. Das Merken der besten Route braucht bei wiederholten Abfragen Θ(n) Arbeit, während das erneute Durchgehen der gesamten bisherigen Liste Θ(n²) Arbeit braucht.",
+      "example": "Für nacheinander eintreffende Routen spart das Speichern der bisherigen Wahl wiederholte Prüfungen.",
+      "pitfalls": [
+        "Eine bessere Laufzeit macht ein Verfahren nicht korrekt, wenn es die Anforderung verletzt."
+      ],
+      "related": [
+        "Laufzeit Θ(n)",
+        "Laufzeit Θ(n²)",
+        "Korrektheit"
+      ],
+      "heading": "KI: Was bleibt wichtig zu lernen?"
+    },
+    {
+      "id": "eip-01-k25",
+      "term": "Umsetzung in Java",
+      "kind": "concept",
+      "short": "In Java werden Eingabe, Speicherung und Ausführung des Routenverfahrens durch konkrete Programmanweisungen umgesetzt.",
+      "explanation": "Die abstrakten Schritte werden in Java ausführbar: Eingaben werden gelesen, Routenwerte gespeichert und die Auswahlregel implementiert. Anschließend kann das Programm ausgeführt, getestet, erklärt und bei Fehlern repariert werden.",
+      "example": "Ein Java-Programm kann jede Route einlesen, ihre Treppenangabe prüfen und eine geeignete schnellere Route als aktuelle Wahl speichern.",
+      "pitfalls": [
+        "Eine korrekte Umsetzung muss dieselben Regeln wie die präzise Anforderung verwenden."
+      ],
+      "related": [
+        "Präzise Anforderung",
+        "Algorithmus mit einer bisher besten Route",
+        "Testen",
+        "Korrektheit"
+      ],
+      "heading": "Ausblick: Umsetzung in Java"
+    }
+  ],
+  "generator": {
+    "model": "gpt-6-luna",
+    "effort": "xhigh",
+    "promptVersion": "k1",
+    "generatedAt": "2026-11-02T12:22:53.654Z"
+  }
+}
