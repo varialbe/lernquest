@@ -1,0 +1,462 @@
+{
+  "schemaVersion": 1,
+  "unitId": "eip-06",
+  "module": "EIP",
+  "unitNumber": 6,
+  "unitTitle": "Methoden und Sortieren",
+  "sourceSha": "2ad35cf807cadc6cb19c575de28bf5ba46592e9743a5933aec3648e33f589d6b",
+  "overview": "Diese Unit behandelt Java-Methoden, Parameter und Rückgabewerte sowie die Übergabe von Arrays. Java kopiert beim Aufruf immer den Argumentwert; bei Arrays ist das die Referenz, sodass Elementänderungen sichtbar sein können. Insertion Sort erstellt eine sortierte Kopie, indem es Werte nacheinander in ein sortiertes Präfix einfügt. Die Reihenfolge der Bedingungen sichert gültige Arrayzugriffe, die Einfügeposition erhält die Stabilität, und die Arbeit wächst bei der vorgestellten Variante quadratisch.",
+  "entries": [
+    {
+      "id": "eip-06-k01",
+      "term": "Methode",
+      "kind": "definition",
+      "short": "Eine Methode ist ein benannter, wiederverwendbarer Codeblock, der eine Aufgabe verpackt.",
+      "explanation": "Eine Methode bündelt Anweisungen unter einem Namen, damit sie gezielt aufgerufen und wiederverwendet werden können. Methoden helfen, ein Problem in kleinere Teilaufgaben zu zerlegen. Sie können Eingabewerte entgegennehmen und einen Wert zurückgeben oder als `void` keinen Ergebniswert liefern.",
+      "example": "Eine Methode `min` kann aus einem Array den kleinsten Wert bestimmen.",
+      "pitfalls": [
+        "Eine Methode wird erst ausgeführt, wenn sie aufgerufen wird."
+      ],
+      "related": [
+        "Algorithmus",
+        "Funktion"
+      ],
+      "heading": "1. Methoden"
+    },
+    {
+      "id": "eip-06-k02",
+      "term": "Aufbau einer Methode",
+      "kind": "concept",
+      "short": "Eine Methodendefinition legt unter anderem Rückgabetyp, Namen, Parameter und Rumpf fest.",
+      "explanation": "In `public static int[] readArray(int number) { ... return result; }` geben `public` und `static` Sichtbarkeit und Aufrufart an, `int[]` ist der Rückgabetyp und `readArray` der Methodenname. Die Parameter stehen in Klammern, der Rumpf enthält die Anweisungen. Eine `return`-Anweisung beendet den Aufruf und liefert bei einer Methode mit Rückgabetyp den angegebenen Wert.",
+      "example": "`int min(int[] b) { ... return result; }` definiert eine Methode, die ein Array entgegennimmt und einen `int` zurückgibt.",
+      "pitfalls": [
+        "Der Rückgabetyp beschreibt den Typ des zurückgegebenen Werts."
+      ],
+      "related": [
+        "Methode",
+        "Formaler Parameter und aktuelles Argument"
+      ],
+      "heading": "Aufbau"
+    },
+    {
+      "id": "eip-06-k03",
+      "term": "Formaler Parameter und aktuelles Argument",
+      "kind": "definition",
+      "short": "Der formale Parameter steht in der Methodendefinition, das aktuelle Argument ist der konkrete Wert beim Aufruf.",
+      "explanation": "Ein formaler Parameter ist eine Variable, über die eine Methode einen Eingabewert erhält, etwa `int[] b` in `min(int[] b)`. Das aktuelle Argument ist der Wert, den der Aufrufer beim Aufruf übergibt, etwa `a` in `min(a)`. Beim Aufruf wird der Argumentwert in den Parameter kopiert.",
+      "example": "Bei `min(a)` ist `b` der formale Parameter und `a` das aktuelle Argument.",
+      "pitfalls": [
+        "Parameter und Argument bezeichnen unterschiedliche Stellen im Programm."
+      ],
+      "related": [
+        "Methode",
+        "Wertkopie beim Methodenaufruf"
+      ],
+      "heading": "Begriffe"
+    },
+    {
+      "id": "eip-06-k04",
+      "term": "Lokale Variable",
+      "kind": "definition",
+      "short": "Eine lokale Variable existiert nur innerhalb des Blocks, in dem sie deklariert ist.",
+      "explanation": "Eine lokale Variable wird innerhalb einer Methode oder eines anderen Blocks deklariert und ist dort verfügbar. Gleichnamige lokale Variablen in verschiedenen Methoden sind voneinander unabhängig. Daher sind `result` in `main` und `result` in `min` zwei verschiedene Variablen.",
+      "example": "Bei `int result = min(a);` wird `result` in `main` erst nach der Rückkehr von `min` mit dem Rückgabewert initialisiert.",
+      "pitfalls": [
+        "Ein gleicher Name bedeutet nicht, dass zwei Variablen denselben Speicherplatz bezeichnen."
+      ],
+      "related": [
+        "Variable",
+        "Wertzuweisung"
+      ],
+      "heading": "Begriffe"
+    },
+    {
+      "id": "eip-06-k05",
+      "term": "void-Methode und Prozedur",
+      "kind": "definition",
+      "short": "Eine `void`-Methode gibt keinen Wert zurück und wird auch Prozedur genannt.",
+      "explanation": "Der Rückgabetyp `void` zeigt an, dass ein Methodenaufruf keinen Ergebniswert liefert. Eine solche Methode kann trotzdem Anweisungen ausführen und beispielsweise ein Array verändern oder eine Ausgabe erzeugen. Sie beendet ihre Ausführung ohne einen Wert zurückzugeben.",
+      "example": "`public static void setFirst(int[] b) { b[0] = 9; }` ist eine `void`-Methode.",
+      "pitfalls": [
+        "`void` bedeutet nicht, dass die Methode keine Wirkung hat."
+      ],
+      "related": [
+        "Methode",
+        "Mutation eines Arrays und Neuzuweisung"
+      ],
+      "heading": "Begriffe"
+    },
+    {
+      "id": "eip-06-k06",
+      "term": "Vorbedingung",
+      "kind": "definition",
+      "short": "Eine Vorbedingung muss erfüllt sein, bevor eine Methode korrekt aufgerufen werden kann.",
+      "explanation": "Die Vorbedingung beschreibt, welche Voraussetzungen die Eingabe erfüllen muss, damit die Methode ihre Aufgabe ausführen kann. Die Methode `min` liest zu Beginn `b[0]`; deshalb muss das übergebene Array mindestens ein Element enthalten. Bei einem leeren Array wäre dieser Zugriff ungültig.",
+      "example": "Für `min(b)` muss `b.length > 0` gelten.",
+      "pitfalls": [
+        "Eine Vorbedingung wird nicht automatisch durch den Methodennamen garantiert."
+      ],
+      "related": [
+        "Arrays und Indizes"
+      ],
+      "heading": "Begriffe"
+    },
+    {
+      "id": "eip-06-k07",
+      "term": "main und Kommandozeilenargumente",
+      "kind": "definition",
+      "short": "`main(String[] args)` ist der Programmeinstieg, und die Wörter hinter dem Klassennamen werden als Strings in `args` abgelegt.",
+      "explanation": "Java beginnt das Programm bei der passenden `main`-Methode. Die beim Programmstart angegebenen Wörter stehen als Elemente im Array `args`, beginnend bei Index `0`. Jedes Element ist ein String und muss bei Bedarf in einen anderen Datentyp umgewandelt werden.",
+      "example": "Beim Start `java Test Hel lo World!` enthalten `args[0]`, `args[1]` und `args[2]` die Strings `\"Hel\"`, `\"lo\"` und `\"World!\"`.",
+      "pitfalls": [
+        "Der Klassenname selbst ist kein Element von `args`."
+      ],
+      "related": [
+        "Arrays und Indizes",
+        "String-Konkatenation"
+      ],
+      "heading": "und Kommandozeilenargumente"
+    },
+    {
+      "id": "eip-06-k08",
+      "term": "Kontrollflussdiagramm",
+      "kind": "definition",
+      "short": "Ein Kontrollflussdiagramm stellt den Programmablauf als Knoten und gerichtete Pfeile dar.",
+      "explanation": "Knoten stehen etwa für Anweisungen, Entscheidungen, Start und Ende; Pfeile zeigen, welche Schritte aufeinander folgen können. Jede Methode kann als eigenes Teildiagramm dargestellt werden. Ein Methodenaufruf kann als eigener Knoten erscheinen, der mit dem Ablauf der aufgerufenen Methode verbunden ist.",
+      "example": "Im Diagramm zu `min` führt ein wahrer Schleifentest zum Vergleich `b[i] < result`; ein falscher Test beendet die Schleife.",
+      "pitfalls": [
+        "Ein Methodenaufruf ist nicht dasselbe wie der gesamte Kontrollfluss der aufgerufenen Methode."
+      ],
+      "related": [
+        "Pfad und operationale Semantik",
+        "Bedingung und Join"
+      ],
+      "heading": "Kontrollflussdiagramm"
+    },
+    {
+      "id": "eip-06-k09",
+      "term": "Call und Return",
+      "kind": "concept",
+      "short": "Bei einem Call wird die aufgerufene Methode ausgeführt, und bei Return kehrt der Ablauf mit ihrem Ergebnis zum wartenden Aufruf zurück.",
+      "explanation": "Beim Call wird der aktuelle Ablauf im Aufrufer angehalten und die aufgerufene Methode beginnt mit ihren eigenen lokalen Variablen. Erreicht sie `return`, endet dieser Aufruf und die Ausführung geht nach der Aufrufstelle weiter. Bei `int result = min(a);` wird `result` erst nach der Rückkehr initialisiert.",
+      "example": "Wenn `min(a)` den Wert `2` zurückgibt, wird anschließend `result` in `main` zu `2` und `write(result)` wird ausgeführt.",
+      "pitfalls": [
+        "Der Aufrufer führt die Anweisung nach dem Call erst aus, wenn der Methodenaufruf beendet ist."
+      ],
+      "related": [
+        "Methode",
+        "Kontrollflussdiagramm",
+        "Lokale Variable"
+      ],
+      "heading": "Call und Return für"
+    },
+    {
+      "id": "eip-06-k10",
+      "term": "Wertkopie beim Methodenaufruf",
+      "kind": "definition",
+      "short": "Java übergibt Argumente immer durch Kopieren ihres Werts.",
+      "explanation": "Beim Aufruf erhält jeder formale Parameter eine Kopie des Werts des aktuellen Arguments. Bei einem Basistyp ist das der primitive Wert; bei einem Array ist es der Wert der Array-Referenz. Die Methode kann deshalb die Variable des Aufrufers nicht durch eine Änderung ihres Parameters neu zuweisen.",
+      "example": "Nach `int n = 2; zero(n);` bleibt `n` gleich `2`, auch wenn `zero` den Parameter `number` auf `0` setzt.",
+      "pitfalls": [
+        "Auch bei Arrays wird die Referenz kopiert, nicht die Variable des Aufrufers übergeben."
+      ],
+      "related": [
+        "Basistyp",
+        "Array-Referenz",
+        "Formaler Parameter und aktuelles Argument"
+      ],
+      "heading": "Basistyp: Die Methode bekommt eine Kopie"
+    },
+    {
+      "id": "eip-06-k11",
+      "term": "Basistyp",
+      "kind": "definition",
+      "short": "Ein Basistyp speichert einen primitiven Wert wie eine ganze Zahl direkt in einer Variablen.",
+      "explanation": "Bei der Übergabe eines Basistyps wird der primitive Wert in den formalen Parameter kopiert. Eine spätere Zuweisung an den Parameter ändert deshalb nicht die Variable des Aufrufers. `int` ist ein Beispiel für einen Basistyp.",
+      "example": "Bei `int n = 2; zero(n);` ändert `number = 0` in `zero` die Variable `n` nicht.",
+      "pitfalls": [
+        "Das Ändern des Parameterwerts ist keine Änderung an der Variablen des Aufrufers."
+      ],
+      "related": [
+        "Wertkopie beim Methodenaufruf",
+        "Primitive Datentypen"
+      ],
+      "heading": "Basistyp: Die Methode bekommt eine Kopie"
+    },
+    {
+      "id": "eip-06-k12",
+      "term": "Array-Referenz",
+      "kind": "definition",
+      "short": "Eine Array-Referenz ist der Wert, über den ein Programm auf ein Array zugreift.",
+      "explanation": "Eine Variable mit Typ `int[]` enthält eine Referenz auf ein Array, nicht dessen Elemente selbst. Wird diese Referenz kopiert, können die ursprüngliche Variable und die Kopie dasselbe Array erreichen. Änderungen an Elementen können deshalb über beide Variablen sichtbar sein.",
+      "example": "Nach `int[] b = a;` verweisen `a` und `b` auf dasselbe Array.",
+      "pitfalls": [
+        "Das Kopieren einer Array-Referenz erzeugt kein neues Array."
+      ],
+      "related": [
+        "Array-Referenzen",
+        "Wertkopie beim Methodenaufruf",
+        "Aliasing"
+      ],
+      "heading": "Übersicht"
+    },
+    {
+      "id": "eip-06-k13",
+      "term": "Mutation eines Arrays und Neuzuweisung",
+      "kind": "concept",
+      "short": "Eine Elementänderung wirkt auf das gemeinsam referenzierte Array, während eine Neuzuweisung des Parameters nur dessen lokale Referenzkopie ändert.",
+      "explanation": "Wenn `b` und `a` auf dasselbe Array verweisen, verändert `b[0] = 9` das Array, das auch über `a` erreichbar ist. Dagegen ändert `b = new int[2]` nur, worauf die lokale Variable `b` verweist. Die Variable `a` des Aufrufers zeigt weiterhin auf das ursprüngliche Array.",
+      "example": "`setFirst(a)` mit `b[0] = 9` ändert `a[0]`; `replace(a)` mit `b = new int[2]` lässt `a` unverändert.",
+      "pitfalls": [
+        "Eine Parameterzuweisung ist keine Neuzuweisung der Variablen des Aufrufers."
+      ],
+      "related": [
+        "Array-Referenz",
+        "Aliasing",
+        "Wertzuweisung"
+      ],
+      "heading": "Übersicht"
+    },
+    {
+      "id": "eip-06-k14",
+      "term": "Aliasing",
+      "kind": "definition",
+      "short": "Aliasing liegt vor, wenn mehrere Variablen auf dasselbe Array verweisen.",
+      "explanation": "Bei Aliasing erreichen zwei oder mehr Variablen dasselbe Array. Eine Änderung an einem Element über eine dieser Variablen ist deshalb auch beim Zugriff über die anderen Variablen zu sehen. Das ist eine Folge gemeinsam genutzter Referenzen.",
+      "example": "Nach `int[] b = a;` ist eine Zuweisung wie `b[0] = 9` auch über `a[0]` sichtbar.",
+      "pitfalls": [
+        "Zwei Variablen mit gleichem Inhalt zeigen nicht zwingend auf dasselbe Array."
+      ],
+      "related": [
+        "Array-Referenz",
+        "Mutation eines Arrays und Neuzuweisung"
+      ],
+      "heading": "Übersicht"
+    },
+    {
+      "id": "eip-06-k15",
+      "term": "Echte Array-Kopie",
+      "kind": "method",
+      "short": "Eine echte Array-Kopie entsteht, indem ein neues Array angelegt und jedes Element hineinkopiert wird.",
+      "explanation": "Lege zunächst ein neues Array mit derselben Länge wie das Original an. Kopiere dann jedes Element aus dem Original an denselben Index des neuen Arrays und gib die Referenz auf das neue Array zurück. Das neue Array ist unabhängig vom Original, sodass Änderungen seiner Elemente das Original nicht verändern.",
+      "example": "Für `a = {7, 2}` erzeugt `copy(a)` ein neues Array `{7, 2}`; danach kann `b[0] = 9` ausgeführt werden, ohne `a[0]` zu ändern.",
+      "pitfalls": [
+        "`int[] b = a` kopiert nur die Referenz, nicht das Array."
+      ],
+      "related": [
+        "Array-Referenz",
+        "Aliasing",
+        "Mutation eines Arrays und Neuzuweisung"
+      ],
+      "heading": "Echte Kopie erstellen"
+    },
+    {
+      "id": "eip-06-k16",
+      "term": "Insertion Sort",
+      "kind": "method",
+      "short": "Insertion Sort sortiert Werte, indem es jeden Eingabewert in ein bereits sortiertes Präfix einfügt.",
+      "explanation": "Die gezeigte Methode legt ein neues Array `b` mit derselben Länge wie die Eingabe `a` an. Sie durchläuft die Eingabe von links nach rechts und fügt für jeden Index `i` den Wert `a[i]` an seiner sortierten Position in `b[0..i]` ein. Am Ende gibt sie `b` zurück, sodass die Eingabe unverändert bleibt und das Ergebnis eine sortierte Kopie ist.",
+      "example": "Aus `a = {3, 1, 2}` entsteht `b = {1, 2, 3}`.",
+      "pitfalls": [
+        "Die in der Vorlesung gezeigte Implementierung sucht die Einfügeposition von links."
+      ],
+      "related": [
+        "Sortiertes Präfix",
+        "Einfügen in ein sortiertes Präfix",
+        "Laufzeit Θ(n²)"
+      ],
+      "heading": "4. Insertion Sort"
+    },
+    {
+      "id": "eip-06-k17",
+      "term": "Sortiertes Präfix",
+      "kind": "concept",
+      "short": "Ein sortiertes Präfix ist der vordere, bereits geordnete Teil eines Arrays.",
+      "explanation": "Während Insertion Sort die Eingabe durchläuft, enthält `b[0..i-1]` vor dem Einfügen von `a[i]` die bisher verarbeiteten Werte in sortierter Reihenfolge. Nach dem Einfügen ist `b[0..i]` sortiert. Das Präfix wächst damit in jeder Iteration um ein Element.",
+      "example": "Vor dem Einfügen des nächsten Werts in `{1, 3, 7, 9}` ist dieses Array das sortierte Präfix.",
+      "pitfalls": [
+        "Das Präfix bezeichnet nur die bereits verarbeiteten vorderen Einträge, nicht notwendigerweise das ganze Array."
+      ],
+      "related": [
+        "Insertion Sort",
+        "Invariante",
+        "Arrays und Indizes"
+      ],
+      "heading": "Zerlegung in Teilprobleme"
+    },
+    {
+      "id": "eip-06-k18",
+      "term": "Einfügen in ein sortiertes Präfix",
+      "kind": "method",
+      "short": "Eine Einfügung findet die Position des neuen Werts, verschiebt die nachfolgenden Werte nach rechts und schreibt den Wert an die freie Stelle.",
+      "explanation": "Bestimme mit `locate` die Einfügeposition `j` für `x` im sortierten Präfix `b[0..i-1]`. Verschiebe mit `shift` die Werte `b[j..i-1]` um eine Position nach rechts. Schreibe danach `x` nach `b[j]`; so enthält `b[0..i]` dieselben bisherigen Werte und zusätzlich `x` in sortierter Reihenfolge.",
+      "example": "Beim Einfügen von `5` in `{1, 3, 7, 9}` ist `j = 2`; nach dem Verschieben und Schreiben entsteht `{1, 3, 5, 7, 9}`.",
+      "pitfalls": [
+        "Der Wert muss erst nach dem Verschieben an `b[j]` geschrieben werden."
+      ],
+      "related": [
+        "locate",
+        "shift",
+        "Sortiertes Präfix"
+      ],
+      "heading": "Ablauf einer Einfügung"
+    },
+    {
+      "id": "eip-06-k19",
+      "term": "locate",
+      "kind": "method",
+      "short": "`locate` sucht im sortierten Präfix die Einfügeposition für einen neuen Wert.",
+      "explanation": "Die Methode beginnt mit `j = 0` und erhöht `j`, solange `j < i` und `x >= b[j]` gilt. Anschließend gibt sie `j` zurück. Das Ergebnis ist die erste Position, an der der neue Wert vor einem größeren vorhandenen Wert stehen kann; bei gleichen Werten läuft die Suche an ihnen vorbei.",
+      "example": "Für `b = {1, 3, 7, 9}`, `x = 5` und `i = 4` gibt `locate` den Index `2` zurück.",
+      "pitfalls": [
+        "Der Suchbereich endet exklusiv bei `i`."
+      ],
+      "related": [
+        "Einfügen in ein sortiertes Präfix",
+        "Short-Circuit-Auswertung",
+        "Stabilität"
+      ],
+      "heading": "Code"
+    },
+    {
+      "id": "eip-06-k20",
+      "term": "shift",
+      "kind": "method",
+      "short": "`shift` verschiebt die Werte von `b[j..i-1]` um eine Position nach rechts.",
+      "explanation": "Setze `k` auf `i - 1`. Solange `k >= j` gilt, kopiere `b[k]` nach `b[k + 1]` und verringere `k`. Dadurch wird die Position `j` frei, an der anschließend der neue Wert geschrieben werden kann.",
+      "example": "Bei `j = 2` und `i = 4` werden zuerst `b[3]` nach `b[4]` und danach `b[2]` nach `b[3]` kopiert.",
+      "pitfalls": [
+        "Die Schleife muss auch `k = j` verarbeiten, damit die Einfügeposition frei wird."
+      ],
+      "related": [
+        "Einfügen in ein sortiertes Präfix",
+        "Warum shift von rechts nach links läuft"
+      ],
+      "heading": "Code"
+    },
+    {
+      "id": "eip-06-k21",
+      "term": "Warum shift von rechts nach links läuft",
+      "kind": "concept",
+      "short": "Beim Verschieben von rechts nach links wird jeder Wert kopiert, bevor seine ursprüngliche Position überschrieben wird.",
+      "explanation": "Beim Verschieben nach rechts überlappen Quell- und Zielbereiche. Beginnt man rechts, wird der letzte benötigte Wert zuerst an seine Zielposition kopiert, bevor diese Zielposition einen anderen benötigten Wert überschreibt. Bei einer Verschiebung von links nach rechts könnten Werte verloren gehen, bevor sie kopiert wurden.",
+      "example": "Um `7` und `9` in `{1, 3, 7, 9, 0}` um eine Position zu verschieben, kopiert man zuerst `9` von Index `3` nach `4`, dann `7` von `2` nach `3`.",
+      "pitfalls": [
+        "Von links nach rechts zu kopieren kann bei überlappenden Bereichen Quelldaten zerstören."
+      ],
+      "related": [
+        "shift",
+        "Einfügen in ein sortiertes Präfix"
+      ],
+      "heading": "Warum von rechts nach links schieben?"
+    },
+    {
+      "id": "eip-06-k22",
+      "term": "Short-Circuit-Auswertung",
+      "kind": "concept",
+      "short": "Bei `&&` wird der rechte Operand nicht ausgewertet, wenn der linke Operand falsch ist.",
+      "explanation": "In `j < i && x >= b[j]` wird zuerst `j < i` geprüft. Ist `j < i` falsch, wird der Vergleich mit `b[j]` übersprungen. Insbesondere wird bei `j = i` also `b[i]` nicht gelesen.",
+      "example": "Für `j = i` ist `j < i` falsch, also wird `x >= b[j]` nicht ausgewertet.",
+      "pitfalls": [
+        "Würde man die Bedingungen vertauschen, könnte `b[j]` vor der Indexprüfung gelesen werden."
+      ],
+      "related": [
+        "Short-Circuit",
+        "Boolean-Operatoren",
+        "locate"
+      ],
+      "heading": "Short-Circuit bei"
+    },
+    {
+      "id": "eip-06-k23",
+      "term": "Stabilität",
+      "kind": "definition",
+      "short": "Ein Sortierverfahren ist stabil, wenn Elemente mit gleichen Schlüsseln ihre ursprüngliche relative Reihenfolge behalten.",
+      "explanation": "`locate` verwendet `x >= b[j]` und läuft dadurch an bereits eingefügten gleichen Werten vorbei. Der neue Wert gleicher Größe wird hinter ihnen eingefügt. Bei Elementen mit gleichen Sortierschlüsseln bleibt so ihre Reihenfolge aus der Eingabe erhalten.",
+      "example": "Beim Sortieren von Personen nach Alter behalten zwei gleich alte Personen bei einem stabilen Verfahren ihre ursprüngliche Reihenfolge.",
+      "pitfalls": [
+        "Wird `x >= b[j]` durch `x > b[j]` ersetzt, kann der neue gleiche Wert vor den bisherigen landen."
+      ],
+      "related": [
+        "locate",
+        "Insertion Sort"
+      ],
+      "heading": "Stabilität durch"
+    },
+    {
+      "id": "eip-06-k24",
+      "term": "Laufzeit Θ(n²)",
+      "kind": "theorem",
+      "short": "Die vorgestellte Insertion-Sort-Variante benötigt insgesamt quadratisch viele Schritte in der Anzahl der Elemente.",
+      "explanation": "In Iteration `i` braucht `locate` ungefähr `j` Schritte und `shift` genau `i - j` Kopierschritte; zusammen sind das ungefähr `i` Schritte. Über alle Einfügungen ergibt sich $$\\sum_{i=1}^{n-1} i = 1 + 2 + \\dots + (n-1) = \\frac{n(n-1)}{2} \\in \\Theta(n^2).$$ Das quadratische Wachstum bedeutet, dass eine Verdopplung der Eingabegröße für große `n` ungefähr die vierfache Arbeit verursacht.",
+      "example": "Für `n = 1000` ergibt die Summe `1000 · 999 / 2 = 499500`.",
+      "pitfalls": [
+        "Die Formel zählt die Arbeit näherungsweise und ist keine exakte Zählung jeder Maschinenoperation."
+      ],
+      "related": [
+        "Laufzeit",
+        "Insertion Sort",
+        "locate",
+        "shift"
+      ],
+      "heading": "6. Kosten"
+    },
+    {
+      "id": "eip-06-k25",
+      "term": "Call Overhead und Inlining",
+      "kind": "concept",
+      "short": "Hilfsmethoden strukturieren den Code, und die JVM kann Aufrufkosten durch Inlining verringern.",
+      "explanation": "Die Zerlegung in kleine Methoden wie `locate` und `shift` macht einzelne Aufgaben klarer. Ein Methodenaufruf kann zusätzlichen Aufwand verursachen, der Call Overhead heißt. Die JVM kann einen Aufruf durch den Methodenrumpf ersetzen; diese Optimierung heißt Inlining.",
+      "example": "Die JVM kann einen Aufruf von `locate(b, x, i)` an geeigneter Stelle direkt durch den Code von `locate` ersetzen.",
+      "pitfalls": [
+        "Inlining ist eine Optimierung der JVM und keine Änderung der Bedeutung des Programms."
+      ],
+      "related": [
+        "Methode",
+        "Laufzeit Θ(n²)"
+      ],
+      "heading": "Helfer oder alles in einer Methode?"
+    },
+    {
+      "id": "eip-06-k26",
+      "term": "Invariante",
+      "kind": "definition",
+      "short": "Eine Invariante ist eine Aussage, die an einem festgelegten Punkt jeder Iteration gilt.",
+      "explanation": "Für Insertion Sort lautet die zentrale Invariante nach dem Einfügen in Iteration `i`: `b[0..i]` ist sortiert und enthält genau die ersten `i + 1` Werte der Eingabe. Sie beschreibt sowohl die Ordnung der Werte als auch, dass kein verarbeiteter Eingabewert verloren geht oder hinzukommt. Die Invariante dient dazu, die Korrektheit des Algorithmus zu begründen.",
+      "example": "Nach dem Einfügen von `a[2]` ist `b[0..2]` sortiert und enthält genau `a[0]`, `a[1]` und `a[2]`.",
+      "pitfalls": [
+        "Nur die sortierte Reihenfolge genügt nicht; die Invariante muss auch die enthaltenen Werte festhalten."
+      ],
+      "related": [
+        "Schleifeninvariante",
+        "Insertion Sort",
+        "Sortiertes Präfix"
+      ],
+      "heading": "7. Korrektheit"
+    },
+    {
+      "id": "eip-06-k27",
+      "term": "Korrektheit von Insertion Sort",
+      "kind": "theorem",
+      "short": "Nach der letzten Iteration ist das Ergebnisarray eine sortierte Kopie der Eingabe.",
+      "explanation": "Vor der ersten Einfügung ist das leere Präfix sortiert. In jeder Iteration fügt der Algorithmus den nächsten Eingabewert an der gefundenen Position ein und verschiebt vorhandene Werte, ohne sie zu verlieren; damit gilt die Invariante für das längere Präfix weiter. Für `i = n - 1` umfasst das Präfix das ganze Ergebnisarray, das somit sortiert ist und genau die Eingabewerte enthält.",
+      "example": "Für die Eingabe `{3, 1, 2}` liefert `sort` ein neues Array `{1, 2, 3}`.",
+      "pitfalls": [
+        "Ein korrekt sortiertes Ergebnis muss zusätzlich dieselben Werte wie die Eingabe enthalten."
+      ],
+      "related": [
+        "Invariante",
+        "Insertion Sort",
+        "Echte Array-Kopie"
+      ],
+      "heading": "7. Korrektheit"
+    }
+  ],
+  "generator": {
+    "model": "gpt-6-luna",
+    "effort": "xhigh",
+    "promptVersion": "k1",
+    "generatedAt": "2026-11-02T17:06:49.738Z"
+  }
+}
