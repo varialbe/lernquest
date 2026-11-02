@@ -24,6 +24,8 @@ export const users = sqliteTable('users', {
   theme: text('theme').notNull().default('default'),
   frame: text('frame'),
   soundOn: integer('sound_on', { mode: 'boolean' }).notNull().default(true),
+  /** Wochenrückblick als Push (nur wenn Mitteilungen aktiv sind) */
+  weeklyRecap: integer('weekly_recap', { mode: 'boolean' }).notNull().default(true),
   activePet: text('active_pet'),
   invitedWith: text('invited_with'),
   /** veraltet (Klartext, nur kurz in 0003) – wird beim Start nach email_enc verschoben und geleert */
@@ -215,6 +217,24 @@ export const reviewItems = sqliteTable(
   (t) => [primaryKey({ columns: [t.userId, t.questionId] })],
 );
 
+/** Karteikarten aus der Wissenssammlung: Leitner-Box je Eintrag (entryId z. B. ds-03-k07) */
+export const cardItems = sqliteTable(
+  'card_items',
+  {
+    userId: integer('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+    entryId: text('entry_id').notNull(),
+    unitId: text('unit_id').notNull(),
+    module: text('module').notNull(),
+    /** 1–5 wie die Wiederholung, 6 = gemeistert (kommt alle 30 Tage wieder) */
+    box: integer('box').notNull().default(1),
+    dueDay: text('due_day').notNull(),
+    reviews: integer('reviews').notNull().default(0),
+    lapses: integer('lapses').notNull().default(0),
+    updatedAt: ts('updated_at'),
+  },
+  (t) => [primaryKey({ columns: [t.userId, t.entryId] }), index('card_items_due').on(t.userId, t.module, t.dueDay)],
+);
+
 export const xpEvents = sqliteTable(
   'xp_events',
   {
@@ -343,6 +363,8 @@ export const pushSubscriptions = sqliteTable('push_subscriptions', {
   p256dh: text('p256dh').notNull(),
   auth: text('auth').notNull(),
   lastRemindedDay: text('last_reminded_day'),
+  /** Montag der Woche, für die der Wochenrückblick schon ging (YYYY-MM-DD) */
+  lastRecapWeek: text('last_recap_week'),
   createdAt: ts('created_at'),
 });
 
