@@ -29,6 +29,12 @@ if (schema.includes('blind')) {
   fs.writeFileSync(out, JSON.stringify({ results }));
   process.exit(0);
 }
+if (schema.includes('knowledge')) {
+  // Wissenssammlung: 4 Einträge, einer doppelt (wird verworfen), ein Term mit $…$ (wird bereinigt)
+  const e = (term, kind) => ({ term, kind, short: term + ' kurz erklärt.', explanation: 'Eine **Erklärung** zu ' + term + ' mit $A \\cup B$.', example: null, pitfalls: [], related: ['Menge'], heading: 'mengen' });
+  fs.writeFileSync(out, JSON.stringify({ overview: 'Worum es geht.', entries: [e('Menge', 'definition'), e('Vereinigung $∪$', 'notation'), e('menge', 'concept'), e('Mächtigkeit', 'definition')], review: { checked: 4, fixed: 0, added: 0, notes: '' } }));
+  process.exit(0);
+}
 if (schema.includes('repair')) {
   const keys = [...input.matchAll(/### Frage \`([^\`]+)\`/g)].map((m) => m[1]);
   const questions = keys.map((key) => ({ key, type: 'calc', prompt: 'Treppe mit Stufenkosten 1, 1, 3: minimale Kosten, wenn man 1 oder 2 Stufen nimmt?', options: [{ id: 'a', text: 'drei' }, { id: 'b', text: 'zwei' }, { id: 'c', text: 'fünf' }], correct: ['b'], explanation: '1 + 1 = 2.', source: { file: 'x', heading: null }, difficulty: 2, concepts: ['K'], slider: null, context: { type: 'table', content: '| Stufe | Kosten |\\n|---|---|\\n| 1 | 1 |\\n| 2 | 1 |\\n| 3 | 3 |', language: null, caption: null, frames: [] }, verify: 'c=[1,1,3]\\nbest=min(c[0]+c[1], c[1])\\nprint("ANSWER: " + {3:"a",2:"b",5:"c"}.get(c[0]+c[1], "?"))' }));
@@ -95,6 +101,7 @@ beforeAll(async () => {
   });
   const { config } = await import('../src/config.ts');
   config.contentDir = join(lq, 'content');
+  config.knowledgeDir = join(lq, 'wissen');
   config.dataDir = join(tmp, 'data');
   run = await import('../src/run.ts');
 });
@@ -116,8 +123,9 @@ describe('pipeline', () => {
     expect(r.status).toBe('success');
     expect(r.totals.processed).toBe(1);
     expect(r.totals.questions).toBe(49); // 4 × 10 + Praxis 9 (1 Schätzfrage verworfen)
-    // generate + review, Praxis generate + review, Blind-Test (49 Fragen = 3 Batches), Reparatur + Blind-Test des Ersatzes
-    expect(r.totals.tokens).toBe(9 * 1234);
+    // generate + review, Praxis generate + review, Blind-Test (49 Fragen = 3 Batches), Reparatur + Blind-Test des Ersatzes, Wissen generate + review
+    expect(r.totals.tokens).toBe(11 * 1234);
+    expect(r.files[0]!.knowledge).toBe(3);
     expect(r.files[0]!.gate).toMatchObject({ checked: 49, failedFirst: 1, dropped: [] });
     expect(r.files[0]!.gate!.repaired).toEqual([expect.objectContaining({ oldId: 'ds-01-l2-q02', newId: 'ds-01-l2-q02-r1' })]);
     expect(r.rateLimited).toBe(false);
@@ -133,7 +141,14 @@ describe('pipeline', () => {
     expect(unit.levels[4]).toMatchObject({ id: 'ds-01-l5', kind: 'bonus', title: 'Praxis: Mengen im Alltag' });
     expect(unit.levels[4].questions.filter((q: { type: string }) => q.type === 'estimate').map((q: { slider: { answer: number } }) => q.slider.answer)).toEqual([64, 10000]);
     expect(r.files[0]!.dropped!.join()).toContain('answer außerhalb');
-    expect(sh(lq, 'log', '-1', '--format=%s')).toContain('content: add DS Vorlesung 1 – Mengen & Relationen');
+    expect(sh(lq, 'log', '-2', '--format=%s')).toContain('content: add DS Vorlesung 1 – Mengen & Relationen');
+    // Wissenssammlung: eigene Datei + eigener Commit, doppelte Begriffe raus, $ aus Termen entfernt
+    const k = JSON.parse(readFileSync(join(lq, 'wissen/ds/ds-01.json'), 'utf8'));
+    expect(k).toMatchObject({ unitId: 'ds-01', module: 'DS', unitNumber: 1, sourceSha: unit.source.sha256, overview: 'Worum es geht.' });
+    expect(k.entries.map((x: { id: string; term: string }) => `${x.id} ${x.term}`)).toEqual(['ds-01-k01 Menge', 'ds-01-k02 Vereinigung ∪', 'ds-01-k03 Mächtigkeit']);
+    expect(k.entries[0].heading).toBe('Mengen');
+    expect(k.entries[0].related).toEqual([]); // Verweis auf sich selbst entfällt
+    expect(sh(lq, 'log', '-1', '--format=%s')).toContain('wissen: DS Vorlesung 1');
   });
 
   it('second run reports nothing new and falls back to admin notifications without telegram', async () => {
@@ -198,6 +213,18 @@ describe('pipeline', () => {
     expect(r.files.map((f) => f.unitId).sort()).toEqual(["ds-01", "ds-02"]);
     expect(sh(lq, "status", "--porcelain").trim()).toBe("");
     expect(sh(lq, "log", "-2", "--format=%s").match(/Praxis-Level/g)).toHaveLength(2);
+  });
+
+  it('knowledge mode regenerates the collection of one unit; normal runs catch up missing ones', async () => {
+    const r = await run.execute('knowledge', { quiet: true, file: 'ds-01' });
+    expect(r.status).toBe('success');
+    expect(r.files).toEqual([expect.objectContaining({ unitId: 'ds-01', status: 'done', knowledge: 3 })]);
+    // fehlende Sammlung (z. B. gelöscht) holt der nächste normale Lauf nach, ohne dass es als neue Notiz zählt
+    const { rmSync } = await import('node:fs');
+    rmSync(join(lq, 'wissen/ds/ds-02.json'), { force: true });
+    const r2 = await run.execute('run', { quiet: true });
+    expect(r2.files.filter((f) => f.knowledge).map((f) => f.unitId)).toContain('ds-02');
+    expect(readdirSync(join(lq, 'wissen/ds'))).toContain('ds-02.json');
   });
 
   it('refuses to run twice in parallel', async () => {

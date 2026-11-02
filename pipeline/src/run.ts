@@ -229,7 +229,7 @@ async function buildKnowledge(db: DB, unit: Unit, note: { text: string; headings
 }
 
 /** Wissenssammlungen erzeugen (bis zu 3 parallel), z. B. Modus `knowledge` oder Nachholen im normalen Lauf. */
-async function runKnowledge(db: DB, list: Unit[], vault: Vault, runId: string, files: FileReport[], warnings: string[], log: (m: string) => void, limit = list.length): Promise<{ committed: boolean; rateLimited: boolean }> {
+async function runKnowledge(db: DB, list: Unit[], vault: Vault, runId: string, files: FileReport[], warnings: string[], log: (m: string) => void, limit = list.length, soft = false): Promise<{ committed: boolean; rateLimited: boolean }> {
   let committed = false;
   let rateLimited = false;
   const total = Math.min(limit, list.length);
@@ -253,7 +253,9 @@ async function runKnowledge(db: DB, list: Unit[], vault: Vault, runId: string, f
           rateLimited = true;
           warnings.push('Codex-Rate-Limit erreicht – restliche Wissenssammlungen im nächsten Lauf');
         }
-        files.push({ path: u.source.file, status: 'failed', unitId: u.id, error: `Wissenssammlung: ${msg}`, durationSec: Math.round((Date.now() - t0) / 1000) });
+        // beim Nachholen im normalen Lauf nur Warnung (der Lauf selbst war ok), im Modus knowledge echter Fehler
+        if (soft) warnings.push(`Wissenssammlung ${u.id} fehlgeschlagen: ${msg.split('\n')[0]!.slice(0, 160)}`);
+        else files.push({ path: u.source.file, status: 'failed', unitId: u.id, error: `Wissenssammlung: ${msg}`, durationSec: Math.round((Date.now() - t0) / 1000) });
         log(`  ✗ Wissenssammlung ${u.id}: ${msg}`);
       }
     }
@@ -479,7 +481,7 @@ export async function execute(mode: Mode, opts: { runId?: string; file?: string;
         const missing = planKnowledge();
         if (missing.length) {
           log(`Wissenssammlung nachholen: ${missing.length} Unit(s) ohne aktuelle Sammlung, bis zu ${config.knowledgeCatchUp} in diesem Lauf`);
-          const r = await runKnowledge(db, missing, vault, runId, files, warnings, log, config.knowledgeCatchUp);
+          const r = await runKnowledge(db, missing, vault, runId, files, warnings, log, config.knowledgeCatchUp, true);
           committed ||= r.committed;
           rateLimited ||= r.rateLimited;
         }
