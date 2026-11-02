@@ -6,7 +6,7 @@ import { Icon } from '../components/icons.tsx';
 import { Page } from '../components/Shell.tsx';
 import { Button, Card, Pill, ProgressBar, Segmented } from '../components/ui.tsx';
 import { assetUrl } from '../lib/api.ts';
-import { savedModule, useDuels, useMastery, useMe } from '../lib/queries.ts';
+import { savedModule, useCardsOverview, useDuels, useMastery, useMe } from '../lib/queries.ts';
 import { MathText } from '../components/MathText.tsx';
 import { moduleColor } from '../lib/theme.ts';
 import { knowledgeHref } from '../lib/knowledge.ts';
@@ -59,6 +59,7 @@ export default function Train() {
   const { data: me } = useMe();
   const { data: mastery } = useMastery();
   const { data: duels } = useDuels();
+  const { data: cardsOverview } = useCardsOverview();
   const [mod, setMod] = useState<ModuleId>(savedModule);
   const [, navigate] = useLocation();
   const due = me?.stats.dueReviews ?? 0;
@@ -66,6 +67,7 @@ export default function Train() {
   const weakest = concepts.filter((c) => c.level !== 'new').slice(0, 3);
   const myTurn = duels?.duels.filter((d) => d.status === 'open' && !d.me.played).length ?? 0;
   const color = moduleColor(mod);
+  const cards = cardsOverview?.modules.find((m) => m.id === mod);
 
   return (
     <Page topLeft={<h1 className="text-xl font-black">Üben</h1>}>
@@ -84,11 +86,30 @@ export default function Train() {
         </Button>
       </Section>
 
-      <Section icon="mascot-book" title="Wissen" sub="Jeder Begriff, jedes Konzept – nach Unit sortiert und durchsuchbar" delay={0.03} accent="var(--c-primary)">
-        <Button full variant="secondary" onClick={() => navigate(`/wissen?m=${mod}`)}>
-          <Icon name="book" size={20} />
-          {MODULE_INFO[mod].short}-Wissen öffnen
-        </Button>
+      <Section
+        icon="mascot-book"
+        title="Wissen & Karteikarten"
+        sub={
+          !cards?.total
+            ? 'Alle Begriffe der Vorlesungen – entsteht gerade'
+            : cards.due
+              ? `${cards.due} Karten fällig · ${cards.mastered} von ${cards.total} gemeistert`
+              : `${cards.total} Begriffe · ${cards.fresh ? `${cards.fresh} noch nie abgefragt` : `${cards.mastered} gemeistert`}`
+        }
+        delay={0.03}
+        accent="var(--c-primary)"
+      >
+        <div className="flex gap-2">
+          <Button className="flex-1" variant={cards?.due ? 'primary' : 'secondary'} disabled={!cards?.total} onClick={() => navigate(`/karten?m=${mod}`)}>
+            <Icon name="copy" size={20} />
+            Karteikarten
+            {!!cards?.due && <Pill className="bg-white/25 text-white">{cards.due}</Pill>}
+          </Button>
+          <Button className="flex-1" variant="secondary" onClick={() => navigate(`/wissen?m=${mod}`)}>
+            <Icon name="book" size={20} />
+            Nachschlagen
+          </Button>
+        </div>
       </Section>
 
       <Section icon="item-xp" title="Schwächen" sub="Deine wackeligsten Konzepte gezielt üben" delay={0.05} accent={color}>

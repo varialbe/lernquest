@@ -9,6 +9,7 @@ import { migrateLegacyEmails } from './lib/account.ts';
 import { ensureLeagueRollover } from './lib/league.ts';
 import { expireDuels } from './lib/duels.ts';
 import { newUnitsTick, remindersTick } from './lib/push.ts';
+import { recapTick } from './lib/recap.ts';
 
 const db = getDb();
 // content/ ist die Quelle der Wahrheit – beim Start (idempotent) abgleichen
@@ -29,6 +30,8 @@ const tick = async () => {
     if (sent) app.log.info({ sent }, 'Streak-Erinnerungen gesendet');
     const announced = await newUnitsTick(db);
     if (announced) app.log.info({ announced }, 'Neue Units angekündigt');
+    const recaps = await recapTick(db);
+    if (recaps) app.log.info({ recaps }, 'Wochenrückblicke gesendet');
   } catch (e) {
     app.log.error(e);
   }

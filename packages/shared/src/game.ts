@@ -147,3 +147,8 @@ export function pickQuests(userId: number, day: string): QuestDef[] {
   const b = others[(h >>> 8) % others.length]!;
   return [QUESTS[0]!, a, b];
 }
+
+/** Karteikarten (Wissenssammlung) */
+export const CARDS = { perSession: 20, newPerSession: 10, masteredDays: 30 } as const;
+/** Wochenrückblick per Push: Sonntag ab dieser Stunde (Europe/Berlin) */
+export const RECAP = { weekday: 0, hour: 18 } as const;

@@ -1,5 +1,5 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import type { DuelsResponse, LeaderboardResponse, MasteryResponse, MeResponse, PathResponse, ProfileResponse, QuestsResponse, ShopItem } from '@lernquest/shared';
+import type { CardsOverview, DuelsResponse, LeaderboardResponse, MasteryResponse, MeResponse, PathResponse, ProfileResponse, QuestsResponse, ShopItem } from '@lernquest/shared';
 import { api } from './api.ts';
 
 export const useMe = (enabled = true) => useQuery({ queryKey: ['me'], queryFn: () => api<MeResponse>('/api/me'), enabled, staleTime: 15_000 });
@@ -11,6 +11,7 @@ export const useLeaderboard = (kind: string) => useQuery({ queryKey: ['lb', kind
 export const useProfile = (username = 'me') => useQuery({ queryKey: ['profile', username], queryFn: () => api<ProfileResponse>(`/api/profile/${username}`) });
 export const useMastery = () => useQuery({ queryKey: ['mastery'], queryFn: () => api<MasteryResponse>('/api/mastery'), staleTime: 30_000 });
 export const useQuests = () => useQuery({ queryKey: ['quests'], queryFn: () => api<QuestsResponse>('/api/quests'), staleTime: 15_000 });
+export const useCardsOverview = () => useQuery({ queryKey: ['cards'], queryFn: () => api<CardsOverview>('/api/cards'), staleTime: 30_000 });
 export const useDuels = () => useQuery({ queryKey: ['duels'], queryFn: () => api<DuelsResponse>('/api/duels'), staleTime: 10_000, refetchInterval: 60_000 });
 
 /** Module-Auswahl, über Seiten hinweg gemerkt */
