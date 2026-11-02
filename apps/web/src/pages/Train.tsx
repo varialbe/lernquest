@@ -99,15 +99,15 @@ export default function Train() {
         delay={0.03}
         accent="var(--c-primary)"
       >
-        <div className="flex gap-2">
-          <Button className="flex-1" variant={cards?.due ? 'primary' : 'secondary'} disabled={!cards?.total} onClick={() => navigate(`/karten?m=${mod}`)}>
+        <div className="flex flex-col gap-2">
+          <Button full variant={cards?.due ? 'primary' : 'secondary'} disabled={!cards?.total} onClick={() => navigate(`/karten?m=${mod}`)}>
             <Icon name="copy" size={20} />
             Karteikarten
             {!!cards?.due && <Pill className="bg-white/25 text-white">{cards.due}</Pill>}
           </Button>
-          <Button className="flex-1" variant="secondary" onClick={() => navigate(`/wissen?m=${mod}`)}>
+          <Button full variant="ghost" onClick={() => navigate(`/wissen?m=${mod}`)}>
             <Icon name="book" size={20} />
-            Nachschlagen
+            Nachschlagen & von Grund auf erklären
           </Button>
         </div>
       </Section>
