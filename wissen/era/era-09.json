@@ -1,0 +1,655 @@
+{
+  "schemaVersion": 1,
+  "unitId": "era-09",
+  "module": "ERA",
+  "unitNumber": 9,
+  "unitTitle": "ISAs, Betriebssysteme und virtueller Speicher",
+  "sourceSha": "8d81f6a4c75f79659c1b63d7be915f2f32c6cfd8f9557707a14a91872deb795d",
+  "overview": "Diese Unit vergleicht x86, RISC-V und ARM anhand ihrer Register, Aufrufkonventionen, Adressierungsarten und Befehlsformen. Sie erklärt, wie Mehrbenutzersysteme mit privilegierten Modi, Scheduler und Unterbrechungen Programme kontrolliert ausführen. Virtueller Speicher, MMU, Seitentabellen und TLB übersetzen Adressen und setzen Zugriffsrechte durch; Lazy Allocation und Paging stellen Seiten bei Bedarf bereit oder lagern sie aus.",
+  "entries": [
+    {
+      "id": "era-09-k01",
+      "term": "x86",
+      "kind": "definition",
+      "short": "x86 ist eine CISC-ISA-Familie mit komplexen Befehlen, variablen Befehlslängen und mehreren Ausführungsmodi.",
+      "explanation": "x86 bezeichnet eine Familie eng verwandter, aber unterschiedlicher ISAs. Im gezeigten Beispiel sind Befehle 1 bis 7 Byte lang; die variable Länge unterscheidet sich von den hier betrachteten meist 4 Byte langen RISC-V-Befehlen. Die Familie unterstützt ältere Ausführungsmodi und ist durch ihre gewachsene Komplexität geprägt.",
+      "example": "Ein x86-Befehl kann in den gezeigten Beispielen 1 Byte oder mehrere Byte lang sein.",
+      "pitfalls": [
+        "x86 bezeichnet keine einzelne Wortbreite.",
+        "Variable Befehlslänge sagt nichts über die Registerbreite aus."
+      ],
+      "related": [
+        "IA-32",
+        "x86_64 / Intel 64",
+        "RISC und CISC"
+      ],
+      "heading": "IA-32 und die x86-Familie"
+    },
+    {
+      "id": "era-09-k02",
+      "term": "IA-32",
+      "kind": "definition",
+      "short": "IA-32 bezeichnet die 32-Bit-ISA der x86-Familie.",
+      "explanation": "IA-32 ist die 32-Bit-Variante der x86-Familie, die mit dem Intel 80386 eingeführt wurde und unter anderem mit 80486 und Pentium fortgeführt wurde. Sie besitzt acht allgemeine Register. In der hier beschriebenen Aufrufkonvention liegen Parameter auf dem Stack und der Rückgabewert in EAX.",
+      "example": "`cc -m32` wählt für das gezeigte Programm eine 32-Bit-Ausgabe.",
+      "pitfalls": [
+        "IA-32 ist nicht die 64-Bit-Erweiterung x86_64.",
+        "Eine 32-Bit-ISA bedeutet nicht, dass jeder Befehl 32 Bit lang ist."
+      ],
+      "related": [
+        "x86",
+        "x86_64 / Intel 64",
+        "Register und Teilsichten bei x86"
+      ],
+      "heading": "IA-32 und die x86-Familie"
+    },
+    {
+      "id": "era-09-k03",
+      "term": "x86_64 / Intel 64",
+      "kind": "definition",
+      "short": "x86_64 beziehungsweise Intel 64 ist die 64-Bit-Erweiterung der x86-Familie, die ursprünglich von AMD stammt.",
+      "explanation": "x86_64 erweitert die x86-Familie auf 64 Bit und ergänzt unter anderem die Register R8 bis R15. Die Erweiterung wurde ursprünglich von AMD entwickelt; Intel bezeichnet seine kompatible Umsetzung als Intel 64. Neue Wortbreiten kamen über neue Ausführungsmodi hinzu, während ältere Modi weiter unterstützt wurden.",
+      "example": "RAX ist die 64-Bit-Sicht auf das Register, dessen 32-Bit-Sicht EAX heißt.",
+      "pitfalls": [
+        "Intel 64 ist nicht die ursprüngliche Herkunft der 64-Bit-x86-Erweiterung.",
+        "x86_64 und IA-32 bezeichnen unterschiedliche Wortbreiten innerhalb der x86-Familie."
+      ],
+      "related": [
+        "x86",
+        "IA-32",
+        "Register und Teilsichten bei x86"
+      ],
+      "heading": "IA-32 und die x86-Familie"
+    },
+    {
+      "id": "era-09-k04",
+      "term": "Erweiterungen von IA-32 / x86",
+      "kind": "definition",
+      "short": "ISA-Erweiterungen ergänzen eine Prozessorfamilie um zusätzliche Befehle oder Fähigkeiten.",
+      "explanation": "VMX unterstützt virtuelle Maschinen, F16C die Konvertierung von Half-Precision-Gleitkommawerten und Transactional Memory spekulative Ausführung im Zusammenhang mit atomaren Zugriffen. Eine Erweiterung ergänzt die vorhandene ISA um bestimmte Funktionen. Ob sie verfügbar ist, hängt vom jeweiligen Prozessor ab.",
+      "example": "VMX stellt Funktionen zur Unterstützung virtueller Maschinen bereit.",
+      "pitfalls": [
+        "Eine Erweiterung ist nicht automatisch in jedem x86-Prozessor vorhanden.",
+        "F16C bezeichnet hier Konvertierungsbefehle."
+      ],
+      "related": [
+        "x86",
+        "Virtueller Speicher und MMU"
+      ],
+      "heading": "Genannte Erweiterungen von IA-32 / x86"
+    },
+    {
+      "id": "era-09-k05",
+      "term": "Register und Teilsichten bei x86",
+      "kind": "notation",
+      "short": "Mehrere x86-Registernamen bezeichnen unterschiedlich breite Sichten auf denselben Registerbereich.",
+      "explanation": "RAX bezeichnet die 64-Bit-Sicht, EAX die 32-Bit-Sicht, AX die 16-Bit-Sicht und AH beziehungsweise AL je eine 8-Bit-Teilsicht. IA-32 hat acht allgemeine Register; x86_64 ergänzt R8 bis R15 und hat damit 16. ESP/RSP ist der Stack Pointer und EBP/RBP dient im gezeigten Stackframe als Base Pointer.",
+      "example": "EAX ist die 32-Bit-Sicht auf den Registerbereich, der mit RAX bezeichnet wird.",
+      "pitfalls": [
+        "Die Namen bezeichnen keine vier unabhängigen Register.",
+        "Die genannten Registerrollen sind an ISA und Aufrufkonvention gebunden."
+      ],
+      "related": [
+        "IA-32",
+        "x86_64 / Intel 64",
+        "Aufrufkonvention bei x86"
+      ],
+      "heading": "Register und Teilsichten"
+    },
+    {
+      "id": "era-09-k06",
+      "term": "Aufrufkonvention bei x86",
+      "kind": "concept",
+      "short": "Eine Aufrufkonvention legt fest, wo Parameter und Rückgabewerte liegen und welche Register ein Unterprogramm sichern muss.",
+      "explanation": "In der gezeigten IA-32-Konvention liegen Parameter auf dem Stack, der Rückgabewert in EAX, und der Caller entfernt die Parameter nach dem Rücksprung. In der notierten x86_64-Konvention liegen die ersten sechs Parameter in RDI, RSI, RDX, RCX, R8 und R9, weitere auf dem Stack; der Rückgabewert steht in RAX. Als callee-saved sind RBX, RBP, RSP und R12 bis R15 notiert. Die Mitschrift nennt kein ABI oder Betriebssystem, daher gelten diese Angaben für die beschriebenen Beispiele und nicht pauschal für alle x86_64-Umgebungen.",
+      "example": "Bei einem x86_64-Aufruf mit sieben ganzzahligen Parametern liegen sechs in den genannten Registern und der siebte auf dem Stack.",
+      "pitfalls": [
+        "Die Registerreihenfolge ist nicht für jede x86_64-Umgebung gleich.",
+        "Callee-saved bedeutet, dass das aufgerufene Unterprogramm einen geänderten Registerwert bei Bedarf wiederherstellt."
+      ],
+      "related": [
+        "Register und Teilsichten bei x86",
+        "Stackframe",
+        "Rücksprungadresse bei x86 und RISC-V",
+        "Calling Convention"
+      ],
+      "heading": "Aufrufkonventionen"
+    },
+    {
+      "id": "era-09-k07",
+      "term": "Rücksprungadresse bei x86 und RISC-V",
+      "kind": "concept",
+      "short": "IA-32 legt die Rücksprungadresse beim Aufruf auf dem Stack ab, während RISC-V sie typischerweise in ra speichert.",
+      "explanation": "Bei IA-32 legt `call` die Adresse des nächsten Befehls auf dem Stack ab. Bei RISC-V speichert `jal` die Rücksprungadresse im angegebenen Zielregister, üblicherweise `ra`. Die Rücksprungadresse bezeichnet die Befehlsposition, an der die Ausführung nach dem Unterprogramm weitergeht.",
+      "example": "Ein üblicher RISC-V-Aufruf mit `jal ra, ziel` schreibt die Adresse nach dem Aufruf in `ra`.",
+      "pitfalls": [
+        "`call` und `jal` verwenden unterschiedliche Speicherorte für die Rücksprungadresse.",
+        "Die Rücksprungadresse ist nicht der Rückgabewert einer Funktion."
+      ],
+      "related": [
+        "Aufrufkonvention bei x86",
+        "Unterprogrammaufruf",
+        "Rücksprungadresse"
+      ],
+      "heading": "Aufrufkonventionen"
+    },
+    {
+      "id": "era-09-k08",
+      "term": "count.c kompilieren und disassemblieren",
+      "kind": "example",
+      "short": "Ein C-Programm lässt sich als IA-32-Binärdatei übersetzen und mit `objdump` als Assemblercode anzeigen.",
+      "explanation": "Der Compiler erzeugt mit `-m32` eine 32-Bit-Ausgabe; `-O0` wählt die gezeigte unoptimierte Variante. Anschließend kann das Programm ausgeführt und mit `objdump -M intel -d` im Disassembly in Intel-Syntax angezeigt werden. Die notierte Ausgabe des gezeigten `count.c`-Beispiels ist 45.",
+      "example": "```bash\ncc -m32 count.c -O0 -o count\n./count\nobjdump -M intel -d count\n```",
+      "pitfalls": [
+        "Disassembly zeigt Maschinenbefehle des kompilierten Programms, nicht den ursprünglichen C-Quelltext.",
+        "`-m32` wählt die Zielwortbreite und `-O0` die Optimierungsstufe."
+      ],
+      "related": [
+        "IA-32",
+        "Assemblerprogrammierung",
+        "Compiler und Binärdatei"
+      ],
+      "heading": "Beispielprogramm übersetzen und ansehen"
+    },
+    {
+      "id": "era-09-k09",
+      "term": "Unterschiede im Assemblercode von x86 und RISC-V",
+      "kind": "concept",
+      "short": "Die gezeigten x86-Befehle können ein Ziel zugleich als Quelle und Speicheroperand verwenden, während RISC-V Rechenoperationen typischerweise auf Registern ausführt.",
+      "explanation": "Bei einer x86-Zweieroperation wie `add edx, eax` ist das Ziel zugleich eine Quelle: Der alte Wert von EDX wird mit EAX addiert und das Ergebnis überschreibt EDX. x86 kann außerdem direkt auf einem Speicheroperanden rechnen. RISC-V verwendet dafür typischerweise `lw`, `add` und `sw`, da Rechenbefehle Registeroperanden verwenden. x86 kann mit `cmp` Flags setzen und anschließend mit `jne` verzweigen; RISC-V kann Vergleich und Sprung etwa in `bne` verbinden.",
+      "example": "```asm\n# x86\nadd DWORD PTR [ebp-0x10], eax\n\n# RISC-V: sinngemäß\nlw t0, 0(sp)\nadd t0, t0, a0\nsw t0, 0(sp)\n```",
+      "pitfalls": [
+        "Ein x86-Speicheroperand bedeutet nicht, dass beliebig viele Operanden eines Befehls im Speicher liegen können.",
+        "Die Flags von `cmp` sind ein Teil des x86-Ablaufs."
+      ],
+      "related": [
+        "Adressierungsarten",
+        "Adressformen",
+        "Load/Store-Architektur",
+        "RISC und CISC"
+      ],
+      "heading": "Unterschiede im Assemblercode"
+    },
+    {
+      "id": "era-09-k10",
+      "term": "Die gezeigten Beispiele mit -O0 und -O2",
+      "kind": "concept",
+      "short": "Die Optimierungsstufe beeinflusst, ob der gezeigte Compiler Variablen im Speicher oder in Registern hält.",
+      "explanation": "Im `-O0`-Ausschnitt werden Schleifenvariable und Summe über Speicherzugriffe relativ zu EBP verwendet. Im gezeigten `-O2`-Ausschnitt bleiben sie in Registern; `xor eax, eax` setzt ein Register auf null und `test edi, edi` prüft einen Wert, ohne ihn zu verändern. Die Summe liegt in EDX, dem Register für den dritten Parameter von `printf` in der gezeigten x86_64-Konvention. Die Ausschnitte verwenden unterschiedliche Schleifengrenzen, sodass dieser Unterschied nicht allein auf die Optimierungsstufe zurückzuführen ist.",
+      "example": "`xor eax, eax` setzt EAX auf 0, indem das Register bitweise exklusiv-oder mit sich selbst verknüpft wird.",
+      "pitfalls": [
+        "Eine Registerbelegung aus einem optimierten Beispiel ist keine feste Regel für alle Programme.",
+        "Die unterschiedlichen Schleifengrenzen sind nicht automatisch eine Folge von `-O0` gegenüber `-O2`."
+      ],
+      "related": [
+        "Register und Teilsichten bei x86",
+        "Aufrufkonvention bei x86",
+        "Unterschiede im Assemblercode von x86 und RISC-V"
+      ],
+      "heading": "Die gezeigten Beispiele mit -O0 und -O2"
+    },
+    {
+      "id": "era-09-k11",
+      "term": "Adressierungsarten",
+      "kind": "definition",
+      "short": "Eine Adressierungsart bestimmt, wie ein Befehl seine Operanden angibt und gegebenenfalls eine Speicheradresse berechnet.",
+      "explanation": "Bei unmittelbarer Adressierung steht eine Konstante im Befehl, bei Registeradressierung der Operand in einem genannten Register. Bei direkter Adressierung steht die Speicheradresse im Befehl, bei registerindirekter Adressierung in einem Register. Displacement- oder basisrelative Adressierung addiert einen Offset zu einem Register; skalierte Indizierung addiert zu einer Basis einen mit der Operandenlänge multiplizierten Index. RISC-V unterstützt Immediate- und Registeroperanden sowie Speicherzugriffe mit Register plus Offset; skalierte Indizierung ist standardmäßig nicht verfügbar.",
+      "example": "`lw a0, 8(a1)` lädt in RISC-V aus der Adresse `a1 + 8`.",
+      "pitfalls": [
+        "Bei registerindirekter Adressierung enthält das Register die Adresse und nicht zwingend den geladenen Wert.",
+        "Die 12 Bit der gezeigten Immediate- und Displacement-Felder gelten nicht für alle Konstanten einer ISA."
+      ],
+      "related": [
+        "Effektive Adresse",
+        "Adressformen",
+        "Load/Store-Architektur",
+        "Immediate Operand"
+      ],
+      "heading": "Adressierungsarten – Folien 15–23"
+    },
+    {
+      "id": "era-09-k12",
+      "term": "Effektive Adresse",
+      "kind": "notation",
+      "short": "Die effektive Adresse ist die zur Laufzeit aus den Operanden berechnete Speicheradresse.",
+      "explanation": "Bei basisrelativer Adressierung gilt `EA = Registerinhalt + Offset`. Bei skalierter Indizierung gilt `EA = Basis + Index · Operandenlänge`. Die Berechnung ermöglicht beispielsweise den Zugriff auf ein Arrayelement anhand seines Indexes.",
+      "example": "Bei Basisadresse 1000, Index 3 und Operandenlänge 4 Byte ergibt sich `EA = 1000 + 3 · 4 = 1012`.",
+      "pitfalls": [
+        "Der Offset wird addiert und ist nicht selbst die effektive Adresse.",
+        "Bei skalierter Indizierung hängt der Abstand zwischen Elementen von deren Operandenlänge ab."
+      ],
+      "related": [
+        "Adressierungsarten",
+        "Arrays und Pointerarithmetik"
+      ],
+      "heading": "Adressierungsarten – Folien 15–23"
+    },
+    {
+      "id": "era-09-k13",
+      "term": "Adressformen",
+      "kind": "concept",
+      "short": "Die Adressform beschreibt, wie viele Operanden ein Befehl explizit nennt und wo weitere Operanden liegen.",
+      "explanation": "Bei der 0-Adressform liegen Operanden implizit auf einem Stack; bei der 1-Adressform wird ein Akkumulator implizit verwendet. In der 2-Adressform ist ein Operand zugleich Ziel und Quelle, wie bei `add eax, z`. Eine 3-Adress-Register-Register-Form nennt zwei Quellen und ein getrenntes Ziel; eine 3-Adress-Speicher-Speicher-Form verarbeitet die Operanden direkt im Speicher. Die Register-Register-Form passt zur Load/Store-Architektur von RISC-V.",
+      "example": "`add x, y, z` bedeutet in einer 3-Adress-Register-Register-Form `x = y + z`.",
+      "pitfalls": [
+        "Die Zahl in der Bezeichnung zählt die expliziten Adressfelder, nicht zwingend alle impliziten Operanden.",
+        "In der 2-Adressform überschreibt das Ziel einen seiner Eingabewerte."
+      ],
+      "related": [
+        "Adressierungsarten",
+        "Überdeckte Adressierung",
+        "Load/Store-Architektur",
+        "Stack und LIFO"
+      ],
+      "heading": "Adressformen – Folien 24–30"
+    },
+    {
+      "id": "era-09-k14",
+      "term": "Überdeckte Adressierung",
+      "kind": "definition",
+      "short": "Bei überdeckter Adressierung ist das Ziel eines Befehls zugleich eine seiner Quellen.",
+      "explanation": "Das trifft auf die 2-Adressform zu: Der Befehl liest zunächst den alten Zielwert, verarbeitet ihn mit einem weiteren Operanden und schreibt das Ergebnis in dasselbe Ziel. Bei `add eax, z` wird `eax = eax + z` ausgeführt. Ziel und eine Quelle teilen dabei dasselbe Adressfeld.",
+      "example": "`add edx, eax` liest EDX und EAX und überschreibt EDX mit ihrer Summe.",
+      "pitfalls": [
+        "Das Ergebnis überschreibt den alten Wert des Zielregisters.",
+        "Der Begriff bezeichnet die Ziel-Quellen-Beziehung und nicht allgemein jeden Speicherzugriff."
+      ],
+      "related": [
+        "Adressformen",
+        "Unterschiede im Assemblercode von x86 und RISC-V"
+      ],
+      "heading": "Adressformen – Folien 24–30"
+    },
+    {
+      "id": "era-09-k15",
+      "term": "ARMv8 (AArch64)",
+      "kind": "definition",
+      "short": "ARMv8 in der Ausprägung AArch64 ist ARMs erste 64-Bit-ISA.",
+      "explanation": "ARM entwirft Prozessorarchitekturen und lizenziert sie an Partner, die Prozessoren herstellen. AArch64 teilt mit RISC-V die RISC-Ausrichtung, feste Befehle von 4 Byte und eine Load/Store-Architektur. ARM unterstützt außerdem Prädekrement und Postinkrement, einen Barrel-Shifter sowie bedingte Ausführung und Flags. In der beschriebenen Registerkonvention dienen x0 bis x7 als Argumentregister, x0 auch als Rückgaberegister, x19 bis x28 als callee-saved, x29 als Frame Pointer und x30 als Link Register; w0 ist die 32-Bit-Sicht auf x0.",
+      "example": "`stp x29, x30, [sp, #-16]!` speichert zwei Register und aktualisiert dabei den Stack Pointer mit Prädekrement.",
+      "pitfalls": [
+        "`xzr` und `sp` sind besondere Registerbezeichnungen und keine zusätzlichen allgemeinen Register aus x0 bis x30.",
+        "Die Registerrollen gelten für die beschriebene Aufrufkonvention."
+      ],
+      "related": [
+        "RISC und CISC",
+        "Load/Store-Architektur",
+        "Registerkonventionen",
+        "Stackframe"
+      ],
+      "heading": "ARM – Folien 31–38"
+    },
+    {
+      "id": "era-09-k16",
+      "term": "Time Sharing und Scheduler",
+      "kind": "concept",
+      "short": "Time Sharing teilt die Prozessorzeit zwischen Programmen, indem das Betriebssystem deren Zustand sichert und wechselt.",
+      "explanation": "Wenn das Betriebssystem ein laufendes Programm unterbricht, sichert es dessen Zustand, insbesondere Register, Stack Pointer und Program Counter. Der Scheduler wählt das nächste Programm aus; danach wird dessen gespeicherter Zustand geladen und es wird fortgesetzt. So können mehrere Programme abwechselnd einen Prozessor nutzen.",
+      "example": "Nach einem Timer-Interrupt kann der Scheduler von Programm A zu Programm B wechseln.",
+      "pitfalls": [
+        "Der Zustand des unterbrochenen Programms muss erhalten bleiben, damit es später fortgesetzt werden kann.",
+        "Der Scheduler wählt das nächste Programm; er übersetzt keine Speicheradressen."
+      ],
+      "related": [
+        "Interrupt",
+        "Benutzer- und Systemmodi",
+        "Virtueller Speicher und MMU"
+      ],
+      "heading": "Mehrbenutzersysteme – Folien 39–47"
+    },
+    {
+      "id": "era-09-k17",
+      "term": "Benutzer- und Systemmodi",
+      "kind": "definition",
+      "short": "Privilegierte Modi legen fest, welche Befehle und Ressourcen ein Programm verwenden darf.",
+      "explanation": "Im Benutzermodus sind privilegierte Aktionen wie Ein-/Ausgabe oder der Zugriff auf Konfigurationsregister eingeschränkt. Im Systemmodus kann das Betriebssystem solche Aktionen ausführen und Unterbrechungen kontrollieren. RISC-V unterscheidet die Modi M (Machine), S (Supervisor) und U (User); ein kontrollierter Rückweg in einen weniger privilegierten Modus erfolgt etwa mit `mret` oder `sret`.",
+      "example": "Ein Benutzerprogramm fordert eine Betriebssystemfunktion über einen Systemaufruf an, statt direkt ein privilegiertes Konfigurationsregister zu ändern.",
+      "pitfalls": [
+        "Ein Benutzerprogramm kann sich nicht durch einen gewöhnlichen Sprung selbst Systemrechte geben.",
+        "RISC-V hat die Modi M, S und U; dies sind nicht nur zwei Modi."
+      ],
+      "related": [
+        "Time Sharing und Scheduler",
+        "Systemaufruf in RISC-V",
+        "Interrupt",
+        "Exception"
+      ],
+      "heading": "Mehrbenutzersysteme – Folien 39–47"
+    },
+    {
+      "id": "era-09-k18",
+      "term": "Interrupt",
+      "kind": "definition",
+      "short": "Ein Interrupt ist eine asynchrone Unterbrechung, die durch ein externes Ereignis ausgelöst wird.",
+      "explanation": "Ein Interrupt ist nicht unmittelbar an den gerade ausgeführten Befehl gebunden; typische Auslöser sind ein Timer, Ein-/Ausgabe oder ein Netzwerkereignis. Die Hardware prüft das Signal typischerweise am Ende eines Befehlszyklus. Das Betriebssystem sichert den nötigen Zustand, bearbeitet das Ereignis und setzt die Ausführung anschließend fort.",
+      "example": "Ein Timer-Interrupt kann dem Scheduler Gelegenheit geben, zum nächsten Prozess zu wechseln.",
+      "pitfalls": [
+        "Ein Interrupt ist asynchron; eine Exception hängt synchron mit einem ausgeführten Befehl zusammen.",
+        "Maskierbare Interrupts können zeitweise gesperrt werden."
+      ],
+      "related": [
+        "Exception",
+        "Trap",
+        "Time Sharing und Scheduler",
+        "Direkter und vektorisierter Trap-Einsprung"
+      ],
+      "heading": "Traps, Interrupts und Exceptions – Folien 48–58"
+    },
+    {
+      "id": "era-09-k19",
+      "term": "Exception",
+      "kind": "definition",
+      "short": "Eine Exception ist eine synchrone Unterbrechung, die mit der Ausführung eines bestimmten Befehls zusammenhängt.",
+      "explanation": "Eine Exception kann etwa durch einen illegalen Befehl, einen Breakpoint oder einen unzulässigen Speicherzugriff entstehen. Das Betriebssystem kann den Prozess abbrechen, die Operation emulieren, den Fall weitergeben oder die Ausführung nach einer Behandlung fortsetzen. Ein Systemaufruf wird ebenfalls gezielt als Exception ausgelöst.",
+      "example": "Ein Zugriff auf eine nicht abgebildete virtuelle Seite kann eine Page-Fault-Exception auslösen.",
+      "pitfalls": [
+        "Ein synchrones Ereignis ist nicht dasselbe wie ein externer, asynchroner Interrupt.",
+        "Ob Division durch null eine Exception auslöst, hängt von der ISA ab."
+      ],
+      "related": [
+        "Interrupt",
+        "Trap",
+        "Systemaufruf in RISC-V",
+        "Virtueller Speicher und MMU"
+      ],
+      "heading": "Traps, Interrupts und Exceptions – Folien 48–58"
+    },
+    {
+      "id": "era-09-k20",
+      "term": "Trap",
+      "kind": "definition",
+      "short": "Ein Trap bezeichnet in RISC-V den Kontrolltransfer zu einem privilegierten Handler aufgrund eines Interrupts oder einer Exception.",
+      "explanation": "Ein Trap ist der Kontrolltransfer an einen Trap-Handler, der durch einen Interrupt oder eine Exception ausgelöst wird. Der Handler sichert beziehungsweise verwendet den nötigen Ausführungszustand, behandelt den Grund und kehrt kontrolliert zurück. In anderen Zusammenhängen wird „Trap“ teils enger für absichtlich ausgelöste synchrone Ereignisse verwendet, weshalb die ISA-Terminologie zu beachten ist.",
+      "example": "Ein Page Fault führt zum Trap-Handler, der die Ursache prüft und gegebenenfalls eine Seite lädt.",
+      "pitfalls": [
+        "Trap und Interrupt sind keine austauschbaren Begriffe; in RISC-V ist ein Interrupt eine mögliche Trap-Ursache.",
+        "Ein Trap ist nicht zwingend ein Fehler, denn ein Systemaufruf kann absichtlich einen auslösen."
+      ],
+      "related": [
+        "Interrupt",
+        "Exception",
+        "Systemaufruf in RISC-V",
+        "Direkter und vektorisierter Trap-Einsprung"
+      ],
+      "heading": "Traps, Interrupts und Exceptions – Folien 48–58"
+    },
+    {
+      "id": "era-09-k21",
+      "term": "Systemaufruf in RISC-V",
+      "kind": "method",
+      "short": "Ein Systemaufruf übergibt eine kontrollierte Anfrage vom Benutzermodus an das Betriebssystem.",
+      "explanation": "Bei RISC-V löst `ecall` den privilegierten Übergang aus; die Aufrufnummer steht üblicherweise in `a7` und Parameter in `a0` bis `a6`, während Linux dafür `a0` bis `a5` nutzt. Das Sprungziel kommt aus einem privilegierten Register, und das Betriebssystem kann Parameter und Berechtigungen prüfen. Damit unterscheidet sich ein Systemaufruf von einem normalen Unterprogrammaufruf mit frei gewähltem Ziel.",
+      "example": "1. Nummer in `a7` und Parameter in `a0` bis `a6` ablegen.\n2. `ecall` ausführen.\n3. Der Handler prüft die Anfrage, führt die Funktion aus und kehrt kontrolliert zurück.",
+      "pitfalls": [
+        "`ecall` ist kein gewöhnlicher Aufruf mit frei wählbarer Zieladresse.",
+        "Das Betriebssystem kann eine Anfrage ablehnen oder einen Fehler melden."
+      ],
+      "related": [
+        "Benutzer- und Systemmodi",
+        "Exception",
+        "Trap"
+      ],
+      "heading": "Traps, Interrupts und Exceptions – Folien 48–58"
+    },
+    {
+      "id": "era-09-k22",
+      "term": "Direkter und vektorisierter Trap-Einsprung",
+      "kind": "notation",
+      "short": "Der Trap-Modus bestimmt, ob Ereignisse an eine gemeinsame Handleradresse oder an berechnete Interruptadressen springen.",
+      "explanation": "Im Direct-Modus (`MODE = 0`) führen Ereignisse zur Basisadresse `BASE`; der Grund steht separat in einem Register. Im Vectored-Modus (`MODE = 1`) springen asynchrone Interrupts zu `BASE + 4 · cause`. Dadurch haben Interruptursachen unterschiedliche Einsprungstellen.",
+      "example": "Bei `BASE = 0x1000` und `cause = 5` ist die vektorisierte Einsprungadresse `0x1014`.",
+      "pitfalls": [
+        "Die Vektorformel gilt für Interrupts im Vectored-Modus.",
+        "Im Direct-Modus kodiert kein unterschiedlicher Offset die Ursache."
+      ],
+      "related": [
+        "Interrupt",
+        "Trap",
+        "Exception"
+      ],
+      "heading": "Traps, Interrupts und Exceptions – Folien 48–58"
+    },
+    {
+      "id": "era-09-k23",
+      "term": "Virtueller Speicher und MMU",
+      "kind": "concept",
+      "short": "Virtueller Speicher gibt jedem Prozess einen eigenen Adressraum, den die MMU bei Speicherzugriffen in physische Adressen übersetzt.",
+      "explanation": "Die Memory Management Unit (MMU) übersetzt virtuelle Adressen bei Speicherzugriffen in physische Adressen. Das Betriebssystem kontrolliert die Abbildung und kann Prozesse isolieren sowie Zugriffsrechte durchsetzen. Virtuelle Seiten eines Prozesses können auf physische Kacheln an verschiedenen Stellen des Speichers zeigen. Min/Max-Register bieten demgegenüber nur einen groben Schutzbereich.",
+      "example": "Zwei Prozesse können dieselbe virtuelle Adresse verwenden, die MMU aber auf verschiedene physische Kacheln abbilden.",
+      "pitfalls": [
+        "Eine virtuelle Adresse ist nicht automatisch gleich der physischen Adresse.",
+        "Seitenübersetzung benötigt keinen physisch zusammenhängenden Speicherbereich."
+      ],
+      "related": [
+        "Seitentabelle und Seitentabelleneintrag",
+        "Seitennummer, Offset und physische Kachel",
+        "TLB (Translation Look-Aside Buffer)",
+        "Paging"
+      ],
+      "heading": "Virtueller Speicher – Folien 59–74"
+    },
+    {
+      "id": "era-09-k24",
+      "term": "Seitennummer, Offset und physische Kachel",
+      "kind": "notation",
+      "short": "Eine virtuelle Adresse zerfällt in eine Seitennummer und einen Offset, der bei der Übersetzung unverändert bleibt.",
+      "explanation": "Bei einer Seitengröße von 4 KiB gilt `4 KiB = 2^12 Byte`, daher umfasst der Offset 12 Bit. Die virtuelle Seitennummer identifiziert die virtuelle Seite; eine Seitentabelle ordnet sie einer physischen Seitennummer beziehungsweise Kachel zu. Die physische Adresse entsteht aus der physischen Seitennummer und demselben Offset.",
+      "example": "Bei der virtuellen Adresse `0x00403ABC` ist der Offset `0xABC`; nur die Seitennummer wird übersetzt.",
+      "pitfalls": [
+        "Der Offset wird bei einer normalen Seitentranslation nicht verändert.",
+        "Eine virtuelle Seite und eine physische Kachel sind verschiedene Bereiche, auch wenn beide gleich groß sind."
+      ],
+      "related": [
+        "Virtueller Speicher und MMU",
+        "Seitentabelle und Seitentabelleneintrag",
+        "Sv32-Adresse zerlegen"
+      ],
+      "heading": "Virtueller Speicher – Folien 59–74"
+    },
+    {
+      "id": "era-09-k25",
+      "term": "Seitentabelle und Seitentabelleneintrag",
+      "kind": "definition",
+      "short": "Eine Seitentabelle ordnet virtuellen Seiten physische Kacheln zu und speichert Gültigkeits- und Zugriffsrechte.",
+      "explanation": "Ein Sv32-Seitentabelleneintrag enthält eine physische Seitennummer sowie Status- und Berechtigungsbits. `V` markiert den Eintrag als gültig; `R`, `W` und `X` erlauben Lesen, Schreiben und Ausführen. `U` erlaubt Zugriff im Benutzermodus, `G` kennzeichnet eine globale Abbildung, `A` markiert einen erfolgten Zugriff und `D` einen erfolgten Schreibzugriff. Ein ungültiger Eintrag oder ein unzulässiger Zugriff führt zu einer Exception.",
+      "example": "Ein gültiger Eintrag mit `R=1`, `W=0` und `X=0` erlaubt Lesen, aber weder Schreiben noch Ausführen.",
+      "pitfalls": [
+        "Ein gültiger Eintrag ist nicht automatisch für jede Zugriffsart oder jeden Privilegmodus freigegeben.",
+        "`A` und `D` beschreiben Zugriffsstatus und sind keine Lese- oder Schreibberechtigungen."
+      ],
+      "related": [
+        "Virtueller Speicher und MMU",
+        "X/W/R-Kodierung",
+        "Übersetzungsvorgang einer virtuellen Adresse"
+      ],
+      "heading": "Virtueller Speicher – Folien 59–74"
+    },
+    {
+      "id": "era-09-k26",
+      "term": "X/W/R-Kodierung",
+      "kind": "notation",
+      "short": "Die Bits X, W und R kodieren in dieser Reihenfolge, ob eine Seite ausführbar, beschreibbar und lesbar ist.",
+      "explanation": "Die Bitreihenfolge lautet `X/W/R`: `001` bedeutet nur Lesen, `011` Lesen und Schreiben, `100` nur Ausführen, `101` Lesen und Ausführen sowie `111` Lesen, Schreiben und Ausführen. Die Muster `010` und `110` sind reserviert. `000` kennzeichnet keinen Blatt-Eintrag, sondern einen Zeiger auf die nächste Tabellenstufe.",
+      "example": "Das Muster `101` bedeutet `X=1`, `W=0`, `R=1`: Lesen und Ausführen sind erlaubt, Schreiben nicht.",
+      "pitfalls": [
+        "Die Bitreihenfolge ist X, W, R und nicht R, W, X.",
+        "`000` ist in diesem Zusammenhang ein Tabellenzeiger; `010` und `110` sind reserviert."
+      ],
+      "related": [
+        "Seitentabelle und Seitentabelleneintrag",
+        "Mehrstufige Seitentabellen",
+        "Übersetzungsvorgang einer virtuellen Adresse"
+      ],
+      "heading": "X/W/R-Kodierung"
+    },
+    {
+      "id": "era-09-k27",
+      "term": "Übersetzungsvorgang einer virtuellen Adresse",
+      "kind": "method",
+      "short": "Die MMU zerlegt eine virtuelle Adresse, prüft den Seitentabelleneintrag und bildet daraus eine physische Adresse.",
+      "explanation": "Die Übersetzung verwendet Seitennummer und Offset und prüft Gültigkeit sowie Zugriffsrechte. Ist der Eintrag ungültig, ein Zugriff im Benutzermodus nicht erlaubt oder ein Schreibzugriff auf eine Nur-Lese-Seite gerichtet, wird eine Exception ausgelöst. Bei erfolgreicher Prüfung wird der Offset unverändert an die physische Seitennummer angefügt.",
+      "example": "1. Virtuelle Adresse in Seitennummer und Offset zerlegen.\n2. Basisadresse der Seitentabelle aus einem privilegierten Register lesen und den passenden Eintrag bestimmen.\n3. Gültigkeit sowie Privileg- und Lese-/Schreib-/Ausführungsrechte prüfen.\n4. Bei Erfolg physische Seitennummer und unveränderten Offset zur physischen Adresse zusammensetzen.",
+      "pitfalls": [
+        "Eine gültige Seitenabbildung genügt nicht, wenn die angeforderte Zugriffsart verboten ist.",
+        "Eine fehlgeschlagene Prüfung führt zu einer Exception und nicht zu einer beliebigen physischen Adresse."
+      ],
+      "related": [
+        "Virtueller Speicher und MMU",
+        "Seitennummer, Offset und physische Kachel",
+        "Seitentabelle und Seitentabelleneintrag",
+        "X/W/R-Kodierung"
+      ],
+      "heading": "Übersetzungsvorgang – Folie 72"
+    },
+    {
+      "id": "era-09-k28",
+      "term": "Mehrstufige Seitentabellen",
+      "kind": "concept",
+      "short": "Mehrstufige Seitentabellen legen untergeordnete Tabellen nur für tatsächlich genutzte Bereiche des virtuellen Adressraums an.",
+      "explanation": "Eine einstufige Sv32-Tabelle benötigt `2^20` Einträge à 4 Byte, also 4 MiB pro Prozess, auch wenn viele virtuelle Bereiche ungenutzt sind. Mehrstufige Tabellen teilen die virtuelle Seitennummer in Indizes auf und legen untergeordnete Tabellen bei Bedarf an. Sv32 hat zwei Stufen mit der Aufteilung 10+10+12 Bit; Sv39 drei mit 9+9+9+12 Bit, Sv48 vier und Sv57 fünf. Ein Leaf-Eintrag kann direkt eine große Seite abbilden; bei Sv32 sind das 4 MiB.",
+      "example": "Ist ein Eintrag der ersten Sv32-Stufe ungültig, muss für den zugehörigen Adressbereich keine zweite Tabelle bereitgestellt werden.",
+      "pitfalls": [
+        "Mehr Stufen sparen Tabellenplatz für ungenutzte Bereiche, erfordern bei einem Tabellenlauf aber mehrere Speicherzugriffe.",
+        "Ein Leaf-Eintrag bildet eine Seite direkt ab; ein Nicht-Leaf-Eintrag verweist auf eine weitere Tabellenstufe."
+      ],
+      "related": [
+        "Seitentabelle und Seitentabelleneintrag",
+        "Sv32-Adresse zerlegen",
+        "TLB (Translation Look-Aside Buffer)"
+      ],
+      "heading": "Warum mehrere Stufen?"
+    },
+    {
+      "id": "era-09-k29",
+      "term": "Sv32-Adresse zerlegen",
+      "kind": "example",
+      "short": "Sv32 teilt die virtuelle Adresse in zwei 10-Bit-Tabellenindizes und einen 12-Bit-Offset auf.",
+      "explanation": "Sv32 verwendet zwei Tabellenstufen: `VPN[1]` wählt einen Eintrag der ersten Tabelle, `VPN[0]` einen Eintrag der zweiten Tabelle, und die unteren 12 Bit bilden den Offset. Für `VA = 0x00403ABC` sind die Indizes 1 und 3 und der Offset `0xABC`. Ist die physische Seitennummer `0x12345`, ergibt sich die physische Adresse durch `0x12345 · 0x1000 + 0xABC = 0x12345ABC`.",
+      "example": "`VPN[1]=1`, `VPN[0]=3`, `Offset=0xABC`; bei physischer Seitennummer `0x12345` ist `PA=0x12345ABC`.",
+      "pitfalls": [
+        "Die beiden Sv32-Indizes sind jeweils 10 Bit breit; der Offset umfasst 12 Bit.",
+        "Die virtuelle Seitennummer wird übersetzt, während der Offset unverändert bleibt."
+      ],
+      "related": [
+        "Mehrstufige Seitentabellen",
+        "Seitennummer, Offset und physische Kachel",
+        "Übersetzungsvorgang einer virtuellen Adresse"
+      ],
+      "heading": "Rechenbeispiel Sv32"
+    },
+    {
+      "id": "era-09-k30",
+      "term": "TLB (Translation Look-Aside Buffer)",
+      "kind": "definition",
+      "short": "Ein TLB ist ein schneller Zwischenspeicher für kürzlich verwendete virtuelle-zu-physische Adressübersetzungen.",
+      "explanation": "Bei einem TLB-Treffer kann eine gespeicherte Übersetzung wiederverwendet werden, statt alle Seitentabellenstufen erneut auszulesen. Ohne TLB benötigt eine Sv39-Übersetzung drei Tabellenzugriffe zusätzlich zum eigentlichen Datenzugriff. Bei einem TLB-Fehler wird die Übersetzung über die Seitentabellen gesucht; ein ungültiger Eintrag oder unzulässiger Zugriff kann weiterhin eine Exception auslösen. Große Seiten können mit einem einzelnen TLB-Eintrag einen größeren Speicherbereich abdecken.",
+      "example": "Ein wiederholter Zugriff auf dieselbe virtuelle Seite kann die bereits im TLB gespeicherte Übersetzung verwenden.",
+      "pitfalls": [
+        "Ein TLB speichert Übersetzungen und ersetzt nicht die Seitentabelle als maßgebliche Abbildung.",
+        "Ein TLB-Treffer hebt die Zugriffsrechte nicht auf."
+      ],
+      "related": [
+        "Virtueller Speicher und MMU",
+        "Mehrstufige Seitentabellen",
+        "Seitentabelle und Seitentabelleneintrag"
+      ],
+      "heading": "TLB – Translation Look-Aside Buffer"
+    },
+    {
+      "id": "era-09-k31",
+      "term": "Lazy Allocation",
+      "kind": "method",
+      "short": "Bei Lazy Allocation wird eine physische Kachel erst beim ersten Zugriff auf eine virtuelle Seite zugeteilt.",
+      "explanation": "Das Betriebssystem reserviert zunächst virtuellen Adressraum, ohne sofort eine physische Kachel zuzuordnen. Der erste Zugriff auf die noch nicht abgebildete Seite löst eine Exception aus. Der Handler sucht eine freie Kachel, richtet die Abbildung ein und lässt die Ausführung anschließend fortsetzen.",
+      "example": "1. Virtuellen Speicherbereich ohne physische Kacheln bereitstellen.\n2. Beim ersten Zugriff die ausgelöste Exception behandeln.\n3. Eine Kachel zuordnen und den Seitentabelleneintrag aktualisieren.",
+      "pitfalls": [
+        "Die Exception beim ersten Zugriff kann bei Lazy Allocation erwartetes Verhalten sein.",
+        "Virtueller Speicher ist vor dem ersten Zugriff reserviert, aber noch nicht notwendigerweise physisch hinterlegt."
+      ],
+      "related": [
+        "Virtueller Speicher und MMU",
+        "Exception",
+        "Paging"
+      ],
+      "heading": "Lazy Allocation"
+    },
+    {
+      "id": "era-09-k32",
+      "term": "Paging",
+      "kind": "method",
+      "short": "Beim Paging wird eine ausgewählte Seite auf Massenspeicher ausgelagert und bei einem späteren Zugriff wieder eingelesen.",
+      "explanation": "Wenn keine freie physische Kachel vorhanden ist, kann das Betriebssystem eine wenig genutzte Seite auswählen, sie als nicht vorhanden markieren und auf Massenspeicher schreiben. Die frei gewordene Kachel wird einer benötigten Seite zugeordnet. Greift ein Programm später auf die ausgelagerte Seite zu, löst das eine Exception aus; das Betriebssystem lädt die Seite zurück und aktualisiert die Seitentabelle. Paging lässt den Hauptspeicher größer erscheinen, verursacht aber langsame Zugriffe.",
+      "example": "1. Eine lange unbenutzte Seite B auswählen und auslagern.\n2. Ihre Kachel einer benötigten Seite A zuordnen.\n3. Bei einem späteren Zugriff auf B die Seite zurückladen und die Abbildung aktualisieren.",
+      "pitfalls": [
+        "Auslagerung ist erheblich langsamer als ein Zugriff auf den Hauptspeicher.",
+        "Die Auswahl einer auszulagernden Seite muss ihre mögliche spätere Wiederverwendung berücksichtigen."
+      ],
+      "related": [
+        "Virtueller Speicher und MMU",
+        "Exception",
+        "Lazy Allocation",
+        "Gepinnte Seiten"
+      ],
+      "heading": "Paging: Auslagern, wenn keine Kachel frei ist"
+    },
+    {
+      "id": "era-09-k33",
+      "term": "Gepinnte Seiten",
+      "kind": "definition",
+      "short": "Gepinnte Seiten bleiben im physischen Speicher und werden nicht ausgelagert.",
+      "explanation": "Das Betriebssystem pinnt Seiten, wenn sie während ihrer Verwendung physisch verfügbar bleiben müssen. Beispiele sind Speicherbereiche für Geräte ohne MMU, etwa Netzwerkkarten oder GPUs, sowie Teile des Betriebssystems wie Seitentabellen. Gepinnte Seiten stehen dem normalen Paging nicht als Auslagerungskandidaten zur Verfügung.",
+      "example": "Eine Seitentabelle kann gepinnt werden, damit das Betriebssystem sie bei der Adressübersetzung stets im Hauptspeicher vorfindet.",
+      "pitfalls": [
+        "Gepinnt bedeutet nicht automatisch, dass eine Seite für Benutzerprogramme zugänglich ist.",
+        "Das Pinnen verringert den Speicher, der für gewöhnliches Paging verfügbar ist."
+      ],
+      "related": [
+        "Paging",
+        "Seitentabelle und Seitentabelleneintrag",
+        "Virtueller Speicher und MMU"
+      ],
+      "heading": "Paging: Auslagern, wenn keine Kachel frei ist"
+    },
+    {
+      "id": "era-09-k34",
+      "term": "Zugriffsschutz gezielt nutzen",
+      "kind": "concept",
+      "short": "Seitentabellenrechte können absichtlich so gesetzt werden, dass bestimmte Zugriffe eine Exception auslösen.",
+      "explanation": "Das Betriebssystem kann Lese-, Schreib- oder Ausführungsrechte entziehen und dadurch unerlaubte Zugriffe abfangen. Beim Debugging hilft das beispielsweise, Array-Über- oder -Unterläufe zu erkennen. Schutzbits können auch zur Leistungsanalyse eingesetzt werden, etwa um Zugriffe zu zählen.",
+      "example": "Eine schreibgeschützte Seite kann einen Schreibversuch abfangen und so einen Programmfehler sichtbar machen.",
+      "pitfalls": [
+        "Ein Schutzfehler zeigt einen verbotenen Zugriff an, aber nicht automatisch dessen Ursache im Quelltext.",
+        "Zugriffsschutz beruht auf den gesetzten Seitenrechten."
+      ],
+      "related": [
+        "Seitentabelle und Seitentabelleneintrag",
+        "X/W/R-Kodierung",
+        "Exception"
+      ],
+      "heading": "Zugriffsschutz gezielt nutzen"
+    },
+    {
+      "id": "era-09-k35",
+      "term": "Little Endian",
+      "kind": "definition",
+      "short": "Bei Little Endian liegt das niederwertigste Byte eines mehrbyteigen Werts an der kleinsten Speicheradresse.",
+      "explanation": "Die Bytereihenfolge bestimmt, wie Bytes eines mehrbyteigen Werts im Speicher angeordnet sind. Bei Little Endian steht das Byte mit den niedrigstwertigen Bits zuerst; bei Big Endian steht das höchstwertige Byte zuerst. Diese Reihenfolge betrifft die Darstellung eines Werts im Speicher, nicht die Zerlegung einer virtuellen Adresse in Seitennummer und Offset.",
+      "example": "Der 32-Bit-Wert `0x12345678` liegt bei Little Endian byteweise als `78 56 34 12` an aufsteigenden Adressen.",
+      "pitfalls": [
+        "Little Endian kehrt die Reihenfolge der Bytes um, nicht die Bitreihenfolge innerhalb eines Bytes.",
+        "Endianness und virtuelle Seitentranslation beschreiben verschiedene Aspekte eines Speicherzugriffs."
+      ],
+      "related": [
+        "Little Endian und Big Endian",
+        "Byteadressierung"
+      ],
+      "heading": null
+    }
+  ],
+  "generator": {
+    "model": "gpt-6-luna",
+    "effort": "xhigh",
+    "promptVersion": "k1",
+    "generatedAt": "2026-11-02T13:03:10.191Z"
+  }
+}
