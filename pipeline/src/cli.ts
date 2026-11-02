@@ -20,10 +20,11 @@ if (cmd === 'wissen-check') {
   const { allContentUnits } = await import('./knowledge.ts');
   const { checkKnowledge } = await import('./prereqs.ts');
   const problems = checkKnowledge(allContentUnits());
-  console.log(problems.length ? `✗ ${problems.length} Problem(e):
-${problems.map((x) => `  - ${x}`).join('
-')}
-→ beheben mit: pnpm pipeline knowledge [unit-id]` : '✓ Wissenssammlung und Voraussetzungen sind für alle Units aktuell.');
+  if (problems.length) {
+    console.log(`✗ ${problems.length} Problem(e):`);
+    for (const x of problems) console.log(`  - ${x}`);
+    console.log('→ beheben mit: pnpm pipeline knowledge [unit-id]');
+  } else console.log('✓ Wissenssammlung und Voraussetzungen sind für alle Units aktuell.');
   process.exit(problems.length ? 1 : 0);
 }
 if (cmd === 'watchdog') process.exit((await watchdog()) ? 0 : 2);
