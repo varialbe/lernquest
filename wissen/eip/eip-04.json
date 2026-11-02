@@ -1,0 +1,441 @@
+{
+  "schemaVersion": 1,
+  "unitId": "eip-04",
+  "module": "EIP",
+  "unitNumber": 4,
+  "unitTitle": "Control-Flow Graphs, Strings und Arrays",
+  "sourceSha": "a4c92693bee8c0d4fee1b6766a2248667edb26f0feca796a923d5c7fd4f246bd",
+  "overview": "Diese Unit behandelt Kontrollflussgraphen als Modelle möglicher Programmausführungen und erklärt Pfade, Zustände und Reduzierbarkeit. Sie führt Variablendeklaration und Initialisierung, String-Konkatenation und -Vergleich, Arrays samt Referenzen und Schleifeninvarianten sowie For-Schleifen und ihre While-Äquivalenz ein.",
+  "entries": [
+    {
+      "id": "eip-04-k01",
+      "term": "Syntax und Semantik",
+      "kind": "concept",
+      "short": "Syntax beschreibt die Form eines Programms, Semantik seine Bedeutung bei der Ausführung.",
+      "explanation": "Die Syntax legt fest, welche Anordnungen von Zeichen und Anweisungen gültige Programme bilden. Die Semantik beschreibt, was ein gültiges Programm bewirkt, etwa welche Zustandsänderungen seine Anweisungen verursachen. Ein Programm kann syntaktisch gültig sein und trotzdem ein unerwünschtes Verhalten haben.",
+      "example": "`x = x + 1;` ist eine syntaktisch gültige Anweisung; ihre Semantik ist, den Wert von `x` um eins zu erhöhen.",
+      "pitfalls": [
+        "Syntaxfehler und Fehler im Verhalten sind verschiedene Arten von Fehlern."
+      ],
+      "related": [
+        "Syntax",
+        "Semantik",
+        "Kontrollflussgraph (Control-Flow Graph, CFG)"
+      ],
+      "heading": "1. Control-Flow Graphs (CFG)"
+    },
+    {
+      "id": "eip-04-k02",
+      "term": "Kontrollflussgraph (Control-Flow Graph, CFG)",
+      "kind": "definition",
+      "short": "Ein CFG stellt mögliche Abläufe eines Programms mit Knoten und gerichteten Kanten dar.",
+      "explanation": "Knoten stehen zum Beispiel für Start, Stop, Ein- und Ausgabe, Zuweisungen oder Bedingungen; gerichtete Kanten zeigen mögliche Übergänge. Jeder Knoten außer Start hat mindestens eine eingehende Kante, und jeder außer Stop hat mindestens eine ausgehende Kante. Jedes MiniJava-Programm lässt sich als CFG darstellen.",
+      "example": "Bei `if (x < 0) x = 0;` führt der Bedingungsknoten über eine von zwei Kanten weiter.",
+      "pitfalls": [
+        "Der CFG zeigt mögliche Kontrollabläufe, aber allein keine konkreten Werte aller Variablen."
+      ],
+      "related": [
+        "Knotentypen im CFG",
+        "Pfad und operationale Semantik",
+        "Bedingungs- und Join-Knoten",
+        "Reduzierbarkeit"
+      ],
+      "heading": "1. Control-Flow Graphs (CFG)"
+    },
+    {
+      "id": "eip-04-k03",
+      "term": "Knotentypen im CFG",
+      "kind": "definition",
+      "short": "CFG-Knoten stehen für Start, Stop, Ein- und Ausgabe, Zuweisungen, Bedingungen oder Joins.",
+      "explanation": "Der Startknoten markiert den Programmbeginn und der Stopknoten das Ende. Ein Input-Knoten kann `x = readInt();`, ein Output-Knoten `write(y);` und ein Zuweisungsknoten eine Zustandsänderung darstellen. Bedingungs- und Join-Knoten modellieren Verzweigungen und das Zusammenführen von Kontrollfluss.",
+      "example": "`x = readInt();` ist ein Input-Knoten, `x = x + 1;` ein Zuweisungsknoten und `write(x);` ein Output-Knoten.",
+      "pitfalls": [
+        "Ein Join-Knoten führt Kontrollpfade zusammen; er ist keine zusätzliche Bedingung."
+      ],
+      "related": [
+        "Kontrollflussgraph (Control-Flow Graph, CFG)",
+        "Bedingungs- und Join-Knoten"
+      ],
+      "heading": "1. Control-Flow Graphs (CFG)"
+    },
+    {
+      "id": "eip-04-k04",
+      "term": "Pfad und operationale Semantik",
+      "kind": "definition",
+      "short": "Ein Pfad vom Start zum Stop entspricht einer möglichen Ausführung, und mit den Zuständen beschreibt er ihre operationale Semantik.",
+      "explanation": "Ein Pfad ist eine Folge von Knoten und Kanten vom Start zum Stop. An einer Verzweigung bestimmen die aktuellen Variablenwerte, welche Kante genommen wird. Hält man zusätzlich die Zustände entlang des Pfads fest, beschreibt man die Ausführung als Zustandsänderungen; das ist ihre operationale Semantik.",
+      "example": "Bei `x = 2; x = x + 1;` führt der Pfad erst zum Zustand `x = 2` und danach zu `x = 3`.",
+      "pitfalls": [
+        "Ein Pfad beschreibt eine mögliche Ausführung; andere Eingaben können andere Pfade erzeugen."
+      ],
+      "related": [
+        "Kontrollflussgraph (Control-Flow Graph, CFG)",
+        "Bedingungs- und Join-Knoten",
+        "Syntax und Semantik"
+      ],
+      "heading": "1. Control-Flow Graphs (CFG)"
+    },
+    {
+      "id": "eip-04-k05",
+      "term": "Bedingungs- und Join-Knoten",
+      "kind": "definition",
+      "short": "Ein Bedingungsknoten hat genau eine yes- und eine no-Kante, und ein Join-Knoten führt alternative Pfade zusammen.",
+      "explanation": "Am Bedingungsknoten wird ein boolescher Ausdruck ausgewertet und eine der beiden ausgehenden Kanten gewählt. Die Kanten heißen `yes` und `no`. Ein Join-Knoten markiert eine Stelle, an der zuvor getrennte Kontrollpfade wieder zusammenlaufen.",
+      "example": "Bei `if (x < 5)` führt `yes` in den Body und `no` daran vorbei; anschließend können beide Pfade in einem Join zusammenkommen.",
+      "pitfalls": [
+        "Ein einzelner Lauf nimmt an einem Bedingungsknoten genau eine der beiden Kanten."
+      ],
+      "related": [
+        "Kontrollflussgraph (Control-Flow Graph, CFG)",
+        "Pfad und operationale Semantik",
+        "if- und while-Schleifen im CFG"
+      ],
+      "heading": "1. Control-Flow Graphs (CFG)"
+    },
+    {
+      "id": "eip-04-k06",
+      "term": "if- und while-Schleifen im CFG",
+      "kind": "concept",
+      "short": "Bei `if` führt der Body zum nächsten Statement, bei `while` zurück zur Bedingung.",
+      "explanation": "Beide Konstrukte verwenden einen Test und eine Verzweigung. Bei einem `if` geht der Kontrollfluss nach dem Body zum folgenden Statement. Bei einer `while`-Schleife führt der Body zurück zur Bedingung, die vor einem möglichen weiteren Durchlauf erneut ausgewertet wird.",
+      "example": "In `while (i < n) i = i + 1;` führt die Body-Kante nach der Zuweisung wieder zu `i < n`.",
+      "pitfalls": [
+        "Ein `if` wiederholt seinen Body nicht automatisch."
+      ],
+      "related": [
+        "Kontrollflussgraph (Control-Flow Graph, CFG)",
+        "Bedingungs- und Join-Knoten",
+        "For-Schleife"
+      ],
+      "heading": "1. Control-Flow Graphs (CFG)"
+    },
+    {
+      "id": "eip-04-k07",
+      "term": "Reduzierbarkeit",
+      "kind": "definition",
+      "short": "Ein reduzierbarer CFG hat für jede Schleife genau einen Eintrittspunkt.",
+      "explanation": "Ein Eintrittspunkt ist ein Knoten, über den der Kontrollfluss in eine Schleife gelangt. Bei einem reduzierbaren Graphen gibt es für jede Schleife genau einen solchen Punkt; ein Sprung von außen in die Mitte der Schleife ist damit ausgeschlossen. Genau dann lässt sich der CFG in ein strukturiertes Programm mit Verzweigungen, Schleifen, Blöcken und gegebenenfalls markierten `break`- oder `continue`-Anweisungen umwandeln.",
+      "example": "Eine Schleife mit einem einzigen Einstieg am Bedingungsknoten ist reduzierbar; eine zusätzliche Kante von außen direkt in ihren Rumpf schafft einen zweiten Eintrittspunkt.",
+      "pitfalls": [
+        "Reduzierbarkeit bedeutet nicht, dass ein Programm keine Schleifen oder Verzweigungen hat."
+      ],
+      "related": [
+        "Kontrollflussgraph (Control-Flow Graph, CFG)",
+        "if- und while-Schleifen im CFG"
+      ],
+      "heading": "Reduzierbarkeit"
+    },
+    {
+      "id": "eip-04-k08",
+      "term": "Euklidischer Algorithmus (Subtraktion)",
+      "kind": "example",
+      "short": "Der Subtraktionsalgorithmus zieht die kleinere positive Zahl von der größeren ab, bis beide gleich sind.",
+      "explanation": "Für positive ganze Eingaben `x` und `y` wird wiederholt geprüft, ob `x != y` gilt. Bei `x < y` wird `x` von `y` abgezogen, andernfalls `y` von `x`. Wenn beide Werte gleich sind, ist dieser gemeinsame Wert ihr größter gemeinsamer Teiler.",
+      "example": "Für `x = 30` und `y = 20` folgen `(30, 20) → (10, 20) → (10, 10)`; das Ergebnis ist `10`.",
+      "pitfalls": [
+        "Die Subtraktionsvariante setzt positive Eingaben voraus; mit einer Eingabe `0` kann sie nicht zum Gleichstand gelangen."
+      ],
+      "related": [
+        "Euklidischer Algorithmus",
+        "Kontrollflussgraph (Control-Flow Graph, CFG)",
+        "Pfad und operationale Semantik",
+        "Iteration"
+      ],
+      "heading": "Beispiel: Euklid (Subtraktion)"
+    },
+    {
+      "id": "eip-04-k09",
+      "term": "Variablendeklaration und Initialisierung",
+      "kind": "concept",
+      "short": "Eine Deklaration führt eine Variable ein, und eine Initialisierung gibt ihr einen Anfangswert.",
+      "explanation": "Deklaration und erste Zuweisung können getrennt erfolgen (`int n; n = readInt();`) oder verbunden sein (`int n = readInt();`). Lokale Variablen erhalten keinen Default-Wert. Ein Lesen vor der ersten Zuweisung ist ein Compilerfehler; es ist sinnvoll, Variablen nahe ihrer ersten Verwendung zu deklarieren und zu initialisieren.",
+      "example": "`int n = readInt();` deklariert `n` und initialisiert die Variable mit dem eingelesenen Wert.",
+      "pitfalls": [
+        "Eine deklarierte lokale `int`-Variable ist nicht automatisch mit `0` initialisiert."
+      ],
+      "related": [
+        "Variable",
+        "Wertzuweisung",
+        "Typ"
+      ],
+      "heading": "2. Variablen: Deklaration & Initialisierung"
+    },
+    {
+      "id": "eip-04-k10",
+      "term": "Typ",
+      "kind": "definition",
+      "short": "Ein Typ legt mögliche Werte und erlaubte Operationen einer Variable fest.",
+      "explanation": "Der Compiler nutzt Typen, um unzulässige Operationen früh zu erkennen. Typen beschreiben auch die Art der gespeicherten Daten und helfen, Speicher passend zu verwenden. Beispiele aus dieser Unit sind `int`, `String`, `int[]` und `int[][]`.",
+      "example": "`int n = 3;` speichert eine ganze Zahl, `String greeting = \"Hallo\";` einen Text.",
+      "pitfalls": [
+        "Der Typ und der aktuelle Wert einer Variable sind nicht dasselbe."
+      ],
+      "related": [
+        "Variablendeklaration und Initialisierung",
+        "MiniJava"
+      ],
+      "heading": "2. Variablen: Deklaration & Initialisierung"
+    },
+    {
+      "id": "eip-04-k11",
+      "term": "String und leerer String",
+      "kind": "definition",
+      "short": "Ein String ist eine Zeichenfolge, und ein leerer String enthält kein Zeichen.",
+      "explanation": "Stringliterale stehen in doppelten Anführungszeichen, die nicht zum Textinhalt gehören. `\"Hello\"` enthält die Zeichen `Hello`, während `\"\"` die leere Zeichenfolge bezeichnet. Ein String kann in einer `String`-Variable gespeichert werden.",
+      "example": "`String greeting = \"Hello\"; String empty = \"\";`",
+      "pitfalls": [
+        "Die Anführungszeichen markieren das Literal und zählen nicht als Zeichen des Strings."
+      ],
+      "related": [
+        "String-Konkatenation",
+        "Stringvergleich mit equals"
+      ],
+      "heading": "3. Strings"
+    },
+    {
+      "id": "eip-04-k12",
+      "term": "String-Konkatenation",
+      "kind": "concept",
+      "short": "Bei `+` mit einem String wird der andere Operand zu Text konvertiert, und die Auswertung erfolgt von links nach rechts.",
+      "explanation": "Ist ein Operand einer `+`-Operation ein String, wird der andere Operand als Text angefügt. Weil die Auswertung links nach rechts erfolgt, beeinflussen Klammern das Ergebnis. Ein arithmetischer Teilausdruck muss geklammert werden, wenn er zuerst berechnet werden soll.",
+      "example": "`\"sum: \" + (2 + 3)` ergibt `\"sum: 5\"`, aber `\"sum: \" + 2 + 3` ergibt `\"sum: 23\"`.",
+      "pitfalls": [
+        "`\"sum: \" + 2 + 3` addiert `2` und `3` nicht zuerst."
+      ],
+      "related": [
+        "String und leerer String",
+        "Operatorvorrang",
+        "Syntax und Semantik"
+      ],
+      "heading": "3. Strings"
+    },
+    {
+      "id": "eip-04-k13",
+      "term": "Stringvergleich mit equals",
+      "kind": "method",
+      "short": "`s1.equals(s2)` vergleicht den Inhalt zweier Strings.",
+      "explanation": "Die Methode `equals` liefert `true`, wenn beide Strings dieselbe Zeichenfolge enthalten. Bei Referenzen prüft `==`, ob sie auf dasselbe Objekt zeigen, und ist daher kein Inhaltsvergleich. Für einen Textvergleich ist `equals` zu verwenden.",
+      "example": "`String s1 = \"cat\"; String s2 = \"c\" + \"at\"; boolean sameText = s1.equals(s2);`",
+      "pitfalls": [
+        "`s1 == s2` ist kein verlässlicher Test, ob beide Variablen denselben Text enthalten."
+      ],
+      "related": [
+        "String und leerer String",
+        "Array-Referenz"
+      ],
+      "heading": "3. Strings"
+    },
+    {
+      "id": "eip-04-k14",
+      "term": "Array",
+      "kind": "definition",
+      "short": "Ein Array speichert eine feste Anzahl von Werten desselben Typs, auf die über Indizes zugegriffen wird.",
+      "explanation": "Die Länge steht bei der Erzeugung fest, kann aber zur Laufzeit bestimmt werden und auch `0` sein. Sie ändert sich nicht, wenn sich eine Variable ändert, mit der sie ursprünglich angegeben wurde. Bei einem neu erzeugten `int`-Array ist jedes Element anfangs `0`.",
+      "example": "`int[] a = new int[3]; a[1] = 7; write(a[1]);`",
+      "pitfalls": [
+        "Die Länge eines Arrays kann nach seiner Erzeugung nicht geändert werden."
+      ],
+      "related": [
+        "Array-Indizes und Länge",
+        "Array-Referenz",
+        "Zweidimensionales Array",
+        "Typ"
+      ],
+      "heading": "4. Arrays"
+    },
+    {
+      "id": "eip-04-k15",
+      "term": "Array-Indizes und Länge",
+      "kind": "notation",
+      "short": "Für ein Array der Länge `n` sind die Indizes `0` bis `n - 1` gültig, und `a.length` liefert `n`.",
+      "explanation": "Der erste Eintrag hat den Index `0`. Für ein Array der Länge `n` ist die Indexmenge `{0, …, n - 1}`. Ein Array der Länge `0` hat keinen gültigen Elementindex.",
+      "example": "Bei `int[] a = new int[3];` sind `a[0]`, `a[1]` und `a[2]` gültig; `a.length` ist `3`.",
+      "pitfalls": [
+        "`a[a.length]` liegt immer außerhalb des gültigen Indexbereichs."
+      ],
+      "related": [
+        "Array",
+        "Laufzeitfehler beim Arrayzugriff"
+      ],
+      "heading": "4. Arrays"
+    },
+    {
+      "id": "eip-04-k16",
+      "term": "Laufzeitfehler beim Arrayzugriff",
+      "kind": "definition",
+      "short": "Ein Zugriff mit einem ungültigen Arrayindex löst zur Laufzeit eine `ArrayIndexOutOfBoundsException` aus.",
+      "explanation": "Ein Index kann zur Laufzeit berechnet und gegen die Arraylänge geprüft werden. Ist er negativ oder mindestens so groß wie `a.length`, liegt er außerhalb des gültigen Bereichs und der Zugriff scheitert. Das ist ein Laufzeitfehler und kein Compilerfehler.",
+      "example": "Bei `int[] a = new int[3];` löst `write(a[3]);` eine `ArrayIndexOutOfBoundsException` aus.",
+      "pitfalls": [
+        "Der letzte gültige Index ist `a.length - 1`, nicht `a.length`."
+      ],
+      "related": [
+        "Array-Indizes und Länge",
+        "Laufzeit",
+        "Variablendeklaration und Initialisierung"
+      ],
+      "heading": "4. Arrays"
+    },
+    {
+      "id": "eip-04-k17",
+      "term": "Laufzeit",
+      "kind": "definition",
+      "short": "Die Laufzeit ist die Zeit, die ein Programm während seiner Ausführung benötigt.",
+      "explanation": "Sie entsteht erst beim Ausführen des Programms und kann von Eingabe und Kontrollfluss abhängen. Das Prüfen eines Arrayindex ist beispielsweise eine Laufzeitprüfung. Ein Laufzeitfehler tritt während der Ausführung auf, während ein Compilerfehler das Übersetzen verhindert.",
+      "example": "Der Zugriff `a[i]` kann bei einem ungültigen Wert von `i` während der Programmausführung scheitern.",
+      "pitfalls": [
+        "Ein Laufzeitfehler ist nicht dasselbe wie ein Syntax- oder Compilerfehler."
+      ],
+      "related": [
+        "Laufzeitfehler beim Arrayzugriff",
+        "Iteration"
+      ],
+      "heading": "4. Arrays"
+    },
+    {
+      "id": "eip-04-k18",
+      "term": "Schleifeninvariante",
+      "kind": "concept",
+      "short": "Eine Schleifeninvariante ist eine Aussage über den Zustand, die vor jedem Schleifentest gilt und während der Schleife erhalten bleibt.",
+      "explanation": "Eine Invariante beschreibt, was nach jeder Anzahl von Schleifendurchläufen bereits feststeht. Sie muss vor dem ersten Test gelten und nach jedem Schleifendurchlauf weiterhin gelten. So hilft sie, die Korrektheit eines Schleifenverfahrens zu begründen.",
+      "example": "Beim Einlesen eines Arrays lautet die Invariante: Vor jedem Test sind die ersten `i` Elemente gelesen.",
+      "pitfalls": [
+        "Eine Aussage, die erst nach einem Schleifendurchlauf gilt, reicht nicht als Invariante vor dem ersten Test."
+      ],
+      "related": [
+        "Iteration",
+        "Array einlesen",
+        "Minimum eines Arrays"
+      ],
+      "heading": "4. Arrays"
+    },
+    {
+      "id": "eip-04-k19",
+      "term": "Array einlesen",
+      "kind": "method",
+      "short": "Eine Zählerschleife liest jedes Arrayelement einmal ein und erhöht den Index nach jeder Eingabe.",
+      "explanation": "Setze zunächst `i` auf `0`. Solange `i < a.length` gilt, lies einen Wert in `a[i]` ein und erhöhe anschließend `i` um eins. Vor jedem Test sind die ersten `i` Elemente gelesen; beim Ende wird `a[a.length]` nicht angesprochen.",
+      "example": "`int i = 0; while (i < a.length) { a[i] = readInt(); i = i + 1; }`",
+      "pitfalls": [
+        "Die Bedingung `i < a.length` stellt sicher, dass der letzte Zugriff gültig ist."
+      ],
+      "related": [
+        "Array",
+        "Array-Indizes und Länge",
+        "Schleifeninvariante",
+        "Iteration"
+      ],
+      "heading": "Array einlesen"
+    },
+    {
+      "id": "eip-04-k20",
+      "term": "Minimum eines Arrays",
+      "kind": "method",
+      "short": "Für ein nichtleeres Array erhältst du das Minimum, indem du mit dem ersten Element startest und jedes kleinere Element übernimmst.",
+      "explanation": "Das Verfahren setzt `a.length > 0` voraus, damit `a[0]` existiert. Setze `result = a[0]` und durchlaufe danach die Indizes von `1` bis `a.length - 1`. Wenn `a[i] < result` gilt, setze `result = a[i]`; vor jedem Schleifentest ist `result` das Minimum von `a[0]` bis `a[i - 1]`.",
+      "example": "Für `a = [4, 2, 5]` wird `result` zunächst `4`, dann `2` und bleibt danach `2`.",
+      "pitfalls": [
+        "Bei einem leeren Array existiert `a[0]` nicht; die Voraussetzung `a.length > 0` ist notwendig."
+      ],
+      "related": [
+        "Array",
+        "Array-Indizes und Länge",
+        "Schleifeninvariante",
+        "For-Schleife"
+      ],
+      "heading": "Minimum (Voraussetzung               )"
+    },
+    {
+      "id": "eip-04-k21",
+      "term": "Array-Referenz",
+      "kind": "concept",
+      "short": "Eine Array-Variable speichert eine Referenz auf ein Array, und eine Zuweisung kopiert diese Referenz statt des Arrays.",
+      "explanation": "Nach `int[] b = a;` verweisen `a` und `b` auf dasselbe Array. Eine Änderung an einem Element über `b` ist deshalb auch über `a` sichtbar. Für ein unabhängiges Array muss ein neues Array erzeugt und gegebenenfalls elementweise befüllt werden.",
+      "example": "`int[] a = new int[3]; int[] b = a; b[1] = 7; write(a[1]);` gibt `7` aus.",
+      "pitfalls": [
+        "`b = a` erzeugt keine Kopie der Arrayelemente."
+      ],
+      "related": [
+        "Array",
+        "Stringvergleich mit equals",
+        "Zweidimensionales Array"
+      ],
+      "heading": "Referenzen ⚠"
+    },
+    {
+      "id": "eip-04-k22",
+      "term": "Zweidimensionales Array",
+      "kind": "definition",
+      "short": "Ein zweidimensionales Array ist ein Array, dessen Elemente selbst Arrays sind.",
+      "explanation": "Bei `int[][] grid` ist `grid[1]` eine Zeile vom Typ `int[]`; `grid[1][2]` ist ein einzelner Wert vom Typ `int`. Bei `new int[3][4]` gibt es drei Zeilen mit je vier Spalten. Da es ein Array von Arrays ist, dürfen die Zeilen auch unterschiedliche Längen haben.",
+      "example": "`int[][] grid = new int[3][4]; grid[1][2] = 7;`",
+      "pitfalls": [
+        "Ein zweidimensionales Array muss nicht rechteckig sein."
+      ],
+      "related": [
+        "Array",
+        "Array-Indizes und Länge",
+        "Array-Referenz"
+      ],
+      "heading": "2D-Arrays = Array von Arrays"
+    },
+    {
+      "id": "eip-04-k23",
+      "term": "For-Schleife",
+      "kind": "definition",
+      "short": "Eine For-Schleife bündelt Initialisierung, Bedingung und Update in einer Schleifenkopfzeile.",
+      "explanation": "Die Form `for (init; cond; upd) body` führt zuerst `init` aus und prüft danach `cond`. Ist die Bedingung wahr, läuft der Body; anschließend folgt `upd` und dann der nächste Bedingungstest. Ist die Bedingung falsch, wird die Schleife beendet.",
+      "example": "`for (int i = 0; i < a.length; ++i) { write(a[i]); }`",
+      "pitfalls": [
+        "Das Update läuft nach dem Body und vor dem nächsten Test."
+      ],
+      "related": [
+        "Iteration",
+        "For-Schleifen-Äquivalenz",
+        "Inkrementnotation ++i",
+        "Schleifeninvariante"
+      ],
+      "heading": "5. For-Schleife"
+    },
+    {
+      "id": "eip-04-k24",
+      "term": "For-Schleifen-Äquivalenz",
+      "kind": "theorem",
+      "short": "`for (init; cond; upd) body` entspricht `init` gefolgt von `while (cond) { body; upd; }`.",
+      "explanation": "Beide Formen führen die Schritte in derselben Reihenfolge aus. Die Initialisierung findet einmal vor der Schleife statt; nach jedem Body läuft das Update, bevor die Bedingung erneut geprüft wird. Dadurch lässt sich das Verhalten einer For-Schleife mit einer While-Schleife nachvollziehen.",
+      "example": "`for (int i = 0; i < n; ++i) write(i);` entspricht `int i = 0; while (i < n) { write(i); i = i + 1; }`.",
+      "pitfalls": [
+        "Das Update gehört in die Schleife hinter den Body, nicht vor ihn."
+      ],
+      "related": [
+        "For-Schleife",
+        "if- und while-Schleifen im CFG",
+        "Iteration"
+      ],
+      "heading": "5. For-Schleife"
+    },
+    {
+      "id": "eip-04-k25",
+      "term": "Inkrementnotation ++i",
+      "kind": "notation",
+      "short": "`++i` erhöht den Wert von `i` um eins.",
+      "explanation": "Als eigenständige Anweisung ist `++i` gleichbedeutend mit `i = i + 1`. In einer For-Schleife steht dieser Ausdruck häufig als Update, das nach dem Body ausgeführt wird. Der Zähler wird so vor dem nächsten Bedingungstest erhöht.",
+      "example": "Nach `int i = 2; ++i;` hat `i` den Wert `3`.",
+      "pitfalls": [
+        "Das Update in einer For-Schleife findet nach dem Body statt, auch wenn es im Schleifenkopf steht."
+      ],
+      "related": [
+        "For-Schleife",
+        "For-Schleifen-Äquivalenz",
+        "Wertzuweisung"
+      ],
+      "heading": "5. For-Schleife"
+    }
+  ],
+  "generator": {
+    "model": "gpt-6-luna",
+    "effort": "xhigh",
+    "promptVersion": "k1",
+    "generatedAt": "2026-11-02T12:24:58.035Z"
+  }
+}
