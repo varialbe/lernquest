@@ -31,7 +31,7 @@ beforeAll(async () => {
 describe('voraussetzungen', () => {
   it('keeps only valid edges: no unknown ids, no later units, no cycles (edges to earlier entries win)', () => {
     const u1 = unit(1, ['Menge', 'Element', 'Teilmenge']);
-    const u2 = unit(2, ['Potenzmenge']);
+    const u2 = unit(2, ['Potenzmenge', 'Mächtigkeit', 'Partition']);
     save(u1);
     save(u2);
     const r = P.applyPrereqs(u1, { links: [link('ds-01-k01', 'ds-01-k03'), link('ds-01-k02', 'ds-01-k01'), link('ds-01-k03', 'ds-01-k01', 'ds-01-k02', 'ds-02-k01', 'zz-01-k01')] }, [u1, u2]);
@@ -46,7 +46,7 @@ describe('voraussetzungen', () => {
 
   it('marks later units stale when an earlier unit gets a new knowledge collection', () => {
     const u1 = unit(1, ['Menge', 'Element', 'Teilmenge'], '2026-11-03T00:00:00Z'); // neu generiert
-    const u2 = unit(2, ['Potenzmenge']);
+    const u2 = unit(2, ['Potenzmenge', 'Mächtigkeit', 'Partition']);
     save(u1);
     P.applyPrereqs(u1, { links: [] }, [u1, u2]);
     expect(P.prereqsStale(u2)).toBe(true);
