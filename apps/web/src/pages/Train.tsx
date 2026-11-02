@@ -94,7 +94,7 @@ export default function Train() {
             ? 'Alle Begriffe der Vorlesungen – entsteht gerade'
             : cards.due
               ? `${cards.due} Karten fällig · ${cards.mastered} von ${cards.total} gemeistert`
-              : `${cards.total} Begriffe · ${cards.fresh ? `${cards.fresh} noch nie abgefragt` : `${cards.mastered} gemeistert`}`
+              : `${cards.total} Begriffe zum Abfragen, Nachschlagen und von Grund auf Erklären`
         }
         delay={0.03}
         accent="var(--c-primary)"
@@ -107,7 +107,7 @@ export default function Train() {
           </Button>
           <Button full variant="ghost" onClick={() => navigate(`/wissen?m=${mod}`)}>
             <Icon name="book" size={20} />
-            Nachschlagen & von Grund auf erklären
+            Nachschlagen
           </Button>
         </div>
       </Section>
