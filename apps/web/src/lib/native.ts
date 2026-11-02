@@ -187,6 +187,28 @@ export async function setLocalReminders(on: boolean) {
   if (!on) await LocalNotifications.cancel({ notifications: REMINDER_IDS.map((id) => ({ id })) });
 }
 
+const RECAP_ID = 120;
+/**
+ * Wochenrückblick in der iOS-App: lokale Mitteilung am nächsten Sonntag 18 Uhr, Inhalt von GET /api/recap.
+ * Wird bei jedem Öffnen neu geplant, der Inhalt ist also der Stand des letzten Öffnens.
+ */
+let recapPlanned: { on: boolean; at: number } | null = null;
+export async function scheduleRecap(on: boolean, force = false) {
+  if (!isNative) return;
+  // höchstens alle 30 min neu planen (me ändert sich nach jedem Level)
+  if (!force && recapPlanned?.on === on && Date.now() - recapPlanned.at < 30 * 60_000) return;
+  recapPlanned = { on, at: Date.now() };
+  const { LocalNotifications } = await import('@capacitor/local-notifications');
+  await LocalNotifications.cancel({ notifications: [{ id: RECAP_ID }] });
+  if (!on || !localRemindersOn()) return;
+  const { api } = await import('./api.ts');
+  const r = await api<{ title: string; body: string }>('/api/recap');
+  const now = new Date();
+  const at = new Date(now.getFullYear(), now.getMonth(), now.getDate() + ((7 - now.getDay()) % 7), 18, 0, 0);
+  if (at <= now) at.setDate(at.getDate() + 7);
+  await LocalNotifications.schedule({ notifications: [{ id: RECAP_ID, title: r.title, body: r.body, schedule: { at } }] });
+}
+
 /** Plant die Abend-Erinnerung für die nächsten 7 Tage neu (heute nur, wenn das Tagesziel noch offen ist). */
 export async function rescheduleReminders(s: { streak: number; todayXp: number; dailyGoal: number; hour?: number }) {
   if (!isNative || !localRemindersOn()) return;

@@ -7,7 +7,7 @@ import { Avatar } from '../components/Pet.tsx';
 import { Page } from '../components/Shell.tsx';
 import { Button, Card, Modal, ProgressBar, SectionTitle, Spinner, Toast } from '../components/ui.tsx';
 import { api, assetUrl } from '../lib/api.ts';
-import { APP_VERSION, isNative, localRemindersOn, rescheduleReminders, setLocalReminders } from '../lib/native.ts';
+import { APP_VERSION, isNative, localRemindersOn, rescheduleReminders, scheduleRecap, setLocalReminders } from '../lib/native.ts';
 import { pushSupported, currentSubscription, enablePush, disablePush } from '../lib/push.ts';
 import { useConfig, useMe, useMeMutation, useProfile } from '../lib/queries.ts';
 import { ChangePassword } from './Auth.tsx';
@@ -227,8 +227,8 @@ function Settings({ me, onLogout, onLogin }: { me: MeResponse; onLogout: () => v
       </div>
       <div className={row}>
         <div>
-          <span className="font-bold">Streak-Erinnerung</span>
-          <p className="text-xs font-semibold text-muted">{isNative || pushSupported() ? 'Abends, wenn dein Tagesziel noch offen ist' : 'iPhone: erst „Zum Home-Bildschirm“ hinzufügen'}</p>
+          <span className="font-bold">Mitteilungen</span>
+          <p className="text-xs font-semibold text-muted">{isNative || pushSupported() ? 'Streak-Erinnerung am Abend, neue Units, Duelle' : 'iPhone: erst „Zum Home-Bildschirm“ hinzufügen'}</p>
         </div>
         <button
           role="switch"
@@ -239,6 +239,7 @@ function Settings({ me, onLogout, onLogin }: { me: MeResponse; onLogout: () => v
               if (isNative) {
                 await setLocalReminders(!push);
                 if (!push) await rescheduleReminders(me.stats);
+                await scheduleRecap(!push && me.settings.weeklyRecap, true);
               } else if (push) await disablePush();
               else await enablePush(cfg!.vapidPublicKey!);
               setPush(!push);
@@ -252,6 +253,27 @@ function Settings({ me, onLogout, onLogin }: { me: MeResponse; onLogout: () => v
           <span className={`absolute top-1 h-6 w-6 rounded-full bg-white shadow transition-all ${push ? 'left-7' : 'left-1'}`} />
         </button>
       </div>
+      {push && (
+        <div className={row}>
+          <div>
+            <span className="font-bold">Wochenrückblick</span>
+            <p className="text-xs font-semibold text-muted">Sonntags um 18 Uhr: XP, Trefferquote, wackelige Konzepte, Fälliges</p>
+          </div>
+          <button
+            role="switch"
+            aria-checked={me.settings.weeklyRecap}
+            onClick={async () => {
+              const on = !me.settings.weeklyRecap;
+              await save.mutateAsync({ weeklyRecap: on });
+              if (isNative) await scheduleRecap(on, true).catch(() => {});
+              flash(on ? 'Wochenrückblick an 📊' : 'Wochenrückblick aus');
+            }}
+            className={`relative h-8 w-14 shrink-0 rounded-full transition-colors ${me.settings.weeklyRecap ? 'bg-success' : 'bg-locked'}`}
+          >
+            <span className={`absolute top-1 h-6 w-6 rounded-full bg-white shadow transition-all ${me.settings.weeklyRecap ? 'left-7' : 'left-1'}`} />
+          </button>
+        </div>
+      )}
       <div className={row}>
         <span className="font-bold">App-Version</span>
         <span className="font-mono text-xs font-bold text-muted">{APP_VERSION}</span>

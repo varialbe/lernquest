@@ -10,7 +10,7 @@ import { ChangePassword, Forgot, knownDevice, Login, Register, rememberDevice, R
 import { Home } from './pages/Home.tsx';
 import { Quiz, type RunSpec } from './pages/Quiz.tsx';
 import { Datenschutz, Impressum } from './pages/Legal.tsx';
-import { initNative, rescheduleReminders } from './lib/native.ts';
+import { initNative, rescheduleReminders, scheduleRecap } from './lib/native.ts';
 import { applyTheme } from './lib/theme.ts';
 
 const League = lazy(() => import('./pages/League.tsx'));
@@ -94,6 +94,7 @@ function Authed({ onLogin, onLogout }: { onLogin: (t: string) => void; onLogout:
     applyTheme(me.settings.theme);
     setMuted(!me.settings.soundOn);
     void rescheduleReminders(me.stats);
+    void scheduleRecap(me.settings.weeklyRecap).catch(() => {});
   }, [me]);
   // iOS-App: Live-Update prüfen, beim Zurückkehren Daten auffrischen
   useEffect(() => void initNative(() => void qc.invalidateQueries()), [qc]);

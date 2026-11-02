@@ -3,7 +3,7 @@ import { Link, useLocation } from 'wouter';
 import { Icon } from '../components/icons.tsx';
 
 const OWNER = { name: 'Mateen Batt', street: 'Neustifter Straße 37', city: '80807 München', email: 'varialbe@varialbe.xyz' };
-const UPDATED = 'Oktober 2026';
+const UPDATED = 'November 2026';
 
 /** © unten auf Login, Profil und den Rechtsseiten */
 export function Copyright({ className = '' }: { className?: string }) {
@@ -152,7 +152,7 @@ export function Datenschutz() {
 
       <H>7. Lernfortschritt und Spielfunktionen</H>
       <p>
-        Gespeichert werden deine Antworten, Level-Fortschritt, Wiederholungsplan, XP, Coins, Streak, Pets, Shop-Käufe, Tagesaufgaben, Klausur-Checks, Duelle und Ligaplatzierungen sowie Meldungen zu Fragen inklusive deines optionalen Kommentars. Rechtsgrundlage: Art. 6 Abs. 1 lit.
+        Gespeichert werden deine Antworten, Level-Fortschritt, Wiederholungsplan, Karteikarten-Fortschritt (welche Karte in welcher Box liegt und wann sie wieder fällig ist), XP, Coins, Streak, Pets, Shop-Käufe, Tagesaufgaben, Klausur-Checks, Duelle und Ligaplatzierungen sowie Meldungen zu Fragen inklusive deines optionalen Kommentars. Rechtsgrundlage: Art. 6 Abs. 1 lit.
         b DSGVO.
       </p>
       <p className="mt-2">
@@ -163,15 +163,20 @@ export function Datenschutz() {
       <H>8. Benachrichtigungen</H>
       <p>
         <strong>Web-App:</strong> Nur wenn du Erinnerungen aktivierst, speichern wir die Push-Adresse deines Browsers. Die Nachrichten werden über den Push-Dienst deines Geräteherstellers zugestellt (bei iPhone/Safari: Apple). Dieser erfährt dabei die Push-Adresse und den
-        Nachrichteninhalt (z. B. Streak-Erinnerung, neue Lektion, Duell). Rechtsgrundlage: deine Einwilligung (Art. 6 Abs. 1 lit. a DSGVO), die du in den Einstellungen jederzeit widerrufen kannst.
+        Nachrichteninhalt (z. B. Streak-Erinnerung, neue Lektion, Duell, Wochenrückblick). Rechtsgrundlage: deine Einwilligung (Art. 6 Abs. 1 lit. a DSGVO), die du in den Einstellungen jederzeit widerrufen kannst.
       </p>
       <p className="mt-2">
         <strong>iOS-App:</strong> Erinnerungen werden lokal auf dem Gerät geplant. Dafür werden keine Daten an uns oder Dritte übertragen.
       </p>
+      <p className="mt-2">
+        <strong>Wochenrückblick:</strong> Wenn Mitteilungen aktiv sind, bekommst du sonntags um 18 Uhr eine Zusammenfassung deiner Woche: gesammelte XP (mit Vergleich zur Vorwoche), Anzahl beantworteter Fragen und Trefferquote, deine Streak, bis zu zwei Konzepte mit
+        niedriger Trefferquote und die Zahl fälliger Wiederholungen und Karteikarten. Der Rückblick wird aus deinen ohnehin gespeicherten Lerndaten (Abschnitt 7) berechnet, es werden dafür keine zusätzlichen Daten erhoben. In der Web-App läuft er über den oben genannten
+        Push-Dienst, der damit auch diese Zahlen sieht; in der iOS-App wird er lokal geplant. Du kannst den Wochenrückblick im Profil getrennt ausschalten, ohne die übrigen Mitteilungen abzustellen. Rechtsgrundlage: deine Einwilligung (Art. 6 Abs. 1 lit. a DSGVO).
+      </p>
 
       <H>9. Lokaler Speicher auf deinem Gerät</H>
       <p>
-        Die App speichert im lokalen Speicher deines Browsers bzw. der App: den Anmeldeschlüssel, ob auf dem Gerät schon ein Konto benutzt wurde (damit die Anmeldung statt der Begrüßung erscheint), Ton- und Farbeinstellungen, das zuletzt gewählte Modul und offline beantwortete Level, bis sie übertragen sind. Das ist für die Funktion technisch erforderlich (§ 25 Abs. 2 Nr. 2
+        Die App speichert im lokalen Speicher deines Browsers bzw. der App: den Anmeldeschlüssel, ob auf dem Gerät schon ein Konto benutzt wurde (damit die Anmeldung statt der Begrüßung erscheint), Ton- und Farbeinstellungen, das zuletzt gewählte Modul, ob Mitteilungen in der iOS-App aktiv sind, offline beantwortete Level, bis sie übertragen sind, und zwischengespeicherte Lerninhalte (z. B. die Wissenssammlung) für die Offline-Nutzung. Das ist für die Funktion technisch erforderlich (§ 25 Abs. 2 Nr. 2
         TDDDG). Es werden keine Cookies gesetzt.
       </p>
 
