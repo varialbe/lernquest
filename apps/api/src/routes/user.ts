@@ -7,6 +7,7 @@ import {
   CreateDuelReq,
   EquipReq,
   LoginReq,
+  CardReviewReq,
   MODULES,
   ModuleId,
   PracticeSubmitReq,
@@ -43,6 +44,8 @@ import { appUrl } from '../lib/mail.ts';
 import { claimQuest, questsFor } from '../lib/quests.ts';
 import { completeRun, mastery, startExam, startWeak } from '../lib/runs.ts';
 import { knowledgeForModule } from '../lib/knowledge.ts';
+import { cardSession, cardsOverview, reviewCard } from '../lib/cards.ts';
+import { weeklyRecap } from '../lib/recap.ts';
 import { addStarterPet, equip, purchase, validateSettings } from '../lib/shop.ts';
 
 export function userRoutes(app: FastifyInstance, db: DB) {
@@ -161,6 +164,7 @@ export function userRoutes(app: FastifyInstance, db: DB) {
     if (s.frame !== undefined) patch.frame = s.frame;
     if (s.activePet !== undefined) patch.activePet = s.activePet;
     if (s.soundOn !== undefined) patch.soundOn = s.soundOn;
+    if (s.weeklyRecap !== undefined) patch.weeklyRecap = s.weeklyRecap;
     const app = appUrl(req.headers.origin);
     let emailChanged = false;
     if (s.email !== undefined && s.email !== emailOf(req.user)) {
@@ -193,6 +197,17 @@ export function userRoutes(app: FastifyInstance, db: DB) {
   app.get('/api/mastery', auth, async (req) => mastery(db, req.user));
   // Wissenssammlung (Nachschlagewerk) je Modul
   app.get<{ Params: { module: string } }>('/api/knowledge/:module', auth, async (req) => knowledgeForModule(db, ModuleId.parse(req.params.module.toUpperCase())));
+  // Karteikarten aus der Wissenssammlung (Leitner)
+  app.get('/api/cards', auth, async (req) => cardsOverview(db, req.user));
+  app.get<{ Params: { module: string }; Querystring: { unit?: string } }>('/api/cards/:module', auth, async (req) =>
+    cardSession(db, req.user, ModuleId.parse(req.params.module.toUpperCase()), req.query.unit ? String(req.query.unit).slice(0, 10) : undefined),
+  );
+  app.post('/api/cards/review', auth, async (req) => {
+    const b = CardReviewReq.parse(req.body);
+    return reviewCard(db, req.user, b.entryId, b.known);
+  });
+  // Wochenrückblick (iOS-App plant ihn lokal, Web-App bekommt ihn per Push)
+  app.get('/api/recap', auth, async (req) => weeklyRecap(db, req.user));
   app.post('/api/runs/weak', auth, async (req) => startWeak(db, req.user, StartWeakReq.parse(req.body ?? {}).module));
   app.post('/api/runs/exam', auth, async (req) => startExam(db, req.user, StartExamReq.parse(req.body).module));
   app.post<{ Params: { id: string } }>('/api/runs/:id/complete', auth, async (req) => {

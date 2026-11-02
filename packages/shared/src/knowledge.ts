@@ -102,3 +102,18 @@ export const KnowledgeGraph = z.object({
   requires: z.record(z.string(), z.array(PrereqLink).max(6)),
 });
 export type KnowledgeGraph = z.infer<typeof KnowledgeGraph>;
+
+// ---------- Karteikarten ----------
+export const CardReviewReq = z.object({ entryId: z.string().min(1).max(40), known: z.boolean() });
+export type CardsOverview = { modules: { id: ModuleId; total: number; due: number; fresh: number; learning: number; mastered: number }[] };
+export type CardSession = {
+  module: ModuleId;
+  unitId: string | null;
+  /** box: null = neue Karte */
+  cards: { entry: KnowledgeEntryView; unitId: string; unitNumber: number; unitTitle: string; box: number | null }[];
+  /** weitere fällige Karten, die nicht mehr in diese Runde gepasst haben */
+  dueLeft: number;
+};
+
+// ---------- Wochenrückblick ----------
+export type RecapResponse = { title: string; body: string; url: string };

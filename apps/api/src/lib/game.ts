@@ -74,6 +74,7 @@ export function meResponse(db: DB, u: AuthUser, now = Date.now()): MeResponse {
       theme: u.theme,
       frame: u.frame,
       soundOn: u.soundOn,
+      weeklyRecap: u.weeklyRecap,
       activePet: u.activePet,
       newsletter: u.newsletter ? 'confirmed' : u.newsletterRequestedAt ? 'pending' : 'none',
       email: decrypt(u.emailEnc),

@@ -62,6 +62,7 @@ export const SettingsReq = z.object({
   frame: z.string().max(40).nullable().optional(),
   activePet: z.string().max(40).optional(),
   soundOn: z.boolean().optional(),
+  weeklyRecap: z.boolean().optional(),
   newsletter: z.boolean().optional(),
   email: Email.optional(),
 });
@@ -104,6 +105,7 @@ export type MeResponse = {
     theme: string;
     frame: string | null;
     soundOn: boolean;
+    weeklyRecap: boolean;
     activePet: string | null;
     newsletter: 'none' | 'pending' | 'confirmed';
     email: string | null;
