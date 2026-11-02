@@ -1,0 +1,328 @@
+{
+  "schemaVersion": 1,
+  "unitId": "era-05",
+  "module": "ERA",
+  "unitNumber": 5,
+  "unitTitle": "RISC-V: Register, Arithmetik und Shifts",
+  "sourceSha": "4b7b23f7e76142f55927d407e4781ee9de310136b1a7642a5f450a0606d9f91f",
+  "overview": "Diese Unit behandelt die modulare RISC-V-ISA, Register und ihre Verwendungskonventionen sowie signed- und unsigned-Arithmetik. Sie erklärt, wie Multiplikation, Division und Shifts Bitmuster verändern, wann Shifts einer Multiplikation oder Division entsprechen und wie Pseudobefehle und Immediate-Befehle eingesetzt werden. Eine schrittweise Prüfung von Registerwerten, Vorzeichen, Registerbelegung und Schleifenablauf hilft, Fehler in Assemblerprogrammen zu vermeiden.",
+  "entries": [
+    {
+      "id": "era-05-k01",
+      "term": "RISC-V-Basis und Erweiterungen",
+      "kind": "concept",
+      "short": "RISC-V ist ein offener, modularer Befehlssatz, dessen Basis durch optionale Erweiterungen ergänzt werden kann.",
+      "explanation": "`RV32` bezeichnet eine 32-Bit-Variante, deren Zahl die Registerbreite in Bit angibt. `I` steht für die Integer-Basis mit etwa 40 Grundbefehlen, und `M` ergänzt Befehle für Multiplikation und Division. Weitere Erweiterungen sind `F` für Gleitkomma, `A` für atomare Operationen und `V` für Vektoroperationen. `RV32I` bezeichnet die 32-Bit-Basis; `RV32IM` ergänzt sie um die M-Erweiterung.",
+      "example": "Ein Prozessor mit `RV32IM` kann Basisbefehle aus `RV32I` und M-Befehle wie `mul` und `div` verwenden.",
+      "pitfalls": [
+        "`RV32` gibt die Registerbreite an; `I` und `M` kennzeichnen Bestandteile des Befehlssatzes.",
+        "Welche Befehle verfügbar sind, hängt von der Basis und den implementierten Erweiterungen ab."
+      ],
+      "related": [
+        "RISC-V",
+        "Instruction Set Architecture (ISA)",
+        "M-Erweiterung"
+      ],
+      "heading": "RISC-V: Basis und Erweiterungen"
+    },
+    {
+      "id": "era-05-k02",
+      "term": "Register in RV32I",
+      "kind": "definition",
+      "short": "RV32I besitzt 32 Register von `x0` bis `x31`, die jeweils 32 Bit breit sind.",
+      "explanation": "Die Register liegen im Prozessor und dienen als Quellen und Ziele für Befehlsoperanden. `x0` liefert immer den Wert null und lässt sich nicht verändern. Für alle anderen Register darf kein bestimmter Anfangswert vorausgesetzt werden. Ein Programm muss benötigte Werte daher vor ihrer Verwendung selbst setzen oder laden.",
+      "example": "Bei `add t0, t1, t2` werden Werte aus zwei Registern gelesen und das Ergebnis in ein Register geschrieben.",
+      "pitfalls": [
+        "Andere Register als `x0` sind nicht automatisch null."
+      ],
+      "related": [
+        "Registerkonventionen",
+        "Nullregister x0 und Anfangswerte",
+        "Register"
+      ],
+      "heading": "Register"
+    },
+    {
+      "id": "era-05-k03",
+      "term": "Registerkonventionen",
+      "kind": "concept",
+      "short": "Namen wie `a0`, `s0` und `t0` sind konventionelle Aliase für Register `x0` bis `x31`.",
+      "explanation": "Die Aliase beschreiben übliche Verwendungsrollen, keine unterschiedlichen Registertypen. `x0` heißt `zero`, `x1` heißt `ra`, `x2` heißt `sp`, `x3` heißt `gp` und `x4` heißt `tp`. `x5` bis `x7` heißen `t0` bis `t2`, `x8` heißt `s0` oder `fp`, `x9` heißt `s1`, `x10` bis `x17` heißen `a0` bis `a7`, `x18` bis `x27` heißen `s2` bis `s11` und `x28` bis `x31` heißen `t3` bis `t6`. `a0` und `a1` werden üblicherweise auch für Rückgabewerte verwendet; die genaue Calling Convention legt fest, wie Register bei Unterprogrammaufrufen genutzt werden.",
+      "example": "`a0` und `x10` bezeichnen dasselbe Register; `a0` hebt seine übliche Rolle als Argument- oder Rückgaberegister hervor.",
+      "pitfalls": [
+        "Ein Alias verändert weder Breite noch Hardwareeigenschaften des Registers.",
+        "Der Registername allein garantiert nicht, dass ein bestimmter Wert darin steht."
+      ],
+      "related": [
+        "Register in RV32I",
+        "Nullregister x0 und Anfangswerte",
+        "Register"
+      ],
+      "heading": "Register"
+    },
+    {
+      "id": "era-05-k04",
+      "term": "Nullregister x0 und Anfangswerte",
+      "kind": "definition",
+      "short": "`x0` liefert stets null, während für andere Register kein Anfangswert vorausgesetzt werden darf.",
+      "explanation": "Das Register `x0` ist fest auf null gesetzt; ein Schreibversuch ändert seinen Wert nicht. Alle anderen Register können zu Beginn eines Programmabschnitts beliebige Werte enthalten, sofern der Code sie nicht vorher setzt. Darum muss ein Programm benötigte Werte ausdrücklich laden oder berechnen.",
+      "example": "`addi t0, x0, 7` setzt `t0` auf 7, weil `x0` als Quelle den Wert null liefert.",
+      "pitfalls": [
+        "Nicht annehmen, dass ein Register wie `t0` anfangs null enthält.",
+        "`x0` ist kein gewöhnliches Register, dessen Wert sich durch einen Schreibbefehl ändern lässt."
+      ],
+      "related": [
+        "Register in RV32I",
+        "Registerkonventionen",
+        "Nullregister x0"
+      ],
+      "heading": "Register"
+    },
+    {
+      "id": "era-05-k05",
+      "term": "Signed- und Unsigned-Interpretation bei M-Befehlen",
+      "kind": "concept",
+      "short": "Dasselbe Bitmuster kann signed und unsigned unterschiedliche Zahlen darstellen, weshalb M-Befehle verschiedene Interpretationen anbieten.",
+      "explanation": "Bei einer signed-Interpretation wird ein Bitmuster als vorzeichenbehaftete Zahl im Zweierkomplement gelesen; bei einer unsigned-Interpretation als nichtnegative Zahl. Die Bits selbst ändern sich dadurch nicht, aber Zahlenwert und Ergebnis einer Multiplikation oder Division können sich unterscheiden. Die jeweiligen M-Befehle geben an, welche Interpretation für die Operation gilt.",
+      "example": "Das 4-Bit-Muster `1101` steht unsigned für 13 und signed im Zweierkomplement für −3.",
+      "pitfalls": [
+        "Aus den Bits allein lässt sich kein signed oder unsigned Zahlenwert ableiten; die Interpretation muss bekannt sein."
+      ],
+      "related": [
+        "Multiplikationsbefehle mul, mulh, mulhu und mulhsu",
+        "Divisions- und Restbefehle div, divu, rem und remu",
+        "Zweierkomplement",
+        "signed/unsigned-Interpretation"
+      ],
+      "heading": "Multiplikation und Division: signed oder unsigned?"
+    },
+    {
+      "id": "era-05-k06",
+      "term": "Multiplikationsbefehle mul, mulh, mulhu und mulhsu",
+      "kind": "definition",
+      "short": "`mul` liefert die unteren Produktbits, während `mulh`, `mulhu` und `mulhsu` die oberen Bits gemäß der Vorzeicheninterpretation liefern.",
+      "explanation": "Zwei 32-Bit-Operanden können ein Produkt mit bis zu 64 Bit ergeben. `mul` schreibt die unteren 32 Produktbits; diese sind bei denselben Bitmustern unabhängig von ihrer signed- oder unsigned-Interpretation. `mulh` liefert die oberen 32 Bits bei zwei signed Operanden, `mulhu` bei zwei unsigned Operanden und `mulhsu` bei einem signed ersten und einem unsigned zweiten Operanden. Für ein volles 64-Bit-Produkt werden die unteren Bits aus `mul` mit dem passend berechneten oberen Teil kombiniert.",
+      "example": "Bei vier Bit pro Operand ergibt `1101 · 0010` unsigned `0001 1010` (26) und signed `1111 1010` (−6); in beiden Fällen sind die unteren vier Bits `1010`.",
+      "pitfalls": [
+        "`mul` liefert nicht automatisch das volle 64-Bit-Produkt.",
+        "Für die oberen Produktbits muss die signed- oder unsigned-Interpretation beider Operanden zur gewünschten Rechnung passen."
+      ],
+      "related": [
+        "Signed- und Unsigned-Interpretation bei M-Befehlen",
+        "M-Erweiterung",
+        "Zweierkomplement"
+      ],
+      "heading": "Multiplikation und Division: signed oder unsigned?"
+    },
+    {
+      "id": "era-05-k07",
+      "term": "Divisions- und Restbefehle div, divu, rem und remu",
+      "kind": "definition",
+      "short": "`div` und `rem` arbeiten signed, während `divu` und `remu` unsigned Quotient beziehungsweise Rest berechnen.",
+      "explanation": "`div` berechnet einen signed Quotienten und `rem` den zugehörigen signed Rest. `divu` und `remu` führen die entsprechenden Operationen mit unsigned interpretierten Operanden aus. Signed Ganzzahldivision rundet in Richtung null; bei negativen ungeraden Zahlen kann das Ergebnis daher vom arithmetischen Rechtsshift abweichen.",
+      "example": "Für signed `−47` ergibt `div` durch 2 den Wert `−23`; ein arithmetischer Rechtsshift um eine Stelle ergibt `−24`.",
+      "pitfalls": [
+        "`div` und `divu` sind nicht austauschbar, wenn ein Bitmuster als signed negative Zahl gemeint ist.",
+        "Ein Rechtsshift ist bei negativen ungeraden Zahlen nicht immer gleichbedeutend mit signed Division durch 2."
+      ],
+      "related": [
+        "Signed- und Unsigned-Interpretation bei M-Befehlen",
+        "Arithmetischer Rechtsshift (sra, srai)",
+        "M-Erweiterung"
+      ],
+      "heading": "Multiplikation und Division: signed oder unsigned?"
+    },
+    {
+      "id": "era-05-k08",
+      "term": "Shift-Befehle und Shiftweite",
+      "kind": "notation",
+      "short": "RISC-V-Befehle kennzeichnen die Shift-Richtung und Auffüllregel, während das Suffix `i` eine direkt angegebene Shiftweite bezeichnet.",
+      "explanation": "Bei `sll`, `srl` und `sra` stammt die Shiftweite aus einem Register; bei `slli`, `srli` und `srai` steht sie als Immediate im Befehl. Die Befehlsfamilie legt außerdem fest, in welche Richtung verschoben wird und wie frei werdende Bitpositionen aufgefüllt werden. In RISC-V unterscheiden `srl` und `sra` die beiden Arten des Rechtsshifts eindeutig. Symbole wie `>>` oder `>>>` können je nach Programmiersprache unterschiedliche Bedeutungen haben.",
+      "example": "`slli t1, t0, 1` verschiebt den Wert aus `t0` um eine Stelle nach links und schreibt das Ergebnis nach `t1`.",
+      "pitfalls": [
+        "Das `i` in `slli` kennzeichnet ein Immediate für die Shiftweite und bedeutet nicht „arithmetisch“.",
+        "Nicht aus `>>` allein auf eine konkrete RISC-V-Shiftart schließen."
+      ],
+      "related": [
+        "Linksshift (sll, slli)",
+        "Logischer Rechtsshift (srl, srli)",
+        "Arithmetischer Rechtsshift (sra, srai)",
+        "Shifts"
+      ],
+      "heading": "Shifts: Bits verschieben"
+    },
+    {
+      "id": "era-05-k09",
+      "term": "Linksshift (sll, slli)",
+      "kind": "concept",
+      "short": "`sll` und `slli` verschieben Bits nach links, füllen rechts mit Nullen auf und lassen herausgeschobene hohe Bits wegfallen.",
+      "explanation": "Ein Linksshift um eine Stelle verschiebt jedes Bitmuster um eine Position nach links. Als Multiplikation mit 2 lässt sich das Ergebnis nur dann ohne Informationsverlust deuten, wenn das mathematische Produkt in der gewählten Wortbreite darstellbar ist. Der Bitvorgang ist bei signed und unsigned Interpretation derselbe. Bei Überlauf bleibt nur das Ergebnis in der Registerbreite erhalten.",
+      "example": "Mit 8 Bit wird `0010 1100` (44) zu `0101 1000` (88). Das Muster `1101 0000` wird zu `1010 0000`; unsigned entspricht das 208 zu 160 nach Wegfall des herausgeschobenen Bits.",
+      "pitfalls": [
+        "Ein Linksshift kann relevante hohe Bits verlieren.",
+        "Die Gleichheit mit einer mathematischen Multiplikation gilt nur, wenn das Ergebnis in der betrachteten Breite passt."
+      ],
+      "related": [
+        "Shift-Befehle und Shiftweite",
+        "Wortbreite und Interpretation",
+        "Überlauf und Unterlauf"
+      ],
+      "heading": "Links um eine Stelle: Multiplikation mit 2"
+    },
+    {
+      "id": "era-05-k10",
+      "term": "Logischer Rechtsshift (srl, srli)",
+      "kind": "definition",
+      "short": "`srl` und `srli` verschieben Bits nach rechts und füllen die frei werdenden hohen Bits mit Nullen auf.",
+      "explanation": "Beim logischen Rechtsshift rücken die verbleibenden Bits nach rechts; die Bits am rechten Rand fallen weg. Links werden unabhängig vom bisherigen Vorzeichen Nullen eingefügt. Die Operation eignet sich insbesondere, wenn ein Bitmuster als unsigned Zahl behandelt oder ein Bitfeld verschoben werden soll.",
+      "example": "Das 8-Bit-Muster `1101 0000` wird logisch um eine Stelle zu `0110 1000`; unsigned entspricht das 208 geteilt durch 2 gleich 104.",
+      "pitfalls": [
+        "Bei einem als negativ interpretierten Bitmuster wird das Vorzeichenbit nicht erhalten.",
+        "Ein logischer Rechtsshift ist nicht dasselbe wie ein arithmetischer Rechtsshift."
+      ],
+      "related": [
+        "Shift-Befehle und Shiftweite",
+        "Arithmetischer Rechtsshift (sra, srai)",
+        "Wortbreite und Interpretation"
+      ],
+      "heading": "Rechts um eine Stelle: zwei Arten"
+    },
+    {
+      "id": "era-05-k11",
+      "term": "Arithmetischer Rechtsshift (sra, srai)",
+      "kind": "definition",
+      "short": "`sra` und `srai` verschieben Bits nach rechts und füllen links mit Kopien des Vorzeichenbits auf.",
+      "explanation": "Die Kopie des höchstwertigen Bits erhält bei einer Zweierkomplementzahl das Vorzeichen des Ergebnisses. Für gerade Zahlen entspricht ein arithmetischer Rechtsshift um eine Stelle einer Division durch 2. Bei negativen ungeraden Zahlen rundet der Shift dagegen zum kleineren Wert, während signed Ganzzahldivision in Richtung null rundet. Für eine echte signed Division ist daher `div` zu verwenden.",
+      "example": "Das 8-Bit-Muster `1101 0000` (−48) wird zu `1110 1000` (−24); `1101 0001` (−47) wird ebenfalls zu `1110 1000` (−24), während `−47 div 2` gleich `−23` ist.",
+      "pitfalls": [
+        "Das Auffüllen mit dem Vorzeichenbit unterscheidet `sra` von `srl`.",
+        "Bei negativen ungeraden Werten ersetzt `srai` keine signed Division."
+      ],
+      "related": [
+        "Shift-Befehle und Shiftweite",
+        "Logischer Rechtsshift (srl, srli)",
+        "Divisions- und Restbefehle div, divu, rem und remu",
+        "Zweierkomplement"
+      ],
+      "heading": "Rechts um eine Stelle: zwei Arten"
+    },
+    {
+      "id": "era-05-k12",
+      "term": "Pseudobefehl",
+      "kind": "definition",
+      "short": "Ein Pseudobefehl ist eine lesbare Assemblerform, die der Assembler in einen oder mehrere echte Maschinenbefehle übersetzt.",
+      "explanation": "Pseudobefehle machen Assemblerprogramme kürzer und leichter lesbar, sind aber keine eigenen Maschinenbefehle. Eine mögliche Expansion für `mv t0, t1` ist `addi t0, t1, 0`; `not t0, t1` kann als `xori t0, t1, -1` umgesetzt werden. `neg t0, t1` lässt sich etwa als `sub t0, x0, t1` ausdrücken. Die Expansion hängt vom Pseudobefehl und gegebenenfalls von der Konstante ab.",
+      "example": "`mv t0, t1` kopiert den Wert aus `t1` nach `t0`; eine mögliche RV32I-Expansion ist `addi t0, t1, 0`.",
+      "pitfalls": [
+        "Ein Pseudobefehl ist nicht notwendigerweise genau eine Maschineninstruktion.",
+        "Die konkrete Expansion kann von der verwendeten Konstante abhängen."
+      ],
+      "related": [
+        "li-Pseudobefehl",
+        "Assemblersprache",
+        "Maschinenbefehlsformat"
+      ],
+      "heading": "Pseudobefehle"
+    },
+    {
+      "id": "era-05-k13",
+      "term": "li-Pseudobefehl",
+      "kind": "definition",
+      "short": "`li` lädt eine Konstante in ein Register, wobei der Assembler je nach Konstante eine passende Befehlsfolge erzeugt.",
+      "explanation": "Für eine kleine Konstante wie 7 kann `li t0, 7` beispielsweise zu `addi t0, x0, 7` werden. Größere Konstanten passen nicht unbedingt in ein einzelnes Immediate und können mehrere echte Befehle benötigen, etwa `lui` und `addi`. Deshalb gibt es keine einzige feste Expansion für `li`.",
+      "example": "Eine mögliche Expansion von `li t0, 7` ist `addi t0, x0, 7`.",
+      "pitfalls": [
+        "Nicht annehmen, dass jedes `li` genau einen Maschinenbefehl erzeugt.",
+        "Bei größeren Konstanten muss der Assembler die Konstante gegebenenfalls in Teile zerlegen."
+      ],
+      "related": [
+        "Pseudobefehl",
+        "Immediate",
+        "Sign Extension"
+      ],
+      "heading": "Pseudobefehle"
+    },
+    {
+      "id": "era-05-k14",
+      "term": "Immediate",
+      "kind": "definition",
+      "short": "Ein Immediate ist eine Konstante, die direkt im Maschinenbefehl codiert ist.",
+      "explanation": "Ein Befehl mit Immediate erhält einen Operandenwert aus dem Befehl selbst, statt ihn aus einem Register zu lesen. Bei den hier betrachteten RV32I-Befehlen `addi`, `andi`, `ori` und `xori` wird das Immediate vor der Operation auf die Registerbreite erweitert. Bei einem negativen Immediate erfolgt diese Erweiterung durch Sign Extension, damit der negative Wert erhalten bleibt.",
+      "example": "`addi t1, t0, 4` addiert die im Befehl angegebene Konstante 4 zum Wert in `t0`.",
+      "pitfalls": [
+        "Ein Immediate ist ein Befehlsoperand und kein zusätzliches Register.",
+        "Bei negativen Immediates müssen die höherwertigen Bits durch Sign Extension korrekt gesetzt werden."
+      ],
+      "related": [
+        "Immediate Operand",
+        "Sign Extension",
+        "Immediate-Befehle und Sign Extension"
+      ],
+      "heading": "Immediate-Befehle: eigene kleine Beispiele"
+    },
+    {
+      "id": "era-05-k15",
+      "term": "Immediate-Befehle und Sign Extension",
+      "kind": "concept",
+      "short": "Bei Immediate-Befehlen wird die codierte Konstante auf Registerbreite erweitert, wobei negative Werte durch Sign Extension ihr Vorzeichen behalten.",
+      "explanation": "Bei den hier betrachteten RV32I-Immediate-Operationen wird ein negatives Immediate mit Kopien seines Vorzeichenbits auf 32 Bit erweitert. So bleibt sein signed Zahlenwert erhalten, statt als kleiner positiver Wert interpretiert zu werden. Auch beim Laden eines Bytes mit `lb` wird das Vorzeichen des gelesenen Bytes durch Sign Extension auf die Registerbreite übertragen.",
+      "example": "Ein 12-Bit-Immediate mit dem Wert −1 wird auf 32 Bit zu lauter Einsen erweitert und repräsentiert weiterhin −1.",
+      "pitfalls": [
+        "Sign Extension kopiert das Vorzeichenbit und füllt nicht grundsätzlich mit Nullen auf.",
+        "Bei `lb` wird das gelesene Byte signed erweitert; andere Ladebefehle können eine andere Erweiterung verwenden."
+      ],
+      "related": [
+        "Immediate",
+        "Bitweise logische Befehle und Immediate-Varianten",
+        "Sign Extension",
+        "Wortbreite und Interpretation"
+      ],
+      "heading": "Immediate-Befehle: eigene kleine Beispiele"
+    },
+    {
+      "id": "era-05-k16",
+      "term": "Bitweise logische Befehle und Immediate-Varianten",
+      "kind": "concept",
+      "short": "`and`, `or` und `xor` verknüpfen Registerbits bitweise, und ihre Immediate-Varianten `andi`, `ori` und `xori` verwenden zusätzlich eine Konstante aus dem Befehl.",
+      "explanation": "`and` lässt ein Ergebnisbit nur dann auf 1, wenn beide Eingabebits 1 sind; `or` setzt es, wenn mindestens ein Eingabebit 1 ist; `xor` setzt es, wenn die Eingabebits verschieden sind. Die Varianten `andi`, `ori` und `xori` führen dieselben bitweisen Operationen mit einem Immediate aus. `addi` addiert dagegen den Zahlenwert des Immediate und führt keine bitweise logische Verknüpfung aus. Bei negativen Immediates ist die Sign Extension zu berücksichtigen.",
+      "example": "Wenn `t0 = 0x2C` ist, liefern `ori t2, t0, 0x10` den Wert `0x3C`, `xori t3, t0, 0x0F` den Wert `0x23` und `andi t4, t0, 0x0F` den Wert `0x0C`.",
+      "pitfalls": [
+        "XOR kippt nur Bits, an deren Position ein Operand eine 1 und der andere eine 0 hat.",
+        "`andi` ist keine arithmetische Subtraktion, sondern eine bitweise Verknüpfung."
+      ],
+      "related": [
+        "Immediate",
+        "Immediate-Befehle und Sign Extension",
+        "Bitweise logische Befehle"
+      ],
+      "heading": "Immediate-Befehle: eigene kleine Beispiele"
+    },
+    {
+      "id": "era-05-k17",
+      "term": "Assemblerprogrammierung",
+      "kind": "method",
+      "short": "Eine schrittweise Prüfung von Registern, Vorzeichen und Kontrollfluss hilft, typische Fehler beim Assemblerprogrammieren zu finden.",
+      "explanation": "Gehe den Code Befehl für Befehl durch und notiere nach jedem Schritt die betroffenen Registerwerte. Halte Anfangswerte fest und setze nur für `x0` den Wert null voraus. Kläre vor jeder Rechenoperation, ob Operanden signed oder unsigned gemeint sind und ob eine Sign Extension erfolgt. Plane Ablauf und Registerbelegung vor dem Schreiben, kommentiere den Code ausreichend und kontrolliere bei Schleifen Start, Abbruchbedingung und Durchlaufzahl. Beachte bei Unterprogrammaufrufen die geltenden Registerkonventionen.",
+      "example": "Notiere bei jeder Schleifeniteration den Zähler, den Abbruchtest und die betroffenen Register, um eine um eins zu lange oder zu kurze Ausführung zu erkennen.",
+      "pitfalls": [
+        "Uninitialisierte Registerwerte nicht als null behandeln.",
+        "Bei signed geladenen Bytewerten wie bei `lb` die Sign Extension beachten.",
+        "Schleifenabbruch und Registerbelegung anhand jedes Befehls nachvollziehen."
+      ],
+      "related": [
+        "Register in RV32I",
+        "Registerkonventionen",
+        "Immediate-Befehle und Sign Extension",
+        "Signed- und Unsigned-Interpretation bei M-Befehlen",
+        "Assemblersprache"
+      ],
+      "heading": "Typische Fehler beim Assemblerprogrammieren"
+    }
+  ],
+  "generator": {
+    "model": "gpt-6-luna",
+    "effort": "xhigh",
+    "promptVersion": "k1",
+    "generatedAt": "2026-11-02T12:29:54.663Z"
+  }
+}
