@@ -9,6 +9,7 @@ import { assetUrl } from '../lib/api.ts';
 import { savedModule, useDuels, useMastery, useMe } from '../lib/queries.ts';
 import { MathText } from '../components/MathText.tsx';
 import { moduleColor } from '../lib/theme.ts';
+import { knowledgeHref } from '../lib/knowledge.ts';
 
 export const LEVEL_COLOR: Record<ConceptMastery['level'], string> = {
   weak: 'var(--c-error)',
@@ -19,7 +20,7 @@ export const LEVEL_COLOR: Record<ConceptMastery['level'], string> = {
 
 export function ConceptBar({ c }: { c: ConceptMastery }) {
   return (
-    <div>
+    <Link href={knowledgeHref(c.concept, c.unitId.split('-')[0])} className="block active:opacity-70" aria-label={`${c.concept} in der Wissenssammlung nachschlagen`}>
       <div className="flex items-baseline justify-between gap-2">
         <MathText text={c.concept} className="min-w-0 truncate font-extrabold" />
         <span className="shrink-0 text-sm font-black tabular-nums" style={{ color: LEVEL_COLOR[c.level] }}>
@@ -30,7 +31,7 @@ export function ConceptBar({ c }: { c: ConceptMastery }) {
       <p className="mt-0.5 truncate text-xs font-bold text-muted">
         Unit {c.unitNumber} · <MathText text={c.unitTitle} /> · {c.correct}/{c.answered} richtig
       </p>
-    </div>
+    </Link>
   );
 }
 
@@ -80,6 +81,13 @@ export default function Train() {
       <Section icon="badge-practice" title="Wiederholen" sub={due ? `${due} Fragen sind heute fällig` : 'Alles wiederholt – stark!'} delay={0} accent="var(--c-error)">
         <Button full variant={due ? 'primary' : 'secondary'} disabled={!due} onClick={() => navigate('/practice')}>
           {due ? 'Wiederholung starten' : 'Nichts fällig'}
+        </Button>
+      </Section>
+
+      <Section icon="mascot-book" title="Wissen" sub="Jeder Begriff, jedes Konzept – nach Unit sortiert und durchsuchbar" delay={0.03} accent="var(--c-primary)">
+        <Button full variant="secondary" onClick={() => navigate(`/wissen?m=${mod}`)}>
+          <Icon name="book" size={20} />
+          {MODULE_INFO[mod].short}-Wissen öffnen
         </Button>
       </Section>
 

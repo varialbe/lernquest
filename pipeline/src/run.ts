@@ -7,16 +7,17 @@ import { pipelineRuns, pipelineState, processedFiles, units } from '@lernquest/a
 import { importContentDir, importUnit } from '@lernquest/api/import';
 import { BONUS_KIND, ModuleId, Unit } from '@lernquest/shared';
 import { config, moduleOf } from './config.ts';
-import type { Vault } from './obsidian.ts';
+import type { Heading, Vault } from './obsidian.ts';
 import { prepareNote } from './prepare.ts';
 import { RateLimitError } from './codex.ts';
 import { generateBonus } from './bonus.ts';
 import { generateUnit } from './generate.ts';
+import { allContentUnits, generateKnowledge, knowledgeStale, writeKnowledge } from './knowledge.ts';
 import { qualityGate, type GateReport } from './quality.ts';
 import { notify, runMessage } from './notify.ts';
 import * as git from './git.ts';
 
-export type Mode = 'run' | 'backfill' | 'dry-run' | 'regenerate' | 'bonus';
+export type Mode = 'run' | 'backfill' | 'dry-run' | 'regenerate' | 'bonus' | 'knowledge';
 
 type PlanItem = {
   path: string;
@@ -34,6 +35,8 @@ export type FileReport = {
   title?: string;
   levels?: number;
   questions?: number;
+  /** Einträge der Wissenssammlung */
+  knowledge?: number;
   dropped?: string[];
   /** Hinweise zur Notiz: ignorierte/fehlende Bilder, unaufgelöste Wikilinks */
   notes?: string[];
@@ -204,6 +207,61 @@ function planBonus(only?: string): PlanItem[] {
   return items;
 }
 
+/** Units ohne (aktuelle) Wissenssammlung – oder eine bestimmte, per Unit-ID oder Quelldatei. */
+function planKnowledge(only?: string): Unit[] {
+  return allContentUnits().filter((u) => (only ? only === u.id || only === u.source.file : knowledgeStale(u)));
+}
+
+/** Wissenssammlung einer Unit erzeugen, schreiben und committen. */
+async function buildKnowledge(db: DB, unit: Unit, note: { text: string; headings: Heading[] } | null, workDir: string, log: (m: string) => void) {
+  const previous = db
+    .select()
+    .from(units)
+    .where(and(eq(units.module, unit.module), lt(units.number, unit.number)))
+    .orderBy(asc(units.number))
+    .all()
+    .map((u) => ({ number: u.number, title: u.title, concepts: u.concepts }));
+  const k = await generateKnowledge(unit, note, previous, workDir, log);
+  const file = writeKnowledge(k.knowledge);
+  const committed = git.commitContent([relative(config.lernquestRepo, file)], `wissen: ${unit.module} Vorlesung ${unit.number} – ${unit.title}`);
+  log(`  ✓ Wissenssammlung ${unit.id}: ${k.knowledge.entries.length} Einträge (Review: ${k.review.fixed} korrigiert, ${k.review.added} ergänzt${k.dropped.length ? `, ${k.dropped.length} verworfen` : ''})`);
+  return { entries: k.knowledge.entries.length, tokens: k.tokens, committed, dropped: k.dropped };
+}
+
+/** Wissenssammlungen erzeugen (bis zu 3 parallel), z. B. Modus `knowledge` oder Nachholen im normalen Lauf. */
+async function runKnowledge(db: DB, list: Unit[], vault: Vault, runId: string, files: FileReport[], warnings: string[], log: (m: string) => void, limit = list.length): Promise<{ committed: boolean; rateLimited: boolean }> {
+  let committed = false;
+  let rateLimited = false;
+  const total = Math.min(limit, list.length);
+  const queue = list.slice(0, total).map((u, i) => ({ u, i }));
+  const worker = async () => {
+    for (let job = queue.shift(); job && !rateLimited; job = queue.shift()) {
+      const { u, i } = job;
+      const t0 = Date.now();
+      log(`[Wissen ${i + 1}/${total}] ${u.id} „${u.title}“`);
+      const workDir = join(config.dataDir, 'work', runId, `k${i + 1}`);
+      mkdirSync(workDir, { recursive: true });
+      try {
+        const current = db.select({ f: units.sourceFile }).from(units).where(eq(units.id, u.id)).get()?.f ?? u.source.file;
+        const note = existsSync(git.studiumPath(current)) ? await prepareNote(vault, current, workDir) : null;
+        const r = await buildKnowledge(db, u, note, workDir, log);
+        committed ||= r.committed;
+        files.push({ path: u.source.file, status: 'done', unitId: u.id, title: `${u.title} (Wissen)`, levels: 0, questions: 0, knowledge: r.entries, dropped: r.dropped, tokens: r.tokens, durationSec: Math.round((Date.now() - t0) / 1000) });
+      } catch (e) {
+        const msg = (e as Error).message.slice(0, 1000);
+        if (e instanceof RateLimitError) {
+          rateLimited = true;
+          warnings.push('Codex-Rate-Limit erreicht – restliche Wissenssammlungen im nächsten Lauf');
+        }
+        files.push({ path: u.source.file, status: 'failed', unitId: u.id, error: `Wissenssammlung: ${msg}`, durationSec: Math.round((Date.now() - t0) / 1000) });
+        log(`  ✗ Wissenssammlung ${u.id}: ${msg}`);
+      }
+    }
+  };
+  await Promise.all([worker(), worker(), worker()]);
+  return { committed, rateLimited };
+}
+
 // ---------- Ausführung ----------
 export async function execute(mode: Mode, opts: { runId?: string; file?: string; quiet?: boolean; notify?: boolean } = {}): Promise<Report> {
   const runId = opts.runId ?? newRunId();
@@ -240,7 +298,18 @@ export async function execute(mode: Mode, opts: { runId?: string; file?: string;
     head = git.pullStudium();
     log(`Studium-Repo auf ${head.slice(0, 8)} (zuletzt verarbeitet: ${previousSha?.slice(0, 8) ?? '–'})`);
 
-    const items = mode === 'bonus' ? planBonus(opts.file) : plan(db, mode, head, opts.file, warnings);
+    if (mode === 'knowledge') {
+      const list = planKnowledge(opts.file);
+      log(list.length ? `Wissenssammlung für ${list.length} Unit(s): ${list.map((u) => u.id).join(', ')}` : 'Alle Wissenssammlungen aktuell.');
+      const r = await runKnowledge(db, list, { root: config.studiumRepo, files: git.listAllFiles() }, runId, files, warnings, log);
+      rateLimited = r.rateLimited;
+      if (r.committed) {
+        const pushErr = git.pushContent();
+        if (pushErr) warnings.push(`Push fehlgeschlagen: ${pushErr}`);
+        else log('Wissen gepusht.');
+      }
+    }
+    const items = mode === 'knowledge' ? [] : mode === 'bonus' ? planBonus(opts.file) : plan(db, mode, head, opts.file, warnings);
     for (const w of warnings) log(`Hinweis: ${w}`);
     const todo = items.filter((i) => i.action !== 'skip');
     for (const s of items.filter((i) => i.action === 'skip')) {
@@ -254,7 +323,7 @@ export async function execute(mode: Mode, opts: { runId?: string; file?: string;
         log(`+ würde verarbeiten: ${t.path} (${t.action}: ${t.reason})`);
       }
       if (!todo.length) log('Nichts Neues.');
-    } else {
+    } else if (mode !== 'knowledge') {
       if (!todo.length) log('Nichts Neues.');
       let committed = false;
       let stopAfterThis = false;
@@ -351,6 +420,19 @@ export async function execute(mode: Mode, opts: { runId?: string; file?: string;
           committed ||= changed;
           const imported = importUnit(db, unit);
           recordFile(db, item.sha256, item.path, 'done', runId, { unitId: unit.id });
+          // Wissenssammlung – ein Fehler hier verhindert die Unit nicht (holt der nächste Lauf nach)
+          let knowledgeCount: number | undefined;
+          if (config.generateKnowledge && !stopAfterThis) {
+            try {
+              const k = await buildKnowledge(db, unit, prepared, workDir, log);
+              knowledgeCount = k.entries;
+              tokens += k.tokens;
+              committed ||= k.committed;
+            } catch (e) {
+              notes.push(`Wissenssammlung fehlgeschlagen (holt der nächste Lauf nach): ${(e as Error).message.slice(0, 200)}`);
+              if (e instanceof RateLimitError) stopAfterThis = true;
+            }
+          }
           const qCount = unit.levels.reduce((n, l) => n + l.questions.length, 0);
           files.push({
             path: item.path,
@@ -359,6 +441,7 @@ export async function execute(mode: Mode, opts: { runId?: string; file?: string;
             title: unit.title,
             levels: unit.levels.length,
             questions: qCount,
+            knowledge: knowledgeCount,
             dropped,
             notes,
             review: unit.generator.review,
@@ -389,6 +472,16 @@ export async function execute(mode: Mode, opts: { runId?: string; file?: string;
             log(`🚦 Rate-Limit – breche ab, ${rest.length} Datei(en) folgen im nächsten Lauf`);
             break;
           }
+        }
+      }
+      // fehlende Wissenssammlungen älterer Units nebenbei nachholen
+      if (config.generateKnowledge && !rateLimited && config.knowledgeCatchUp > 0 && (mode === 'run' || mode === 'backfill')) {
+        const missing = planKnowledge();
+        if (missing.length) {
+          log(`Wissenssammlung nachholen: ${missing.length} Unit(s) ohne aktuelle Sammlung, bis zu ${config.knowledgeCatchUp} in diesem Lauf`);
+          const r = await runKnowledge(db, missing, vault, runId, files, warnings, log, config.knowledgeCatchUp);
+          committed ||= r.committed;
+          rateLimited ||= r.rateLimited;
         }
       }
       if (committed) {

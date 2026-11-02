@@ -1,6 +1,10 @@
 /**
- * Telegram-Bot für den Newsletter (Dienst lernquest-bot, Long-Polling – kein Webhook, kein offener Port).
+ * Telegram-Bot für Newsletter und Pipeline (Dienst lernquest-bot, Long-Polling – kein Webhook, kein offener Port).
  * Reagiert ausschließlich auf den Admin-Chat (TELEGRAM_CHAT_ID).
+ *
+ * Pipeline: 🔄 Neue Inhalte holen (= /fetch, /hol oder Text wie „hol die neuen Sachen“) startet sofort einen Lauf
+ *   über den Trigger-Dienst (wie n8n um 00:00) und zeigt den Fortschritt live; 🔍 Was ist neu? (/neu) = Vorschau;
+ *   📡 Status (/status) = laufender/letzte Läufe, dort auch 📖 Wissenssammlung nachholen.
  *
  * Bedienung über Buttons: /start (oder irgendeine Nachricht ohne offenen Schritt) zeigt das Menü.
  *   📝 Neuer Newsletter → Betreff schicken → Inhalt schicken (Text = Markdown, oder Datei .md/.html/.txt)
@@ -14,6 +18,7 @@ import { getDb } from './db/index.ts';
 import { newsletterIssues, pipelineState } from './db/schema.ts';
 import { subscriberCounts } from './lib/account.ts';
 import { previewHtml, render, sendIssue, sendTest, type Format, type Issue } from './lib/newsletter.ts';
+import { FETCH_TEXT, MODE_LABEL, recentRuns, runningRunId, runProgress, runRow, STATUS_LABEL, triggerPipeline, type TriggerMode } from './lib/botPipeline.ts';
 
 const TOKEN = process.env.TELEGRAM_BOT_TOKEN?.trim() ?? '';
 const ADMIN_CHAT = process.env.TELEGRAM_CHAT_ID?.trim() ?? '';
@@ -84,6 +89,8 @@ const setAwait = (a: Await | null) => setKV('bot.await', JSON.stringify(a));
 
 // ---------- Bildschirme ----------
 const MENU: Keyboard = [
+  [btn('🔄 Neue Inhalte holen', 'fetch')],
+  [btn('🔍 Was ist neu?', 'dry'), btn('📡 Status', 'status')],
   [btn('📝 Neuer Newsletter', 'new'), btn('📂 Entwürfe', 'drafts')],
   [btn('📊 Übersicht', 'overview'), btn('❓ Hilfe', 'help')],
 ];
@@ -93,10 +100,16 @@ function menu(editId?: number) {
   setAwait(null);
   const c = subscriberCounts(db);
   const n = drafts().length;
-  return show(`<b>📬 LernQuest-Newsletter</b>\n${c.confirmed ?? 0} Abonnenten · ${n} ${n === 1 ? 'Entwurf' : 'Entwürfe'}\n\nWas möchtest du tun?`, MENU, editId);
+  return show(`<b>🤖 LernQuest</b>\n📬 Newsletter: ${c.confirmed ?? 0} Abonnenten · ${n} ${n === 1 ? 'Entwurf' : 'Entwürfe'}\n🔄 Neue Vorlesungen holen: sofort per Button, sonst automatisch um 00:00\n\nWas möchtest du tun?`, MENU, editId);
 }
 
 const HELP = `<b>❓ So geht’s</b>
+<b>Neue Inhalte</b>
+• <b>🔄 Neue Inhalte holen</b> (oder /fetch, /hol, oder einfach „hol die neuen Sachen“): startet sofort den Lauf, der sonst um 00:00 kommt – neue Mitschriften aus dem Studium-Repo → Codex erzeugt Level, Praxis und Wissenssammlung. Ich zeige den Fortschritt hier live, am Ende kommt die Zusammenfassung.
+• <b>🔍 Was ist neu?</b> (/neu): nur nachsehen, was verarbeitet würde
+• <b>📡 Status</b> (/status): laufender und letzte Läufe, Wissenssammlung nachholen
+
+<b>Newsletter</b>
 1. <b>📝 Neuer Newsletter</b> → Betreff schicken
 2. Inhalt schicken: einfach als Nachricht (Markdown: <code>**fett**</code>, <code># Überschrift</code>, Links) oder als Datei <b>.md</b>, <b>.html</b>, <b>.txt</b>
 3. <b>🧪 Testmail</b> → geht an ${esc(TEST_TO)}, die HTML-Vorschau kommt hier in den Chat
@@ -178,6 +191,86 @@ async function doSend(i: Issue, editId?: number) {
   return show(`✅ <b>#${i.id} versendet</b>: ${r.sent}/${r.total} zugestellt${r.failed ? `, ${r.failed} fehlgeschlagen` : ''}.`, [back()]);
 }
 
+// ---------- Pipeline (neue Inhalte sofort holen) ----------
+const fmtTime = (ms: number | null | undefined) => (ms ? new Date(ms).toLocaleString('de-DE', { timeZone: 'Europe/Berlin', day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' }) : '–');
+const fmtDur = (ms: number) => {
+  const s = Math.max(0, Math.round(ms / 1000));
+  return s >= 60 ? `${Math.floor(s / 60)} min ${s % 60} s` : `${s} s`;
+};
+/** beobachtete Läufe: runId → Nachricht, die live aktualisiert wird */
+const watching = new Map<string, { messageId: number; mode: TriggerMode; started: number }>();
+
+function runCard(runId: string, mode: string, started: number): { text: string; done: boolean; kb: Keyboard } {
+  const row = runRow(db, runId);
+  const status = row?.status ?? 'running';
+  const done = status !== 'running';
+  const head = `<b>${done ? STATUS_LABEL[status] ?? status : '⏳ läuft'} · ${MODE_LABEL[mode] ?? mode}</b>\nRun <code>${esc(runId)}</code> · ${done && row?.finishedAt ? fmtDur(row.finishedAt - started) : `seit ${fmtDur(Date.now() - started)}`}`;
+  let body: string;
+  if (done && mode === 'dry-run') {
+    // Vorschau schickt keine eigene Zusammenfassung → hier zeigen
+    const planned = (row?.summary ?? '').split('\n').filter((l) => /^\s+[+✗⚠]/.test(l));
+    body = planned.length ? `Würde verarbeiten:\n${planned.map((l) => esc(l.trim())).join('\n')}` : '✅ Nichts Neues im Studium-Repo.';
+  } else if (done) {
+    body = 'Fertig – die Zusammenfassung kommt als eigene Nachricht. Neue Units und Wissen sind sofort in App und Website.';
+  } else {
+    const lines = runProgress(runId);
+    body = lines.length ? `<pre>${esc(lines.join('\n'))}</pre>` : 'Starte …';
+  }
+  const kb: Keyboard = done
+    ? mode === 'dry-run' && /Würde/.test(body)
+      ? [[btn('🔄 Jetzt holen', 'fetch')], back()]
+      : [[btn('📡 Status', 'status'), btn('⬅️ Menü', 'menu')]]
+    : [[btn('🔁 Aktualisieren', `watch:${runId}`)]];
+  return { text: `${head}\n\n${body}`, done, kb };
+}
+
+async function startRun(mode: TriggerMode, editId?: number) {
+  const r = await triggerPipeline(mode);
+  if (!r.ok) {
+    if (r.running) {
+      const row = runRow(db, r.running);
+      return watchRun(r.running, (row?.mode as TriggerMode) ?? 'run', row?.startedAt ?? Date.now(), editId, '⏳ Es läuft schon ein Lauf – ich zeige dir den:');
+    }
+    return show(`⚠️ ${esc(r.error)}`, [back()], editId);
+  }
+  return watchRun(r.runId, mode, Date.now(), editId);
+}
+
+async function watchRun(runId: string, mode: TriggerMode, started: number, editId?: number, note = '') {
+  const c = runCard(runId, mode, started);
+  const msg = (await show(`${note ? `${note}\n\n` : ''}${c.text}`, c.kb, editId)) as { message_id?: number } | undefined;
+  const messageId = msg?.message_id ?? editId;
+  if (!c.done && messageId) watching.set(runId, { messageId, mode, started });
+}
+
+/** alle 20 s: beobachtete Läufe im Chat aktualisieren */
+async function tickWatchers() {
+  for (const [runId, w] of watching) {
+    const c = runCard(runId, w.mode, w.started);
+    // nach 8 h aufgeben (Lauf hängt → meldet n8n/Watchdog)
+    if (c.done || Date.now() - w.started > 8 * 3600_000) watching.delete(runId);
+    // nur bearbeiten, nie neu senden (sonst alle 20 s eine neue Nachricht, falls das Bearbeiten scheitert)
+    await tg('editMessageText', { chat_id: ADMIN_CHAT, message_id: w.messageId, text: c.text.slice(0, 4000), parse_mode: 'HTML', disable_web_page_preview: true, reply_markup: { inline_keyboard: c.kb } }).catch((e) => {
+      if (!/not modified/.test((e as Error).message)) watching.delete(runId);
+    });
+  }
+}
+
+async function statusScreen(editId?: number) {
+  const running = await runningRunId();
+  if (running) {
+    const row = runRow(db, running);
+    return watchRun(running, (row?.mode as TriggerMode) ?? 'run', row?.startedAt ?? Date.now(), editId);
+  }
+  const runs = recentRuns(db);
+  const lines = runs.map((r) => `${STATUS_LABEL[r.status] ?? r.status} · ${MODE_LABEL[r.mode] ?? r.mode} · ${fmtTime(r.startedAt)}${r.finishedAt ? ` · ${fmtDur(r.finishedAt - r.startedAt)}` : ''}`);
+  return show(
+    `<b>📡 Pipeline</b>\nGerade läuft nichts. Nächster automatischer Lauf: 00:00.\n\n<b>Letzte Läufe</b>\n${lines.join('\n') || '–'}`,
+    [[btn('🔄 Neue Inhalte holen', 'fetch')], [btn('📖 Wissenssammlung nachholen', 'knowledge')], back()],
+    editId,
+  );
+}
+
 // ---------- Buttons ----------
 async function onButton(data: string, editId: number) {
   const [action = '', idStr] = data.split(':');
@@ -186,6 +279,14 @@ async function onButton(data: string, editId: number) {
   if (action === 'help') return show(HELP, [back()], editId);
   if (action === 'drafts') return draftList(editId);
   if (action === 'overview') return overview(editId);
+  if (action === 'fetch') return startRun('run', editId);
+  if (action === 'dry') return startRun('dry-run', editId);
+  if (action === 'knowledge') return startRun('knowledge', editId);
+  if (action === 'status') return statusScreen(editId);
+  if (action === 'watch') {
+    const row = runRow(db, idStr ?? '');
+    return watchRun(idStr ?? '', (row?.mode as TriggerMode) ?? 'run', row?.startedAt ?? Date.now(), editId);
+  }
   if (action === 'new') {
     setAwait({ kind: 'new' });
     return show('📝 Wie soll der <b>Betreff</b> lauten? Schick ihn mir als Nachricht.', [[btn('Abbrechen', 'menu')]], editId);
@@ -299,6 +400,10 @@ async function handle(u: Update) {
     setAwait(null);
     return handleCommand(text.replace(/^\/(newsletter|nl)(@\w+)?/i, '/newsletter'));
   }
+  if (/^\/(fetch|hol|holen|update)(@\w+)?\b/i.test(text)) return startRun('run');
+  if (/^\/(neu|dry)(@\w+)?\b/i.test(text)) return startRun('dry-run');
+  if (/^\/(status|pipeline)(@\w+)?\b/i.test(text)) return statusScreen();
+  if (/^\/(wissen|knowledge)(@\w+)?\b/i.test(text)) return startRun('knowledge');
   if (text.startsWith('/')) return menu(); // /start, /help, /menu …
   if (!text.trim()) return;
   if (waiting?.kind === 'new') return createDraft(text.trim());
@@ -309,6 +414,7 @@ async function handle(u: Update) {
     return draftCard(draftById(waiting.id)!, undefined, '✏️ Betreff geändert.');
   }
   if (waiting?.kind === 'content') return setContent(waiting.id, text, 'md', 'Nachricht als Markdown');
+  if (FETCH_TEXT.test(text)) return startRun('run');
   return menu();
 }
 
@@ -317,7 +423,16 @@ async function main() {
     log('TELEGRAM_BOT_TOKEN/TELEGRAM_CHAT_ID fehlen – Bot startet nicht.');
     process.exit(1);
   }
-  await tg('setMyCommands', { commands: [{ command: 'start', description: 'Newsletter-Menü' }] }).catch((e) => log(e));
+  await tg('setMyCommands', {
+    commands: [
+      { command: 'fetch', description: '🔄 Neue Inhalte jetzt holen' },
+      { command: 'status', description: '📡 Pipeline-Status' },
+      { command: 'neu', description: '🔍 Was ist neu? (Vorschau)' },
+      { command: 'wissen', description: '📖 Wissenssammlung nachholen' },
+      { command: 'start', description: 'Menü (Newsletter & Pipeline)' },
+    ],
+  }).catch((e) => log(e));
+  setInterval(() => void tickWatchers().catch((e) => log('watch', e)), 20_000);
   await tg('setChatMenuButton', { chat_id: Number(ADMIN_CHAT), menu_button: { type: 'commands' } }).catch((e) => log(e));
   log('Bot läuft (Long-Polling).');
   let offset = Number(getKV('bot.offset') ?? 0);

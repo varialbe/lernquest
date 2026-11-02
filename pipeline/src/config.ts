@@ -18,6 +18,9 @@ export const config = {
   promptsDir: resolve(ROOT, 'pipeline/prompts'),
   schemaFile: resolve(ROOT, 'pipeline/schemas/unit-output.schema.json'),
   bonusSchemaFile: resolve(ROOT, 'pipeline/schemas/bonus-output.schema.json'),
+  knowledgeSchemaFile: resolve(ROOT, 'pipeline/schemas/knowledge-output.schema.json'),
+  /** Wissenssammlung: wissen/<modul>/<unit-id>.json */
+  knowledgeDir: resolve(ROOT, 'wissen'),
   studiumRepo: env('STUDIUM_REPO', resolve(process.env.HOME ?? '~', 'studium')),
   studiumDirs: env('STUDIUM_DIRS', 'DS/01_Vorlesungen,EIP/01_Vorlesungen,ERA/01_Vorlesungen').split(',').map((s) => s.trim()),
   lernquestRepo: env('LERNQUEST_REPO', ROOT),
@@ -42,6 +45,10 @@ export const config = {
   bonusQuestions: 10,
   /** Praxis-Level (Bonus) für neue Units mitgenerieren */
   generateBonus: env('GENERATE_BONUS', 'true') === 'true',
+  /** Wissenssammlung für neue Units mitgenerieren */
+  generateKnowledge: env('GENERATE_KNOWLEDGE', 'true') === 'true',
+  /** fehlende Wissenssammlungen, die ein normaler Lauf nebenbei nachholt */
+  knowledgeCatchUp: Number(env('KNOWLEDGE_CATCH_UP', '3')),
   maxAttempts: 3,
 };
 

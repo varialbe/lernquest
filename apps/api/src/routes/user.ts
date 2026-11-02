@@ -8,6 +8,7 @@ import {
   EquipReq,
   LoginReq,
   MODULES,
+  ModuleId,
   PracticeSubmitReq,
   RegisterReq,
   ReportReq,
@@ -41,6 +42,7 @@ import { emailFields, emailOf, requestNewsletter, sendVerify, stopNewsletter, us
 import { appUrl } from '../lib/mail.ts';
 import { claimQuest, questsFor } from '../lib/quests.ts';
 import { completeRun, mastery, startExam, startWeak } from '../lib/runs.ts';
+import { knowledgeForModule } from '../lib/knowledge.ts';
 import { addStarterPet, equip, purchase, validateSettings } from '../lib/shop.ts';
 
 export function userRoutes(app: FastifyInstance, db: DB) {
@@ -189,6 +191,8 @@ export function userRoutes(app: FastifyInstance, db: DB) {
 
   // ---------- Schwächen, Klausur-Check, Duelle ----------
   app.get('/api/mastery', auth, async (req) => mastery(db, req.user));
+  // Wissenssammlung (Nachschlagewerk) je Modul
+  app.get<{ Params: { module: string } }>('/api/knowledge/:module', auth, async (req) => knowledgeForModule(db, ModuleId.parse(req.params.module.toUpperCase())));
   app.post('/api/runs/weak', auth, async (req) => startWeak(db, req.user, StartWeakReq.parse(req.body ?? {}).module));
   app.post('/api/runs/exam', auth, async (req) => startExam(db, req.user, StartExamReq.parse(req.body).module));
   app.post<{ Params: { id: string } }>('/api/runs/:id/complete', auth, async (req) => {

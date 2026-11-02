@@ -18,7 +18,7 @@ registerRoute(new NavigationRoute(createHandlerBoundToURL(`${BASE}index.html`), 
 
 // Bereits geladene Level, Pfad und Profil offline verfügbar halten
 registerRoute(
-  ({ url, request }) => request.method === 'GET' && new RegExp(`^${BASE}api/(levels/|path$|me$|config$|shop$|practice$)`).test(url.pathname),
+  ({ url, request }) => request.method === 'GET' && new RegExp(`^${BASE}api/(levels/|knowledge/|path$|me$|config$|shop$|practice$)`).test(url.pathname),
   new NetworkFirst({ cacheName: 'lq-api', networkTimeoutSeconds: 4 }),
 );
 

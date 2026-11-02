@@ -55,9 +55,15 @@ export function runMessage(r: Report): { level: Level; title: string; html: stri
   const lines: string[] = [];
   if (r.rateLimited) lines.push('🚦 <b>Codex-Rate-Limit erreicht</b> – restliche Dateien werden im nächsten Lauf versucht.');
   lines.push(`Modus <code>${r.mode}</code> · Dauer ${fmtDuration(r.durationSec)} · Tokens ${fmtNum(r.totals.tokens)}`);
-  lines.push(`📚 ${done.length} Notizen → ${r.totals.levels} Level, ${r.totals.questions} Fragen`);
-  for (const f of done) {
-    lines.push(`  • ${esc(f.unitId ?? '')} <b>${esc(f.title ?? '')}</b> (${f.questions} Fragen${f.notes?.length ? `, ⚑ ${f.notes.length} Hinweise` : ''})`);
+  const units = done.filter((f) => f.questions);
+  const wissen = done.filter((f) => !f.questions && f.knowledge);
+  if (units.length || !wissen.length) lines.push(`📚 ${units.length} Notizen → ${r.totals.levels} Level, ${r.totals.questions} Fragen`);
+  for (const f of units) {
+    lines.push(`  • ${esc(f.unitId ?? '')} <b>${esc(f.title ?? '')}</b> (${f.questions} Fragen${f.knowledge ? `, 📖 ${f.knowledge} Begriffe` : ''}${f.notes?.length ? `, ⚑ ${f.notes.length} Hinweise` : ''})`);
+  }
+  if (wissen.length) {
+    lines.push(`📖 Wissenssammlung für ${wissen.length} Unit(s):`);
+    for (const f of wissen) lines.push(`  • ${esc(f.unitId ?? '')} ${esc((f.title ?? '').replace(/ \(Wissen\)$/, ''))} – ${f.knowledge} Begriffe`);
   }
   if (failed.length) {
     lines.push(`❌ ${failed.length} fehlgeschlagen:`);

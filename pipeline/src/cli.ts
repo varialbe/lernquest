@@ -9,7 +9,7 @@ const runId = runIdFlag >= 0 ? rest[runIdFlag + 1] : undefined;
 const flag = (name: string) => (rest.indexOf(name) >= 0 ? rest[rest.indexOf(name) + 1] : undefined);
 const positional = rest.filter((a, i) => !a.startsWith('--') && !['--run-id', '--force', '--reason'].includes(rest[i - 1]!));
 
-const modes: Record<string, Mode> = { run: 'run', backfill: 'backfill', 'dry-run': 'dry-run', regenerate: 'regenerate', bonus: 'bonus' };
+const modes: Record<string, Mode> = { run: 'run', backfill: 'backfill', 'dry-run': 'dry-run', regenerate: 'regenerate', bonus: 'bonus', knowledge: 'knowledge' };
 
 if (cmd === 'telegram-setup') {
   await telegramSetup();
@@ -31,6 +31,7 @@ if (!(cmd in modes)) {
   pnpm pipeline dry-run             nur anzeigen, was neu wäre
   pnpm pipeline regenerate <datei>  eine Notiz neu generieren (Pfad relativ zum Studium-Repo)
   pnpm pipeline bonus [unit-id]      Praxis-Level für Units ohne Bonus (oder eine Unit neu) erzeugen
+  pnpm pipeline knowledge [unit-id]  Wissenssammlung für Units ohne (aktuelle) Sammlung (oder eine Unit neu) erzeugen
   pnpm pipeline audit [unit-id …]  Blind-Test über bestehende Units, Durchgefallene neu generieren (--no-notify: ohne Telegram)
   pnpm pipeline watchdog            prüfen, ob heute ein nächtlicher Lauf stattfand (sonst Warnung)
   pnpm pipeline telegram-setup      einmalig: Chat-ID nach /start an den Bot in .env eintragen`);

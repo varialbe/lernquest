@@ -32,12 +32,12 @@ app.get('/health', async () => ({ ok: true, running: currentLock()?.runId ?? nul
 app.post<{ Body: { mode?: string; file?: string } | undefined }>('/run', async (req, reply) => {
   const held = currentLock();
   if (held) return reply.code(409).send({ error: 'already_running', runId: held.runId });
-  const mode = ['run', 'backfill', 'dry-run', 'regenerate'].includes(req.body?.mode ?? '') ? req.body!.mode! : 'run';
+  const mode = ['run', 'backfill', 'dry-run', 'regenerate', 'knowledge'].includes(req.body?.mode ?? '') ? req.body!.mode! : 'run';
   const runId = newRunId();
   mkdirSync(join(config.dataDir, 'runs'), { recursive: true });
   const out = openSync(join(config.dataDir, 'runs', `${runId}.stdout`), 'a');
   const args = ['--import', 'tsx', join(config.root, 'pipeline/src/cli.ts'), mode, '--run-id', runId];
-  if (mode === 'regenerate' && req.body?.file) args.push(req.body.file);
+  if ((mode === 'regenerate' || mode === 'knowledge') && req.body?.file) args.push(req.body.file);
   const child = spawn(process.execPath, args, { cwd: join(config.root, 'pipeline'), detached: true, stdio: ['ignore', out, out], env: process.env });
   child.unref();
   closeSync(out);
