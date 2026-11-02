@@ -1,0 +1,518 @@
+{
+  "schemaVersion": 1,
+  "unitId": "eip-03",
+  "module": "EIP",
+  "unitNumber": 3,
+  "unitTitle": "Syntax, Grammatik und Syntaxbäume",
+  "sourceSha": "bffaf7c700134f3f11a4252b1f217b5c11fd732c888b698888624d351084a060",
+  "overview": "Die Unit unterscheidet Syntax und Semantik und zeigt, wie reservierte Wörter und Token-Regeln einzelne Einheiten beschreiben, während Grammatikregeln größere Programmfragmente zusammensetzen. Reguläre Ausdrücke beschreiben vor allem Tokenformen; EBNF und BNF notieren Grammatikregeln. Beim Parsing wird eine Tokenfolge anhand solcher Regeln zu einer Struktur verarbeitet, die ein Syntaxbaum sichtbar macht. Operatorvorrang und die Zuordnung von `else` legen bei bestimmten mehrdeutigen Formen fest, welcher Syntaxbaum gemeint ist.",
+  "entries": [
+    {
+      "id": "eip-03-k01",
+      "term": "Syntax",
+      "kind": "definition",
+      "short": "Die Syntax legt formal fest, welche Wörter und Sätze einer Sprache zulässig sind.",
+      "explanation": "Bei einer Programmiersprache müssen die Regeln so präzise sein, dass eine Maschine prüfen kann, ob ein Programm korrekt geformt ist. Dazu gehören reservierte Wörter, Token-Regeln und Regeln für den Aufbau größerer Fragmente. Syntax allein sagt noch nicht, was ein Programm tut.",
+      "example": "`int zahl;` erfüllt die gezeigte Namens- und Deklarationsform; `int 7zahl;` nicht, weil ein Name nach der Namensregel nicht mit einer Ziffer beginnen darf.",
+      "pitfalls": [
+        "Ein syntaktisch gültiges Programm kann trotzdem ein falsches Ergebnis liefern.",
+        "Syntax beschreibt die Form, Semantik die Bedeutung."
+      ],
+      "related": [
+        "Semantik",
+        "Token",
+        "Grammatikregel",
+        "Kontextbedingung"
+      ],
+      "heading": "Syntax und Semantik"
+    },
+    {
+      "id": "eip-03-k02",
+      "term": "Semantik",
+      "kind": "definition",
+      "short": "Die Semantik ordnet einem syntaktisch beschriebenen Programm eine Bedeutung zu.",
+      "explanation": "Sie beschreibt, was ein Programm bedeutet oder bewirkt, nachdem seine Struktur feststeht. Operationale Semantik beschreibt Ausführungsschritte; denotationale Semantik ordnet dem Programm einen mathematischen Bedeutungswert zu. Ein syntaktisch gültiges Programm kann eine andere Aufgabe lösen als beabsichtigt.",
+      "example": "`write(2 + 2);` ist nach dem vereinfachten Modell zulässig, gibt aber nicht den Wert von `2 · 2 + 1` aus.",
+      "pitfalls": [
+        "Syntax und Semantik beantworten unterschiedliche Fragen: ob ein Programm wohlgeformt ist und was es bedeutet.",
+        "Syntaktische Gültigkeit garantiert keine inhaltliche Korrektheit."
+      ],
+      "related": [
+        "Syntax",
+        "Parsing"
+      ],
+      "heading": "Syntax und Semantik"
+    },
+    {
+      "id": "eip-03-k03",
+      "term": "Bestandteile einer Sprachbeschreibung",
+      "kind": "concept",
+      "short": "Eine Sprachbeschreibung kann reservierte Wörter, Token-Regeln, Grammatikregeln und Kontextbedingungen festlegen.",
+      "explanation": "Reservierte Wörter haben eine feste Rolle, Token-Regeln legen zulässige Zeichenfolgen für Einheiten fest und Grammatikregeln beschreiben deren Zusammensetzung. Kontextbedingungen verlangen zusätzlich, dass ein Programm im Zusammenhang bestimmte Bedingungen erfüllt. Diese Bestandteile prüfen unterschiedliche Ebenen eines Programms.",
+      "example": "Die Regel für `name` beschreibt eine Tokenform; die Regel für `decl` beschreibt eine Deklaration aus mehreren Token und syntaktischen Kategorien.",
+      "pitfalls": [
+        "Nicht jede sinnvolle Bedingung ist bereits durch eine Grammatikregel beschrieben.",
+        "Die Bestandteile erfüllen unterschiedliche Aufgaben und ersetzen einander nicht."
+      ],
+      "related": [
+        "Reserviertes Wort",
+        "Token-Regel",
+        "Grammatikregel",
+        "Kontextbedingung"
+      ],
+      "heading": "Syntax und Semantik"
+    },
+    {
+      "id": "eip-03-k04",
+      "term": "Token",
+      "kind": "definition",
+      "short": "Ein Token ist eine nach Zeichenregeln erkannte Einheit eines Programms.",
+      "explanation": "Token können Schlüsselwörter, Namen, Zahlen oder Sonderzeichen sein. Zeichen wie `(`, `)`, `{`, `}`, `=`, `,` und `;` trennen oder verbinden Programmteile. Ein Token kann aus mehreren Zeichen bestehen und erhält seine Rolle durch die Sprachregeln.",
+      "example": "In `int zahl;` sind `int`, `zahl` und `;` jeweils Token.",
+      "pitfalls": [
+        "Ein Token ist nicht zwingend ein einzelnes Zeichen; ein Schlüsselwort kann aus mehreren Zeichen bestehen.",
+        "Ein Wort, das wie ein Name aussieht, kann als reserviertes Wort eine andere Rolle haben."
+      ],
+      "related": [
+        "Reserviertes Wort",
+        "Regulärer Ausdruck",
+        "Parsing"
+      ],
+      "heading": "Syntax und Semantik"
+    },
+    {
+      "id": "eip-03-k05",
+      "term": "Reserviertes Wort",
+      "kind": "definition",
+      "short": "Ein reserviertes Wort ist ein Token mit fester Sprachrolle, das nicht zugleich als Variablenname verwendet werden darf.",
+      "explanation": "Beispiele im vereinfachten Modell sind `if`, `int`, `else` und `while`. `int` bezeichnet hier einen Grundtyp; `if`, `else` und `while` gehören zu Kontrollstrukturen. Ein Wort kann die Zeichenform eines Namens erfüllen und wegen seiner reservierten Rolle dennoch als Name unzulässig sein.",
+      "example": "`if` ist reserviert; `int2` ist unter der angegebenen Namenskonvention kein reserviertes Wort und kann als Name gelten.",
+      "pitfalls": [
+        "Nicht alle Wörter, die mit einem reservierten Wort beginnen, sind selbst reserviert.",
+        "Welche Wörter reserviert sind, hängt von der jeweiligen Sprache ab."
+      ],
+      "related": [
+        "Token",
+        "Namensregel für name"
+      ],
+      "heading": "Syntax und Semantik"
+    },
+    {
+      "id": "eip-03-k06",
+      "term": "Kontextbedingung",
+      "kind": "definition",
+      "short": "Eine Kontextbedingung ist eine zusätzliche Anforderung an ein Programm, die nicht allein durch seine Grammatikform beschrieben wird.",
+      "explanation": "Sie prüft eine Eigenschaft, für die der Zusammenhang im Programm wichtig ist. Ein Beispiel ist die Forderung, dass eine Variable vor ihrer Benutzung deklariert sein muss. Eine solche Bedingung geht über die Frage hinaus, ob Token in einer grammatisch zulässigen Reihenfolge stehen.",
+      "example": "Ein Fragment kann wie eine Zuweisung aussehen, aber gegen eine Kontextbedingung verstoßen, wenn die verwendete Variable nirgends deklariert wurde.",
+      "pitfalls": [
+        "Eine grammatisch passende Form erfüllt nicht automatisch alle Kontextbedingungen.",
+        "Eine Kontextbedingung beschreibt nicht die Zeichenform eines einzelnen Tokens."
+      ],
+      "related": [
+        "Syntax",
+        "Grammatikregel",
+        "Bestandteile einer Sprachbeschreibung"
+      ],
+      "heading": "Syntax und Semantik"
+    },
+    {
+      "id": "eip-03-k07",
+      "term": "Token-Regel",
+      "kind": "definition",
+      "short": "Eine Token-Regel beschreibt, welche Zeichenfolgen als eine bestimmte Art von Token erkannt werden.",
+      "explanation": "Token-Regeln betreffen beispielsweise Namen oder Zahlen. Die Regel für `name` verlangt einen Buchstaben am Anfang und erlaubt danach Buchstaben oder Ziffern. Eine Token-Regel beschreibt die Form einer Einheit, nicht den vollständigen Aufbau einer Anweisung oder eines Programms.",
+      "example": "Unter der Beispielannahme, dass Buchstaben `A–Z` oder `a–z` und Ziffern `0–9` sind, passt `a7B` zur Namensform.",
+      "pitfalls": [
+        "Die Zeichenklassen müssen festgelegt sein, bevor alle konkreten Fälle entschieden werden können.",
+        "Ein reserviertes Wort kann trotz passender Tokenform als Name ausgeschlossen sein."
+      ],
+      "related": [
+        "Token",
+        "Namensregel für name",
+        "Regulärer Ausdruck"
+      ],
+      "heading": "Namen und reguläre Ausdrücke"
+    },
+    {
+      "id": "eip-03-k08",
+      "term": "Namensregel für name",
+      "kind": "notation",
+      "short": "Die Regel `name ::= letter (letter | digit)*` verlangt zuerst einen Buchstaben und danach beliebig viele Buchstaben oder Ziffern.",
+      "explanation": "`letter` steht für einen Buchstaben und `digit` für eine Ziffer. Die Alternative `(letter | digit)` wird durch das nachgestellte `*` null- oder mehrmals wiederholt; bei jeder Wiederholung kann neu zwischen Buchstabe und Ziffer gewählt werden. Die genaue Definition der Zeichenklassen ist in der Regel nicht festgelegt.",
+      "example": "`x` und `a7B` passen zur Form; `7a` und `a_b` nicht. `if` passt zwar zur Zeichenform, ist aber als reserviertes Wort kein Variablenname.",
+      "pitfalls": [
+        "Das `*` wiederholt die ganze geklammerte Alternative, nicht nur `digit`.",
+        "Die Beispiele mit Buchstaben `A–Z` und `a–z` gelten nur unter dieser ausdrücklich angenommenen Zeichenkonvention."
+      ],
+      "related": [
+        "Token-Regel",
+        "Regulärer Ausdruck",
+        "Reserviertes Wort"
+      ],
+      "heading": "Namen und reguläre Ausdrücke"
+    },
+    {
+      "id": "eip-03-k09",
+      "term": "Regulärer Ausdruck",
+      "kind": "definition",
+      "short": "Ein regulärer Ausdruck beschreibt eine Form von Zeichenfolgen, etwa die Form eines Namens oder eines Zahlen-Tokens.",
+      "explanation": "Muster können Zeichenklassen sowie alternative oder wiederholte Teile enthalten. So beschreibt `(letter letter)*` eine gerade Anzahl von Buchstaben, einschließlich der leeren Folge. Reguläre Ausdrücke eignen sich vor allem für Tokenformen; rekursive Grammatikregeln beschreiben verschachtelte Programmteile.",
+      "example": "`$ digit* 17` beschreibt ein Dollarzeichen, gefolgt von null oder mehr Ziffern und anschließend dem festen Text `17`; passende Folgen sind `$17` und `$0417`. Ebenso beschreibt `letter* test letter*` beliebig viele Buchstaben vor und nach dem festen Text `test`.",
+      "pitfalls": [
+        "Leerzeichen, die ein Muster in einer Erklärung lesbarer machen, müssen keine erlaubten Zeichen sein.",
+        "Ein regulärer Ausdruck für Tokenformen ist nicht automatisch eine vollständige Grammatik für Programme."
+      ],
+      "related": [
+        "Token",
+        "Token-Regel",
+        "Namensregel für name",
+        "Grammatikregel"
+      ],
+      "heading": "Namen und reguläre Ausdrücke"
+    },
+    {
+      "id": "eip-03-k10",
+      "term": "Alternative und Wiederholung in Mustern",
+      "kind": "notation",
+      "short": "In den gezeigten Mustern steht `|` für eine Alternative und `*` für null oder mehr Wiederholungen des vorhergehenden Teils.",
+      "explanation": "`letter | digit` bedeutet, dass an dieser Stelle entweder ein Buchstabe oder eine Ziffer gewählt wird. Bei `(letter | digit)*` wird die ganze Gruppe beliebig oft wiederholt, auch kein einziges Mal. Diese Schreibweisen kommen sowohl in Tokenmustern als auch in EBNF-Regeln vor.",
+      "example": "`(letter letter)*` erlaubt die leere Folge, `ab` und `abcd`, aber keine Folge mit einer ungeraden Anzahl von Buchstaben.",
+      "pitfalls": [
+        "`*` bedeutet null oder mehr, nicht mindestens eine Wiederholung.",
+        "Bei einer Klammergruppe wiederholt `*` die ganze Gruppe."
+      ],
+      "related": [
+        "Regulärer Ausdruck",
+        "Namensregel für name",
+        "EBNF-Notation"
+      ],
+      "heading": "Namen und reguläre Ausdrücke"
+    },
+    {
+      "id": "eip-03-k11",
+      "term": "Grammatikregel",
+      "kind": "definition",
+      "short": "Eine Grammatikregel legt fest, wie ein Fragment einer syntaktischen Kategorie aus Token und anderen Kategorien aufgebaut wird.",
+      "explanation": "Eine Regel hat die Form `A ::= Ausdruck`: Links steht die Kategorie, die beschrieben wird, rechts eine zulässige Struktur. Kategorien können rekursiv aufeinander verweisen, sodass sich verschachtelte Anweisungen und Ausdrücke beschreiben lassen. Eine Sammlung solcher Regeln bildet eine Grammatik.",
+      "example": "`type ::= \"int\"` legt fest, dass in diesem vereinfachten Modell ein `type` aus dem festen Token `int` besteht.",
+      "pitfalls": [
+        "Eine Regel beschreibt den Aufbau einer syntaktischen Form, nicht deren Laufzeitbedeutung.",
+        "Eine Grammatikregel allein deckt nicht zwingend Kontextbedingungen wie die Deklaration einer Variablen ab."
+      ],
+      "related": [
+        "EBNF (Extended Backus–Naur Form)",
+        "BNF (Backus–Naur Form)",
+        "Syntaxbaum",
+        "Kontextbedingung"
+      ],
+      "heading": "Von Tokens zu Programmfragmenten"
+    },
+    {
+      "id": "eip-03-k12",
+      "term": "EBNF (Extended Backus–Naur Form)",
+      "kind": "definition",
+      "short": "EBNF ist eine Notation für Grammatikregeln, die kompakte Schreibweisen für Gruppierung, Wiederholung und Optionalität bietet.",
+      "explanation": "Eine EBNF-Regel hat die Form `A ::= Ausdruck`, wobei links eine syntaktische Kategorie und rechts deren Aufbau steht. Runde Klammern gruppieren Teile, `*` bezeichnet null oder mehr Wiederholungen und `?` kennzeichnet einen optionalen Teil. EBNF schreibt manche Strukturen kürzer auf, die sich in BNF mit zusätzlichen Regeln ausdrücken ließen.",
+      "example": "`decl ::= type name (\",\" name)* \";\"` beschreibt einen Typ, mindestens einen Namen und danach null oder mehr weitere, durch Kommas eingeleitete Namen.",
+      "pitfalls": [
+        "`?` bedeutet optional, also null oder ein Vorkommen; `*` erlaubt beliebig viele Vorkommen.",
+        "Ein Ausdruck in EBNF ist eine Formbeschreibung und kein ausgeführtes Programm."
+      ],
+      "related": [
+        "BNF (Backus–Naur Form)",
+        "Grammatikregel",
+        "EBNF-Notation"
+      ],
+      "heading": "EBNF kompakt"
+    },
+    {
+      "id": "eip-03-k13",
+      "term": "BNF (Backus–Naur Form)",
+      "kind": "definition",
+      "short": "BNF ist die Grundform einer Grammatiknotation mit Produktionsregeln und Alternativen.",
+      "explanation": "In BNF werden Kategorien durch Produktionsregeln beschrieben, und Alternativen geben verschiedene mögliche Formen an. Gruppierung, Wiederholung und Optionalität, die EBNF kompakt notiert, müssen in BNF durch zusätzliche Regeln ausgedrückt werden, häufig mit Rekursion. Beide Notationen beschreiben grammatische Strukturen.",
+      "example": "Eine Wiederholung wie `stmt*` kann in BNF durch eine rekursive Kategorie mit einer leeren Alternative und einer weiteren `stmt`-Folge dargestellt werden.",
+      "pitfalls": [
+        "BNF ist eine Notation für Grammatikregeln, nicht eine andere Bedeutung der Grammatik.",
+        "Die Kurzzeichen `*` und `?` gehören zur hier verwendeten EBNF-Schreibweise."
+      ],
+      "related": [
+        "EBNF (Extended Backus–Naur Form)",
+        "Grammatikregel",
+        "EBNF-Notation"
+      ],
+      "heading": "EBNF kompakt"
+    },
+    {
+      "id": "eip-03-k14",
+      "term": "EBNF-Notation",
+      "kind": "notation",
+      "short": "`::=`, `|`, `(…)`, `*`, `?` und Anführungszeichen geben an, wie eine EBNF-Regel zu lesen ist.",
+      "explanation": "`::=` bedeutet, dass die Kategorie links nach dem Ausdruck rechts gebildet wird; `|` trennt Alternativen. Runde Klammern fassen Teile zusammen, `*` wiederholt den vorhergehenden Teil null- oder mehrmals und `?` macht ihn optional. Ein in Anführungszeichen gesetzter Text bezeichnet ein festes Token beziehungsweise eine feste Zeichenfolge.",
+      "example": "`stmt ::= \";\" | \"{\" stmt* \"}\"` erlaubt als Anweisungsform entweder ein Semikolon oder einen Block mit null oder mehr Anweisungen.",
+      "pitfalls": [
+        "`stmt*` erlaubt auch null Anweisungen.",
+        "Feste Token in Anführungszeichen sind nicht mit Namen syntaktischer Kategorien zu verwechseln."
+      ],
+      "related": [
+        "EBNF (Extended Backus–Naur Form)",
+        "BNF (Backus–Naur Form)",
+        "Grammatikregel"
+      ],
+      "heading": "EBNF kompakt"
+    },
+    {
+      "id": "eip-03-k15",
+      "term": "Vereinfachtes MiniJava-Modell",
+      "kind": "concept",
+      "short": "Das Modell beschreibt Programme mit EBNF-Regeln für Deklarationen, Anweisungen, Ausdrücke und Bedingungen.",
+      "explanation": "Die Regeln bilden ein vereinfachtes MiniJava-Modell ab und sind keine vollständige Grammatik der Java-Sprache. Ein Programm enthält Deklarationen und danach Anweisungen; Anweisungen können wiederum Blöcke oder Ausdrücke enthalten. `binop`, `comp` und `bbinop` sind Platzhalter für Operatorgruppen; die Mitschrift erwähnt außerdem `bunop` als unären logischen Operator, ohne ihn in der dargestellten `cond`-Regel zu verwenden.",
+      "example": "```text\nprogram ::= decl* stmt*\ndecl    ::= type name (\",\" name)* \";\"\ntype    ::= \"int\"\n\nstmt    ::= \";\"\n          | \"{\" stmt* \"}\"\n          | name \"=\" expr \";\"\n          | name \"=\" \"readInt\" \"(\" \")\" \";\"\n          | \"write\" \"(\" expr \")\" \";\"\n          | \"if\" \"(\" cond \")\" stmt (\"else\" stmt)?\n          | \"while\" \"(\" cond \")\" stmt\n\nexpr    ::= number | name | \"(\" expr \")\" | \"-\" expr\n          | expr binop expr\ncond    ::= \"true\" | \"false\" | \"!\" cond | \"(\" cond \")\"\n          | expr comp expr | cond bbinop cond\n```",
+      "pitfalls": [
+        "Die konkreten Mengen für `binop`, `comp` und `bbinop` sind nicht ausgeschrieben; `bunop` erscheint nur in der begleitenden Erläuterung.",
+        "Die Grammatik ist schematisch und darf nicht mit der vollständigen Java-Grammatik gleichgesetzt werden.",
+        "Das Eingabetoken ist `readInt`; `readint` wäre eine andere Schreibweise."
+      ],
+      "related": [
+        "program",
+        "Deklaration (decl)",
+        "Anweisung (stmt)",
+        "Ausdruck (expr)",
+        "Bedingung (cond)",
+        "EBNF (Extended Backus–Naur Form)"
+      ],
+      "heading": "Von Tokens zu Programmfragmenten"
+    },
+    {
+      "id": "eip-03-k16",
+      "term": "program",
+      "kind": "definition",
+      "short": "Im vereinfachten Modell besteht ein `program` aus null oder mehr Deklarationen und danach null oder mehr Anweisungen.",
+      "explanation": "Die EBNF-Regel lautet `program ::= decl* stmt*`. Zuerst können Deklarationen vorkommen, danach Anweisungen; beide Folgen dürfen leer sein. Die Regel beschreibt damit auch Programme ohne Deklarationen oder Anweisungen.",
+      "example": "`int x; write(x);` entspricht dem Schema mit einer Deklaration und einer Anweisung.",
+      "pitfalls": [
+        "Die Reihenfolge ist festgelegt: Deklarationen stehen vor den Anweisungen.",
+        "`*` erlaubt null Vorkommen, verlangt also weder eine Deklaration noch eine Anweisung."
+      ],
+      "related": [
+        "Deklaration (decl)",
+        "Anweisung (stmt)",
+        "EBNF-Notation"
+      ],
+      "heading": "Von Tokens zu Programmfragmenten"
+    },
+    {
+      "id": "eip-03-k17",
+      "term": "Deklaration (decl)",
+      "kind": "definition",
+      "short": "Eine `decl` enthält im vereinfachten Modell einen Typ, mindestens einen Namen, optional weitere komma-getrennte Namen und ein abschließendes Semikolon.",
+      "explanation": "Die Regel lautet `decl ::= type name (\",\" name)* \";\"`. `type` ist hier ausschließlich `int`. Der erste `name` ist zwingend vorhanden; die Wiederholung erlaubt null oder mehr zusätzliche Namen, jeweils mit vorangestelltem Komma.",
+      "example": "`int x;` und `int x, y, z;` passen zur Deklarationsform.",
+      "pitfalls": [
+        "`int;` ist nach dieser Regel keine Deklaration, weil mindestens ein Name erforderlich ist.",
+        "Die Namenliste nach dem ersten Namen darf fehlen."
+      ],
+      "related": [
+        "program",
+        "Namensregel für name",
+        "EBNF-Notation"
+      ],
+      "heading": "Von Tokens zu Programmfragmenten"
+    },
+    {
+      "id": "eip-03-k18",
+      "term": "Anweisung (stmt)",
+      "kind": "definition",
+      "short": "Eine `stmt` ist im vereinfachten Modell eine leere Anweisung, ein Block, eine Zuweisung, Eingabe, Ausgabe, ein bedingter Zweig oder eine Schleife.",
+      "explanation": "Die Grammatik lässt `;`, `{ stmt* }`, eine Zuweisung mit Ausdruck, eine Zuweisung mit `readInt()`, `write(expr)`, `if` mit optionalem `else` und `while` zu. Anweisungen können in Blöcken und als Zweige anderer Anweisungen verschachtelt werden. Die Regel beschreibt zulässige Formen, nicht deren Ausführungswirkung.",
+      "example": "`x = -3;`, `x = readInt();` und `write(x + 1);` sind Beispiele verschiedener Anweisungsformen.",
+      "pitfalls": [
+        "Ein `if` kann nach dieser Regel auch ohne `else` auftreten.",
+        "`readInt` und `write` sind in diesem Modell fest ausgeschriebene Tokenfolgen."
+      ],
+      "related": [
+        "Leere Anweisung",
+        "Block",
+        "Ausdruck (expr)",
+        "Bedingung (cond)",
+        "Mehrdeutigkeit",
+        "else-Zuordnung"
+      ],
+      "heading": "Von Tokens zu Programmfragmenten"
+    },
+    {
+      "id": "eip-03-k19",
+      "term": "Leere Anweisung",
+      "kind": "definition",
+      "short": "Die leere Anweisung `;` ist eine vollständige Anweisung, die nichts ausführt.",
+      "explanation": "In der Anweisungsgrammatik ist das einzelne Semikolon eine eigene Alternative für `stmt`. Es kann an einer Stelle stehen, an der eine Anweisung erwartet wird, obwohl dort keine weitere Aktion erfolgen soll. Das Semikolon bleibt dabei ein erforderliches Token.",
+      "example": "`;`",
+      "pitfalls": [
+        "Eine leere Anweisung ist nicht dasselbe wie das Weglassen eines erforderlichen Statements.",
+        "Sie ist eine syntaktische Anweisung, auch wenn sie keine sichtbare Aktion ausführt."
+      ],
+      "related": [
+        "Anweisung (stmt)",
+        "Block"
+      ],
+      "heading": "Von Tokens zu Programmfragmenten"
+    },
+    {
+      "id": "eip-03-k20",
+      "term": "Block",
+      "kind": "definition",
+      "short": "Ein Block ist eine Anweisung der Form `{ stmt* }` und enthält null oder mehr Anweisungen.",
+      "explanation": "Die geschweiften Klammern markieren Anfang und Ende des Blocks. Wegen `stmt*` darf der Block leer sein oder mehrere Anweisungen enthalten. Als Anweisung kann ein Block beispielsweise an der Stelle eines `if`- oder `while`-Zweigs stehen.",
+      "example": "`{ write(1); write(0); }`",
+      "pitfalls": [
+        "Ein Block darf nach dieser Regel leer sein.",
+        "Die geschweiften Klammern gehören zur Syntax des Blocks."
+      ],
+      "related": [
+        "Anweisung (stmt)",
+        "Leere Anweisung"
+      ],
+      "heading": "Von Tokens zu Programmfragmenten"
+    },
+    {
+      "id": "eip-03-k21",
+      "term": "Ausdruck (expr)",
+      "kind": "definition",
+      "short": "Ein `expr` ist im vereinfachten Modell eine Zahl, ein Name, ein geklammerter Ausdruck, eine unäre Negation oder eine Verknüpfung zweier Ausdrücke mit einem binären Operator.",
+      "explanation": "Die rekursive Regel enthält Formen wie `number`, `name`, `(expr)`, `- expr` und `expr binop expr`. Weil ein Ausdruck andere Ausdrücke enthalten kann, lassen sich verschachtelte Formen bilden. Die konkreten Operatoren und ihre Vorrangregeln sind durch diese schematische Regel allein nicht vollständig festgelegt.",
+      "example": "`x + (y * z)` besteht aus verschachtelten Ausdrücken; `-3` verwendet die unäre Negation.",
+      "pitfalls": [
+        "`- expr` ist eine unäre Form; `expr binop expr` hat zwei Operanden.",
+        "Ohne Vorrangkonvention kann `expr binop expr` mehrere Baumstrukturen zulassen."
+      ],
+      "related": [
+        "Bedingung (cond)",
+        "Parsing",
+        "Syntaxbaum",
+        "Mehrdeutigkeit",
+        "Operatorvorrang"
+      ],
+      "heading": "Von Tokens zu Programmfragmenten"
+    },
+    {
+      "id": "eip-03-k22",
+      "term": "Bedingung (cond)",
+      "kind": "definition",
+      "short": "Eine `cond` ist im vereinfachten Modell ein Wahrheitswert, eine Negation, eine geklammerte Bedingung, ein Vergleich oder eine Verknüpfung von Bedingungen.",
+      "explanation": "Die dargestellte Regel erlaubt `true`, `false`, `! cond`, `(cond)`, einen Vergleich der Form `expr comp expr` oder `cond bbinop cond`. Dadurch können Bedingungen rekursiv zusammengesetzt und verschachtelt werden. Die konkreten Vergleichsoperatoren (`comp`) und binären logischen Operatoren (`bbinop`) sind nicht angegeben.",
+      "example": "`x > 0` ist schematisch ein Vergleich zweier Ausdrücke, sofern `>` zur nicht näher festgelegten Operatorgruppe `comp` gehört.",
+      "pitfalls": [
+        "`comp` und `bbinop` sind Platzhalter für Operatorgruppen, keine festgelegten einzelnen Token.",
+        "Die begleitende Erläuterung erwähnt `bunop` als unären logischen Operator, aber die dargestellte Regel verwendet stattdessen ausdrücklich `! cond`."
+      ],
+      "related": [
+        "Anweisung (stmt)",
+        "Ausdruck (expr)",
+        "Grammatikregel",
+        "Syntaxbaum"
+      ],
+      "heading": "Von Tokens zu Programmfragmenten"
+    },
+    {
+      "id": "eip-03-k23",
+      "term": "Parsing",
+      "kind": "method",
+      "short": "Parsing wendet Grammatikregeln auf eine Tokenfolge an und baut daraus eine Struktur für das Programm.",
+      "explanation": "Beim Parsing wird geprüft, ob die Tokenfolge durch die Regeln der Grammatik erzeugt werden kann. Passende Regelanwendungen werden rekursiv auf Fragmente angewendet und ihre Verschachtelung wird in einem Syntaxbaum festgehalten. Wenn eine Grammatik mehrere Strukturen zulässt, braucht es eine Konvention oder eine genauere Grammatik, um die beabsichtigte Struktur auszuwählen.",
+      "example": "Beim Parsing von `x + y * z` werden die Token gemäß der festgelegten Vorrangregel zu einer Baumstruktur gruppiert.",
+      "pitfalls": [
+        "Parsing arbeitet auf Tokenfolgen; die Erkennung der einzelnen Token ist eine eigene Stufe.",
+        "Wenn eine Grammatik mehrere Bäume zulässt, ist die Struktur ohne weitere Konvention mehrdeutig."
+      ],
+      "related": [
+        "Token",
+        "Grammatikregel",
+        "Syntaxbaum",
+        "Mehrdeutigkeit"
+      ],
+      "heading": "Mehrdeutigkeit und Parsing"
+    },
+    {
+      "id": "eip-03-k24",
+      "term": "Syntaxbaum",
+      "kind": "definition",
+      "short": "Ein Syntaxbaum zeigt, wie eine Tokenfolge durch Regelanwendungen zu verschachtelten Programmfragmenten zusammengesetzt ist.",
+      "explanation": "Innere Knoten stehen typischerweise für syntaktische Kategorien oder Regelanwendungen; Blätter stehen für Token. Liest man die Blätter von links nach rechts, erhält man die Tokenfolge des dargestellten Fragments. Ein zusammengefasst dargestellter Teilbaum kann als Abkürzung für einen vollständigen Unterbaum dienen.",
+      "example": "Für `x + (y * z)` kann ein `expr`-Knoten als Wurzel den Operator `+` und zwei Ausdrucksteilbäume haben; der rechte Teilbaum enthält `y * z`.",
+      "pitfalls": [
+        "Ein Syntaxbaum zeigt die syntaktische Struktur, nicht automatisch die Bedeutung oder das Ausführungsergebnis.",
+        "Die Baumblätter müssen von links nach rechts die dargestellte Tokenfolge ergeben."
+      ],
+      "related": [
+        "Parsing",
+        "Grammatikregel",
+        "Mehrdeutigkeit",
+        "Operatorvorrang"
+      ],
+      "heading": "Mehrdeutigkeit und Parsing"
+    },
+    {
+      "id": "eip-03-k25",
+      "term": "Mehrdeutigkeit",
+      "kind": "definition",
+      "short": "Eine Grammatik ist für eine Tokenfolge mehrdeutig, wenn sie für diese Folge mehrere Syntaxbäume zulässt.",
+      "explanation": "Bei einer mehrdeutigen Grammatik können dieselben Token auf unterschiedliche Weisen gruppiert werden. Für `x + y * z` sind ohne Vorrangregel beispielsweise `(x + y) * z` und `x + (y * z)` denkbar. Eine Konvention oder eine präzisere Grammatik legt fest, welche Struktur gemeint ist.",
+      "example": "Die Regel `expr ::= expr binop expr` allein legt bei gemischten Operatoren nicht fest, welcher Operator zuerst bindet.",
+      "pitfalls": [
+        "Mehrdeutigkeit betrifft mehrere mögliche Strukturen derselben Tokenfolge, nicht mehrere verschiedene Schreibweisen.",
+        "Ein Syntaxbaum zeigt eine gewählte Interpretation, beseitigt aber nicht die Mehrdeutigkeit der Grammatikregel."
+      ],
+      "related": [
+        "Parsing",
+        "Syntaxbaum",
+        "Operatorvorrang",
+        "else-Zuordnung"
+      ],
+      "heading": "Mehrdeutigkeit und Parsing"
+    },
+    {
+      "id": "eip-03-k26",
+      "term": "Operatorvorrang",
+      "kind": "concept",
+      "short": "Nach der üblichen Java-Prioritätsregel bindet `*` stärker als `+` und `-`.",
+      "explanation": "Bei einem Ausdruck wie `x + y * z` wird deshalb zuerst `y * z` gruppiert und anschließend mit `x` addiert. Die entsprechende Struktur ist `x + (y * z)`. Diese Konvention wählt zwischen möglichen Syntaxbäumen für dieselbe Tokenfolge.",
+      "example": "`a + b * c` wird als `a + (b * c)` gelesen.",
+      "pitfalls": [
+        "Ohne Vorrangregel lässt die allgemeine binäre Ausdrucksregel verschiedene Gruppierungen zu.",
+        "Vorrang legt fest, welcher Operator stärker bindet; weitere Konventionen können zusätzlich nötig sein."
+      ],
+      "related": [
+        "Ausdruck (expr)",
+        "Mehrdeutigkeit",
+        "Parsing",
+        "Syntaxbaum"
+      ],
+      "heading": "Mehrdeutigkeit und Parsing"
+    },
+    {
+      "id": "eip-03-k27",
+      "term": "else-Zuordnung",
+      "kind": "concept",
+      "short": "Bei verschachtelten `if`-Anweisungen gehört `else` zum nächsten noch nicht mit `else` verbundenen `if`.",
+      "explanation": "Diese Konvention entscheidet, zu welchem bedingten Zweig ein `else` gehört, wenn mehrere `if`-Anweisungen verschachtelt sind. In `if (a) if (b) write(1); else write(0);` wird das `else` dem inneren `if (b)` zugeordnet. Geschweifte Klammern können die gewünschte Gruppierung ausdrücklich festlegen.",
+      "example": "```text\nif (a)\n    if (b) write(1);\n    else write(0);  // else gehört zum inneren if\n```",
+      "pitfalls": [
+        "Einrückung allein bestimmt die Zuordnung nicht; maßgeblich ist die Regel für das nächste offene `if`.",
+        "Bei gewünschter äußerer Zuordnung sollte die Struktur durch geschweifte Klammern ausdrücklich festgelegt werden."
+      ],
+      "related": [
+        "Anweisung (stmt)",
+        "Mehrdeutigkeit",
+        "Parsing",
+        "Syntaxbaum"
+      ],
+      "heading": "Mehrdeutigkeit und Parsing"
+    }
+  ],
+  "generator": {
+    "model": "gpt-6-luna",
+    "effort": "xhigh",
+    "promptVersion": "k1",
+    "generatedAt": "2026-11-02T12:24:03.434Z"
+  }
+}
