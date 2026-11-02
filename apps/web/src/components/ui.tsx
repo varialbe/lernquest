@@ -1,6 +1,6 @@
-import { AnimatePresence, motion } from 'motion/react';
+import { animate, AnimatePresence, motion, useMotionValue, useTransform } from 'motion/react';
 import type { ButtonHTMLAttributes, ReactNode } from 'react';
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { MathText, plainMath } from './MathText.tsx';
 
 type Variant = 'primary' | 'success' | 'error' | 'secondary' | 'gold' | 'ghost' | 'danger-outline';
@@ -71,6 +71,81 @@ export function Pill({ children, className = '' }: { children: ReactNode; classN
 }
 
 /** Bottom-Sheet (mobil) bzw. zentriertes Modal. */
+/**
+ * Nach unten wegwischen (Bottom-Sheet): Touch zieht das Sheet nur, solange der Inhalt ganz oben ist –
+ * sonst wird normal gescrollt. Mit der Maus über den Griff. Weit genug oder schnell genug → schließen.
+ */
+function useSwipeToClose(onClose: () => void) {
+  const ref = useRef<HTMLDivElement>(null);
+  const y = useMotionValue(0);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    let startY = 0;
+    let startT = 0;
+    let dragging = false;
+    let tracking = false;
+    const finish = (dy: number, dt: number) => {
+      const fast = dy > 60 && dy / Math.max(dt, 1) > 0.6; // px/ms
+      if (dy > 120 || fast) {
+        void animate(y, el.offsetHeight + 40, { duration: 0.18 }).then(onClose);
+      } else void animate(y, 0, { type: 'spring', stiffness: 500, damping: 40 });
+    };
+    const onStart = (e: TouchEvent) => {
+      startY = e.touches[0]!.clientY;
+      startT = Date.now();
+      dragging = false;
+      tracking = el.scrollTop <= 0;
+    };
+    const onMove = (e: TouchEvent) => {
+      if (!tracking) return;
+      const dy = e.touches[0]!.clientY - startY;
+      if (!dragging) {
+        if (dy < -4 || el.scrollTop > 0) {
+          tracking = false; // nach oben → normal scrollen
+          return;
+        }
+        if (dy < 6) return;
+        dragging = true;
+      }
+      e.preventDefault(); // kein Gummiband-Scrollen, stattdessen das Sheet ziehen
+      y.set(Math.max(0, dy));
+    };
+    const onEnd = (e: TouchEvent) => {
+      if (!dragging) return;
+      dragging = false;
+      finish((e.changedTouches[0]?.clientY ?? startY) - startY, Date.now() - startT);
+    };
+    el.addEventListener('touchstart', onStart, { passive: true });
+    el.addEventListener('touchmove', onMove, { passive: false });
+    el.addEventListener('touchend', onEnd);
+    el.addEventListener('touchcancel', onEnd);
+    return () => {
+      el.removeEventListener('touchstart', onStart);
+      el.removeEventListener('touchmove', onMove);
+      el.removeEventListener('touchend', onEnd);
+      el.removeEventListener('touchcancel', onEnd);
+    };
+  }, [onClose, y]);
+  /** Maus/Stift: am Griff ziehen */
+  const onHandlePointerDown = (e: { pointerType: string; clientY: number }) => {
+    if (e.pointerType === 'touch') return;
+    const startY = e.clientY;
+    const startT = Date.now();
+    const move = (ev: PointerEvent) => y.set(Math.max(0, ev.clientY - startY));
+    const up = (ev: PointerEvent) => {
+      window.removeEventListener('pointermove', move);
+      window.removeEventListener('pointerup', up);
+      const dy = ev.clientY - startY;
+      if (dy > 120 || (dy > 60 && dy / Math.max(Date.now() - startT, 1) > 0.6)) void animate(y, (ref.current?.offsetHeight ?? 600) + 40, { duration: 0.18 }).then(onClose);
+      else void animate(y, 0, { type: 'spring', stiffness: 500, damping: 40 });
+    };
+    window.addEventListener('pointermove', move);
+    window.addEventListener('pointerup', up);
+  };
+  return { ref, y, onHandlePointerDown };
+}
+
 export function Modal({ open, onClose, children, title }: { open: boolean; onClose: () => void; children: ReactNode; title?: string }) {
   useEffect(() => {
     if (!open) return;
@@ -78,29 +153,37 @@ export function Modal({ open, onClose, children, title }: { open: boolean; onClo
     window.addEventListener('keydown', h);
     return () => window.removeEventListener('keydown', h);
   }, [open, onClose]);
+  return <AnimatePresence>{open && <Sheet onClose={onClose} title={title}>{children}</Sheet>}</AnimatePresence>;
+}
+
+function Sheet({ onClose, children, title }: { onClose: () => void; children: ReactNode; title?: string }) {
+  const swipe = useSwipeToClose(onClose);
+  // Hintergrund wird beim Ziehen heller
+  const backdrop = useTransform(swipe.y, [0, 400], [1, 0.2]);
   return (
-    <AnimatePresence>
-      {open && (
-        <motion.div className="fixed inset-0 z-50 flex items-end justify-center bg-black/45 sm:items-center" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose}>
+        <motion.div className="fixed inset-0 z-50 flex items-end justify-center sm:items-center" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose}>
+          <motion.div className="absolute inset-0 bg-black/45" style={{ opacity: backdrop }} aria-hidden />
           <motion.div
+            ref={swipe.ref}
+            style={{ y: swipe.y }}
             role="dialog"
             aria-modal
             aria-label={title ? plainMath(title) : undefined}
             // safe-area-Abstand zusätzlich zum normalen Innenabstand (sonst klebt der Button unten und sein 3D-Schatten wird abgeschnitten)
-            className="max-h-[92dvh] w-full max-w-md overflow-y-auto rounded-t-3xl bg-surface p-5 pb-[calc(1.5rem+env(safe-area-inset-bottom))] shadow-2xl sm:rounded-3xl"
+            className="relative max-h-[92dvh] w-full overscroll-contain max-w-md overflow-y-auto rounded-t-3xl bg-surface p-5 pb-[calc(1.5rem+env(safe-area-inset-bottom))] shadow-2xl sm:rounded-3xl"
             initial={{ y: 60, opacity: 0.6 }}
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: 80, opacity: 0 }}
             transition={{ type: 'spring', stiffness: 380, damping: 32 }}
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="mx-auto mb-3 h-1.5 w-12 rounded-full bg-line sm:hidden" />
+            <div className="-mx-5 -mt-5 mb-1 flex cursor-grab touch-none justify-center pb-2 pt-3 active:cursor-grabbing sm:hidden" onPointerDown={swipe.onHandlePointerDown} aria-hidden>
+              <div className="h-1.5 w-12 rounded-full bg-line" />
+            </div>
             {title && <h2 className="mb-3 text-xl font-black"><MathText text={title} /></h2>}
             {children}
           </motion.div>
         </motion.div>
-      )}
-    </AnimatePresence>
   );
 }
 
