@@ -1,14 +1,14 @@
 import { useQuery } from '@tanstack/react-query';
 import { AnimatePresence, motion } from 'motion/react';
-import { useEffect, useMemo, useState } from 'react';
+import { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import { Link, useSearch } from 'wouter';
-import { KNOWLEDGE_KIND_LABEL, MODULE_INFO, MODULES, type KnowledgeEntry, type KnowledgeModuleResponse, type ModuleId } from '@lernquest/shared';
+import { KNOWLEDGE_KIND_LABEL, MODULE_INFO, MODULES, type KnowledgeEntryView as KnowledgeEntry, type KnowledgeModuleResponse, type ModuleId } from '@lernquest/shared';
 import { Icon } from '../components/icons.tsx';
 import { Markdown } from '../components/Markdown.tsx';
 import { MathText, plainMath } from '../components/MathText.tsx';
 import { Mascot } from '../components/Pet.tsx';
 import { Page } from '../components/Shell.tsx';
-import { Card, Pill, Segmented, Spinner } from '../components/ui.tsx';
+import { Button, Card, Modal, Pill, Segmented, Spinner } from '../components/ui.tsx';
 import { api } from '../lib/api.ts';
 import { savedModule } from '../lib/queries.ts';
 import { moduleColor } from '../lib/theme.ts';
@@ -42,9 +42,160 @@ function search(units: UnitK[], q: string): Hit[] {
   return hits.sort((a, b) => b.score - a.score || a.unit.unitNumber - b.unit.unitNumber).slice(0, 60);
 }
 
+/** Voraussetzungs-Graph des Moduls (aus der API) + Navigation */
+type Graph = {
+  byId: Map<string, { e: KnowledgeEntry; unit: UnitK }>;
+  usedBy: Map<string, string[]>;
+  jump: (id: string) => void;
+  explain: (id: string) => void;
+};
+const GraphCtx = createContext<Graph | null>(null);
+
+/**
+ * Lernpfad „von Grund auf“: alle (transitiven) Voraussetzungen bis zum Begriff, Grundlagen zuerst.
+ * Deterministisch aus dem Graphen; bei großen Bäumen die nächsten `max` Schritte.
+ */
+export function learningPath(target: string, requires: (id: string) => { id: string }[], max = 12): string[] {
+  const depth = new Map<string, number>([[target, 0]]);
+  const queue = [target];
+  while (queue.length) {
+    const cur = queue.shift()!;
+    for (const l of requires(cur)) {
+      if (depth.has(l.id)) continue;
+      depth.set(l.id, depth.get(cur)! + 1);
+      queue.push(l.id);
+    }
+  }
+  const keep = new Set([...depth.entries()].sort((a, b) => a[1] - b[1]).slice(0, max).map(([id]) => id));
+  const out: string[] = [];
+  const seen = new Set<string>();
+  const visit = (id: string) => {
+    if (seen.has(id) || !keep.has(id)) return;
+    seen.add(id);
+    for (const l of requires(id)) visit(l.id);
+    out.push(id);
+  };
+  visit(target);
+  return out;
+}
+
+function PathView({ target, onClose }: { target: string; onClose: () => void }) {
+  const g = useContext(GraphCtx)!;
+  const req = (id: string) => g.byId.get(id)?.e.requires ?? [];
+  const steps = learningPath(target, req);
+  const [open, setOpen] = useState<string | null>(target);
+  const t = g.byId.get(target);
+  if (!t) return null;
+  return (
+    <Modal open onClose={onClose} title={`Von Grund auf: ${t.e.term}`}>
+      <p className="-mt-1 mb-3 text-sm font-semibold text-muted">
+        {steps.length - 1} {steps.length === 2 ? 'Grundlage' : 'Grundlagen'}, dann der Begriff selbst. Tippe einen Schritt an, um die Erklärung zu sehen.
+      </p>
+      <ol className="relative space-y-2 border-l-2 border-dashed border-line pl-4">
+        {steps.map((id, i) => {
+          const x = g.byId.get(id)!;
+          const isTarget = id === target;
+          // wofür braucht man diesen Schritt (spätere Schritte, die ihn voraussetzen)
+          const forSteps = steps.slice(i + 1).flatMap((later) => {
+            const link = req(later).find((l) => l.id === id);
+            return link ? [{ term: g.byId.get(later)!.e.term, why: (link as { why?: string }).why ?? '' }] : [];
+          });
+          const expanded = open === id;
+          return (
+            <li key={id} className="relative">
+              <span
+                className={`absolute -left-[1.6rem] top-3 flex h-5 w-5 items-center justify-center rounded-full text-[0.65rem] font-black text-white ${isTarget ? 'bg-primary' : 'bg-muted'}`}
+                aria-hidden
+              >
+                {i + 1}
+              </span>
+              <div className={`rounded-2xl border-2 bg-surface ${isTarget ? 'border-primary' : 'border-line'}`}>
+                <button className="w-full p-3 text-left" onClick={() => setOpen(expanded ? null : id)} aria-expanded={expanded}>
+                  <div className="flex flex-wrap items-center gap-1.5">
+                    <span className="font-black">{x.e.term}</span>
+                    <Pill className="bg-surface-2 text-muted">{KNOWLEDGE_KIND_LABEL[x.e.kind]}</Pill>
+                    <span className="ml-auto text-xs font-bold text-muted">Unit {x.unit.unitNumber}</span>
+                  </div>
+                  <Markdown inline text={x.e.short} className="mt-1 block text-sm font-semibold text-muted" />
+                  {forSteps.length > 0 && (
+                    <p className="mt-1 text-xs font-bold text-primary">
+                      → nötig für {forSteps.map((f) => f.term).join(', ')}
+                      {forSteps[0]!.why && <span className="font-semibold text-muted">: {plainMath(forSteps[0]!.why)}</span>}
+                    </p>
+                  )}
+                </button>
+                {expanded && (
+                  <div className="border-t-2 border-line px-3 pb-3 pt-2 text-sm">
+                    <Markdown text={x.e.explanation} />
+                    {x.e.example && (
+                      <div className="mt-2 rounded-xl bg-surface-2 p-2.5">
+                        <p className="mb-1 text-xs font-black uppercase tracking-wider text-muted">Beispiel</p>
+                        <Markdown text={x.e.example} />
+                      </div>
+                    )}
+                  </div>
+                )}
+              </div>
+            </li>
+          );
+        })}
+      </ol>
+      <Button full variant="secondary" className="mt-4" onClick={() => g.jump(target)}>
+        Zum Eintrag
+      </Button>
+    </Modal>
+  );
+}
+
+function Prereqs({ e }: { e: KnowledgeEntry }) {
+  const g = useContext(GraphCtx);
+  if (!g) return null;
+  const req = e.requires.filter((r) => g.byId.has(r.id));
+  const used = (g.usedBy.get(e.id) ?? []).filter((id) => g.byId.has(id));
+  if (!req.length && !used.length) return null;
+  return (
+    <div className="mt-3 rounded-xl bg-surface-2 p-3">
+      {req.length > 0 && (
+        <>
+          <p className="text-xs font-black uppercase tracking-wider text-muted">Dafür brauchst du</p>
+          <ul className="mt-1 space-y-1 text-sm">
+            {req.map((r) => (
+              <li key={r.id} className="font-semibold">
+                <button onClick={() => g.jump(r.id)} className="font-extrabold text-primary underline decoration-2 underline-offset-2 active:opacity-70">
+                  {g.byId.get(r.id)!.e.term}
+                </button>
+                {r.why && (
+                  <span className="text-muted">
+                    {' – '}
+                    <Markdown inline text={r.why} />
+                  </span>
+                )}
+              </li>
+            ))}
+          </ul>
+          <Button full variant="secondary" className="mt-3" onClick={() => g.explain(e.id)}>
+            <Icon name="sparkle" size={18} />
+            Von Grund auf erklären
+          </Button>
+        </>
+      )}
+      {used.length > 0 && (
+        <div className={`flex flex-wrap items-center gap-1.5 ${req.length ? 'mt-3' : ''}`}>
+          <span className="text-xs font-black uppercase tracking-wider text-muted">Baut darauf auf</span>
+          {used.slice(0, 8).map((id) => (
+            <button key={id} onClick={() => g.jump(id)} className="rounded-full border-2 border-line bg-surface px-2 py-0.5 text-xs font-extrabold text-primary active:scale-95">
+              {g.byId.get(id)!.e.term}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
 function EntryCard({ e, color, unitLabel, open, onToggle, onRelated }: { e: KnowledgeEntry; color: string; unitLabel?: string; open: boolean; onToggle: () => void; onRelated: (t: string) => void }) {
   return (
-    <div id={e.id} className={`rounded-2xl border-2 bg-surface transition-colors ${open ? 'border-[color:var(--acc)]' : 'border-line'}`} style={{ ['--acc' as string]: color }}>
+    <div id={e.id} className={`scroll-mt-24 rounded-2xl border-2 bg-surface transition-colors ${open ? 'border-[color:var(--acc)]' : 'border-line'}`} style={{ ['--acc' as string]: color }}>
       <button onClick={onToggle} aria-expanded={open} className="flex w-full items-start gap-2 p-3 text-left">
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-1.5">
@@ -79,6 +230,7 @@ function EntryCard({ e, color, unitLabel, open, onToggle, onRelated }: { e: Know
                   </ul>
                 </div>
               )}
+              <Prereqs e={e} />
               {e.related.length > 0 && (
                 <div className="mt-3 flex flex-wrap gap-1.5">
                   <span className="text-xs font-black uppercase tracking-wider text-muted">Siehe auch</span>
@@ -116,6 +268,26 @@ export default function Knowledge() {
     if (q && hits[0] && norm(hits[0].e.term) === norm(q)) setOpenEntry(hits[0].e.id);
   }, [data]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // Graph: Eintrag → Unit, „baut darauf auf“ (umgekehrte Kanten)
+  const graph = useMemo<Omit<Graph, 'jump' | 'explain'>>(() => {
+    const byId = new Map<string, { e: KnowledgeEntry; unit: UnitK }>();
+    const usedBy = new Map<string, string[]>();
+    for (const unit of units) for (const e of unit.entries) byId.set(e.id, { e, unit });
+    for (const { e } of byId.values()) for (const r of e.requires) usedBy.set(r.id, [...(usedBy.get(r.id) ?? []), e.id]);
+    return { byId, usedBy };
+  }, [units]);
+  const [pathFor, setPathFor] = useState<string | null>(null);
+  const jump = (id: string) => {
+    const hit = graph.byId.get(id);
+    if (!hit) return;
+    setPathFor(null);
+    setQ('');
+    setOpenUnit(hit.unit.unitId);
+    setOpenEntry(id);
+    setTimeout(() => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 250);
+  };
+  const ctx: Graph = { ...graph, jump, explain: setPathFor };
+
   const related = (term: string) => {
     setQ(term);
     setOpenEntry(null);
@@ -123,6 +295,7 @@ export default function Knowledge() {
   };
 
   return (
+    <GraphCtx.Provider value={ctx}>
     <Page
       topLeft={
         <Link href="/train" className="flex items-center gap-1 text-xl font-black">
@@ -225,6 +398,8 @@ export default function Knowledge() {
           })}
         </div>
       )}
+      {pathFor && <PathView target={pathFor} onClose={() => setPathFor(null)} />}
     </Page>
+    </GraphCtx.Provider>
   );
 }

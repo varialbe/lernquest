@@ -23,6 +23,7 @@ const Train = lazy(() => import('./pages/Train.tsx'));
 const Mastery = lazy(() => import('./pages/Mastery.tsx'));
 const Duels = lazy(() => import('./pages/Duels.tsx'));
 const Knowledge = lazy(() => import('./pages/Knowledge.tsx'));
+const Cards = lazy(() => import('./pages/Cards.tsx'));
 
 /** Jede Runde bekommt beim Öffnen eine neue Server-Runde (eigener Query-Key pro Aufruf). */
 function RunQuiz(props: Omit<RunSpec, 'key'>) {
@@ -128,6 +129,7 @@ function Authed({ onLogin, onLogout }: { onLogin: (t: string) => void; onLogout:
         <Route path="/mastery" component={Mastery} />
         <Route path="/duels" component={Duels} />
         <Route path="/wissen" component={Knowledge} />
+        <Route path="/karten" component={Cards} />
         <Route path="/weak/:module">{(p) => <RunQuiz url="/api/runs/weak" body={{ module: p.module }} back="/train" />}</Route>
         <Route path="/exam/:module">{(p) => <RunQuiz url="/api/runs/exam" body={{ module: p.module }} back="/train" />}</Route>
         <Route path="/duel/:id">{(p) => <RunQuiz url={`/api/duels/${p.id}/play`} back="/duels" />}</Route>
