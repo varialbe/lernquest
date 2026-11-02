@@ -1,0 +1,403 @@
+{
+  "schemaVersion": 1,
+  "unitId": "era-08",
+  "module": "ERA",
+  "unitNumber": 8,
+  "unitTitle": "RISC-V: Speicher und Programmablauf",
+  "sourceSha": "27467f29e703b0a4feb7e3ba3a4d1ecdd3040d592503532596f0f07b6f21fd8e",
+  "overview": "Diese Unit erklärt Speicherzugriffe in RV32 und zeigt, wie Bytes, Words, Strings, Arrays und Structs im Speicher liegen. Sie behandelt Sections, Pointerarithmetik sowie die Verwaltung von Stack und Heap. Bedingte Sprünge und Schleifen steuern den Programmablauf; Unterprogrammaufrufe verwenden eine Rücksprungadresse und erfordern bei Bedarf die Sicherung von Registern.",
+  "entries": [
+    {
+      "id": "era-08-k01",
+      "term": "RV32-Notation",
+      "kind": "notation",
+      "short": "Die Notation benennt Register, Immediate-Werte, Speicheradressen und Sprungziele in RV32-Befehlen.",
+      "explanation": "RV32 verwendet 32-Bit-Register und 32-Bit-Pointer. `rd` bezeichnet das Zielregister, `rs`, `rs1` und `rs2` bezeichnen Quellregister; `ra` ist die Rücksprungadresse und entspricht `x1`. `imm` steht für ein 12-Bit-signed-Immediate, `uimm` für ein 5-Bit-unsigned-Immediate, etwa eine Schiebeweite, und `upimm` für den oberen 20-Bit-Teil eines 32-Bit-Immediates. `Address` ist eine Speicheradresse, `[Address]` das dort gespeicherte Datum und `BTA` beziehungsweise `JTA` das Branch- beziehungsweise Jump-Ziel.",
+      "example": "In `lw t0, 4(sp)` ist `t0` das Zielregister, `sp` das Basisregister und `4` der Offset.",
+      "pitfalls": [
+        "`[Address]` bezeichnet den Inhalt an einer Adresse, nicht die Adresse selbst."
+      ],
+      "related": [
+        "Speicherzugriffe: Load und Store",
+        "Pointer und Dereferenzierung"
+      ],
+      "heading": "Notation"
+    },
+    {
+      "id": "era-08-k02",
+      "term": "Speicherzugriffe: Load und Store",
+      "kind": "concept",
+      "short": "Loads lesen Bytes aus dem Speicher, und Stores schreiben ausgewählte Bytes dorthin.",
+      "explanation": "RV32-Speicher ist byteadressierbar, sodass jede Adresse ein Byte bezeichnet. Die Suffixe `b`, `h` und `w` stehen für Byte (1 Byte), Halfword (2 Byte) und Word (4 Byte). Die effektive Adresse eines Load- oder Store-Befehls ist die Summe aus Basisregister und vorzeichenerweitertem Offset: $\\mathrm{Address}=\\mathrm{rs1}+\\operatorname{SignExt}(\\mathrm{imm})$. Das Basisregister enthält die Basisadresse; das Immediate ist ein Offset und keine absolute Adresse.",
+      "example": "`lw t0, 8(sp)` liest ein 4-Byte-Word ab der Adresse `sp + 8`.",
+      "pitfalls": [
+        "Das Immediate ist ein Offset zum Basisregister und keine absolute Adresse.",
+        "`w` bedeutet in RV32 vier Bytes, nicht vier Bits."
+      ],
+      "related": [
+        "RV32-Notation",
+        "Sign Extension und Zero Extension",
+        "Little Endian und Big Endian"
+      ],
+      "heading": "Speicherzugriffe: Load und Store"
+    },
+    {
+      "id": "era-08-k03",
+      "term": "Sign Extension und Zero Extension",
+      "kind": "concept",
+      "short": "Bei der Erweiterung eines kurzen Werts werden links entweder sein Vorzeichenbit wiederholt oder Nullen ergänzt.",
+      "explanation": "Sign Extension wiederholt das höchstwertige Bit des geladenen Werts nach links und erhält dadurch dessen signed-Interpretation. Zero Extension ergänzt links Nullen und behandelt den Wert dadurch als nichtnegative Zahl. In RV32 verwenden `lb` und `lh` Sign Extension, während `lbu` und `lhu` Zero Extension verwenden; `lw` lädt bereits die volle Registerbreite. Stores wie `sb` und `sh` schreiben nur die ausgewählten unteren Bits und erweitern den Wert nicht.",
+      "example": "Für das Byte `10000000` ergibt `lb` in RV32 `0xFFFFFF80`, während `lbu` `0x00000080` ergibt.",
+      "pitfalls": [
+        "`lb` und `lbu` lesen beide ein Byte, unterscheiden sich aber in der Erweiterung.",
+        "Stores führen weder Sign Extension noch Zero Extension aus."
+      ],
+      "related": [
+        "Speicherzugriffe: Load und Store",
+        "signed/unsigned-Interpretation"
+      ],
+      "heading": "Befehle und Erweiterung auf Registerbreite"
+    },
+    {
+      "id": "era-08-k04",
+      "term": "Load/Store-Codierungsfelder",
+      "kind": "notation",
+      "short": "Opcode, Befehlsformat und funct3 codieren unter anderem die Breite und Variante eines Load- oder Store-Befehls.",
+      "explanation": "Die Loads `lb`, `lh`, `lw`, `lbu` und `lhu` verwenden den Opcode `0000011` (dezimal 3), das I-Format und in dieser Reihenfolge die `funct3`-Werte `000`, `001`, `010`, `100` und `101`. Die Stores `sb`, `sh` und `sw` verwenden den Opcode `0100011` (dezimal 35), das S-Format und die `funct3`-Werte `000`, `001` und `010`. Für diese Befehle ist in der Codierungstabelle kein `funct7`-Feld angegeben.",
+      "example": "Für `lw` sind Opcode `0000011` und `funct3 = 010` angegeben.",
+      "pitfalls": [
+        "Die `funct3`-Werte unterscheiden Befehle innerhalb der Load- oder Store-Gruppe."
+      ],
+      "related": [
+        "Speicherzugriffe: Load und Store",
+        "Maschinenbefehlsformat"
+      ],
+      "heading": "Codierungsfelder aus dem Handout"
+    },
+    {
+      "id": "era-08-k05",
+      "term": "Little Endian und Big Endian",
+      "kind": "concept",
+      "short": "Endianness legt fest, in welcher Reihenfolge die Bytes eines Mehrbytewerts auf aufeinanderfolgende Adressen verteilt werden.",
+      "explanation": "Bei Little Endian liegt das niederwertigste Byte an der niedrigsten Adresse. Bei Big Endian liegt dort das höchstwertige Byte. Die Reihenfolge der Bits innerhalb eines einzelnen Bytes wird dadurch nicht umgedreht. Für `0x012E9613` lauten die Bytes an aufsteigenden Adressen bei Little Endian `13`, `96`, `2E`, `01` und bei Big Endian `01`, `2E`, `96`, `13`.",
+      "example": "Beginnt `0x012E9613` bei Adresse `n`, steht bei Little Endian an `n` das Byte `13`; bei Big Endian steht dort `01`.",
+      "pitfalls": [
+        "Endianness beschreibt die Byte-Reihenfolge eines Mehrbytewerts, keine umgekehrte Bitreihenfolge."
+      ],
+      "related": [
+        "Byteadressierung",
+        "Speicherzugriffe: Load und Store"
+      ],
+      "heading": "Little Endian und Big Endian"
+    },
+    {
+      "id": "era-08-k06",
+      "term": "Sections und Speicherlayout",
+      "kind": "concept",
+      "short": "Sections ordnen Programmcode und globale Daten nach ihrer Verwendung und ihren Eigenschaften.",
+      "explanation": "`.text` enthält ausführbaren Code, `.data` globale schreibbare und initialisierte Daten, `.rodata` globale nicht schreibbare und initialisierte Daten und `.bss` globale schreibbare, nicht initialisierte Daten. `.bss` reserviert Speicherplatz, ohne für jedes Byte einen Anfangswert im Programmabbild anzugeben. Im schematischen Layout liegen Code und globale Daten bei niedrigen Adressen, der Heap darüber und der Stack nahe hoher Adressen; der Heap wächst typischerweise nach oben und der Stack nach unten. Das konkrete Layout und die Startadressen sind keine universelle Festlegung.",
+      "example": "Eine initialisierte globale Zahl kann in `.data`, ein Stringliteral in `.rodata` und ein nicht initialisierter globaler Puffer in `.bss` liegen.",
+      "pitfalls": [
+        "Das gezeichnete Speicherlayout ist schematisch und garantiert keine festen Startadressen für alle Programme.",
+        "`.bss` reserviert Speicherplatz, auch wenn keine Anfangswerte im Programmabbild angegeben sind."
+      ],
+      "related": [
+        "Heap und Stack",
+        "Hauptspeicher",
+        "Programme und Daten im selben Speicher"
+      ],
+      "heading": "Sections und Speicherlayout"
+    },
+    {
+      "id": "era-08-k07",
+      "term": "Assembler-Direktiven für Daten",
+      "kind": "notation",
+      "short": "Assembler-Direktiven legen Daten im Programmabbild an, initialisieren sie oder beeinflussen ihre Anordnung.",
+      "explanation": "Direktiven wie `.org`, `.data`, `.word`, `.short` und `.byte` steuern die Anordnung und Initialisierung von Daten; sie sind keine RV32-Maschinenbefehle. Im gezeigten Beispiel gibt `.org` eine Position vor, `.word` legt 4-Byte-Werte an, `.short` 2-Byte-Werte und `.byte` einzelne Bytes. `.asciz` legt die Zeichenbytes eines Strings ab und hängt automatisch ein abschließendes NULL-Byte an. Die genaue Wirkung und Unterstützung einzelner Direktiven hängt vom Assembler ab.",
+      "example": "`.word 1, 2, 3, 4` legt vier aufeinanderfolgende Words an; `.asciz \"Hi\"` legt die Zeichenbytes und ein NULL-Byte ab.",
+      "pitfalls": [
+        "Assembler-Direktiven beschreiben die Erzeugung des Programms und werden nicht als normale Befehle ausgeführt."
+      ],
+      "related": [
+        "Sections und Speicherlayout",
+        "Strings: ASCII, C-Strings und Pascal-Strings"
+      ],
+      "heading": "Daten mit Assembler-Direktiven anlegen"
+    },
+    {
+      "id": "era-08-k08",
+      "term": "Strings: ASCII, C-Strings und Pascal-Strings",
+      "kind": "definition",
+      "short": "Ein String liegt als Folge codierter Zahlen im Speicher, wobei C- und Pascal-Strings sein Ende oder seine Länge unterschiedlich markieren.",
+      "explanation": "Im ASCII-Zeichensatz entsprechen Zeichen Zahlenwerten von 0 bis 127, die als Bytes gespeichert werden können. Ein C-String endet mit einem NULL-Byte mit dem Wert 0; dieses Abschlussbyte gehört nicht zur Zeichenlänge. Ein Pascal-String, wie hier vorgestellt, speichert seine Länge in einem vorangestellten Byte. In Assembler fügt `.asciz` automatisch ein abschließendes NULL-Byte an.",
+      "example": "Der C-String `\"Hi\"` besteht aus den Zeichenbytes für `H` und `i`, gefolgt von `0`; seine Zeichenlänge ist 2.",
+      "pitfalls": [
+        "Das NULL-Byte markiert beim C-String das Ende, wird aber nicht zur Zeichenlänge gezählt.",
+        "Beim hier vorgestellten Pascal-String steht das Längenbyte vor den Zeichen."
+      ],
+      "related": [
+        "Assembler-Direktiven für Daten",
+        "Pointer und Dereferenzierung",
+        "ASCII und UTF-16"
+      ],
+      "heading": "Strings sind Arrays aus Zahlen"
+    },
+    {
+      "id": "era-08-k09",
+      "term": "Pointer und Dereferenzierung",
+      "kind": "definition",
+      "short": "Ein Pointer enthält eine Speicheradresse, und Dereferenzieren bedeutet, auf den Wert an dieser Adresse zuzugreifen.",
+      "explanation": "In RV32 ist ein Pointer 32 Bit breit. In C liefert `&x` die Adresse von `x`, während `*p` den Wert an der in `p` gespeicherten Adresse bezeichnet. In Assembler lädt `la` die Adresse eines Labels in ein Register; `lw` liest dagegen ein 4-Byte-Word aus dem Speicher an einer berechneten Adresse. `la` ist eine Pseudoinstruktion, `lw` ein Load-Befehl.",
+      "example": "Nach `la t0, x` enthält `t0` die Adresse von `x`; nach `lw t1, 0(t0)` enthält `t1` das dort gespeicherte Word.",
+      "pitfalls": [
+        "`la` lädt eine Adresse, `lw` lädt ein Datum aus dem Speicher.",
+        "Ein Pointer ist nicht automatisch der Wert, auf den er zeigt."
+      ],
+      "related": [
+        "RV32-Notation",
+        "Speicherzugriffe: Load und Store",
+        "Arrays und Pointerarithmetik"
+      ],
+      "heading": "Pointer: Adresse und Datum auseinanderhalten"
+    },
+    {
+      "id": "era-08-k10",
+      "term": "Beispiel mit drei Words",
+      "kind": "example",
+      "short": "Drei aufeinanderfolgende Words zeigen den Unterschied zwischen einer geladenen Adresse und einem geladenen Wert.",
+      "explanation": "Wenn das Label `x` bei Adresse `0x200` beginnt und dort die Words `3`, `0x11` und `0x2A` stehen, belegen sie jeweils vier Bytes. Ihre Startadressen sind daher `0x200`, `0x204` und `0x208`. Nach `la t0, x` enthält `t0` die Adresse `0x200`; `lw t1, 0(t0)` liest das erste Word und setzt `t1` auf `3`.",
+      "example": "```asm\nla t0, x\nlw t1, 0(t0)\n```",
+      "pitfalls": [
+        "Das Register mit der geladenen Adresse und das Register mit dem gelesenen Word enthalten unterschiedliche Dinge."
+      ],
+      "related": [
+        "Pointer und Dereferenzierung",
+        "Speicherzugriffe: Load und Store",
+        "Arrays und Pointerarithmetik"
+      ],
+      "heading": "Beispiel mit drei Words"
+    },
+    {
+      "id": "era-08-k11",
+      "term": "Arrays und Pointerarithmetik",
+      "kind": "concept",
+      "short": "Die Adresse eines Arrayelements ergibt sich aus Arrayanfang plus Index mal Elementgröße.",
+      "explanation": "Arrayelemente liegen aufeinanderfolgend im Speicher und haben denselben Typ. In C gilt für ein Array `a`: $a[i]=*(a+i)$ und $\\operatorname{Adresse}(a[i])=\\operatorname{Adresse}(a)+i\\cdot\\operatorname{sizeof}(a[0])$. Pointerarithmetik zählt Elemente des Pointertyps und skaliert den Schritt daher mit der Elementgröße. Bei 4-Byte-`int`-Elementen liegt `a[2]` acht Bytes nach dem Anfang des Arrays.",
+      "example": "Für ein Array aus 4-Byte-Ints entspricht `a[2]` dem Byteoffset $2\\cdot4=8$.",
+      "pitfalls": [
+        "Der Index wird bei Pointerarithmetik mit der Größe des Elements skaliert.",
+        "Ein Byteoffset ist nicht immer gleich dem Arrayindex."
+      ],
+      "related": [
+        "Pointer und Dereferenzierung",
+        "Structs und Struct-Layout",
+        "Byteadressierung"
+      ],
+      "heading": "Arrays und Pointerarithmetik"
+    },
+    {
+      "id": "era-08-k12",
+      "term": "Structs und Struct-Layout",
+      "kind": "concept",
+      "short": "Ein Struct fasst benannte Felder verschiedener Typen in einem zusammenhängenden Speicherbereich zusammen.",
+      "explanation": "Die Felder eines Structs heißen Members und können unterschiedliche Datentypen haben; ein Array enthält dagegen Elemente desselben Typs. In der ERA-Kursvereinfachung wird Padding zwischen den Feldern vernachlässigt. Im Beispiel liegen `int operand1`, `short operand2`, `unsigned int ergebnis` und `unsigned char operation` an Byteoffsets 0, 4, 6 und 10; zusammen benötigen sie ohne Padding 11 Bytes. Der Assembler kennt diese C-Typen nicht automatisch, sondern arbeitet mit Adressen und Speichergrößen.",
+      "example": "Im vereinfachten Layout des Beispiels wird `ergebnis` mit `sw` bei Offset 6 relativ zur Struct-Adresse gespeichert.",
+      "pitfalls": [
+        "Das Layout ohne Padding ist eine Kursvereinfachung und nicht automatisch das Layout jedes C-Compilers.",
+        "Ein Word-Zugriff bei Byteoffset 6 ist nicht aligned; die Unterstützung unausgerichteter Zugriffe hängt von der Ausführungsumgebung ab."
+      ],
+      "related": [
+        "Arrays und Pointerarithmetik",
+        "Speicherzugriffe: Load und Store",
+        "Alignment"
+      ],
+      "heading": "Structs: unterschiedliche Datentypen hintereinander"
+    },
+    {
+      "id": "era-08-k13",
+      "term": "Stack: PUSH und POP",
+      "kind": "method",
+      "short": "PUSH erniedrigt zuerst `sp` und schreibt danach, während POP zuerst liest und danach `sp` erhöht.",
+      "explanation": "Der Stack wächst typischerweise von hohen zu niedrigen Adressen. Um ein 32-Bit-Register zu sichern, wird `sp` zuerst um 4 erniedrigt und der Registerwert anschließend bei `0(sp)` gespeichert. Beim Wiederherstellen wird zuerst von `0(sp)` geladen und danach `sp` um 4 erhöht. PUSH und POP bezeichnen diese Befehlsfolgen und sind keine zusätzlichen RV32I-Maschinenbefehle.",
+      "example": "```asm\n# PUSH\naddi sp, sp, -4\nsw   t0, 0(sp)\n\n# POP\nlw   t0, 0(sp)\naddi sp, sp, 4\n```",
+      "pitfalls": [
+        "Beim PUSH wird `sp` vor dem Schreiben erniedrigt; beim POP wird `sp` erst nach dem Lesen erhöht.",
+        "Werden mehrere Werte gesichert, muss die Wiederherstellung zur Ablagereihenfolge passen."
+      ],
+      "related": [
+        "Stackframe",
+        "Stack Pointer",
+        "Unterprogrammaufruf",
+        "Register und Registerkonventionen"
+      ],
+      "heading": "Stack / Keller: PUSH und POP"
+    },
+    {
+      "id": "era-08-k14",
+      "term": "Heap und Stack",
+      "kind": "concept",
+      "short": "Der Stack verwaltet typischerweise Daten einzelner Aufrufe, während der Heap dynamisch verwaltete Daten bereitstellt.",
+      "explanation": "Der Stack dient typischerweise lokalen Variablen, gesicherten Registern und Zwischenergebnissen eines Funktionsaufrufs; in Assembler wird er über `sp` verwaltet. Der Heap wird für dynamisch verwaltete Daten verwendet, die über einzelne Aufrufe hinweg bestehen können. Seine Verwaltung benötigt üblicherweise eine Laufzeitbibliothek oder einen Allocator. Die in der Mitschrift genannte Stackgröße von ungefähr 8 MiB ist ein Linux-Richtwert und keine allgemeine Architekturgrenze.",
+      "example": "Ein Registerwert kann für einen Unterprogrammaufruf auf dem Stack gesichert werden; ein dynamisch erzeugtes Listenelement kann im Heap liegen.",
+      "pitfalls": [
+        "Die genannten Größen von Heap und Stack sind keine festen Eigenschaften der RV32-Architektur.",
+        "In Assembler muss Stackplatz explizit über den Stackpointer verwaltet werden."
+      ],
+      "related": [
+        "Stack: PUSH und POP",
+        "Stackframe",
+        "Speicheraufteilung"
+      ],
+      "heading": "Heap und Stack – einfach auseinanderhalten"
+    },
+    {
+      "id": "era-08-k15",
+      "term": "Bedingte Sprünge (Branches)",
+      "kind": "definition",
+      "short": "Ein Branch vergleicht Registerwerte und ändert den Programmzähler nur, wenn seine Bedingung erfüllt ist.",
+      "explanation": "Ein Branch vergleicht zwei Register; ist die Bedingung erfüllt, springt die Ausführung zum angegebenen Label, andernfalls läuft sie beim nächsten Befehl weiter. `beq` und `bne` prüfen Gleichheit beziehungsweise Ungleichheit, `blt` und `bge` vergleichen signed, und `bltu` und `bgeu` vergleichen unsigned. Die Befehle verwenden den Opcode `1100011` (dezimal 99), das B-Format und ein PC-relatives Ziel mit ungefähr ±4 KiB Reichweite.",
+      "example": "`blt t0, t1, smaller` springt zu `smaller`, wenn der signed-Wert in `t0` kleiner als der in `t1` ist.",
+      "pitfalls": [
+        "`blt` und `bltu` unterscheiden sich in der Interpretation der verglichenen Werte.",
+        "Ein Branch-Ziel ist PC-relativ und hat eine begrenzte Reichweite."
+      ],
+      "related": [
+        "Sprünge und Branches",
+        "signed/unsigned-Interpretation",
+        "Assembler-for-Schleife"
+      ],
+      "heading": "Bedingte Sprünge"
+    },
+    {
+      "id": "era-08-k16",
+      "term": "Branch-Pseudoinstruktionen",
+      "kind": "notation",
+      "short": "Branch-Pseudoinstruktionen werden vom Assembler in vorhandene echte Branch-Befehle übersetzt.",
+      "explanation": "`bgt rs1, rs2, label` wird zu `blt rs2, rs1, label`, und `ble rs1, rs2, label` zu `bge rs2, rs1, label`. Die unsigned-Varianten `bgtu` und `bleu` werden entsprechend zu `bltu` und `bgeu` mit vertauschten Operanden. `beqz rs, label` entspricht `beq rs, zero, label`, während `bnez rs, label` `bne rs, zero, label` entspricht.",
+      "example": "`bgt t0, t1, done` wird als `blt t1, t0, done` umgesetzt.",
+      "pitfalls": [
+        "`bgt` ist hier eine Pseudoinstruktion und kein eigener Branch-Maschinenbefehl.",
+        "Bei der Umsetzung von `bgt` und `ble` werden die Operanden vertauscht."
+      ],
+      "related": [
+        "Bedingte Sprünge (Branches)",
+        "Pseudobefehle"
+      ],
+      "heading": "Branch-Pseudoinstruktionen"
+    },
+    {
+      "id": "era-08-k17",
+      "term": "Unterprogrammaufruf und Register-Sicherung",
+      "kind": "method",
+      "short": "Vor einem Unterprogrammaufruf werden noch benötigte Werte geschützt und veränderte Callee-saved-Register vor der Rückkehr wiederhergestellt.",
+      "explanation": "Der Aufrufer bereitet Parameter vor und sichert Werte, die er nach dem Aufruf noch benötigt; dazu können Werte in `a0`–`a7` gehören. Der Aufgerufene sichert jedes Callee-saved-Register, das er verändert, und stellt es vor der Rückkehr wieder her. Rückgabewerte stehen typischerweise in `a0` oder `a1`, in manchen Abläufen auch auf dem Stack. So bleibt der Zustand des Aufrufers nach dem Unterprogrammaufruf korrekt.",
+      "example": "Wenn der Aufrufer einen Wert in einem temporären Register nach dem Aufruf weiter benötigt, sichert er ihn vor dem Aufruf und stellt ihn danach wieder her.",
+      "pitfalls": [
+        "Ein Parameterregister kann nach einem Aufruf verändert sein und muss gesichert werden, wenn sein alter Wert noch benötigt wird.",
+        "Ein verändertes Callee-saved-Register muss vor der Rückkehr seinen ursprünglichen Wert erhalten."
+      ],
+      "related": [
+        "Calling Convention",
+        "Caller-saved und Callee-saved",
+        "Stack: PUSH und POP",
+        "Unterprogrammaufruf"
+      ],
+      "heading": "Unterprogramme: sichern, aufrufen, zurückkehren"
+    },
+    {
+      "id": "era-08-k18",
+      "term": "jal und jalr",
+      "kind": "definition",
+      "short": "`jal` und `jalr` speichern eine Rücksprungadresse und setzen den Programmzähler auf ein Sprungziel.",
+      "explanation": "`jal rd, label` speichert die Adresse des Folge-Befehls, also den alten `PC + 4`, in `rd` und springt PC-relativ zum Ziel. `jalr rd, rs, imm` speichert ebenfalls `PC + 4` und springt zu `rs + SignExt(imm)`; das niederwertigste Bit der Zieladresse wird gelöscht. Die Reichweite von `jal` beträgt ungefähr ±1 MiB. Die Kurzform `jal label` ist eine Pseudoinstruktion für `jal ra, label`; `j label` entspricht `jal zero, label`, und `call` kann mit `auipc` und `jalr` ein weiter entferntes Ziel erreichen.",
+      "example": "Wenn `jal ra, simple` bei Adresse `0x200` steht, wird `0x204` in `ra` gespeichert.",
+      "pitfalls": [
+        "Das Label bei `jal` bezeichnet ein PC-relatives Sprungziel, keinen im Befehl gespeicherten absoluten Zielwert.",
+        "`jalr` verwendet ein Register plus vorzeichenerweitertes Immediate für das Ziel."
+      ],
+      "related": [
+        "Unterprogrammaufruf und Register-Sicherung",
+        "Rücksprungadresse",
+        "Rücksprung-Pseudobefehle",
+        "Pseudobefehle"
+      ],
+      "heading": "Unterprogramme: sichern, aufrufen, zurückkehren"
+    },
+    {
+      "id": "era-08-k19",
+      "term": "Weit entfernte Sprungziele",
+      "kind": "method",
+      "short": "Für ein weiter entferntes Ziel können `auipc` und `jalr` gemeinsam eine Adresse relativ zum Programmzähler bilden und anspringen.",
+      "explanation": "Das gezeigte Schema verwendet `auipc`, um einen oberen Offsetteil relativ zum PC zu bilden, und `jalr`, um den verbleibenden Teil hinzuzufügen und zum Ziel zu springen. Die Schreibweise `offset[31:12]` und `offset[11:0]` ist schematisch; die Toolchain berechnet die Aufteilung für einen konkreten Offset. Die Pseudoinstruktion `call` kann ebenfalls für einen Unterprogrammaufruf verwendet werden.",
+      "example": "```asm\nauipc ra, offset[31:12]\njalr  ra, ra, offset[11:0]\n```",
+      "pitfalls": [
+        "Die Offsetfelder im Schema sind Platzhalter und keine direkt einsetzbaren Zahlen."
+      ],
+      "related": [
+        "jal und jalr",
+        "Unterprogrammaufruf und Register-Sicherung"
+      ],
+      "heading": "Weiter entfernte Ziele"
+    },
+    {
+      "id": "era-08-k20",
+      "term": "Rücksprung-Pseudobefehle",
+      "kind": "notation",
+      "short": "`ret` und `jr` sind Kurzschreibweisen für `jalr`-Befehle, die keine Rücksprungadresse in einem Register speichern.",
+      "explanation": "`ret` entspricht `jalr zero, ra, 0` und springt zur gespeicherten Rücksprungadresse. `jr rs` entspricht `jalr zero, rs, 0` und springt zu der im Register `rs` enthaltenen Adresse. Das Zielregister `zero` verwirft die von `jalr` berechnete Rücksprungadresse. Ebenso entspricht `jalr rs` der Kurzform `jalr ra, rs, 0`.",
+      "example": "`ret` ist die übliche Kurzform für `jalr zero, ra, 0`.",
+      "pitfalls": [
+        "`ret` liest das Sprungziel aus `ra`; es berechnet nicht selbst die Adresse des Folge-Befehls im Aufrufer."
+      ],
+      "related": [
+        "jal und jalr",
+        "Rücksprungadresse",
+        "Unterprogrammaufruf und Register-Sicherung"
+      ],
+      "heading": "Rücksprung und Adressbeispiel"
+    },
+    {
+      "id": "era-08-k21",
+      "term": "Assembler-for-Schleife",
+      "kind": "method",
+      "short": "Eine typische Assembler-for-Schleife prüft vor dem Rumpf die negierte Abbruchbedingung, erhöht den Zähler und springt zurück.",
+      "explanation": "Für `for (int i = a; i < b; ++i)` wird zunächst der Startwert `a` in den Zähler geladen. Am Schleifenanfang prüft ein Branch die Abbruchbedingung `i >= b`; ist sie wahr, wird zum Ende gesprungen. Andernfalls wird der Rumpf ausgeführt, `i` erhöht und zum Schleifenanfang zurückgesprungen. Im gezeigten Schema liegt der Zähler in `t0` und der Grenzwert `b` in `a0`.",
+      "example": "```asm\nli t0, a\nloop:\n    bge t0, a0, end\n    # Rumpf\n    addi t0, t0, 1\n    j loop\nend:\n```",
+      "pitfalls": [
+        "Der Branch prüft die Abbruchbedingung, also die Negation von `i < b`.",
+        "`li t0, a` setzt voraus, dass `a` als passende Konstante verfügbar ist."
+      ],
+      "related": [
+        "Bedingte Sprünge (Branches)",
+        "jal und jalr",
+        "Assemblerprogrammierung"
+      ],
+      "heading": "Eine for-Schleife in Assembler"
+    },
+    {
+      "id": "era-08-k22",
+      "term": "Stringlänge in einem Struct speichern",
+      "kind": "method",
+      "short": "Die Länge eines C-Strings lässt sich durch Zählen der Bytes bis zum NULL-Byte bestimmen und in einem Struct-Feld speichern.",
+      "explanation": "Im gezeigten RV32-Struct enthält `data` bei Offset 0 einen 4-Byte-Pointer und `length` bei Offset 4 einen 4-Byte-Wert. Der Pointer `s` zeigt auf die Struct-Instanz, und das Feld `data` enthält einen Pointer auf einen gültigen C-String. Die Bytes ab der Stringadresse werden gezählt, bis ein NULL-Byte mit Wert 0 erreicht wird; die Anzahl ohne dieses Abschlussbyte wird in `length` gespeichert. Ein leerer String hat Länge 0.",
+      "example": "Für den C-String `\"Hallo ERA!\"` ist die gespeicherte Länge 10.",
+      "pitfalls": [
+        "Das NULL-Byte beendet die Suche, wird aber nicht mitgezählt.",
+        "Der erste Pointer zeigt auf das Struct; dessen Feld `data` enthält einen weiteren Pointer zum String."
+      ],
+      "related": [
+        "Strings: ASCII, C-Strings und Pascal-Strings",
+        "Pointer und Dereferenzierung",
+        "Structs und Struct-Layout",
+        "Speicherzugriffe: Load und Store"
+      ],
+      "heading": "Livecoding: Stringlänge in einem Struct speichern"
+    }
+  ],
+  "generator": {
+    "model": "gpt-6-luna",
+    "effort": "xhigh",
+    "promptVersion": "k1",
+    "generatedAt": "2026-11-02T12:47:54.658Z"
+  }
+}
