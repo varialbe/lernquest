@@ -1,0 +1,2000 @@
+{
+  "schemaVersion": 1,
+  "id": "era-10",
+  "module": "ERA",
+  "number": 10,
+  "slug": "stackframes-von-neumann-befehlszyklus",
+  "title": "Stackframes, Von-Neumann-Konzept und Befehlszyklus",
+  "summary": "Die Unit wiederholt Prolog und Epilog von Stackframes und betrachtet das Von-Neumann-Konzept mit seinen vier Werken und dem gemeinsamen Speicher für Programme und Daten. Sie zeigt außerdem, wie Linken und Selbstmodifikation mit Speicherinhalten zusammenhängen und wie der Prozessor Befehle schrittweise holt, dekodiert und ausführt.",
+  "concepts": [
+    "Stackframes",
+    "Prolog und Epilog",
+    "Calling Convention",
+    "Compileroptimierung",
+    "Von-Neumann-Konzept",
+    "Vier Werke",
+    "Speicherorganisation",
+    "codierte Befehle und Daten",
+    "Linken",
+    "selbstmodifizierender Code",
+    "Instruktionszyklus",
+    "PC/BZ und IR",
+    "Befehls- und Datenzugriff",
+    "Instruktionslänge",
+    "Schleifenablauf"
+  ],
+  "keyFacts": [
+    "Der Stack liegt im byteweise adressierten Hauptspeicher.",
+    "Der Stack Pointer markiert das aktuelle Stackende; der Frame Pointer dient als Bezugspunkt für Positionen im Stackframe.",
+    "Der Prolog richtet den Stackframe ein und sichert nötige Werte; der Epilog stellt Werte wieder her und gibt den Stackframe frei.",
+    "Welche Register erhalten bleiben müssen, regelt die Calling Convention; nicht alle Register müssen unverändert bleiben.",
+    "Compileroptimierung mit -O2 kann Registerbelegung und Befehlsfolge verändern.",
+    "Die vier Werke sind Hauptspeicher, Leitwerk beziehungsweise Steuerwerk, Rechenwerk beziehungsweise ALU und Ein-/Ausgabewerk.",
+    "Im Von-Neumann-Konzept liegen Programme und Daten im selben Hauptspeicher.",
+    "Der Hauptspeicher besteht aus gleich großen Zellen mit fortlaufenden Adressen.",
+    "Befehle und Daten sind codierte Speicherinhalte; Befehle werden gemäß der ISA codiert.",
+    "Befehle sind im Allgemeinen an aufsteigenden Adressen gespeichert und werden sequenziell ausgeführt.",
+    "Bedingte und unbedingte Sprünge können die sequenzielle Ausführungsreihenfolge ändern.",
+    "Harvard verwendet getrennte Programm- und Datenspeicher; eine genannte Mischform verwendet einen gemeinsamen Hauptspeicher mit getrennten Befehls- und Datencaches.",
+    "Schreibschutz und die Aufteilung in Programm- und Datenspeicher sind unterschiedliche Fragen.",
+    "Beim Linken werden Programmteile und Bibliotheken verbunden, Verweise aufgelöst und gegebenenfalls Adressangaben angepasst.",
+    "Selbstmodifizierender Code verändert den eigenen Programmcode und ist heute eine seltene Ausnahme.",
+    "Der Befehlszähler PC/BZ hält die Adresse des Befehls; der geholte Befehl wird ins Instruktionsregister IR geladen.",
+    "Der Instruktionszyklus umfasst unter anderem Holen, Weiterstellen des PC, Dekodieren, Operanden bestimmen und holen, Ausführen und Ergebnis speichern.",
+    "Bei lw sind Befehlsadresse und Datenadresse verschieden; die Datenadresse ergibt sich aus Basisregister plus Offset.",
+    "Der PC wird entsprechend der Befehlslänge weitergestellt; ein Befehl kann beispielsweise 2 oder 4 Byte lang sein.",
+    "Im betrachteten Schleifenbeispiel werden die Zahlen von 0 bis 9 addiert; das Ergebnis ist 45."
+  ],
+  "tags": [],
+  "links": [],
+  "source": {
+    "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO10.md",
+    "sha256": "74ffdde6f26a3838ba7e0097f981b519e865479ec9d396c862d753a1c3267bd4",
+    "commit": "381d5d7fcf5020f4ffe8d36fe3624dfb7ef07289"
+  },
+  "generator": {
+    "model": "gpt-6-luna",
+    "effort": "xhigh",
+    "reviewEffort": "high",
+    "promptVersion": "v3",
+    "generatedAt": "2026-11-03T16:51:53.619Z",
+    "review": {
+      "checked": 44,
+      "fixed": 13,
+      "removed": 0,
+      "notes": "Alle 44 Fragen geprüft. Korrigiert wurden nicht gelistete source.heading-Werte und zwei Verify-Skripte; außerdem wurde die Linken-/Selbstmodifikationsfrage präzisiert. Rechenwege und Codeausgaben nachgerechnet; keine Fragen entfernt."
+    }
+  },
+  "levels": [
+    {
+      "id": "era-10-l1",
+      "index": 1,
+      "kind": "basics",
+      "title": "Grundlagen",
+      "questions": [
+        {
+          "id": "era-10-l1-q01",
+          "type": "single",
+          "prompt": "Wo liegt der Stack?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Im Instruktionsregister"
+            },
+            {
+              "id": "b",
+              "text": "Ausschließlich im Prozessor"
+            },
+            {
+              "id": "c",
+              "text": "Im Hauptspeicher"
+            },
+            {
+              "id": "d",
+              "text": "In einem vom Hauptspeicher getrennten Registerspeicher"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Der Stack ist ein Bereich des Hauptspeichers und wird wie dieser byteweise adressiert.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO10.md",
+            "heading": "Rückblick: Stackframes und Unterprogramme"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Stackframes"
+          ]
+        },
+        {
+          "id": "era-10-l1-q02",
+          "type": "cloze",
+          "prompt": "Der ___ steht am Anfang einer Routine und richtet den benötigten Rahmen für die Berechnung ein.",
+          "options": [
+            {
+              "id": "a",
+              "text": "Epilog"
+            },
+            {
+              "id": "b",
+              "text": "Prolog"
+            },
+            {
+              "id": "c",
+              "text": "Befehlszyklus"
+            },
+            {
+              "id": "d",
+              "text": "Linker"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "Der Prolog richtet zu Beginn einer Routine den Stackframe und nötige Sicherungen ein. Der Epilog baut diesen Rahmen am Ende wieder ab.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO10.md",
+            "heading": "Prolog und Epilog"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Prolog und Epilog"
+          ]
+        },
+        {
+          "id": "era-10-l1-q03-r1",
+          "type": "multi",
+          "prompt": "Im dargestellten Von-Neumann-Modell: Welche Werke gehören zum Prozessor? Wähle alle richtigen Antworten.",
+          "context": {
+            "type": "mermaid",
+            "content": "flowchart TB\n    M[\"Hauptspeicher\"]\n    subgraph CPU[\"Prozessor\"]\n        L[\"Leitwerk / Steuerwerk\"]\n        R[\"Rechenwerk / ALU\"]\n        L --> R\n    end\n    IO[\"Ein-/Ausgabewerk\"]\n    M <--> L\n    M <--> R\n    IO <--> L",
+            "caption": "Die Werke des Von-Neumann-Modells; der Prozessor ist als eigener Bereich markiert."
+          },
+          "options": [
+            {
+              "id": "a",
+              "text": "Das Rechenwerk beziehungsweise die ALU"
+            },
+            {
+              "id": "b",
+              "text": "Das Ein-/Ausgabewerk"
+            },
+            {
+              "id": "c",
+              "text": "Das Leitwerk beziehungsweise Steuerwerk"
+            },
+            {
+              "id": "d",
+              "text": "Der Hauptspeicher"
+            }
+          ],
+          "correct": [
+            "a",
+            "c"
+          ],
+          "explanation": "Im Modell umfasst der Prozessor Leitwerk und Rechenwerk. Hauptspeicher und Ein-/Ausgabewerk sind außerhalb des Prozessors dargestellt.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO10.md",
+            "heading": "Die vier Werke"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Von-Neumann-Konzept",
+            "Vier Werke",
+            "Prozessor"
+          ]
+        },
+        {
+          "id": "era-10-l1-q04",
+          "type": "truefalse",
+          "prompt": "Im Von-Neumann-Konzept liegen Programme und Daten im selben Hauptspeicher.",
+          "options": [
+            {
+              "id": "true",
+              "text": "Wahr"
+            },
+            {
+              "id": "false",
+              "text": "Falsch"
+            }
+          ],
+          "correct": [
+            "true"
+          ],
+          "explanation": "Der gemeinsame Hauptspeicher für Programme und Daten ist ein Merkmal des Von-Neumann-Konzepts.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO10.md",
+            "heading": "Die Merkpunkte mit bereinigter Nummerierung"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Von-Neumann-Konzept",
+            "Speicherorganisation"
+          ]
+        },
+        {
+          "id": "era-10-l1-q05",
+          "type": "single",
+          "prompt": "Welche Speicherorganisation kennzeichnet die Harvard-Architektur?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Daten liegen ausschließlich im Ein-/Ausgabewerk"
+            },
+            {
+              "id": "b",
+              "text": "Ein gemeinsamer Speicher für Programme und Daten"
+            },
+            {
+              "id": "c",
+              "text": "Getrennte Speicher für Programme und Daten"
+            },
+            {
+              "id": "d",
+              "text": "Programme liegen nur in Registern"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Harvard trennt Programm- und Datenspeicher. Ein gemeinsamer Speicher ist die hier beschriebene Von-Neumann-Organisation.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO10.md",
+            "heading": "Gemeinsamer oder getrennter Speicher?"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Speicherorganisation"
+          ]
+        },
+        {
+          "id": "era-10-l1-q06",
+          "type": "multi",
+          "prompt": "Wähle alle richtigen Aussagen über die allgemeine Befehlsfolge.",
+          "options": [
+            {
+              "id": "a",
+              "text": "Befehle sind im Allgemeinen an aufsteigenden Adressen gespeichert."
+            },
+            {
+              "id": "b",
+              "text": "Bedingte und unbedingte Sprünge können die Ausführungsreihenfolge ändern."
+            },
+            {
+              "id": "c",
+              "text": "Befehle werden immer ohne Ausnahme in dieser Reihenfolge ausgeführt."
+            },
+            {
+              "id": "d",
+              "text": "Ein Sprung ändert grundsätzlich die Reihenfolge, in der Befehle im Speicher abgelegt sind."
+            }
+          ],
+          "correct": [
+            "a",
+            "b"
+          ],
+          "explanation": "Befehle sind meist aufsteigend abgelegt und werden grundsätzlich sequenziell ausgeführt. Sprünge können die Fortsetzung ändern, nicht aber die gespeicherte Reihenfolge umsortieren.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO10.md",
+            "heading": "Die Merkpunkte mit bereinigter Nummerierung"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Instruktionszyklus"
+          ]
+        },
+        {
+          "id": "era-10-l1-q07",
+          "type": "cloze",
+          "prompt": "Der Befehlszähler (BZ), englisch Program Counter, enthält die Adresse des aktuellen beziehungsweise nächsten Befehls und wird als ___ abgekürzt.",
+          "options": [
+            {
+              "id": "a",
+              "text": "PC"
+            },
+            {
+              "id": "b",
+              "text": "ALU"
+            },
+            {
+              "id": "c",
+              "text": "MDR"
+            },
+            {
+              "id": "d",
+              "text": "IR"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "BZ ist die deutsche Bezeichnung für den Program Counter, abgekürzt PC. Das IR enthält dagegen den geholten Befehl.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO10.md",
+            "heading": "Wie wird ein Programm schrittweise abgearbeitet?"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "PC/BZ und IR"
+          ]
+        },
+        {
+          "id": "era-10-l1-q08",
+          "type": "truefalse",
+          "prompt": "Nach dem Holen wird ein Befehl ins Instruktionsregister IR geladen und anschließend dekodiert.",
+          "options": [
+            {
+              "id": "true",
+              "text": "Wahr"
+            },
+            {
+              "id": "false",
+              "text": "Falsch"
+            }
+          ],
+          "correct": [
+            "true"
+          ],
+          "explanation": "Das einfache Modell lädt den Befehl ins IR und dekodiert ihn dort, bevor die Operation ausgeführt wird.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO10.md",
+            "heading": "Wie wird ein Programm schrittweise abgearbeitet?"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "PC/BZ und IR",
+            "Instruktionszyklus"
+          ]
+        },
+        {
+          "id": "era-10-l1-q09",
+          "type": "diagram",
+          "prompt": "Welches Werk führt die arithmetischen Operationen aus?",
+          "context": {
+            "type": "mermaid",
+            "content": "flowchart TB\n    M[\"Hauptspeicher: Programme und Daten\"]\n    subgraph CPU[\"Prozessor\"]\n        L[\"Leitwerk: Befehlszyklus\"]\n        R[\"Rechenwerk: ALU\"]\n        L -->|steuert| R\n    end\n    IO[\"Ein-/Ausgabewerk\"]\n    M <-->|Befehle und Daten| L\n    M <-->|Daten| R\n    IO <--> L",
+            "caption": "Die vier Werke im vereinfachten Modell"
+          },
+          "options": [
+            {
+              "id": "a",
+              "text": "Das Leitwerk"
+            },
+            {
+              "id": "b",
+              "text": "Das Hauptspeicherwerk"
+            },
+            {
+              "id": "c",
+              "text": "Das Ein-/Ausgabewerk"
+            },
+            {
+              "id": "d",
+              "text": "Das Rechenwerk (ALU)"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Das Rechenwerk beziehungsweise die ALU führt arithmetische Operationen aus. Das Leitwerk steuert den Befehlszyklus.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO10.md",
+            "heading": "Die vier Werke"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Vier Werke"
+          ]
+        },
+        {
+          "id": "era-10-l1-q10",
+          "type": "single",
+          "prompt": "Ein Programmteil ruft `printf` aus einer Bibliothek auf. Welche Aufgabe gehört zum Linken?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Den Verweis auf `printf` auflösen und Programmteile verbinden"
+            },
+            {
+              "id": "b",
+              "text": "Den Hauptspeicher in gleich große Zellen aufteilen"
+            },
+            {
+              "id": "c",
+              "text": "Alle Registerwerte einer Routine unverändert lassen"
+            },
+            {
+              "id": "d",
+              "text": "Jeden Maschinenbefehl zur Laufzeit neu dekodieren"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "Beim Linken werden übersetzte Programmteile und benötigte Bibliotheken verbunden. Dabei werden Verweise aufgelöst und gegebenenfalls Adressangaben angepasst.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO10.md",
+            "heading": "Was bedeutet Linken?"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Linken"
+          ]
+        },
+        {
+          "id": "era-10-l1-q11",
+          "type": "truefalse",
+          "prompt": "Selbstmodifizierender Code verändert den eigenen Programmcode und gilt heute als seltene Ausnahme.",
+          "options": [
+            {
+              "id": "true",
+              "text": "Wahr"
+            },
+            {
+              "id": "false",
+              "text": "Falsch"
+            }
+          ],
+          "correct": [
+            "true"
+          ],
+          "explanation": "Selbstmodifizierender Code verändert die eigenen Programminhalte. Er wird als heute seltene Ausnahme beschrieben.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO10.md",
+            "heading": "Selbstmodifizierender Code"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "selbstmodifizierender Code"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "era-10-l2",
+      "index": 2,
+      "kind": "apply",
+      "title": "Anwenden",
+      "questions": [
+        {
+          "id": "era-10-l2-q01",
+          "type": "calc",
+          "prompt": "Vor einem Prolog ist `sp = 0x1000`. Der Prolog reserviert 48 Byte mit `add sp,sp,-48`. Welchen Wert hat `sp` danach?",
+          "options": [
+            {
+              "id": "a",
+              "text": "0x0FF0"
+            },
+            {
+              "id": "b",
+              "text": "0x0FD0"
+            },
+            {
+              "id": "c",
+              "text": "0x1030"
+            },
+            {
+              "id": "d",
+              "text": "0x1000"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "Der Stack wächst in diesem Beispiel zu kleineren Adressen: $0x1000-48=0x0FD0$.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO10.md",
+            "heading": "Prolog und lokale Daten"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Stackframes",
+            "Prolog und Epilog"
+          ]
+        },
+        {
+          "id": "era-10-l2-q02",
+          "type": "single",
+          "prompt": "Vor dem Prolog gilt `sp = 0x1000`. Danach führt die Routine `add sp,sp,-48` und `add s0,sp,48` aus. Welchen Wert erhält `s0`?",
+          "options": [
+            {
+              "id": "a",
+              "text": "0x1030"
+            },
+            {
+              "id": "b",
+              "text": "0x0FE0"
+            },
+            {
+              "id": "c",
+              "text": "0x0FD0"
+            },
+            {
+              "id": "d",
+              "text": "0x1000"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Nach dem Reservieren gilt $sp=0x1000-48=0x0FD0$. Das anschließende Addieren von 48 ergibt für `s0` wieder den ursprünglichen `sp`-Wert $0x1000$.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO10.md",
+            "heading": "Prolog und lokale Daten"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Stackframes",
+            "Prolog und Epilog"
+          ]
+        },
+        {
+          "id": "era-10-l2-q03",
+          "type": "multi",
+          "prompt": "Eine Schleife startet mit `summe = 0` und `i = 0`. Solange `i ≤ 9` gilt, addiert sie `i` zu `summe` und erhöht danach `i` um 1. Wähle alle richtigen Aussagen.",
+          "options": [
+            {
+              "id": "a",
+              "text": "Die Endsumme ist 45."
+            },
+            {
+              "id": "b",
+              "text": "Die Schleife wird 9-mal ausgeführt."
+            },
+            {
+              "id": "c",
+              "text": "Die Schleife wird 10-mal ausgeführt."
+            },
+            {
+              "id": "d",
+              "text": "Beim Verlassen der Schleife ist `i = 10`."
+            }
+          ],
+          "correct": [
+            "a",
+            "c",
+            "d"
+          ],
+          "explanation": "Die Schleife addiert die zehn Werte 0 bis 9. Danach ist `i` auf 10 erhöht und die Bedingung `i ≤ 9` nicht mehr erfüllt.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO10.md",
+            "heading": "Schleifenkörper und Bedingung"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Schleifenablauf"
+          ]
+        },
+        {
+          "id": "era-10-l2-q04",
+          "type": "code_output",
+          "prompt": "Welchen Ergebniswert liefert der Code nach der Schleife in `t0`?",
+          "context": {
+            "type": "code",
+            "content": "addi t0,x0,0\naddi t1,x0,0\nloop:\n  add t0,t0,t1\n  addi t1,t1,1\n  addi t2,x0,3\n  blt t1,t2,loop",
+            "language": "riscv",
+            "caption": "Registerarithmetik und bedingter Rücksprung"
+          },
+          "options": [
+            {
+              "id": "a",
+              "text": "2"
+            },
+            {
+              "id": "b",
+              "text": "6"
+            },
+            {
+              "id": "c",
+              "text": "4"
+            },
+            {
+              "id": "d",
+              "text": "3"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Die Schleife addiert die Werte 0, 1 und 2. Danach ist `t1` gleich 3, sodass `blt t1,t2,loop` nicht mehr springt; damit steht 3 in `t0`.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO10.md",
+            "heading": "Schleifenkörper und Bedingung"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Schleifenablauf"
+          ]
+        },
+        {
+          "id": "era-10-l2-q05",
+          "type": "diagram",
+          "prompt": "Welche Phase folgt im dargestellten Instruktionszyklus direkt auf das Dekodieren?",
+          "context": {
+            "type": "mermaid",
+            "content": "flowchart TD\n    H[\"Befehl holen\"] --> P[\"PC weiterstellen\"]\n    P --> D[\"Befehl dekodieren\"]\n    D --> V[\"Operand evaluieren\"]\n    V --> O[\"Operand holen, falls nötig\"]\n    O --> A[\"Befehl ausführen\"]\n    A --> S[\"Ergebnis speichern\"]\n    S --> H",
+            "caption": "Vereinfachter Instruktionszyklus"
+          },
+          "options": [
+            {
+              "id": "a",
+              "text": "Ergebnis speichern"
+            },
+            {
+              "id": "b",
+              "text": "Befehl erneut holen"
+            },
+            {
+              "id": "c",
+              "text": "Operand evaluieren"
+            },
+            {
+              "id": "d",
+              "text": "Befehl ausführen"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Nach dem Dekodieren wird bestimmt, woher die benötigten Operanden kommen beziehungsweise welche Adresse verwendet wird.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO10.md",
+            "heading": "Instruktionszyklus"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Instruktionszyklus"
+          ]
+        },
+        {
+          "id": "era-10-l2-q06",
+          "type": "single",
+          "prompt": "Ein Register `s0` enthält `0x2000`. An der Adresse `0x1FE8` liegt der Word-Wert 37. Was bewirkt `lw a5,-24(s0)`?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Der Wert 24 wird aus Adresse `0x2000` nach `a5` geladen."
+            },
+            {
+              "id": "b",
+              "text": "Der Wert 37 wird an Adresse `0x2000` gespeichert."
+            },
+            {
+              "id": "c",
+              "text": "Die Adresse `0x1FE8` wird nach `a5` geladen."
+            },
+            {
+              "id": "d",
+              "text": "Der Wert 37 wird aus Adresse `0x1FE8` nach `a5` geladen."
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Die effektive Adresse ist `0x2000 - 24 = 0x1FE8`. `lw` lädt den dort gespeicherten Word-Wert nach `a5`; es lädt nicht die Adresse selbst.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO10.md",
+            "heading": "Folienbeispiel: Ein      Schritt für Schritt"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Befehls- und Datenzugriff"
+          ]
+        },
+        {
+          "id": "era-10-l2-q07",
+          "type": "calc",
+          "prompt": "Ein 2 Byte langer Befehl `mv` steht an Adresse `0x688`. Auf welche Adresse zeigt der PC nach dem Weiterstellen für den nächsten Befehl?",
+          "options": [
+            {
+              "id": "a",
+              "text": "0x68C"
+            },
+            {
+              "id": "b",
+              "text": "0x689"
+            },
+            {
+              "id": "c",
+              "text": "0x68A"
+            },
+            {
+              "id": "d",
+              "text": "0x688"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Der PC wird um die Befehlslänge weitergestellt: $0x688+2=0x68A$.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO10.md",
+            "heading": "Folienbeispiel: Ein      Schritt für Schritt"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Instruktionslänge",
+            "PC/BZ und IR"
+          ]
+        },
+        {
+          "id": "era-10-l2-q08",
+          "type": "truefalse",
+          "prompt": "Nach dem Holen eines 4 Byte langen Befehls an `0x684` zeigt der PC bereits auf `0x688`, während der geholte Befehl noch bearbeitet wird.",
+          "options": [
+            {
+              "id": "true",
+              "text": "Wahr"
+            },
+            {
+              "id": "false",
+              "text": "Falsch"
+            }
+          ],
+          "correct": [
+            "true"
+          ],
+          "explanation": "Nach dem Holen wird der PC auf den nächsten Befehl weitergestellt. Der aktuelle Befehl kann danach noch dekodiert und ausgeführt werden.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO10.md",
+            "heading": "Folienbeispiel: Ein      Schritt für Schritt"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "PC/BZ und IR",
+            "Instruktionslänge"
+          ]
+        },
+        {
+          "id": "era-10-l2-q09",
+          "type": "single",
+          "prompt": "Eine Routine soll nach einem Unterprogrammaufruf ein vereinbartes Ergebnis liefern. Was muss der Aufrufer laut Calling Convention erwarten?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Das vereinbarte Ergebnis steht bereit; welche Register erhalten bleiben, hängt von der Calling Convention ab."
+            },
+            {
+              "id": "b",
+              "text": "Der Frame Pointer enthält immer die Rücksprungadresse."
+            },
+            {
+              "id": "c",
+              "text": "Alle Register bleiben unverändert."
+            },
+            {
+              "id": "d",
+              "text": "Der Stackframe bleibt dauerhaft reserviert."
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "Die Routine muss das vereinbarte Ergebnis bereitstellen. Die Calling Convention legt fest, welche Registerwerte erhalten bleiben müssen; sie verlangt nicht, dass alle Register unverändert sind.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO10.md",
+            "heading": "Prolog und Epilog"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Calling Convention",
+            "Prolog und Epilog"
+          ]
+        },
+        {
+          "id": "era-10-l2-q10",
+          "type": "multi",
+          "prompt": "Wähle alle richtigen Aussagen zu Prolog und Epilog.",
+          "options": [
+            {
+              "id": "a",
+              "text": "Der Epilog muss alle Register auf null setzen."
+            },
+            {
+              "id": "b",
+              "text": "Der Epilog kann gesicherte Werte wiederherstellen und Stackplatz freigeben."
+            },
+            {
+              "id": "c",
+              "text": "Der Prolog kann Stackplatz reservieren und benötigte Werte sichern."
+            },
+            {
+              "id": "d",
+              "text": "Der Prolog gibt den Stackframe nach der Berechnung frei."
+            }
+          ],
+          "correct": [
+            "b",
+            "c"
+          ],
+          "explanation": "Der Prolog richtet den Rahmen ein; der Epilog stellt gesicherte Werte wieder her und gibt den Rahmen frei. Das Zurücksetzen aller Register gehört nicht dazu.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO10.md",
+            "heading": "Prolog und Epilog"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Prolog und Epilog",
+            "Stackframes"
+          ]
+        },
+        {
+          "id": "era-10-l2-q11",
+          "type": "truefalse",
+          "prompt": "Bei `-O2` muss ein Compiler dieselbe Registerbelegung und Befehlsfolge wie bei einer unoptimierten Übersetzung verwenden.",
+          "options": [
+            {
+              "id": "true",
+              "text": "Wahr"
+            },
+            {
+              "id": "false",
+              "text": "Falsch"
+            }
+          ],
+          "correct": [
+            "false"
+          ],
+          "explanation": "Optimierungen können Registerbelegung und Befehlsfolge verändern. Entscheidend ist die geforderte Wirkung des Programms.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO10.md",
+            "heading": "Compileroptimierung"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Compileroptimierung"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "era-10-l3",
+      "index": 3,
+      "kind": "deepen",
+      "title": "Vertiefen",
+      "questions": [
+        {
+          "id": "era-10-l3-q01",
+          "type": "multi",
+          "prompt": "Ein Rechner speichert Programm und Daten im selben Hauptspeicher. Wähle alle Aussagen, die dazu passen.",
+          "options": [
+            {
+              "id": "a",
+              "text": "Programmcode und Daten sind codierte Speicherinhalte."
+            },
+            {
+              "id": "b",
+              "text": "Gemeinsamer Speicher bedeutet zwingend, dass jeder Programmabschnitt beschreibbar ist."
+            },
+            {
+              "id": "c",
+              "text": "Die Maschine kann grundsätzlich Speicherinhalte verändern."
+            },
+            {
+              "id": "d",
+              "text": "Schreibschutz und die Trennung von Programm- und Datenspeicher sind verschiedene Fragen."
+            }
+          ],
+          "correct": [
+            "a",
+            "c",
+            "d"
+          ],
+          "explanation": "Programme und Daten liegen als codierte Inhalte im Speicher, und Speicherinhalte können grundsätzlich verändert werden. Daraus folgt nicht, dass alle Bereiche beschreibbar sind: Schreibschutz ist eine separate Frage.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO10.md",
+            "heading": "Gemeinsamer oder getrennter Speicher?"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Speicherorganisation",
+            "codierte Befehle und Daten"
+          ]
+        },
+        {
+          "id": "era-10-l3-q02",
+          "type": "truefalse",
+          "prompt": "Ein gemeinsamer Hauptspeicher mit getrennten Befehls- und Datencaches ist eine Mischform und nicht automatisch dasselbe wie zwei getrennte Hauptspeicher.",
+          "options": [
+            {
+              "id": "true",
+              "text": "Wahr"
+            },
+            {
+              "id": "false",
+              "text": "Falsch"
+            }
+          ],
+          "correct": [
+            "true"
+          ],
+          "explanation": "Die beschriebene Mischform behält den gemeinsamen Hauptspeicher bei und trennt nur die Zwischenspeicher für Befehle und Daten.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO10.md",
+            "heading": "Gemeinsamer oder getrennter Speicher?"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Speicherorganisation"
+          ]
+        },
+        {
+          "id": "era-10-l3-q03",
+          "type": "single",
+          "prompt": "Ein übersetztes Programm enthält einen Verweis auf eine Funktion in einer Bibliothek. Was kann der Linker dabei tun?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Den Befehlszähler während der Ausführung weiterstellen"
+            },
+            {
+              "id": "b",
+              "text": "Die Funktion bei jedem Aufruf neu kompilieren"
+            },
+            {
+              "id": "c",
+              "text": "Den Inhalt jedes Datenregisters in den Hauptspeicher kopieren"
+            },
+            {
+              "id": "d",
+              "text": "Den Verweis auflösen und nötige Adressangaben anpassen"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Der Linker verbindet Programmteile und Bibliotheksbestandteile, löst Verweise auf und passt gegebenenfalls Adressangaben an.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO10.md",
+            "heading": "Was bedeutet Linken?"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Linken"
+          ]
+        },
+        {
+          "id": "era-10-l3-q04",
+          "type": "cloze",
+          "prompt": "Nach dem Holen eines Befehls kann der PC bereits auf den ___ zeigen, während der geholte Befehl noch dekodiert oder ausgeführt wird.",
+          "options": [
+            {
+              "id": "a",
+              "text": "nächsten Befehl"
+            },
+            {
+              "id": "b",
+              "text": "letzten Datenwert"
+            },
+            {
+              "id": "c",
+              "text": "Stack Pointer"
+            },
+            {
+              "id": "d",
+              "text": "Frame Pointer"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "Das Weiterstellen des PC erfolgt nach dem Holen. Deshalb kann der PC schon die nächste Befehlsadresse enthalten, während der aktuelle Befehl noch bearbeitet wird.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO10.md",
+            "heading": "Folienbeispiel: Ein      Schritt für Schritt"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "PC/BZ und IR",
+            "Instruktionszyklus"
+          ]
+        },
+        {
+          "id": "era-10-l3-q05",
+          "type": "calc",
+          "prompt": "Bei `s0 = 0x1000` wird der Datenzugriff `lw a5,-24(s0)` ausgeführt. Welche effektive Adresse wird gelesen?",
+          "options": [
+            {
+              "id": "a",
+              "text": "0x1000"
+            },
+            {
+              "id": "b",
+              "text": "0x1018"
+            },
+            {
+              "id": "c",
+              "text": "0x0FE8"
+            },
+            {
+              "id": "d",
+              "text": "0x0FF8"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Die effektive Adresse ist Basisregister plus Offset: $0x1000-24=0x0FE8$.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO10.md",
+            "heading": "Folienbeispiel: Ein      Schritt für Schritt"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Befehls- und Datenzugriff"
+          ]
+        },
+        {
+          "id": "era-10-l3-q06",
+          "type": "single",
+          "prompt": "Bei einem Befehl `lw a5,-24(s0)` wird `fe842783` als Maschinencode angezeigt. Was bezeichnet dieser Hexwert?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Die effektive Datenadresse"
+            },
+            {
+              "id": "b",
+              "text": "Den aus dem Speicher geladenen Datenwert"
+            },
+            {
+              "id": "c",
+              "text": "Den Inhalt des Registers `s0`"
+            },
+            {
+              "id": "d",
+              "text": "Die Codierung des Befehls `lw`"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Der Hexwert ist der Maschinencode des Befehls. Der Datenwert wird separat von der durch `s0 - 24` bestimmten Adresse gelesen.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO10.md",
+            "heading": "Folienbeispiel: Ein      Schritt für Schritt"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "codierte Befehle und Daten",
+            "Befehls- und Datenzugriff"
+          ]
+        },
+        {
+          "id": "era-10-l3-q07",
+          "type": "diagram",
+          "prompt": "Welche Adresse wird für den Datenzugriff des `lw` verwendet?",
+          "context": {
+            "type": "mermaid",
+            "content": "flowchart LR\n    F[\"Befehl holen bei PC 0x684\"] --> I[\"IR enthält lw\"]\n    F --> P[\"PC wird 0x688\"]\n    I --> E[\"Effektive Adresse: s0 - 24\"]\n    E --> D[\"Datenwert lesen\"]\n    D --> R[\"Wert nach a5 schreiben\"]",
+            "caption": "Befehlsabruf und Datenzugriff eines lw"
+          },
+          "options": [
+            {
+              "id": "a",
+              "text": "Die Adresse des Instruktionsregisters"
+            },
+            {
+              "id": "b",
+              "text": "`s0 - 24`"
+            },
+            {
+              "id": "c",
+              "text": "Die nächste Befehlsadresse `0x688`"
+            },
+            {
+              "id": "d",
+              "text": "Die Befehlsadresse `0x684`"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "Der Befehl wird bei `0x684` geholt, aber sein Operand liegt an der effektiven Adresse `s0 - 24`. Befehls- und Datenzugriff verwenden unterschiedliche Adressen.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO10.md",
+            "heading": "Folienbeispiel: Ein      Schritt für Schritt"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Befehls- und Datenzugriff",
+            "PC/BZ und IR"
+          ]
+        },
+        {
+          "id": "era-10-l3-q08",
+          "type": "single",
+          "prompt": "Ein 4 Byte langer Befehl steht bei `0x684`, der folgende 2 Byte lange Befehl bei `0x688`. Was zeigt dieses Beispiel über das Weiterstellen des PC?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Der PC wird stets um genau 1 Byte weitergestellt."
+            },
+            {
+              "id": "b",
+              "text": "Der PC wird stets um genau 4 Byte weitergestellt."
+            },
+            {
+              "id": "c",
+              "text": "Der PC wird um die Länge des jeweiligen Befehls weitergestellt."
+            },
+            {
+              "id": "d",
+              "text": "Der PC ändert sich erst nach dem Speichern des Ergebnisses."
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Der erste Befehl führt von `0x684` zu `0x688`; der 2 Byte lange Folgebefehl führt zu `0x68A`. Die Schrittweite hängt von der Befehlslänge ab.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO10.md",
+            "heading": "Folienbeispiel: Ein      Schritt für Schritt"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Instruktionslänge",
+            "PC/BZ und IR"
+          ]
+        },
+        {
+          "id": "era-10-l3-q09",
+          "type": "truefalse",
+          "prompt": "Weil der Hauptspeicher byteweise adressiert ist, bedeutet `PC++` immer, dass der PC um genau ein Byte steigt.",
+          "options": [
+            {
+              "id": "true",
+              "text": "Wahr"
+            },
+            {
+              "id": "false",
+              "text": "Falsch"
+            }
+          ],
+          "correct": [
+            "false"
+          ],
+          "explanation": "Der PC wird auf den nächsten Befehl weitergestellt. Die Schrittweite richtet sich nach der Befehlslänge, die beispielsweise 2 oder 4 Byte betragen kann.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO10.md",
+            "heading": "Folienbeispiel: Ein      Schritt für Schritt"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Instruktionslänge",
+            "PC/BZ und IR"
+          ]
+        },
+        {
+          "id": "era-10-l3-q10",
+          "type": "multi",
+          "prompt": "Ein Prozessor führt intern optimierte Schritte aus. Wähle alle Aussagen, die mit dem beschriebenen Ausführungsmodell vereinbar sind.",
+          "options": [
+            {
+              "id": "a",
+              "text": "Die interne Ausführung muss immer exakt einem einfachen Ein-Befehl-Modell entsprechen."
+            },
+            {
+              "id": "b",
+              "text": "Eine Optimierung darf die geforderte Programmwirkung nicht beliebig ändern."
+            },
+            {
+              "id": "c",
+              "text": "Die von außen beobachtbare Wirkung des Programms muss erhalten bleiben."
+            },
+            {
+              "id": "d",
+              "text": "Der PC kann bei einem Sprung auf eine andere Befehlsadresse gesetzt werden."
+            }
+          ],
+          "correct": [
+            "b",
+            "c",
+            "d"
+          ],
+          "explanation": "Interne Ausführung kann vom einfachen Modell abweichen, muss aber die geforderte, von außen beobachtbare Wirkung bewahren. Sprünge verändern, von welcher Adresse der nächste Befehl geholt wird.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO10.md",
+            "heading": "Wie wird ein Programm schrittweise abgearbeitet?"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Compileroptimierung",
+            "Instruktionszyklus"
+          ]
+        },
+        {
+          "id": "era-10-l3-q11-r1",
+          "type": "truefalse",
+          "prompt": "Für einen Stackframe gilt die im Kontext angegebene Zuordnung der lokalen Variablen zu Offsets relativ zum Frame Pointer `s0`. Aussage: Die laufende Summe liegt bei `-24(s0)` und der Schleifenzähler bei `-20(s0)`.",
+          "context": {
+            "type": "table",
+            "content": "| Offset relativ zu `s0` | Inhalt |\n|---|---|\n| `-20` | Schleifenzähler |\n| `-24` | Laufende Summe |",
+            "caption": "Zuordnung der lokalen Variablen im Stackframe."
+          },
+          "options": [
+            {
+              "id": "true",
+              "text": "Wahr"
+            },
+            {
+              "id": "false",
+              "text": "Falsch"
+            }
+          ],
+          "correct": [
+            "true"
+          ],
+          "explanation": "Die Tabelle ordnet die laufende Summe dem Offset `-24` und den Schleifenzähler dem Offset `-20` relativ zu `s0` zu. Die Aussage stimmt daher.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO10.md",
+            "heading": "Prolog und lokale Daten"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Stackframe",
+            "Frame Pointer",
+            "Lokale Variablen"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "era-10-l4",
+      "index": 4,
+      "kind": "boss",
+      "title": "Boss",
+      "questions": [
+        {
+          "id": "era-10-l4-q01",
+          "type": "multi",
+          "prompt": "Ein 4 Byte langer Befehl `lw a5,-24(s0)` steht bei PC `0x684`; `s0 = 0x2000`, und an `0x1FE8` liegt der Word-Wert 37. Wähle alle richtigen Aussagen zum Ablauf.",
+          "options": [
+            {
+              "id": "a",
+              "text": "Der Datenzugriff liest den Wert 37 von `0x1FE8`."
+            },
+            {
+              "id": "b",
+              "text": "Der Datenzugriff liest den Befehlscode bei `0x684` als Word-Wert."
+            },
+            {
+              "id": "c",
+              "text": "Nach dem Holen kann der PC schon `0x688` enthalten, während `lw` noch bearbeitet wird."
+            },
+            {
+              "id": "d",
+              "text": "Der Befehl wird zunächst an Adresse `0x684` geholt."
+            }
+          ],
+          "correct": [
+            "a",
+            "c",
+            "d"
+          ],
+          "explanation": "Der Befehl wird bei `0x684` geholt und der PC um 4 Byte auf `0x688` weitergestellt. `lw` liest anschließend den Datenwert an `s0 - 24 = 0x1FE8` und schreibt ihn nach `a5`.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO10.md",
+            "heading": "Folienbeispiel: Ein      Schritt für Schritt"
+          },
+          "difficulty": 5,
+          "concepts": [
+            "Instruktionszyklus",
+            "Befehls- und Datenzugriff",
+            "Instruktionslänge"
+          ]
+        },
+        {
+          "id": "era-10-l4-q02",
+          "type": "single",
+          "prompt": "Bei einem Unterprogrammaufruf speichert `jal` die Rücksprungadresse in `ra`. Eine Routine führt später selbst ein weiteres `jal` aus. Warum muss sie ihre ursprüngliche Rücksprungadresse sichern?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Das zweite `jal` überschreibt `ra`; ohne Sicherung ginge die ursprüngliche Rücksprungadresse verloren."
+            },
+            {
+              "id": "b",
+              "text": "Die Calling Convention verbietet verschachtelte Aufrufe."
+            },
+            {
+              "id": "c",
+              "text": "Das zweite `jal` löscht automatisch den Stackframe."
+            },
+            {
+              "id": "d",
+              "text": "`ra` enthält immer den Stack Pointer statt einer Adresse."
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "`jal` schreibt die Rücksprungadresse nach `ra`. Ein weiterer Aufruf überschreibt diesen Wert, deshalb muss die Routine die noch benötigte Adresse vorher sichern und vor der Rückkehr wiederherstellen.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO6.md",
+            "heading": null
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Stackframes",
+            "Calling Convention"
+          ]
+        },
+        {
+          "id": "era-10-l4-q03",
+          "type": "calc",
+          "prompt": "Eine Befehlsfolge beginnt mit `lw` bei `0x684` (4 Byte), `mv` bei `0x688` (2 Byte) und einem weiteren `lw` bei `0x68A` (4 Byte). Auf welche Adresse zeigt der PC nach dem Holen und Weiterstellen für alle drei Befehle?",
+          "options": [
+            {
+              "id": "a",
+              "text": "0x68A"
+            },
+            {
+              "id": "b",
+              "text": "0x68C"
+            },
+            {
+              "id": "c",
+              "text": "0x690"
+            },
+            {
+              "id": "d",
+              "text": "0x68E"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Die Schrittweiten sind 4, 2 und 4 Byte: `0x684 → 0x688 → 0x68A → 0x68E`.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO10.md",
+            "heading": "Folienbeispiel: Ein      Schritt für Schritt"
+          },
+          "difficulty": 5,
+          "concepts": [
+            "Instruktionslänge",
+            "PC/BZ und IR"
+          ]
+        },
+        {
+          "id": "era-10-l4-q04",
+          "type": "single",
+          "prompt": "Ein Rechner besitzt einen gemeinsamen Hauptspeicher für Programm und Daten, aber getrennte Zwischenspeicher für Befehle und Daten. Wie ist diese Organisation einzuordnen?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Als genannte Mischform mit gemeinsamem Hauptspeicher"
+            },
+            {
+              "id": "b",
+              "text": "Als reine Harvard-Organisation mit getrennten Hauptspeichern"
+            },
+            {
+              "id": "c",
+              "text": "Als Organisation ohne Hauptspeicher"
+            },
+            {
+              "id": "d",
+              "text": "Als selbstmodifizierender Code"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "Die genannte Mischform behält einen gemeinsamen Hauptspeicher bei und trennt nur Befehls- und Datencaches. Das ist nicht dasselbe wie getrennte Hauptspeicher.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO10.md",
+            "heading": "Gemeinsamer oder getrennter Speicher?"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Speicherorganisation"
+          ]
+        },
+        {
+          "id": "era-10-l4-q05",
+          "type": "multi",
+          "prompt": "Vor dem Prolog gilt `sp = 0x8000`. Die Routine reserviert 48 Byte, setzt `s0` auf den ursprünglichen `sp`-Wert und sichert `ra` bei `40(sp)`. Die laufende Summe liegt bei `-24(s0)`, der Zähler bei `-20(s0)`. Wähle alle richtigen Adressen.",
+          "options": [
+            {
+              "id": "a",
+              "text": "Der neue `sp` ist `0x7FD0`."
+            },
+            {
+              "id": "b",
+              "text": "Die laufende Summe liegt bei `0x7FE8`."
+            },
+            {
+              "id": "c",
+              "text": "Die Sicherung von `ra` liegt bei `0x7FF8`."
+            },
+            {
+              "id": "d",
+              "text": "Der Zähler liegt bei `0x7FE0`."
+            }
+          ],
+          "correct": [
+            "a",
+            "b",
+            "c"
+          ],
+          "explanation": "Der neue Stack Pointer ist `0x8000 - 48 = 0x7FD0`. Die `ra`-Sicherung liegt bei `0x7FD0 + 40 = 0x7FF8`; relativ zu `s0 = 0x8000` liegt die Summe bei `0x7FE8` und der Zähler bei `0x7FEC`.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO10.md",
+            "heading": "Prolog und lokale Daten"
+          },
+          "difficulty": 5,
+          "concepts": [
+            "Stackframes",
+            "Prolog und Epilog",
+            "Schleifenablauf"
+          ]
+        },
+        {
+          "id": "era-10-l4-q06",
+          "type": "single",
+          "prompt": "Ein übersetztes Programm enthält einen Bibliotheksaufruf, dessen Ziel beim Linken aufgelöst wird. Ist diese Auflösung selbstmodifizierender Code?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Ja. Jeder Linkeraufruf verändert zur Laufzeit den gerade ausgeführten Befehl."
+            },
+            {
+              "id": "b",
+              "text": "Nein. Linken verbindet Programmteile und löst Verweise auf; selbstmodifizierender Code verändert den eigenen Programmcode."
+            },
+            {
+              "id": "c",
+              "text": "Nein. Linken bedeutet ausschließlich, Daten aus dem RAM zu laden."
+            },
+            {
+              "id": "d",
+              "text": "Ja. Das Auflösen eines Verweises ist ein bedingter Sprung."
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "Linken verbindet übersetzte Programmteile und löst Verweise auf. Selbstmodifikation bezeichnet dagegen eine Änderung des eigenen Programmcodeinhalts.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO10.md",
+            "heading": "Programme im Speicher verändern"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Linken",
+            "selbstmodifizierender Code"
+          ]
+        },
+        {
+          "id": "era-10-l4-q07",
+          "type": "single",
+          "prompt": "Ein allgemeiner Rechner soll mit derselben Grundstruktur unterschiedliche Aufgaben ausführen. Welche Aussage beschreibt die Rolle des Programms dabei?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Für jede Aufgabe muss die Rechnerstruktur vollständig neu gebaut werden."
+            },
+            {
+              "id": "b",
+              "text": "Das Programm steuert den Rechner für die jeweilige Aufgabe."
+            },
+            {
+              "id": "c",
+              "text": "Das Programm ersetzt Hauptspeicher, Leitwerk und Rechenwerk."
+            },
+            {
+              "id": "d",
+              "text": "Das Programm legt fest, dass keine Ein-/Ausgabe möglich ist."
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "Das Von-Neumann-Konzept trennt die Rechnerstruktur vom konkreten Problem: Das jeweilige Programm steuert den allgemeinen Rechner für unterschiedliche Aufgaben.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO7.md",
+            "heading": null
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Von-Neumann-Konzept",
+            "Vier Werke"
+          ]
+        },
+        {
+          "id": "era-10-l4-q08",
+          "type": "single",
+          "prompt": "Ein Register `s0` enthält `0x3000`. Bei `lw a5,-24(s0)`: Welche Aussage beschreibt den Load korrekt?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Der Befehl liest den Word-Wert von Adresse `0x2FE8` nach `a5`."
+            },
+            {
+              "id": "b",
+              "text": "Der Befehl lädt die Adresse `0x2FE8` selbst nach `a5`."
+            },
+            {
+              "id": "c",
+              "text": "Der Befehl liest den Word-Wert von Adresse `0x3018` nach `a5`."
+            },
+            {
+              "id": "d",
+              "text": "Der Befehl speichert `a5` an Adresse `0x2FE8`."
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "Bei einem Load ergibt sich die effektive Adresse aus Basisregister plus vorzeichenbehaftetem Offset: `0x3000 - 24 = 0x2FE8`. `lw` lädt den dort gespeicherten Word-Wert ins Zielregister.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO8.md",
+            "heading": null
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Befehls- und Datenzugriff",
+            "codierte Befehle und Daten"
+          ]
+        },
+        {
+          "id": "era-10-l4-q09",
+          "type": "code_output",
+          "prompt": "Welchen Wert liefert die Schleife am Ende in `t0`?",
+          "context": {
+            "type": "code",
+            "content": "addi t0,x0,0\naddi t1,x0,0\nloop:\n  add t0,t0,t1\n  addi t1,t1,1\n  addi t2,x0,9\n  bge t2,t1,loop",
+            "language": "riscv",
+            "caption": "Addition von 0 bis 9 mit Rücksprungbedingung"
+          },
+          "options": [
+            {
+              "id": "a",
+              "text": "10"
+            },
+            {
+              "id": "b",
+              "text": "36"
+            },
+            {
+              "id": "c",
+              "text": "54"
+            },
+            {
+              "id": "d",
+              "text": "45"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Der Rumpf addiert `t1` für die Werte 0 bis 9. Nach dem Erhöhen auf 10 ist `9 ≥ 10` falsch, daher endet die Schleife mit der Summe 45.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO10.md",
+            "heading": "Schleifenkörper und Bedingung"
+          },
+          "difficulty": 5,
+          "concepts": [
+            "Schleifenablauf",
+            "Instruktionszyklus"
+          ]
+        },
+        {
+          "id": "era-10-l4-q10",
+          "type": "multi",
+          "prompt": "Wähle alle richtigen Aussagen über das einfache Ausführungsmodell und seine Abweichungen.",
+          "options": [
+            {
+              "id": "a",
+              "text": "Ein Sprung kann beeinflussen, von welcher Adresse der nächste Befehl geholt wird."
+            },
+            {
+              "id": "b",
+              "text": "Der PC/BZ enthält die Adresse des Befehls."
+            },
+            {
+              "id": "c",
+              "text": "Im einfachen Modell wird zu einem Zeitpunkt nur ein Befehl ausgeführt."
+            },
+            {
+              "id": "d",
+              "text": "Optimierte interne Ausführung darf die von außen beobachtbare Programmwirkung beliebig ändern."
+            }
+          ],
+          "correct": [
+            "a",
+            "b",
+            "c"
+          ],
+          "explanation": "Das einfache Modell betrachtet jeweils einen Befehl und nutzt den PC/BZ für dessen Adresse. Sprünge ändern die Fortsetzung; auch intern optimierte Ausführung muss die geforderte beobachtbare Wirkung erhalten.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO10.md",
+            "heading": "Wie wird ein Programm schrittweise abgearbeitet?"
+          },
+          "difficulty": 5,
+          "concepts": [
+            "Instruktionszyklus",
+            "PC/BZ und IR",
+            "Compileroptimierung"
+          ]
+        },
+        {
+          "id": "era-10-l4-q11",
+          "type": "single",
+          "prompt": "Eine Routine verändert das callee-saved Register `s1`. Was muss sie vor der Rückkehr gemäß Calling Convention tun?",
+          "options": [
+            {
+              "id": "a",
+              "text": "`s1` als Rücksprungadresse verwenden."
+            },
+            {
+              "id": "b",
+              "text": "Den ursprünglichen Wert von `s1` wiederherstellen."
+            },
+            {
+              "id": "c",
+              "text": "`s1` auf null setzen."
+            },
+            {
+              "id": "d",
+              "text": "`s1` in den PC kopieren."
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "Callee-saved Register muss die aufgerufene Routine bei Veränderung wiederherstellen. `s1` gehört zu den callee-saved Registern.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO6.md",
+            "heading": null
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Calling Convention",
+            "Prolog und Epilog"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "era-10-l5",
+      "index": 5,
+      "kind": "bonus",
+      "title": "Praxis: Was im Rechneralltag steckt",
+      "questions": [
+        {
+          "id": "era-10-l5-q01",
+          "type": "single",
+          "prompt": "Ein rekursiver Sudoku-Löser hat mehrere aktive Aufrufe. Jeder muss seinen eigenen Kandidatenindex behalten; laut Calling Convention nötige Werte werden beim Aufruf gesichert. Wozu dient hier ein eigener Stackframe?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Er trennt die Speicherbereiche für Befehle und Daten."
+            },
+            {
+              "id": "b",
+              "text": "Er sorgt dafür, dass alle Prozessorregister bei jedem Aufruf unverändert bleiben."
+            },
+            {
+              "id": "c",
+              "text": "Er gibt jedem aktiven Aufruf eigene Ablageorte für lokale Werte und nötige Sicherungen."
+            },
+            {
+              "id": "d",
+              "text": "Er verbindet die Sudoku-Routine mit einer externen Programmbibliothek."
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Jeder aktive Aufruf braucht seinen eigenen Zustand, damit sich die Kandidatenindizes nicht gegenseitig überschreiben. Stackframes stellen dafür Speicher bereit; welche Werte gesichert werden, bestimmt die Calling Convention.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO10.md",
+            "heading": "Prolog und Epilog"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Stackframes",
+            "Calling Convention"
+          ]
+        },
+        {
+          "id": "era-10-l5-q02",
+          "type": "single",
+          "prompt": "Du kompilierst denselben C-Code einmal ohne Optimierung und einmal mit `-O2`. Im Debugger siehst du andere Register und eine andere Befehlsfolge. Was ist die naheliegende Erklärung?",
+          "options": [
+            {
+              "id": "a",
+              "text": "`-O2` ändert automatisch die Bedeutung des C-Programms."
+            },
+            {
+              "id": "b",
+              "text": "Das Programm wurde beim Übersetzen bereits mit seiner Bibliothek verlinkt; deshalb muss der Maschinencode identisch sein."
+            },
+            {
+              "id": "c",
+              "text": "Die Calling Convention verlangt, dass alle Register in beiden Fassungen gleich belegt sind."
+            },
+            {
+              "id": "d",
+              "text": "Der optimierende Compiler darf Registerbelegung und Befehlsfolge verändern."
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Optimierung kann die Umsetzung des Programms verändern, etwa Register anders belegen oder Befehle umordnen. Die beobachtbare Wirkung des Programms soll dabei erhalten bleiben.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO10.md",
+            "heading": "Compileroptimierung"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Compileroptimierung",
+            "Calling Convention"
+          ]
+        },
+        {
+          "id": "era-10-l5-q03",
+          "type": "estimate",
+          "prompt": "Eine Routine reserviert Platz für 12 lokale Ganzzahlen zu je 4 Byte und sichert zwei Register zu je 8 Byte. Padding und weitere Werte lässt du außer Acht. Wie viele Byte belegen diese Inhalte zusammen?",
+          "options": [],
+          "correct": [],
+          "slider": {
+            "min": 24,
+            "max": 96,
+            "step": 4,
+            "answer": 64,
+            "tolerance": 0,
+            "unit": "Byte",
+            "scale": "linear"
+          },
+          "explanation": "Die lokalen Werte brauchen `12 × 4 = 48` Byte, die Register `2 × 8 = 16` Byte. Zusammen sind das `48 + 16 = 64` Byte im Stackframe.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO10.md",
+            "heading": "Prolog und lokale Daten"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Stackframes",
+            "Speicherorganisation"
+          ]
+        },
+        {
+          "id": "era-10-l5-q04",
+          "type": "single",
+          "prompt": "Du modellierst einen einfachen Rechner: Die CPU holt Programmbefehle aus demselben Hauptspeicher, in dem auch die Daten der App liegen. Welches Konzept beschreibt das?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Harvard-Architektur: Programm- und Datenspeicher sind getrennt."
+            },
+            {
+              "id": "b",
+              "text": "Stackframe: Jeder Aufruf erhält eigene lokale Speicherplätze."
+            },
+            {
+              "id": "c",
+              "text": "Von-Neumann-Konzept: Programme und Daten liegen im selben Hauptspeicher."
+            },
+            {
+              "id": "d",
+              "text": "Linken: Verweise zwischen Programmteilen werden aufgelöst."
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Das gemeinsame Ablegen von Programmbefehlen und Daten im Hauptspeicher ist ein zentrales Merkmal des Von-Neumann-Konzepts.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO10.md",
+            "heading": "Gemeinsamer oder getrennter Speicher?"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Von-Neumann-Konzept",
+            "Speicherorganisation"
+          ]
+        },
+        {
+          "id": "era-10-l5-q05",
+          "type": "single",
+          "prompt": "Eine App und ihre Daten liegen im selben Hauptspeicher. Das Betriebssystem schützt den Programmabschnitt vor Schreibzugriffen, während der Datenbereich beschreibbar bleibt. Was folgt daraus?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Der Linker muss den Programmabschnitt bei jedem Schreibzugriff neu verbinden."
+            },
+            {
+              "id": "b",
+              "text": "Schreibschutz und die Trennung von Programm- und Datenspeicher sind verschiedene Eigenschaften."
+            },
+            {
+              "id": "c",
+              "text": "Das Programm verändert damit automatisch seinen eigenen Code."
+            },
+            {
+              "id": "d",
+              "text": "Der Rechner muss eine Harvard-Architektur mit getrennten Hauptspeichern haben."
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "Ein gemeinsamer Hauptspeicher kann geschützte und beschreibbare Bereiche enthalten. Schreibschutz allein bedeutet nicht, dass Programme und Daten in getrennten Speichern liegen.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO10.md",
+            "heading": "Gemeinsamer oder getrennter Speicher?"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Speicherorganisation",
+            "Von-Neumann-Konzept"
+          ]
+        },
+        {
+          "id": "era-10-l5-q06",
+          "type": "estimate",
+          "prompt": "Du startest `i` bei 0. Eine Schleife führt ihren Körper aus, solange `i ≤ 9` gilt, und erhöht `i` in jedem Durchlauf genau einmal. Wie oft läuft der Körper?",
+          "options": [],
+          "correct": [],
+          "slider": {
+            "min": 3,
+            "max": 15,
+            "step": 1,
+            "answer": 10,
+            "tolerance": 0,
+            "unit": "Durchläufe",
+            "scale": "linear"
+          },
+          "explanation": "Der Körper läuft für `i = 0, 1, …, 9` und damit für zehn Werte. Sobald `i = 10` ist, endet die Schleife.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO10.md",
+            "heading": "Schleifenkörper und Bedingung"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Schleifenablauf"
+          ]
+        },
+        {
+          "id": "era-10-l5-q07",
+          "type": "single",
+          "prompt": "Dein Programm ruft `printf` auf, aber die Funktion liegt in einer separat übersetzten Bibliothek. Beim Erstellen des fertigen Programms müssen der offene Verweis aufgelöst und passende Adressangaben ergänzt werden. Welcher Schritt erledigt das typischerweise?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Einrichten eines Stackframes"
+            },
+            {
+              "id": "b",
+              "text": "Dekodieren eines Befehls"
+            },
+            {
+              "id": "c",
+              "text": "Selbstmodifizieren des Codes"
+            },
+            {
+              "id": "d",
+              "text": "Linken"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Der Linker verbindet übersetzte Programmteile und Bibliotheken und löst Verweise zwischen ihnen auf. Gegebenenfalls passt er dabei Adressangaben an.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO10.md",
+            "heading": "Was bedeutet Linken?"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Linken",
+            "Speicherorganisation"
+          ]
+        },
+        {
+          "id": "era-10-l5-q08",
+          "type": "estimate",
+          "prompt": "Eine Routine setzt `summe = 0` und addiert danach für jede ganze Zahl `i` von 0 bis einschließlich 9 den Wert `i` zu `summe`. Welchen Endwert zeigt die Routine an?",
+          "options": [],
+          "correct": [],
+          "slider": {
+            "min": 10,
+            "max": 70,
+            "step": 1,
+            "answer": 45,
+            "tolerance": 0,
+            "unit": "Zahlenwert",
+            "scale": "linear"
+          },
+          "explanation": "Die Routine berechnet `0 + 1 + 2 + … + 9`. Die Summe dieser zehn Werte beträgt 45.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO10.md",
+            "heading": "Schleifenkörper und Bedingung"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Schleifenablauf",
+            "Instruktionszyklus"
+          ]
+        },
+        {
+          "id": "era-10-l5-q09",
+          "type": "single",
+          "prompt": "Eine seltene Spezialroutine schreibt zur Laufzeit neue Befehlsbytes an Speicherstellen, aus denen sie gleich selbst weitere Befehle holt. Wie nennt man dieses Verhalten?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Sequenzielle Ausführung"
+            },
+            {
+              "id": "b",
+              "text": "Linken"
+            },
+            {
+              "id": "c",
+              "text": "Selbstmodifizierender Code"
+            },
+            {
+              "id": "d",
+              "text": "Ein gewöhnlicher bedingter Sprung"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Hier verändert das Programm seine eigenen Befehle im Speicher. Das ist selbstmodifizierender Code.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO10.md",
+            "heading": "Selbstmodifizierender Code"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "selbstmodifizierender Code",
+            "codierte Befehle und Daten"
+          ]
+        },
+        {
+          "id": "era-10-l5-q10",
+          "type": "single",
+          "prompt": "Im vereinfachten Ablauf gilt: `lw a5, offset(s0)` liest Daten von `s0 + offset`; eine 4-Byte-Instruktion stellt den PC nach dem Holen um 4 Byte weiter. Du siehst bei `PC = 0x684` den Befehl `lw a5,-24(s0)` und `s0 = 0x1000`. Welche Aussage stimmt?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Befehlsadresse 0xFE8; Datenadresse 0x684; nächster PC 0x688."
+            },
+            {
+              "id": "b",
+              "text": "Befehlsadresse 0x684; Datenadresse 0xFE8; nächster PC 0x685."
+            },
+            {
+              "id": "c",
+              "text": "Befehlsadresse 0x684; Datenadresse 0xFE8; nächster PC 0x688."
+            },
+            {
+              "id": "d",
+              "text": "Befehlsadresse 0x684; Datenadresse 0x1024; nächster PC 0x688."
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Der Befehl wird bei `0x684` geholt. Die Datenadresse ist `0x1000 - 24 = 0xFE8`; wegen der 4-Byte-Instruktion zeigt der PC anschließend auf `0x688`.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO10.md",
+            "heading": "Instruktionszyklus"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Instruktionszyklus",
+            "PC/BZ und IR",
+            "Befehls- und Datenzugriff"
+          ]
+        }
+      ]
+    }
+  ]
+}
