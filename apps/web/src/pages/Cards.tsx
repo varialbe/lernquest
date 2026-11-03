@@ -5,6 +5,7 @@ import { Link, useLocation, useSearch } from 'wouter';
 import { KNOWLEDGE_KIND_LABEL, MODULE_INFO, MODULES, type CardSession, type KnowledgeModuleResponse, type ModuleId } from '@lernquest/shared';
 import { Icon } from '../components/icons.tsx';
 import { Markdown } from '../components/Markdown.tsx';
+import { MathText } from '../components/MathText.tsx';
 import { Mascot } from '../components/Pet.tsx';
 import { Page } from '../components/Shell.tsx';
 import { Button, Pill, ProgressBar, Segmented, Spinner } from '../components/ui.tsx';
@@ -68,12 +69,12 @@ function FlashCard({ card, color, flipped, onFlip, onAnswer }: { card: Card; col
         </div>
         {!flipped ? (
           <div className="flex min-h-[17rem] flex-col items-center justify-center text-center">
-            <p className="text-3xl font-black leading-tight">{e.term}</p>
+            <p className="text-3xl font-black leading-tight"><MathText text={e.term} /></p>
             <p className="mt-4 text-sm font-bold text-muted">Was bedeutet das? Erst überlegen, dann antippen.</p>
           </div>
         ) : (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mt-3">
-            <p className="text-xl font-black leading-tight">{e.term}</p>
+            <p className="text-xl font-black leading-tight"><MathText text={e.term} /></p>
             <Markdown inline text={e.short} className="mt-2 block font-extrabold" />
             <div className="mt-3 border-t-2 border-line pt-2 text-[0.95rem]">
               <Markdown text={e.explanation} />
