@@ -25,6 +25,24 @@ const norm = (s: string) =>
     .replace(/ß/g, 'ss');
 
 
+/** Ansicht der Liste: nach Vorlesung gruppiert, alphabetisch oder nach Art (Begriff, Konzept, …) */
+type View = 'lecture' | 'az' | 'kind';
+const VIEWS: { value: View; label: string }[] = [
+  { value: 'lecture', label: 'Vorlesung' },
+  { value: 'az', label: 'A–Z' },
+  { value: 'kind', label: 'Art' },
+];
+const KIND_ORDER = Object.keys(KNOWLEDGE_KIND_LABEL) as KnowledgeEntry['kind'][];
+/** Eine Unit = eine Vorlesung (Mitschrift „… VO<n>.md“) */
+const lectureLabel = (u: UnitK) => `Vorlesung ${u.unitNumber} · ${plainMath(u.unitTitle)}`;
+const sortKey = (term: string) => plainMath(term).replace(/^[^\p{L}\p{N}]+/u, '');
+const byTerm = (a: { e: KnowledgeEntry }, b: { e: KnowledgeEntry }) => sortKey(a.e.term).localeCompare(sortKey(b.e.term), 'de', { sensitivity: 'base', numeric: true });
+/** Anfangsbuchstabe für die A–Z-Überschriften (Umlaute unter dem Grundbuchstaben, Zahlen/Symbole unter „#“) */
+const letterOf = (term: string) => {
+  const c = norm(sortKey(term)).charAt(0).toUpperCase();
+  return /[A-Z]/.test(c) ? c : '#';
+};
+
 function search(units: UnitK[], q: string): Hit[] {
   const words = norm(q).split(/\s+/).filter(Boolean);
   if (!words.length) return [];
@@ -114,7 +132,7 @@ function PathView({ target, onClose }: { target: string; onClose: () => void }) 
                   <div className="flex flex-wrap items-center gap-1.5">
                     <span className="font-black">{x.e.term}</span>
                     <Pill className="bg-surface-2 text-muted">{KNOWLEDGE_KIND_LABEL[x.e.kind]}</Pill>
-                    <span className="ml-auto text-xs font-bold text-muted">Unit {x.unit.unitNumber}</span>
+                    <span className="ml-auto text-xs font-bold text-muted">VO {x.unit.unitNumber}</span>
                   </div>
                   <Markdown inline text={x.e.short} className="mt-1 block text-sm font-semibold text-muted" />
                   {forSteps.length > 0 && (
@@ -257,11 +275,40 @@ export default function Knowledge() {
   const [q, setQ] = useState(() => params.get('q') ?? '');
   const [openUnit, setOpenUnit] = useState<string | null>(null);
   const [openEntry, setOpenEntry] = useState<string | null>(null);
+  const [view, setView] = useState<View>(() => (VIEWS.some((v) => v.value === params.get('sort')) ? (params.get('sort') as View) : 'lecture'));
+  /** nur Einträge dieser Vorlesung (unitId), null = alle */
+  const [lecture, setLecture] = useState<string | null>(null);
+  const [newestFirst, setNewestFirst] = useState(false);
   const { data, isLoading, error } = useQuery({ queryKey: ['knowledge', mod], queryFn: () => api<KnowledgeModuleResponse>(`/api/knowledge/${mod}`), staleTime: 5 * 60_000 });
   const color = moduleColor(mod);
   const units = data?.units ?? [];
   const total = units.reduce((n, u) => n + u.entries.length, 0);
-  const hits = useMemo(() => search(units, q), [units, q]);
+  const lectures = units.filter((u) => u.entries.length > 0);
+  const shownUnits = useMemo(() => {
+    const list = lecture ? units.filter((u) => u.unitId === lecture) : units;
+    return newestFirst ? [...list].reverse() : list;
+  }, [units, lecture, newestFirst]);
+  const hits = useMemo(() => search(lecture ? units.filter((u) => u.unitId === lecture) : units, q), [units, lecture, q]);
+  const flat = useMemo(() => shownUnits.flatMap((unit) => unit.entries.map((e) => ({ e, unit }))), [shownUnits]);
+  /** A–Z: Gruppen je Anfangsbuchstabe; Art: Gruppen je Art, darin nach Vorlesung */
+  const groups = useMemo(() => {
+    if (view === 'az') {
+      const out: { key: string; title: string; items: typeof flat }[] = [];
+      for (const it of [...flat].sort(byTerm)) {
+        const l = letterOf(it.e.term);
+        if (out.at(-1)?.key !== l) out.push({ key: l, title: l, items: [] });
+        out.at(-1)!.items.push(it);
+      }
+      return out;
+    }
+    if (view === 'kind')
+      return KIND_ORDER.map((k) => ({ key: k, title: KNOWLEDGE_KIND_LABEL[k], items: flat.filter((it) => it.e.kind === k) })).filter((g) => g.items.length);
+    return [];
+  }, [flat, view]);
+  // gewählte Vorlesung zurücksetzen, wenn es sie (nach Modulwechsel) nicht gibt
+  useEffect(() => {
+    if (lecture && !units.some((u) => u.unitId === lecture)) setLecture(null);
+  }, [units]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Deep-Link (?q=Konzept): exakten Treffer direkt aufklappen
   useEffect(() => {
@@ -282,6 +329,7 @@ export default function Knowledge() {
     if (!hit) return;
     setPathFor(null);
     setQ('');
+    if (lecture && lecture !== hit.unit.unitId) setLecture(null);
     setOpenUnit(hit.unit.unitId);
     setOpenEntry(id);
     setTimeout(() => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' }), 250);
@@ -308,6 +356,7 @@ export default function Knowledge() {
         value={mod}
         onChange={(m) => {
           setMod(m);
+          setLecture(null);
           setOpenUnit(null);
           setOpenEntry(null);
           try {
@@ -339,6 +388,65 @@ export default function Knowledge() {
         )}
       </div>
 
+      {/* Sortierung + Filter nach Vorlesung */}
+      {total > 0 && (
+        <div className="mt-3 space-y-2">
+          <div className="flex items-center gap-2">
+            <span className="shrink-0 text-xs font-black uppercase tracking-wider text-muted">Sortieren</span>
+            <div className="flex flex-1 rounded-2xl border-2 border-line bg-surface p-0.5" role="radiogroup" aria-label="Sortieren nach">
+              {VIEWS.map((v) => {
+                const active = view === v.value;
+                return (
+                  <button
+                    key={v.value}
+                    role="radio"
+                    aria-checked={active}
+                    onClick={() => {
+                      setView(v.value);
+                      setOpenEntry(null);
+                    }}
+                    className={`flex-1 rounded-xl px-2 py-1 text-sm font-extrabold transition-colors ${active ? 'text-white' : 'text-muted'}`}
+                    style={active ? { background: color } : undefined}
+                  >
+                    {v.label}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+          <div className="flex items-center gap-2">
+            <select
+              value={lecture ?? ''}
+              onChange={(ev) => {
+                const id = ev.target.value || null;
+                setLecture(id);
+                setOpenEntry(null);
+                setOpenUnit(id);
+              }}
+              aria-label="Vorlesung auswählen"
+              className="min-w-0 flex-1 truncate rounded-2xl border-2 border-line bg-surface px-3 py-1.5 text-sm font-bold outline-none focus:border-primary"
+              style={lecture ? { borderColor: color } : undefined}
+            >
+              <option value="">Alle Vorlesungen ({lectures.length})</option>
+              {lectures.map((u) => (
+                <option key={u.unitId} value={u.unitId}>
+                  {lectureLabel(u)} ({u.entries.length})
+                </option>
+              ))}
+            </select>
+            {view === 'lecture' && !lecture && !q.trim() && (
+              <button
+                onClick={() => setNewestFirst(!newestFirst)}
+                aria-label={newestFirst ? 'Älteste Vorlesung zuerst' : 'Neueste Vorlesung zuerst'}
+                className="shrink-0 rounded-2xl border-2 border-line bg-surface px-3 py-1.5 text-sm font-extrabold text-muted active:scale-95"
+              >
+                {newestFirst ? 'Neueste ↓' : 'Älteste ↓'}
+              </button>
+            )}
+          </div>
+        </div>
+      )}
+
       {isLoading && <Spinner />}
       {error && !data && <p className="mt-6 text-center font-bold text-muted">Die Wissenssammlung konnte nicht geladen werden.</p>}
 
@@ -355,15 +463,34 @@ export default function Knowledge() {
         <div className="mt-4 space-y-2">
           <p className="px-1 text-sm font-bold text-muted">{hits.length ? `${hits.length} Treffer` : `Nichts gefunden für „${q}“.`}</p>
           {hits.map(({ e, unit }) => (
-            <EntryCard key={e.id} e={e} color={color} unitLabel={`Unit ${unit.unitNumber} · ${plainMath(unit.unitTitle)}`} open={openEntry === e.id} onToggle={() => setOpenEntry(openEntry === e.id ? null : e.id)} onRelated={related} />
+            <EntryCard key={e.id} e={e} color={color} unitLabel={lectureLabel(unit)} open={openEntry === e.id} onToggle={() => setOpenEntry(openEntry === e.id ? null : e.id)} onRelated={related} />
           ))}
         </div>
       )}
 
-      {/* Units */}
-      {!q.trim() && total > 0 && (
+      {/* A–Z / nach Art */}
+      {!q.trim() && total > 0 && view !== 'lecture' && (
+        <div className="mt-4 space-y-4">
+          {groups.map((g) => (
+            <section key={g.key} aria-label={g.title}>
+              <h2 className="mb-2 flex items-baseline gap-2 border-b-2 border-line px-1 pb-1">
+                <span className="text-lg font-black" style={{ color }}>{g.title}</span>
+                <span className="text-xs font-bold text-muted">{g.items.length}</span>
+              </h2>
+              <div className="space-y-2">
+                {g.items.map(({ e, unit }) => (
+                  <EntryCard key={e.id} e={e} color={color} unitLabel={lecture ? undefined : lectureLabel(unit)} open={openEntry === e.id} onToggle={() => setOpenEntry(openEntry === e.id ? null : e.id)} onRelated={related} />
+                ))}
+              </div>
+            </section>
+          ))}
+        </div>
+      )}
+
+      {/* nach Vorlesung */}
+      {!q.trim() && total > 0 && view === 'lecture' && (
         <div className="mt-4 space-y-3">
-          {units.map((u, i) => {
+          {shownUnits.map((u, i) => {
             const open = openUnit === u.unitId;
             return (
               <motion.div key={u.unitId} initial={{ y: 12, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: Math.min(i, 8) * 0.03 }}>
@@ -373,6 +500,7 @@ export default function Knowledge() {
                       {u.unitNumber}
                     </div>
                     <div className="min-w-0 flex-1">
+                      <p className="text-xs font-black uppercase tracking-wider" style={{ color }}>Vorlesung {u.unitNumber}</p>
                       <p className="font-black leading-tight">
                         <MathText text={u.unitTitle} />
                       </p>
