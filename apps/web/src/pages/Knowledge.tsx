@@ -130,14 +130,14 @@ function PathView({ target, onClose }: { target: string; onClose: () => void }) 
               <div className={`rounded-2xl border-2 bg-surface ${isTarget ? 'border-primary' : 'border-line'}`}>
                 <button className="w-full p-3 text-left" onClick={() => setOpen(expanded ? null : id)} aria-expanded={expanded}>
                   <div className="flex flex-wrap items-center gap-1.5">
-                    <span className="font-black">{x.e.term}</span>
+                    <span className="font-black"><MathText text={x.e.term} /></span>
                     <Pill className="bg-surface-2 text-muted">{KNOWLEDGE_KIND_LABEL[x.e.kind]}</Pill>
                     <span className="ml-auto text-xs font-bold text-muted">VO {x.unit.unitNumber}</span>
                   </div>
                   <Markdown inline text={x.e.short} className="mt-1 block text-sm font-semibold text-muted" />
                   {forSteps.length > 0 && (
                     <p className="mt-1 text-xs font-bold text-primary">
-                      → nötig für {forSteps.map((f) => f.term).join(', ')}
+                      → nötig für {plainMath(forSteps.map((f) => f.term).join(', '))}
                       {forSteps[0]!.why && <span className="font-semibold text-muted">: {plainMath(forSteps[0]!.why)}</span>}
                     </p>
                   )}
@@ -180,7 +180,7 @@ function Prereqs({ e }: { e: KnowledgeEntry }) {
             {req.map((r) => (
               <li key={r.id} className="font-semibold">
                 <button onClick={() => g.jump(r.id)} className="font-extrabold text-primary underline decoration-2 underline-offset-2 active:opacity-70">
-                  {g.byId.get(r.id)!.e.term}
+                  <MathText text={g.byId.get(r.id)!.e.term} />
                 </button>
                 {r.why && (
                   <span className="text-muted">
@@ -202,7 +202,7 @@ function Prereqs({ e }: { e: KnowledgeEntry }) {
           <span className="text-xs font-black uppercase tracking-wider text-muted">Baut darauf auf</span>
           {used.slice(0, 8).map((id) => (
             <button key={id} onClick={() => g.jump(id)} className="rounded-full border-2 border-line bg-surface px-2 py-0.5 text-xs font-extrabold text-primary active:scale-95">
-              {g.byId.get(id)!.e.term}
+              <MathText text={g.byId.get(id)!.e.term} />
             </button>
           ))}
         </div>
@@ -217,7 +217,7 @@ function EntryCard({ e, color, unitLabel, open, onToggle, onRelated }: { e: Know
       <button onClick={onToggle} aria-expanded={open} className="flex w-full items-start gap-2 p-3 text-left">
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-1.5">
-            <span className="font-black leading-tight">{e.term}</span>
+            <span className="font-black leading-tight"><MathText text={e.term} /></span>
             <Pill className="bg-surface-2 text-muted">{KNOWLEDGE_KIND_LABEL[e.kind]}</Pill>
           </div>
           {unitLabel && <p className="mt-0.5 text-xs font-black uppercase tracking-wider" style={{ color }}>{unitLabel}</p>}
