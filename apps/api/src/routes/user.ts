@@ -42,6 +42,7 @@ import { pushEnabled } from '../lib/push.ts';
 import { emailFields, emailOf, requestNewsletter, sendVerify, stopNewsletter, userByIdentifier } from '../lib/account.ts';
 import { appUrl } from '../lib/mail.ts';
 import { claimQuest, questsFor } from '../lib/quests.ts';
+import { addStudyBlock, claimStudyWeek, studyState, undoStudyBlock } from '../lib/study.ts';
 import { completeRun, mastery, startExam, startWeak } from '../lib/runs.ts';
 import { knowledgeForModule } from '../lib/knowledge.ts';
 import { cardSession, cardsOverview, reviewCard } from '../lib/cards.ts';
@@ -228,6 +229,14 @@ export function userRoutes(app: FastifyInstance, db: DB) {
   // ---------- Tagesaufgaben ----------
   app.get('/api/quests', auth, async (req) => questsFor(db, req.user));
   app.post<{ Params: { id: string } }>('/api/quests/:id/claim', auth, async (req) => claimQuest(db, req.user, req.params.id));
+
+  // Lernblöcke (Eigenstudium)
+  const studyLimit = { config: { rateLimit: { max: 120, timeWindow: '1 hour' } } };
+  const studyModule = (m: string) => ModuleId.parse(m.toUpperCase());
+  app.get('/api/study', auth, async (req) => studyState(db, req.user));
+  app.post<{ Params: { module: string } }>('/api/study/:module/add', { ...auth, ...studyLimit }, async (req) => addStudyBlock(db, req.user, studyModule(req.params.module)));
+  app.post<{ Params: { module: string } }>('/api/study/:module/undo', { ...auth, ...studyLimit }, async (req) => undoStudyBlock(db, req.user, studyModule(req.params.module)));
+  app.post<{ Params: { week: string } }>('/api/study/claim/:week', auth, async (req) => claimStudyWeek(db, req.user, req.params.week));
 
   app.post('/api/reports', { ...auth, config: { rateLimit: { max: 30, timeWindow: '1 hour' } } }, async (req) => {
     const body = ReportReq.parse(req.body);

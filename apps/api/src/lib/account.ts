@@ -1,7 +1,7 @@
 import { randomBytes } from 'node:crypto';
 import { and, eq, gt, isNotNull, isNull, sql } from 'drizzle-orm';
 import type { DB } from '../db/index.ts';
-import { answers, authTokens, levelProgress, questClaims, quizRuns, reviewItems, users, xpEvents } from '../db/schema.ts';
+import { answers, authTokens, levelProgress, questClaims, quizRuns, reviewItems, users, xpEvents, studyBlocks, studyClaims } from '../db/schema.ts';
 import type { AuthUser } from './auth.ts';
 import { hashPassword } from './auth.ts';
 import { decrypt, emailHash, encrypt, newToken, normalizeEmail, sign, tokenHash } from './crypto.ts';
@@ -101,7 +101,7 @@ export const unusablePasswordHash = () => hashPassword(randomBytes(32).toString(
 /** Lernfortschritt, XP, Coins und Streak zurücksetzen (Konto, Pets und gekaufte Items bleiben) */
 export function resetProgress(db: DB, userId: number) {
   db.transaction((tx) => {
-    for (const t of [levelProgress, answers, reviewItems, xpEvents, questClaims] as const) tx.delete(t).where(eq(t.userId, userId)).run();
+    for (const t of [levelProgress, answers, reviewItems, xpEvents, questClaims, studyBlocks, studyClaims] as const) tx.delete(t).where(eq(t.userId, userId)).run();
     tx.delete(quizRuns).where(eq(quizRuns.userId, userId)).run();
     tx.update(users).set({ xp: 0, coins: 0, streak: 0, longestStreak: 0, lastActiveDay: null, streakFreezes: 0, leagueTier: 0 }).where(eq(users.id, userId)).run();
   });

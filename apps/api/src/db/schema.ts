@@ -395,3 +395,29 @@ export const pipelineRuns = sqliteTable('pipeline_runs', {
   summary: text('summary'),
   report: text('report', { mode: 'json' }),
 });
+
+// ---------- Lernblöcke (Eigenstudium, selbst eingetragen) ----------
+export const studyBlocks = sqliteTable(
+  'study_blocks',
+  {
+    id: integer('id').primaryKey({ autoIncrement: true }),
+    userId: integer('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+    module: text('module', { enum: ['DS', 'EIP', 'ERA'] }).notNull(),
+    /** Montag der Berliner Woche (YYYY-MM-DD) */
+    week: text('week').notNull(),
+    day: text('day').notNull(),
+    createdAt: ts('created_at'),
+  },
+  (t) => [index('study_blocks_user_week_idx').on(t.userId, t.week)],
+);
+
+export const studyClaims = sqliteTable(
+  'study_claims',
+  {
+    userId: integer('user_id').notNull().references(() => users.id, { onDelete: 'cascade' }),
+    week: text('week').notNull(),
+    coins: integer('coins').notNull(),
+    claimedAt: ts('claimed_at'),
+  },
+  (t) => [primaryKey({ columns: [t.userId, t.week] })],
+);

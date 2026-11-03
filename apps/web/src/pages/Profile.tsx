@@ -13,6 +13,7 @@ import { useConfig, useMe, useMeMutation, useProfile } from '../lib/queries.ts';
 import { ChangePassword } from './Auth.tsx';
 import { moduleColor } from '../lib/theme.ts';
 import { PasskeySettings } from '../components/PasskeySettings.tsx';
+import { StudyBlocks } from '../components/StudyBlocks.tsx';
 import { Copyright } from './Legal.tsx';
 import { GOOGLE_G, startGoogle } from '../lib/google.ts';
 
@@ -339,6 +340,8 @@ export default function Profile({ username, onLogout, onLogin }: { username?: st
         <StatBox img="badge-xp" value={p.stats.league} label={`Liga · ${p.stats.weekXp} XP diese Woche`} />
         <StatBox img="item-streak_freeze" value={p.stats.streakFreezes} label="Streak-Freezes" />
       </div>
+
+      {isMe && <StudyBlocks />}
 
       <SectionTitle>Streak-Kalender</SectionTitle>
       <Card>

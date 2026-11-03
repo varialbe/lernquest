@@ -152,7 +152,7 @@ export function Datenschutz() {
 
       <H>7. Lernfortschritt und Spielfunktionen</H>
       <p>
-        Gespeichert werden deine Antworten, Level-Fortschritt, Wiederholungsplan, Karteikarten-Fortschritt (welche Karte in welcher Box liegt und wann sie wieder fällig ist), XP, Coins, Streak, Pets, Shop-Käufe, Tagesaufgaben, Klausur-Checks, Duelle und Ligaplatzierungen sowie Meldungen zu Fragen inklusive deines optionalen Kommentars. Rechtsgrundlage: Art. 6 Abs. 1 lit.
+        Gespeichert werden deine Antworten, Level-Fortschritt, Wiederholungsplan, Karteikarten-Fortschritt (welche Karte in welcher Box liegt und wann sie wieder fällig ist), XP, Coins, Streak, Pets, Shop-Käufe, Tagesaufgaben, selbst eingetragene Lernblöcke (Fach und Tag, an dem du einen 90-Minuten-Block eingetragen hast, sowie abgeholte Wochenbelohnungen), Klausur-Checks, Duelle und Ligaplatzierungen sowie Meldungen zu Fragen inklusive deines optionalen Kommentars. Rechtsgrundlage: Art. 6 Abs. 1 lit.
         b DSGVO.
       </p>
       <p className="mt-2">
