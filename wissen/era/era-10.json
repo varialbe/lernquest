@@ -1,0 +1,497 @@
+{
+  "schemaVersion": 1,
+  "unitId": "era-10",
+  "module": "ERA",
+  "unitNumber": 10,
+  "unitTitle": "Stackframes, Von-Neumann-Konzept und Befehlszyklus",
+  "sourceSha": "74ffdde6f26a3838ba7e0097f981b519e865479ec9d396c862d753a1c3267bd4",
+  "overview": "Die Unit wiederholt Stackframes und Unterprogrammaufrufe und erläutert das Von-Neumann-Konzept sowie den Instruktionszyklus. Sie behandelt die vier Werke, die Speicherorganisation, codierte Befehle und Daten, Linken und selbstmodifizierenden Code. Das `lw`-Beispiel zeigt, wie der Prozessor einen Befehl holt, den PC weiterstellt, den Befehl dekodiert und anschließend auf dessen Datenoperand zugreift.",
+  "entries": [
+    {
+      "id": "era-10-k01",
+      "term": "Stack im Hauptspeicher",
+      "kind": "concept",
+      "short": "Der Stack ist ein Bereich des byteweise adressierten Hauptspeichers.",
+      "explanation": "Der Stack ist kein vom Hauptspeicher getrennter Speicher. Seine Inhalte werden über Speicheradressen angesprochen, die sich auf einzelne Bytes beziehen.",
+      "example": "Ein Wert kann über einen Offset relativ zum Frame Pointer aus dem Stack gelesen werden.",
+      "pitfalls": [
+        "Der Stack ist kein eigener Hardware-Speicher."
+      ],
+      "related": [
+        "Stackframe",
+        "Hauptspeicher",
+        "Byteadressierung"
+      ],
+      "heading": "Rückblick: Stackframes und Unterprogramme"
+    },
+    {
+      "id": "era-10-k02",
+      "term": "Stackframe",
+      "kind": "definition",
+      "short": "Ein Stackframe ist der Stackbereich, den eine Routine für ihre Ausführung verwendet.",
+      "explanation": "Ein Stackframe kann lokale Variablen, gesicherte Register und weitere für die Routine benötigte Werte enthalten. Der Compiler ordnet die Werte Positionen im Frame zu und reserviert den nötigen Platz. Beim Rücksprung wird der Stackframe freigegeben.",
+      "example": "Im Folienbeispiel reserviert die Funktion mit `add sp,sp,-48` 48 Byte.",
+      "pitfalls": [
+        "Stackframes sind nicht für alle Routinen gleich groß."
+      ],
+      "related": [
+        "Stack im Hauptspeicher",
+        "Stack Pointer (SP)",
+        "Frame Pointer (FP)",
+        "Prolog und Epilog",
+        "Calling Convention"
+      ],
+      "heading": "Rückblick: Stackframes und Unterprogramme"
+    },
+    {
+      "id": "era-10-k03",
+      "term": "Stack Pointer (SP)",
+      "kind": "notation",
+      "short": "`SP` bezeichnet das Register, das das aktuelle Stackende markiert.",
+      "explanation": "Der Stack Pointer wird beim Einrichten und Freigeben eines Stackframes angepasst. Im Folienbeispiel wird der Stackplatz reserviert, indem `sp` um 48 Byte verringert wird. Dort wächst der Stack zu kleineren Adressen.",
+      "example": "Im Beispiel gilt `sp_neu = sp_alt - 48`.",
+      "pitfalls": [
+        "Stackframe-Offsets können relativ zum Frame Pointer statt zum Stack Pointer angegeben sein."
+      ],
+      "related": [
+        "Stackframe",
+        "Frame Pointer (FP)",
+        "Prolog und Epilog"
+      ],
+      "heading": "Rückblick: Stackframes und Unterprogramme"
+    },
+    {
+      "id": "era-10-k04",
+      "term": "Frame Pointer (FP)",
+      "kind": "notation",
+      "short": "Der Frame Pointer ist ein Bezugspunkt für Positionen innerhalb eines Stackframes.",
+      "explanation": "Lokale Werte und gesicherte Register können über feste Offsets relativ zum Frame Pointer angesprochen werden. Im Folienbeispiel wird `s0` als Frame Pointer verwendet und auf den ursprünglichen Wert des Stack Pointers gesetzt. Dadurch können die Werte über dieselben Offsets erreicht werden, auch wenn sich `sp` während der Routine ändert.",
+      "example": "`lw a5,-24(s0)` liest den Wert an der Adresse `s0 - 24`.",
+      "pitfalls": [
+        "Ein Offset relativ zu `s0` ist für sich genommen keine absolute Adresse."
+      ],
+      "related": [
+        "Stackframe",
+        "Stack Pointer (SP)",
+        "RISC-V"
+      ],
+      "heading": "Rückblick: Stackframes und Unterprogramme"
+    },
+    {
+      "id": "era-10-k05",
+      "term": "Prolog und Epilog",
+      "kind": "concept",
+      "short": "Der Prolog richtet den Stackframe ein, und der Epilog stellt gesicherte Werte wieder her und gibt den Stackframe frei.",
+      "explanation": "Der Prolog steht am Anfang einer Routine und reserviert bei Bedarf Stackplatz sowie sichert Werte, die später wieder gebraucht werden. Der Routinenkörper führt die Berechnung aus und kann weitere Routinen aufrufen. Am Ende lädt der Epilog gesicherte Werte zurück, stellt den Stack Pointer wieder her und ermöglicht den Rücksprung zum Aufrufer.",
+      "example": "Im Folienbeispiel werden `ra` und `s0` gesichert, später zurückgeladen und der reservierte Stackplatz von 48 Byte freigegeben.",
+      "pitfalls": [
+        "Nicht jede Routine muss Register sichern.",
+        "Welche Register erhalten bleiben müssen, bestimmt die Calling Convention."
+      ],
+      "related": [
+        "Stackframe",
+        "Stack Pointer (SP)",
+        "Frame Pointer (FP)",
+        "Calling Convention",
+        "Rücksprungadresse"
+      ],
+      "heading": "Prolog und Epilog"
+    },
+    {
+      "id": "era-10-k06",
+      "term": "Calling Convention",
+      "kind": "definition",
+      "short": "Die Calling Convention regelt, wie Routinen Argumente, Ergebnisse und Registerwerte handhaben.",
+      "explanation": "Sie legt unter anderem fest, wie Argumente übergeben werden, wo ein Ergebnis bereitsteht und welche Register bei einem Aufruf erhalten bleiben müssen. Der Prolog und Epilog sichern oder restaurieren dafür nötige Werte. Nicht alle Register müssen nach einem Aufruf unverändert sein.",
+      "example": "Im Folienbeispiel wird die berechnete Summe vor dem `printf`-Aufruf in `a1` als Argument übergeben.",
+      "pitfalls": [
+        "Die Calling Convention verlangt nicht, dass jedes Register erhalten bleibt."
+      ],
+      "related": [
+        "Prolog und Epilog",
+        "Stackframe",
+        "Unterprogrammaufruf",
+        "Caller-saved und Callee-saved"
+      ],
+      "heading": "Rückblick: Stackframes und Unterprogramme"
+    },
+    {
+      "id": "era-10-k07",
+      "term": "Lokale Daten und Stackframe-Offsets",
+      "kind": "concept",
+      "short": "Lokale Werte können an festen Offsets relativ zum Frame Pointer im Stackframe liegen.",
+      "explanation": "Beim Einrichten einer Routine ordnet der Compiler Variablen und gesicherten Werten Stackpositionen zu. Im Folienbeispiel liegen die laufende Summe bei `-24(s0)` und der Schleifenzähler bei `-20(s0)`. Die Lade- und Speicherbefehle müssen zur Größe des jeweiligen Werts passen.",
+      "example": "`sw a5,-24(s0)` speichert einen 4-Byte-Wert an der Adresse `s0 - 24`.",
+      "pitfalls": [
+        "Ein Offset wie `-24` ist nur zusammen mit dem Basisregister eine Adresse.",
+        "`sw` greift auf 4 Byte zu, während `sd` auf 8 Byte zugreift."
+      ],
+      "related": [
+        "Stackframe",
+        "Frame Pointer (FP)",
+        "Load/Store-Architektur"
+      ],
+      "heading": "Prolog und lokale Daten"
+    },
+    {
+      "id": "era-10-k08",
+      "term": "Schleifenablauf: Summe von 0 bis 9",
+      "kind": "example",
+      "short": "Das Folienbeispiel addiert die Zahlen von 0 bis 9 und erhält die Summe 45.",
+      "explanation": "Die Funktion setzt Summe und Zähler zunächst auf null. Solange der Zähler höchstens 9 ist, addiert sie ihn zur Summe und erhöht ihn anschließend um eins. Nach der Iteration mit 9 beträgt die Summe 45.",
+      "example": "`0 + 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9 = 45`.",
+      "pitfalls": [
+        "Die Bedingung schließt 9 ein.",
+        "Der Zähler wird nach der Addition erhöht."
+      ],
+      "related": [
+        "Bedingte und unbedingte Sprünge",
+        "Lokale Daten und Stackframe-Offsets",
+        "Stackframe"
+      ],
+      "heading": "Schleifenkörper und Bedingung"
+    },
+    {
+      "id": "era-10-k09",
+      "term": "Compileroptimierung mit -O2",
+      "kind": "concept",
+      "short": "`-O2` bezeichnet den Optimierungsgrad 2 und kann Registerbelegung und Befehlsfolge verändern.",
+      "explanation": "Ein optimierter Compiler kann Register anders belegen und eine andere Befehlsfolge erzeugen als ein unoptimierter Compiler. Die Beispiele mit Stackvariablen und bestimmten Registern müssen deshalb nicht der Ausgabe mit `-O2` entsprechen. Das optimierte Programm muss dennoch die geforderte beobachtbare Wirkung erhalten.",
+      "example": "Ein Wert, der in einer unoptimierten Fassung auf dem Stack liegt, kann bei `-O2` während der Berechnung in einem Register bleiben.",
+      "pitfalls": [
+        "Ein Disassembly zeigt nicht zwingend die Befehlsfolge, die ein anderer Optimierungsgrad erzeugt."
+      ],
+      "related": [
+        "Stackframe",
+        "Calling Convention",
+        "Instruktionszyklus"
+      ],
+      "heading": "Compileroptimierung"
+    },
+    {
+      "id": "era-10-k10",
+      "term": "Von-Neumann-Konzept",
+      "kind": "concept",
+      "short": "Das Von-Neumann-Konzept beschreibt einen allgemeinen Rechner, dessen Programm die auszuführende Aufgabe steuert.",
+      "explanation": "Die Rechnerstruktur ist grundsätzlich unabhängig vom jeweils zu lösenden Problem. Programme und Daten liegen im selben Hauptspeicher und werden als codierte Speicherinhalte verarbeitet. Unterschiedliche Programme können deshalb denselben Rechner für unterschiedliche Aufgaben einsetzen.",
+      "example": "Der Prozessor kann Befehle aus dem Hauptspeicher holen und zugleich dort gespeicherte Eingabedaten verarbeiten.",
+      "pitfalls": [
+        "Das Konzept legt nicht fest, dass ein konkreter Rechner nur einen Cache oder eine Ausführungseinheit haben darf."
+      ],
+      "related": [
+        "Die vier Werke",
+        "Speicherorganisation: Zellen und Adressen",
+        "Codierte Befehle und Daten",
+        "Harvard-Architektur",
+        "Von-Neumann-Modell"
+      ],
+      "heading": "Das Von-Neumann-Konzept"
+    },
+    {
+      "id": "era-10-k11",
+      "term": "Die vier Werke",
+      "kind": "definition",
+      "short": "Die vier Werke sind Hauptspeicher, Leitwerk, Rechenwerk und Ein-/Ausgabewerk.",
+      "explanation": "Der Haupt- oder Arbeitsspeicher enthält Programme und Daten. Das Leit- beziehungsweise Steuerwerk arbeitet den Befehlszyklus ab, während das Rechenwerk beziehungsweise die ALU arithmetische Operationen ausführt. Das Ein-/Ausgabewerk übernimmt Ein- und Ausgabe einschließlich des Sekundärspeichers.",
+      "example": "Das Leitwerk steuert das Rechenwerk, wenn ein geholter Befehl eine arithmetische Operation verlangt.",
+      "pitfalls": [
+        "Das Ein-/Ausgabewerk und der Hauptspeicher sind unterschiedliche Werke."
+      ],
+      "related": [
+        "Von-Neumann-Konzept",
+        "Hauptspeicher",
+        "Instruktionszyklus"
+      ],
+      "heading": "Die vier Werke"
+    },
+    {
+      "id": "era-10-k12",
+      "term": "Speicherorganisation: Zellen und Adressen",
+      "kind": "definition",
+      "short": "Der Hauptspeicher besteht aus gleich großen Zellen mit fortlaufenden Adressen.",
+      "explanation": "Eine Speicheradresse bezeichnet eine Position im Hauptspeicher. Bei byteweiser Adressierung hat jedes Byte eine eigene Adresse, und mehrbyteige Werte belegen mehrere aufeinanderfolgende Bytes. Befehle und Daten können über ihre Speicheradressen angesprochen werden.",
+      "example": "Ein 4-Byte-Befehl ab Adresse `0x684` belegt die Bytes an den Adressen `0x684` bis `0x687`.",
+      "pitfalls": [
+        "Bei byteweiser Adressierung ist die nächste Adresse ein Byte weiter, aber der nächste Befehl muss nicht ein Byte weiter liegen."
+      ],
+      "related": [
+        "Hauptspeicher",
+        "Byteadressierung",
+        "Instruktionslänge und Weiterschalten des PC"
+      ],
+      "heading": "Die Merkpunkte mit bereinigter Nummerierung"
+    },
+    {
+      "id": "era-10-k13",
+      "term": "Codierte Befehle und Daten",
+      "kind": "concept",
+      "short": "Befehle und Daten sind codierte Speicherinhalte, deren Rolle sich aus ihrer Interpretation ergibt.",
+      "explanation": "Daten werden als Binärmuster gespeichert und gemäß einer vereinbarten Darstellung interpretiert. Befehle sind nach der Instruction Set Architecture (ISA) codiert; Assembler stellt sie in lesbarer Form dar. Im Von-Neumann-Konzept können derselbe Hauptspeicher und dieselben Speicherzellen sowohl Befehle als auch Daten enthalten.",
+      "example": "Die Bitfolge `fe842783` codiert im Folienbeispiel den Befehl `lw`; sie ist nicht der vom Befehl geladene Datenwert.",
+      "pitfalls": [
+        "Ein Bitmuster ist nicht allein durch seine Bits als Befehl oder Datenwert festgelegt; seine Verwendung bestimmt seine Rolle."
+      ],
+      "related": [
+        "Von-Neumann-Konzept",
+        "Instruction Set Architecture (ISA)",
+        "Befehls- und Datenzugriff",
+        "Hauptspeicher"
+      ],
+      "heading": "Daten und Befehle sind codierte Speicherinhalte"
+    },
+    {
+      "id": "era-10-k14",
+      "term": "MAR und MDR",
+      "kind": "notation",
+      "short": "`MAR` und `MDR` bezeichnen in einem Speichermodell Register für Speicheradresse und Speicherdaten.",
+      "explanation": "`MDR` steht für *Memory Data Register* und bezeichnet ein Register für die bei einem Speicherzugriff gelesenen oder zu schreibenden Daten. Für `MAR` ist *Memory Address Register* die übliche Auflösung und bezeichnet ein Register für die Speicheradresse. Die Mitschrift kennzeichnet die ausgeschriebene Bezeichnung und den genauen Ablauf als unklar.",
+      "example": "In einem vereinfachten Modell kann die Adresse im `MAR` und der gelesene Wert im `MDR` stehen.",
+      "pitfalls": [
+        "Die Mitschrift gibt für `MAR` die Bezeichnung „Memory Access Register“ an, markiert diese aber selbst als zu prüfen."
+      ],
+      "related": [
+        "Speicherorganisation: Zellen und Adressen",
+        "Befehls- und Datenzugriff",
+        "Instruktionszyklus"
+      ],
+      "heading": "Daten und Befehle sind codierte Speicherinhalte"
+    },
+    {
+      "id": "era-10-k15",
+      "term": "Sequenzielle Befehlsausführung",
+      "kind": "concept",
+      "short": "Bei sequenzieller Ausführung werden Befehle grundsätzlich in ihrer gespeicherten Reihenfolge ausgeführt.",
+      "explanation": "Ein Programm besteht aus einer Folge von Befehlen, die im Allgemeinen an aufsteigenden Speicheradressen liegen. Ohne Kontrollflussänderung holt der Prozessor den nächsten Befehl in dieser Reihenfolge. Das einfache Modell betrachtet zu jedem Zeitpunkt einen Befehl, auch wenn moderne Prozessoren intern anders arbeiten können.",
+      "example": "Auf einen 4-Byte-Befehl bei `0x684` folgt bei sequenzieller Ausführung der Befehl an `0x688`.",
+      "pitfalls": [
+        "Ein Sprung kann die Ausführungsreihenfolge ändern, auch wenn die Befehle an aufsteigenden Adressen gespeichert sind."
+      ],
+      "related": [
+        "Von-Neumann-Konzept",
+        "Bedingte und unbedingte Sprünge",
+        "Instruktionszyklus",
+        "Instruktionslänge und Weiterschalten des PC"
+      ],
+      "heading": "Die Merkpunkte mit bereinigter Nummerierung"
+    },
+    {
+      "id": "era-10-k16",
+      "term": "Bedingte und unbedingte Sprünge",
+      "kind": "definition",
+      "short": "Sprünge ändern die Adresse, von der der Prozessor den nächsten Befehl holt.",
+      "explanation": "Ein bedingter Sprung ändert den Kontrollfluss, wenn seine Bedingung erfüllt ist. Ein unbedingter Sprung ändert den Kontrollfluss ohne eine solche Bedingung. Beide können die sequenzielle Ausführung unterbrechen und werden beispielsweise für Verzweigungen und Schleifen verwendet.",
+      "example": "`bge a5,a4,690` springt im Folienbeispiel zurück zum Schleifenkörper, solange `a5` mindestens so groß wie `a4` ist.",
+      "pitfalls": [
+        "Ein Sprung ändert den Kontrollfluss, aber nicht selbst den Inhalt des Befehls an seinem Ziel."
+      ],
+      "related": [
+        "Sequenzielle Befehlsausführung",
+        "Schleifenablauf: Summe von 0 bis 9",
+        "Befehlszähler (BZ / Program Counter, PC)"
+      ],
+      "heading": "Die Merkpunkte mit bereinigter Nummerierung"
+    },
+    {
+      "id": "era-10-k17",
+      "term": "Harvard-Architektur",
+      "kind": "concept",
+      "short": "Die Harvard-Architektur verwendet getrennte Speicher für Programme und Daten.",
+      "explanation": "In einer Harvard-Architektur sind Programm- und Datenspeicher getrennt. Diese Speicheraufteilung beschreibt, wo Befehle und Daten liegen. Sie ist eine andere Frage als der Schreibschutz einzelner Speicherbereiche.",
+      "example": "Ein System kann Befehle aus einem Programmspeicher und Operanden aus einem getrennten Datenspeicher lesen.",
+      "pitfalls": [
+        "Getrennte Speicher für Programme und Daten bedeuten nicht automatisch, dass ihre Inhalte unveränderlich sind."
+      ],
+      "related": [
+        "Von-Neumann-Konzept",
+        "Getrennte Befehls- und Datencaches",
+        "Schreibschutz und Speicheraufteilung"
+      ],
+      "heading": "Gemeinsamer oder getrennter Speicher?"
+    },
+    {
+      "id": "era-10-k18",
+      "term": "Getrennte Befehls- und Datencaches",
+      "kind": "concept",
+      "short": "Eine genannte Mischform verwendet gemeinsamen Hauptspeicher und getrennte Zwischenspeicher für Befehle und Daten.",
+      "explanation": "Programme und Daten teilen sich dabei den Hauptspeicher, während Befehle und Daten in getrennten Caches zwischengespeichert werden können. Die getrennten Caches ändern nichts daran, dass der Hauptspeicher gemeinsam genutzt wird. Diese Mischform unterscheidet sich damit von einer vollständig getrennten Programm- und Datenspeicherorganisation.",
+      "example": "Der Prozessor kann einen Befehl aus dem Befehls-Cache und einen Operanden aus dem Datencache beziehen, obwohl beide letztlich zum selben Hauptspeicher gehören.",
+      "pitfalls": [
+        "Getrennte Caches sind nicht dasselbe wie getrennte Hauptspeicher für Programme und Daten."
+      ],
+      "related": [
+        "Von-Neumann-Konzept",
+        "Harvard-Architektur",
+        "Hauptspeicher",
+        "Befehls- und Datenzugriff"
+      ],
+      "heading": "Gemeinsamer oder getrennter Speicher?"
+    },
+    {
+      "id": "era-10-k19",
+      "term": "Schreibschutz und Speicheraufteilung",
+      "kind": "concept",
+      "short": "Schreibschutz und die Trennung von Programm- und Datenspeicher sind unterschiedliche Eigenschaften.",
+      "explanation": "Schreibschutz legt fest, ob in einen Speicherbereich geschrieben werden darf. Die Unterscheidung zwischen Von-Neumann- und Harvard-Architektur beschreibt dagegen, ob Programme und Daten denselben oder getrennte Speicher verwenden. Ein gemeinsamer Speicher kann Bereiche mit unterschiedlichen Schreibrechten enthalten.",
+      "example": "Ein Programm kann im gemeinsamen Hauptspeicher liegen, während sein Codebereich gegen Schreibzugriffe geschützt ist.",
+      "pitfalls": [
+        "Ein gemeinsamer Speicher bedeutet nicht, dass jeder Bereich beschreibbar ist."
+      ],
+      "related": [
+        "Von-Neumann-Konzept",
+        "Harvard-Architektur",
+        "Selbstmodifizierender Code"
+      ],
+      "heading": "Gemeinsamer oder getrennter Speicher?"
+    },
+    {
+      "id": "era-10-k20",
+      "term": "Linken",
+      "kind": "method",
+      "short": "Beim Linken werden übersetzte Programmteile und benötigte Bibliotheksbestandteile zu einem Programm verbunden.",
+      "explanation": "Der Linker verbindet Objektdateien und benötigte Bibliotheksbestandteile. Dabei löst er Verweise zwischen den Teilen auf und passt gegebenenfalls Adressangaben an. So kann ein Verweis auf `printf` einem passenden Ziel aus einer Bibliothek zugeordnet werden.",
+      "example": "Ein Aufruf von `printf` wird beim Linken mit dem passenden Ziel verbunden.",
+      "pitfalls": [
+        "Linken ist das Verbinden und Anpassen von Programmteilen, nicht das Ausführen des Programms."
+      ],
+      "related": [
+        "Codierte Befehle und Daten",
+        "Selbstmodifizierender Code",
+        "Compiler und Binärdatei"
+      ],
+      "heading": "Was bedeutet Linken?"
+    },
+    {
+      "id": "era-10-k21",
+      "term": "Selbstmodifizierender Code",
+      "kind": "concept",
+      "short": "Selbstmodifizierender Code verändert den Programmcode, aus dem er selbst besteht.",
+      "explanation": "Da Programme im Speicher liegen, kann ein Programm grundsätzlich Speicherinhalte verändern, die als Befehle verwendet werden. Wenn es dabei seinen eigenen Programmcode ändert, spricht man von selbstmodifizierendem Code. Er ist heute eine seltene Ausnahme; als verbliebene Beispiele nennt die Mitschrift Viren und dynamische Tools.",
+      "example": "Ein Programm könnte zur Laufzeit ein Befehlswort im Speicher überschreiben und später den geänderten Befehl ausführen.",
+      "pitfalls": [
+        "Das Ändern von Daten im Speicher ist nicht automatisch selbstmodifizierender Code.",
+        "Ein bedingter Sprung ändert den Ablauf, nicht den Programmcode."
+      ],
+      "related": [
+        "Von-Neumann-Konzept",
+        "Codierte Befehle und Daten",
+        "Schreibschutz und Speicheraufteilung",
+        "Linken"
+      ],
+      "heading": "Selbstmodifizierender Code"
+    },
+    {
+      "id": "era-10-k22",
+      "term": "Instruktionszyklus",
+      "kind": "method",
+      "short": "Der Instruktionszyklus beschreibt die Schritte vom Holen eines Befehls bis zum Speichern seines Ergebnisses.",
+      "explanation": "Im vereinfachten Modell wird ein Befehl anhand des PC aus dem Speicher geholt und ins IR geladen. Danach wird der PC auf den nächsten Befehl weitergestellt, die Instruktion dekodiert und die Herkunft der Operanden beziehungsweise eine benötigte Adresse bestimmt. Benötigte Operanden werden geholt, der Befehl wird ausgeführt und das Ergebnis in ein Register oder den Speicher geschrieben.",
+      "example": "Bei `lw` wird nach dem Holen und Dekodieren des Befehls der Datenwert von der berechneten Operandenadresse gelesen.",
+      "pitfalls": [
+        "Nicht jeder Befehl benötigt einen zusätzlichen Speicherzugriff für einen Operanden.",
+        "Der PC kann schon auf den folgenden Befehl zeigen, während der aktuelle Befehl noch bearbeitet wird."
+      ],
+      "related": [
+        "Befehlszähler (BZ / Program Counter, PC)",
+        "Instruktionsregister (IR)",
+        "Befehls- und Datenzugriff",
+        "Die vier Werke"
+      ],
+      "heading": "Instruktionszyklus"
+    },
+    {
+      "id": "era-10-k23",
+      "term": "Befehlszähler (BZ / Program Counter, PC)",
+      "kind": "notation",
+      "short": "`BZ` beziehungsweise `PC` hält die Adresse, von der der nächste Befehl geholt wird.",
+      "explanation": "`PC` ist die englische Abkürzung für *Program Counter*, und `BZ` steht für Befehlszähler. Beim Holen liefert der PC die Adresse des Befehls und wird anschließend auf den nächsten Befehl weitergestellt. Ein Sprung setzt ihn stattdessen auf die Zieladresse.",
+      "example": "Nach dem Holen eines 4-Byte-Befehls bei `0x684` kann der PC auf `0x688` zeigen.",
+      "pitfalls": [
+        "Während ein Befehl bearbeitet wird, zeigt der PC häufig bereits auf den folgenden Befehl."
+      ],
+      "related": [
+        "Instruktionszyklus",
+        "Instruktionsregister (IR)",
+        "Instruktionslänge und Weiterschalten des PC",
+        "Bedingte und unbedingte Sprünge"
+      ],
+      "heading": "Instruktionszyklus"
+    },
+    {
+      "id": "era-10-k24",
+      "term": "Instruktionsregister (IR)",
+      "kind": "notation",
+      "short": "`IR` hält den aus dem Speicher geholten Befehl zur Dekodierung.",
+      "explanation": "Der codierte Befehl wird nach dem Speicherzugriff ins Instruktionsregister geladen. Das Leitwerk dekodiert den Inhalt des IR, um die Operation und ihre Operanden zu bestimmen. Bei einem Ladebefehl enthält das IR den Befehlscode, nicht den später geladenen Datenwert.",
+      "example": "Bei `lw` enthält das IR die Codierung von `lw`, während der geladene Wert anschließend in ein Zielregister wie `a5` geschrieben wird.",
+      "pitfalls": [
+        "Das IR hält den geholten Befehl; der PC hält eine Befehlsadresse."
+      ],
+      "related": [
+        "Befehlszähler (BZ / Program Counter, PC)",
+        "Instruktionszyklus",
+        "Codierte Befehle und Daten"
+      ],
+      "heading": "Instruktionszyklus"
+    },
+    {
+      "id": "era-10-k25",
+      "term": "Befehls- und Datenzugriff",
+      "kind": "concept",
+      "short": "Das Holen eines Befehls und das Lesen seiner Datenoperanden sind verschiedene Speicherzugriffe.",
+      "explanation": "Der Prozessor holt den Befehl an der durch den PC angegebenen Befehlsadresse. Ein Befehl wie `lw` kann anschließend einen weiteren Speicherzugriff auf eine Datenadresse ausführen, die aus einem Basisregister und einem Offset berechnet wird. Bei gemeinsamem Hauptspeicher können beide Adressen zum selben Speicher gehören, haben aber unterschiedliche Aufgaben.",
+      "example": "Bei `lw a5,-24(s0)` wird der Befehl von der PC-Adresse geholt und der Operand von der Adresse `s0 - 24` gelesen.",
+      "pitfalls": [
+        "Die Befehlsadresse ist bei `lw` nicht automatisch die Adresse des zu ladenden Datenwerts."
+      ],
+      "related": [
+        "Von-Neumann-Konzept",
+        "Codierte Befehle und Daten",
+        "Befehlszähler (BZ / Program Counter, PC)",
+        "Instruktionszyklus"
+      ],
+      "heading": "Instruktionszyklus"
+    },
+    {
+      "id": "era-10-k26",
+      "term": "Instruktionslänge und Weiterschalten des PC",
+      "kind": "concept",
+      "short": "Bei sequenzieller Ausführung wird der PC um die Länge des geholten Befehls weitergestellt.",
+      "explanation": "Bei byteweiser Adressierung entspricht der Abstand zum nächsten sequenziellen Befehl seiner Länge in Byte. Der PC wird daher nicht pauschal um ein Byte erhöht. Das Folienbeispiel enthält Befehle mit 2 und 4 Byte.",
+      "example": "Für die gezeigten Befehle gilt `0x684 + 4 = 0x688` und danach `0x688 + 2 = 0x68a`.",
+      "pitfalls": [
+        "`PC++` kann „zum nächsten Befehl weiterstellen“ bedeuten und nicht `PC + 1` Byte."
+      ],
+      "related": [
+        "Befehlszähler (BZ / Program Counter, PC)",
+        "Sequenzielle Befehlsausführung",
+        "Speicherorganisation: Zellen und Adressen"
+      ],
+      "heading": "Instruktionszyklus"
+    },
+    {
+      "id": "era-10-k27",
+      "term": "Folienbeispiel: lw Schritt für Schritt",
+      "kind": "example",
+      "short": "Das `lw`-Beispiel trennt das Holen des Befehls vom Lesen seines Datenoperanden.",
+      "explanation": "Der Befehl `lw a5,-24(s0)` liegt im Beispiel bei Adresse `0x684`. Beim Holen wird der Befehlscode aus dem Speicher gelesen und der PC auf `0x688` weitergestellt. Danach wird der Wert an der Datenadresse `s0 - 24` gelesen und in `a5` geschrieben; der aktuelle Befehl und die bereits aktualisierte PC-Adresse müssen getrennt verfolgt werden.",
+      "example": "Die Codierung `fe842783` bezeichnet den Befehl; der Speicherinhalt an `s0 - 24` ist der Operand.",
+      "pitfalls": [
+        "Die Befehls-Codierung ist nicht der Datenwert, den `lw` lädt.",
+        "Die gezeigte Folge enthält auch 2-Byte-Befehle, die den Abstand zur nächsten Befehlsadresse beeinflussen."
+      ],
+      "related": [
+        "Befehls- und Datenzugriff",
+        "Instruktionszyklus",
+        "Instruktionslänge und Weiterschalten des PC",
+        "Codierte Befehle und Daten"
+      ],
+      "heading": null
+    }
+  ],
+  "generator": {
+    "model": "gpt-6-luna",
+    "effort": "xhigh",
+    "promptVersion": "k1",
+    "generatedAt": "2026-11-03T16:57:16.250Z"
+  }
+}
