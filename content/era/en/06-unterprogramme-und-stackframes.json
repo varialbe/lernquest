@@ -5,12 +5,12 @@
   "number": 6,
   "slug": "unterprogramme-und-stackframes",
   "title": "Subroutines (Unterprogramme) and Stack Frames (Stackframes)",
-  "summary": "This unit covers subroutine calls, return addresses (Rücksprungadressen), and the RISC-V calling convention (Calling Convention). It explains why nested calls require a stack with separate stack frames, how memory is organized, and how to interpret pseudoinstructions and disassembly. Finally, it traces a summation program from C to RV64 assembly.",
+  "summary": "This unit covers subroutine calls (Unterprogrammaufrufe), return addresses (Rücksprungadressen), and the RISC-V calling convention (Calling Convention). It explains why nested calls require a stack (Stack) with individual stack frames, how memory is organized (Speicheraufteilung), and how to interpret pseudoinstructions (Pseudobefehle) and disassembly. Finally, it traces a summation program from C to RV64 assembly.",
   "concepts": [
     "Subroutine call",
     "Return address",
     "Calling convention",
-    "Caller-saved and callee-saved registers",
+    "Caller-saved and callee-saved",
     "Stack frame",
     "Stack and LIFO",
     "Stack pointer",
@@ -24,15 +24,15 @@
     "`jal ra, offset` stores `PC+4` in `ra` and sets `PC` to `PC+offset`.",
     "`jr ra` jumps to the return address stored in `ra`.",
     "A nested `jal` overwrites `ra`; the current return address must be saved first.",
-    "`a0` through `a7` serve as argument registers, while `a0` and `a1` also serve as return-value registers.",
-    "The callee may modify caller-saved registers; if it modifies callee-saved registers, it must restore them.",
+    "`a0` through `a7` are used as argument registers, and `a0` and `a1` also serve as return-value registers.",
+    "Caller-saved registers may be modified by the callee; if the callee modifies callee-saved registers, it must restore them.",
     "Registers `s0` through `s11` are callee-saved; `t0` through `t6` and `a0` through `a7` are caller-saved.",
-    "Stack frames give each active subroutine call its own temporary memory area.",
+    "Stack frames give each active subroutine call its own temporary storage area.",
     "Subroutine calls follow the LIFO principle: the most recently started call returns first.",
     "When a stack frame is allocated, `sp` decreases; when it is released, it increases again.",
-    "The stack growing toward lower addresses is a convention, not a technical necessity.",
-    "In the illustrated model, the stack and heap occupy opposite sides of the free area; global variables are in Static Data, and program code is in the Text segment.",
-    "`j label` is `jal x0, label`, `jr reg` is `jalr x0, reg, 0`; writes to `x0` are discarded.",
+    "Stack growth toward lower addresses is a convention, not a technical requirement.",
+    "In the illustrated model, the stack and heap occupy opposite ends of the free region; global variables are in Static Data, and program code is in the Text section.",
+    "`j label` is `jal x0, label`, and `jr reg` is `jalr x0, reg, 0`; writes to `x0` are discarded.",
     "`objdump -h` shows the section overview; `objdump -d` shows the disassembly.",
     "In the summation program, the loop runs ten times and computes `c=0+1+...+9=45`."
   ],
@@ -70,7 +70,7 @@
           "options": [
             {
               "id": "a",
-              "text": "The register containing the return address"
+              "text": "The register that holds the return address"
             },
             {
               "id": "b",
@@ -123,7 +123,7 @@
           "correct": [
             "d"
           ],
-          "explanation": "`jal` stores the address of the next instruction, `PC+4`, in `ra` and jumps relative to the current `PC`.",
+          "explanation": "`jal` stores the address of the next instruction, namely `PC+4`, in `ra` and jumps relative to the current `PC`.",
           "source": {
             "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO6.md",
             "heading": ": springen und Rücksprungadresse speichern"
@@ -159,7 +159,7 @@
           "correct": [
             "c"
           ],
-          "explanation": "`jr ra` uses the contents of `ra` as its target address, returning to the caller.",
+          "explanation": "`jr ra` uses the contents of `ra` as the target address, returning to the caller.",
           "source": {
             "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO6.md",
             "heading": "Rücksprung mit"
@@ -172,7 +172,7 @@
         {
           "id": "era-06-l1-q04",
           "type": "multi",
-          "prompt": "Which statements about register use are correct? More than one answer may be correct.",
+          "prompt": "Which statements about register use are correct? Select all that apply.",
           "options": [
             {
               "id": "a",
@@ -192,7 +192,7 @@
             },
             {
               "id": "e",
-              "text": "`ra` contains the return address."
+              "text": "`ra` holds the return address."
             }
           ],
           "correct": [
@@ -200,7 +200,7 @@
             "c",
             "e"
           ],
-          "explanation": "Arguments are passed in `a0` through `a7`, return values in `a0` and `a1`, and the return address in `ra`. `t` and `s` registers follow different save conventions.",
+          "explanation": "Arguments are passed in `a0` through `a7`, return values in `a0` and `a1`, and the return address in `ra`. `t` and `s` registers follow different saving conventions.",
           "source": {
             "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO6.md",
             "heading": "Argumente, Ergebnisse und Calling Convention"
@@ -213,7 +213,7 @@
         {
           "id": "era-06-l1-q05",
           "type": "truefalse",
-          "prompt": "If a callee modifies a callee-saved register, it must restore its original value before returning.",
+          "prompt": "If a callee modifies a callee-saved register, it must restore the register's original value before returning.",
           "options": [
             {
               "id": "true",
@@ -227,14 +227,14 @@
           "correct": [
             "true"
           ],
-          "explanation": "For callee-saved registers, the callee is responsible for restoring the value. For caller-saved registers, the caller must preserve any values it still needs.",
+          "explanation": "With callee-saved registers, the callee is responsible for restoring the original value. With caller-saved registers, the caller must preserve any values it still needs.",
           "source": {
             "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO6.md",
             "heading": "Caller-saved und Callee-saved"
           },
           "difficulty": 2,
           "concepts": [
-            "Caller-saved and callee-saved registers"
+            "Caller-saved and callee-saved"
           ]
         },
         {
@@ -248,7 +248,7 @@
             },
             {
               "id": "b",
-              "text": "Because repeated or recursive calls need their own areas and could otherwise overwrite one another."
+              "text": "Because repeated or recursive calls need their own areas or they could overwrite one another."
             },
             {
               "id": "c",
@@ -262,7 +262,7 @@
           "correct": [
             "b"
           ],
-          "explanation": "When multiple calls are active at the same time, each needs its own area. A shared fixed area would overwrite local data or return addresses.",
+          "explanation": "When multiple calls are active at the same time, each needs its own area. A shared fixed area could overwrite local data or return addresses.",
           "source": {
             "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO6.md",
             "heading": "Warum zusätzlicher Speicher nötig ist"
@@ -276,7 +276,7 @@
         {
           "id": "era-06-l1-q07",
           "type": "diagram",
-          "prompt": "Which return order correctly matches the diagram and the LIFO principle?\n\n```mermaid\nflowchart LR\n A[\"A läuft\"] --> B[\"B aufrufen\"]\n B --> C[\"C aufrufen\"]\n C --> D[\"C zurück\"]\n D --> E[\"B zurück\"]\n E --> F[\"A weiter\"]\n```",
+          "prompt": "Which return order correctly describes the diagram and the LIFO principle?\n\n```mermaid\nflowchart LR\n A[\"A runs\"] --> B[\"Call B\"]\n B --> C[\"Call C\"]\n C --> D[\"C returns\"]\n D --> E[\"B returns\"]\n E --> F[\"A continues\"]\n```",
           "options": [
             {
               "id": "a",
@@ -298,7 +298,7 @@
           "correct": [
             "b"
           ],
-          "explanation": "The most recently started call, C, finishes first. Then B returns, and finally A resumes.",
+          "explanation": "The most recently started call, C, finishes first. Then B returns, and finally A continues.",
           "source": {
             "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO6.md",
             "heading": "Stack: LIFO statt FIFO"
@@ -316,11 +316,11 @@
           "options": [
             {
               "id": "a",
-              "text": "`sp` decreases by the frame size."
+              "text": "`sp` decreases by the size of the frame."
             },
             {
               "id": "b",
-              "text": "`sp` is replaced with `ra`."
+              "text": "`sp` is replaced by `ra`."
             },
             {
               "id": "c",
@@ -328,13 +328,13 @@
             },
             {
               "id": "d",
-              "text": "`sp` increases by the frame size."
+              "text": "`sp` increases by the size of the frame."
             }
           ],
           "correct": [
             "a"
           ],
-          "explanation": "In the illustrated model, the stack grows toward lower addresses. Therefore, when space is allocated, `sp ← sp - Framegröße`.",
+          "explanation": "In the illustrated model, the stack grows toward lower addresses. Therefore, when a frame is allocated, `sp ← sp - Framegröße`.",
           "source": {
             "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO6.md",
             "heading": "Warum wächst der Stack nach unten?"
@@ -348,15 +348,15 @@
         {
           "id": "era-06-l1-q09",
           "type": "multi",
-          "prompt": "Which mappings to the typical memory layout are correct? More than one answer may be correct.",
+          "prompt": "Which mappings match the typical memory layout? Select all that apply.",
           "options": [
             {
               "id": "a",
-              "text": "The Text segment contains register values from temporary calculations."
+              "text": "The Text section contains register values from temporary calculations."
             },
             {
               "id": "b",
-              "text": "The stack contains frames, local data, and return addresses."
+              "text": "The stack contains frames, local data, and return information."
             },
             {
               "id": "c",
@@ -376,7 +376,7 @@
             "c",
             "e"
           ],
-          "explanation": "The stack, heap, and Static Data have the stated roles. Program code is in the Text segment; temporary register values do not belong there.",
+          "explanation": "The stack, heap, and Static Data have the stated roles. Program code is in the Text section; temporary register values do not belong there.",
           "source": {
             "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO6.md",
             "heading": "Typische Speicheraufteilung"
@@ -389,15 +389,15 @@
         {
           "id": "era-06-l1-q10",
           "type": "diagram",
-          "prompt": "Which statement matches the illustrated memory layout?\n\n```mermaid\nflowchart TD\n H[\"Hohe Adressen\"] --> S[\"Stack\"]\n S --> F[\"Freier Bereich\"]\n F --> P[\"Heap\"]\n P --> D[\"Static Data\"]\n D --> T[\"Text\"]\n T --> Z[\"Adresse 0\"]\n```",
+          "prompt": "Which statement matches the illustrated memory layout?\n\n```mermaid\nflowchart TD\n H[\"High addresses\"] --> S[\"Stack\"]\n S --> F[\"Free region\"]\n F --> P[\"Heap\"]\n P --> D[\"Static Data\"]\n D --> T[\"Text\"]\n T --> Z[\"Address 0\"]\n```",
           "options": [
             {
               "id": "a",
-              "text": "Static Data is allocated anew on every subroutine call."
+              "text": "Static Data is allocated anew for every subroutine call."
             },
             {
               "id": "b",
-              "text": "The Text segment is above the stack and grows upward."
+              "text": "The Text section is above the stack and grows upward."
             },
             {
               "id": "c",
@@ -405,13 +405,13 @@
             },
             {
               "id": "d",
-              "text": "In this model, the stack is at high addresses and the Text segment is at low addresses."
+              "text": "In this model, the stack is at high addresses and the Text section is at low addresses."
             }
           ],
           "correct": [
             "d"
           ],
-          "explanation": "The diagram places high addresses at the top and address 0 at the bottom. The stack is at the top, while the Text segment is at the bottom.",
+          "explanation": "The diagram places high addresses at the top and address 0 at the bottom. The stack is at the top, while the Text section is at the bottom.",
           "source": {
             "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO6.md",
             "heading": "Typische Speicheraufteilung"
@@ -446,7 +446,7 @@
           "correct": [
             "b"
           ],
-          "explanation": "The pseudoinstructions for direct and register-based jumps are implemented at their core using `jal` and `jalr`, respectively.",
+          "explanation": "The pseudoinstructions for direct and register-based jumps are implemented essentially as `jal` and `jalr`, respectively.",
           "source": {
             "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO6.md",
             "heading": "Echte Sprungbefehle und Pseudobefehle"
@@ -468,7 +468,7 @@
         {
           "id": "era-06-l2-q01",
           "type": "calc",
-          "prompt": "A call is at `0x00000300`, and the subroutine begins at `0x0000051c`. What relative offset is required for `jal`?",
+          "prompt": "A call is at `0x00000300`, and the subroutine starts at `0x0000051c`. What relative offset is required for `jal`?",
           "options": [
             {
               "id": "a",
@@ -543,32 +543,32 @@
           "options": [
             {
               "id": "a",
-              "text": "Do nothing, because the callee must not modify `t0`."
+              "text": "Do nothing, because the callee may not modify `t0`."
             },
             {
               "id": "b",
-              "text": "Save the value itself before the call."
+              "text": "Save the value before the call."
             },
             {
               "id": "c",
-              "text": "Simply rename the value to `a0`."
+              "text": "Just rename the value to `a0`."
             },
             {
               "id": "d",
-              "text": "Put the value in `ra` and do not save `ra`."
+              "text": "Store the value in `ra` and do not save `ra`."
             }
           ],
           "correct": [
             "b"
           ],
-          "explanation": "The callee may modify a caller-saved register. Therefore, the caller must save any value it still needs before the call.",
+          "explanation": "A callee may modify a caller-saved register. Therefore, the caller must save any value it still needs before making the call.",
           "source": {
             "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO6.md",
             "heading": "Caller-saved und Callee-saved"
           },
           "difficulty": 2,
           "concepts": [
-            "Caller-saved and callee-saved registers"
+            "Caller-saved and callee-saved"
           ]
         },
         {
@@ -632,7 +632,7 @@
           "correct": [
             "d"
           ],
-          "explanation": "32 bytes equals `0x20`. On allocation, `0x1000-0x20=0x0fe0`; adding would confuse the direction in which the stack grows.",
+          "explanation": "32 bytes correspond to `0x20`. When allocating the frame, `0x1000-0x20=0x0fe0`; adding would confuse the direction in which the stack grows.",
           "source": {
             "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO6.md",
             "heading": "1. Stackframe anlegen und Variablen initialisieren"
@@ -668,7 +668,7 @@
           "correct": [
             "c"
           ],
-          "explanation": "`add t0,t1,x0` copies `t1` because `x0` always contains zero. The other options change the value or the direction of the copy.",
+          "explanation": "`add t0,t1,x0` copies `t1` because `x0` always contains zero. The other options change the value or the destination.",
           "source": {
             "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO6.md",
             "heading": "Noch einmal"
@@ -681,7 +681,7 @@
         {
           "id": "era-06-l2-q07",
           "type": "multi",
-          "prompt": "Which statements about `objdump` and disassembly are correct? More than one answer may be correct.",
+          "prompt": "Which statements about `objdump` and disassembly are correct? Select all that apply.",
           "options": [
             {
               "id": "a",
@@ -697,11 +697,11 @@
             },
             {
               "id": "d",
-              "text": "`-h` executes all instructions in the file."
+              "text": "`-h` executes every instruction in the file."
             },
             {
               "id": "e",
-              "text": "`-d` inserts the assembly representation as additional text alongside the machine instructions in RAM."
+              "text": "`-d` inserts the assembly representation into RAM as extra text alongside the machine instructions."
             }
           ],
           "correct": [
@@ -709,7 +709,7 @@
             "b",
             "c"
           ],
-          "explanation": "`-h` shows the sections; `-d` decodes program instructions. The assembly representation is an interpretation of the encoding; it is not also stored as text in RAM.",
+          "explanation": "`-h` shows the sections, `-d` decodes program instructions, and the assembly representation is an interpretation of the encoding. It is not also stored as text in RAM.",
           "source": {
             "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO6.md",
             "heading": "Binärdatei mit           ansehen"
@@ -757,7 +757,7 @@
         {
           "id": "era-06-l2-q09",
           "type": "diagram",
-          "prompt": "What happens immediately after C is called?\n\n```mermaid\nflowchart LR\n A[\"A läuft\"] --> B[\"B aufrufen\"]\n B --> C[\"C aufrufen\"]\n C --> D[\"C kehrt zurück und gibt seinen Frame frei\"]\n D --> E[\"B zurück\"]\n E --> F[\"A weiter\"]\n```",
+          "prompt": "Which event happens immediately after C is called?\n\n```mermaid\nflowchart LR\n A[\"A runs\"] --> B[\"Call B\"]\n B --> C[\"Call C\"]\n C --> D[\"C returns and releases its frame\"]\n D --> E[\"B returns\"]\n E --> F[\"A continues\"]\n```",
           "options": [
             {
               "id": "a",
@@ -765,7 +765,7 @@
             },
             {
               "id": "b",
-              "text": "The heap is used as a return address"
+              "text": "The heap is used as the return address"
             },
             {
               "id": "c",
@@ -779,7 +779,7 @@
           "correct": [
             "c"
           ],
-          "explanation": "After C is called, C finishes first and its stack frame is released. Only then can B return.",
+          "explanation": "After C is called, C finishes first and its own stack frame is released. Only then can B return.",
           "source": {
             "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO6.md",
             "heading": "Stack: LIFO statt FIFO"
@@ -793,7 +793,7 @@
         {
           "id": "era-06-l2-q10",
           "type": "calc",
-          "prompt": "The loop starts with `i=0` and runs while `i<10`. How many times does its body execute?",
+          "prompt": "The loop starts at `i=0` and continues while `i<10`. How many times does its body execute?",
           "options": [
             {
               "id": "a",
@@ -815,7 +815,7 @@
           "correct": [
             "d"
           ],
-          "explanation": "The body runs for `i=0,1,...,9`, so it executes ten times. After the value is incremented to 10, `bge` terminates the loop.",
+          "explanation": "The body executes for `i=0,1,...,9`, so it runs ten times. After the value is incremented to 10, `bge` ends the loop.",
           "source": {
             "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO6.md",
             "heading": "2. Schleifenbedingung und Schleifenrumpf"
@@ -842,7 +842,7 @@
           "correct": [
             "false"
           ],
-          "explanation": "`j label` is `jal x0,label`. The jump is performed, but the write to `x0` is discarded, so no return address is retained.",
+          "explanation": "`j label` is `jal x0,label`. The jump is performed, but the write to `x0` is discarded, so no return address is preserved.",
           "source": {
             "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO6.md",
             "heading": "Echte Sprungbefehle und Pseudobefehle"
@@ -859,12 +859,12 @@
       "id": "era-06-l3",
       "index": 3,
       "kind": "deepen",
-      "title": "Explore",
+      "title": "Explore Further",
       "questions": [
         {
           "id": "era-06-l3-q01",
           "type": "multi",
-          "prompt": "Which statements explain why nested or recursive calls need their own stack areas? More than one answer may be correct.",
+          "prompt": "Which statements explain why nested or recursive calls need their own stack areas? Select all that apply.",
           "options": [
             {
               "id": "a",
@@ -872,7 +872,7 @@
             },
             {
               "id": "b",
-              "text": "Recursion never needs additional return addresses."
+              "text": "Recursion never requires additional return addresses."
             },
             {
               "id": "c",
@@ -880,7 +880,7 @@
             },
             {
               "id": "d",
-              "text": "Every call that is active at the same time needs its own allocated area."
+              "text": "Each simultaneously active call needs its own allocated area."
             },
             {
               "id": "e",
@@ -892,7 +892,7 @@
             "d",
             "e"
           ],
-          "explanation": "Separate frames protect local data and return addresses. Because calls return in nested order, the process follows LIFO; an inner `jal` can overwrite `ra`.",
+          "explanation": "Separate frames protect local data and return addresses. Because nested calls return in LIFO order, an inner `jal` can overwrite `ra`.",
           "source": {
             "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO6.md",
             "heading": "Warum zusätzlicher Speicher nötig ist"
@@ -907,7 +907,7 @@
         {
           "id": "era-06-l3-q02",
           "type": "truefalse",
-          "prompt": "A stack growing toward lower memory addresses is a mandatory technical property of every computer architecture.",
+          "prompt": "A stack growing toward lower memory addresses is a required technical property of every computer architecture.",
           "options": [
             {
               "id": "true",
@@ -921,7 +921,7 @@
           "correct": [
             "false"
           ],
-          "explanation": "The growth direction here is a convention. In this model, `sp` decreases when space is allocated, but the layout could in principle be chosen differently.",
+          "explanation": "The growth direction here is a convention. In this model, `sp` decreases when a frame is allocated, but the layout could in principle be chosen differently.",
           "source": {
             "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO6.md",
             "heading": "Warum wächst der Stack nach unten?"
@@ -939,7 +939,7 @@
           "options": [
             {
               "id": "a",
-              "text": "It must copy `s0` into `a0`, but need not restore it."
+              "text": "It must copy `s0` into `a0`, but it does not need to restore it."
             },
             {
               "id": "b",
@@ -964,30 +964,30 @@
           },
           "difficulty": 3,
           "concepts": [
-            "Caller-saved and callee-saved registers"
+            "Caller-saved and callee-saved"
           ]
         },
         {
           "id": "era-06-l3-q04-r1",
           "type": "single",
-          "prompt": "In the memory layout below, high addresses are at the top and address 0 is at the bottom. Which statement correctly describes the free area between the stack and heap?",
+          "prompt": "In the memory layout below, high addresses are at the top and address 0 is at the bottom. Which statement correctly describes the free region between the stack and heap?",
           "context": {
             "type": "mermaid",
-            "content": "flowchart TB\n  H[Hohe Adressen] --> S[Stack wächst zu kleineren Adressen] --> F[Freier Bereich] --> HE[Heap wächst zu höheren Adressen] --> D[Static Data: globale Variablen] --> T[Text: Programmcode] --> Z[Adresse 0]",
-            "caption": "Schematic memory layout; the exact positions of the boundaries are not to scale."
+            "content": "flowchart TB\n  H[High addresses] --> S[Stack grows toward lower addresses] --> F[Free region] --> HE[Heap grows toward higher addresses] --> D[Static Data: global variables] --> T[Text: program code] --> Z[Address 0]",
+            "caption": "Schematic memory layout; the exact boundary positions are not to scale."
           },
           "options": [
             {
               "id": "a",
-              "text": "The free area belongs exclusively to the Text segment."
+              "text": "The free region belongs exclusively to the Text segment."
             },
             {
               "id": "b",
-              "text": "The stack and heap can grow into this area from opposite sides."
+              "text": "The stack and heap can grow into this region from opposite sides."
             },
             {
               "id": "c",
-              "text": "The free area contains only global variables."
+              "text": "The free region contains only global variables."
             },
             {
               "id": "d",
@@ -997,7 +997,7 @@
           "correct": [
             "b"
           ],
-          "explanation": "The stack starts in the high-address region and grows toward lower addresses. The heap grows from lower addresses toward higher ones. The free area lies between their current boundaries.",
+          "explanation": "The stack starts in the high-address region and grows toward lower addresses. The heap grows from lower to higher addresses. The free region lies between their current boundaries.",
           "source": {
             "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO6.md",
             "heading": "Typische Speicheraufteilung"
@@ -1070,7 +1070,7 @@
           "correct": [
             "b"
           ],
-          "explanation": "`jr reg` is shorthand for `jalr x0, reg, 0`. With `x0`, no new return address is stored.",
+          "explanation": "`jr reg` is shorthand for `jalr x0, reg, 0`. `x0` does not store a new return address.",
           "source": {
             "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO6.md",
             "heading": "Echte Sprungbefehle und Pseudobefehle"
@@ -1084,11 +1084,11 @@
         {
           "id": "era-06-l3-q07",
           "type": "diagram",
-          "prompt": "Which description matches the life cycle of a stack frame?\n\n```mermaid\nflowchart LR\n A[\"sp vor Aufruf\"] --> B[\"sp = sp - Framegröße\"]\n B --> C[\"ra und s0 sichern\"]\n C --> D[\"lokale Daten nutzen\"]\n D --> E[\"ra und s0 laden\"]\n E --> F[\"sp = sp + Framegröße\"]\n```",
+          "prompt": "Which description matches the lifecycle of a stack frame?\n\n```mermaid\nflowchart LR\n A[\"sp before call\"] --> B[\"sp = sp - frame size\"]\n B --> C[\"Save ra and s0\"]\n C --> D[\"Use local data\"]\n D --> E[\"Load ra and s0\"]\n E --> F[\"sp = sp + frame size\"]\n```",
           "options": [
             {
               "id": "a",
-              "text": "Local data is stored exclusively in the Text segment."
+              "text": "Local data is stored exclusively in the Text section."
             },
             {
               "id": "b",
@@ -1106,7 +1106,7 @@
           "correct": [
             "d"
           ],
-          "explanation": "A stack frame is created on a call, holds saved registers and local data, and is released on return. During this process, `sp` first decreases and later increases again.",
+          "explanation": "A stack frame is created when a call begins, holds saved registers and local data, and is released when the call returns. `sp` first decreases and later increases again.",
           "source": {
             "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO6.md",
             "heading": "1. Stackframe anlegen und Variablen initialisieren"
@@ -1120,21 +1120,21 @@
         {
           "id": "era-06-l3-q08-r1",
           "type": "multi",
-          "prompt": "Consider the shown call to `printf`. `call printf` places the return address in `ra` and may overwrite `ra`. `a0` and `a1` pass the first two arguments. `s0` is callee-saved: if it is modified, its original value must be restored before returning. For each value from `i = 0` through `9`, the loop adds `i` to `c`. Which statements about the program and preparing for the call are correct? Select all that apply.",
+          "prompt": "Consider the shown call to `printf`. `call printf` places the return address in `ra` and may overwrite `ra`. `a0` and `a1` pass the first two arguments. `s0` is callee-saved: if it is modified, its original value must be restored before returning. The loop adds `i` to `c` for each value from `i = 0` through `9`. Which statements about the program and preparing for the call are correct? Select all that apply.",
           "context": {
             "type": "code",
             "content": "main:\n    addi sp, sp, -32\n    sd   ra, 24(sp)\n    sd   s0, 16(sp)\n    addi s0, sp, 32\n    # Schleife: c startet bei 0; für i = 0 bis 9 gilt c = c + i\n.Lprint:\n    la   a0, .Lformat\n    lw   a1, -28(s0)       # c\n    call printf\n    ld   ra, 24(sp)\n    ld   s0, 16(sp)\n    addi sp, sp, 32\n    ret",
             "language": "asm",
-            "caption": "Excerpt from `main`; `ret` comes after the call."
+            "caption": "Excerpt from `main`; `ret` appears after the call."
           },
           "options": [
             {
               "id": "a",
-              "text": "`a0` receives the address of the format string."
+              "text": "`a0` receives the format string's address."
             },
             {
               "id": "b",
-              "text": "`main`'s return address must be saved before the call because `call printf` overwrites `ra`."
+              "text": "The return address of `main` must be saved before the call because `call printf` overwrites `ra`."
             },
             {
               "id": "c",
@@ -1154,7 +1154,7 @@
             "b",
             "e"
           ],
-          "explanation": "The frame is created with `addi sp, sp, -32`; `ret` is the return at the end. `main` saves its original `ra` because the call to `printf` overwrites it. Before the call, `a0` and `a1` point to the format string and contain `c = 45`, respectively. The modified `s0` must be restored.",
+          "explanation": "The frame is created with `addi sp, sp, -32`; `ret` is the return at the end. `main` saves its original `ra` because the call to `printf` overwrites it. Before the call, `a0` and `a1` point to the format string and hold `c = 45`, respectively. The modified `s0` must be restored.",
           "source": {
             "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO6.md",
             "heading": "3. Ausgabe, Register wiederherstellen und zurückkehren"
@@ -1174,7 +1174,7 @@
           "options": [
             {
               "id": "a",
-              "text": "Because `add` is used only for floating-point numbers."
+              "text": "Because `add` is only used for floating-point numbers."
             },
             {
               "id": "b",
@@ -1242,7 +1242,7 @@
         {
           "id": "era-06-l3-q11-r1",
           "type": "truefalse",
-          "prompt": "A program sets `n = 10` and `i = 0`. It executes the loop body while `i < n` holds and increments `i` by 1 after each iteration. The body executes with `i = 9`; afterward, `i` is incremented to `10` and the condition is checked again. Is the body executed one more time?",
+          "prompt": "A program sets `n = 10` and `i = 0`. It executes the loop body while `i < n` holds and increments `i` by 1 after each iteration. The body executes with `i = 9`; afterward, `i` is incremented to `10` and the condition is checked again. Is the body executed once more?",
           "options": [
             {
               "id": "true",
@@ -1256,7 +1256,7 @@
           "correct": [
             "false"
           ],
-          "explanation": "At the next check, `10 < 10` is false. Therefore, the loop ends without executing another body with `i = 10`.",
+          "explanation": "At the next check, `10 < 10` does not hold. Therefore, the loop ends without another iteration of the body with `i = 10`.",
           "source": {
             "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO6.md",
             "heading": "2. Schleifenbedingung und Schleifenrumpf"
@@ -1290,17 +1290,17 @@
             },
             {
               "id": "c",
-              "text": "Each instruction is 32 bits wide, so consecutive instructions are four bytes apart."
+              "text": "The instructions are each 32 bits wide, so their addresses are four bytes apart."
             },
             {
               "id": "d",
-              "text": "The assembly representations are stored in RAM as additional text alongside the instructions."
+              "text": "The assembly representations are stored in RAM as extra text alongside the instructions."
             }
           ],
           "correct": [
             "c"
           ],
-          "explanation": "In the shown disassembly without the trailing `c`, all instructions are 32 bits wide. Thus, the next instruction's address increases by four bytes; the disassembly is only a readable representation of the encoded instructions.",
+          "explanation": "In the shown disassembly without the trailing `c`, all instructions are 32 bits wide. Therefore, the next instruction's address increases by four bytes; disassembly is only a readable representation of the encoded instructions.",
           "source": {
             "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO6.md",
             "heading": "Zielarchitektur beim Kompilieren"
@@ -1335,7 +1335,7 @@
           "correct": [
             "a"
           ],
-          "explanation": "After allocation, `sp=0x7e0`; the effective address is `0x7e0+24=0x7f8`. A 64-bit value occupies eight consecutive byte addresses, through `0x7ff`.",
+          "explanation": "After allocation, `sp=0x7e0`; the effective address is `0x7e0+24=0x7f8`. A 64-bit value occupies eight consecutive byte addresses, ending at `0x7ff`.",
           "source": {
             "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO4.md",
             "heading": null
@@ -1365,13 +1365,13 @@
             },
             {
               "id": "d",
-              "text": "Because `x0` always provides zero, so the addition preserves the value of `t1`."
+              "text": "Because `x0` always returns zero, so the addition preserves the value of `t1`."
             }
           ],
           "correct": [
             "d"
           ],
-          "explanation": "The zero register `x0` always provides 0. Therefore, the instruction `t1+0` computes the result and writes it to `t0`; the pseudoinstruction `mv` uses exactly this behavior.",
+          "explanation": "The zero register `x0` always returns 0. Thus, the instruction computes `t1+0` and writes the result to `t0`; the pseudoinstruction `mv` takes advantage of exactly this.",
           "source": {
             "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO5.md",
             "heading": null
@@ -1396,17 +1396,17 @@
             },
             {
               "id": "c",
-              "text": "Pass the return address to C only through `a0`."
+              "text": "Pass the return address to C exclusively through `a0`."
             },
             {
               "id": "d",
-              "text": "Save the value of `x0` on the stack because `x0` is overwritten."
+              "text": "Save the value of `x0` on the stack because `x0` will be overwritten."
             }
           ],
           "correct": [
             "b"
           ],
-          "explanation": "The `jal` call to C writes a new return address to `ra`. Therefore, B must save its current return address before the call and load it again later.",
+          "explanation": "The `jal` call to C writes a new return address to `ra`. Therefore, B must save its current address before the call and load it again later.",
           "source": {
             "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO6.md",
             "heading": "Warum zusätzlicher Speicher nötig ist"
@@ -1425,12 +1425,12 @@
             "type": "code",
             "content": "main:\n    addi sp, sp, -32\n    sd   ra, 24(sp)\n    sd   s0, 16(sp)\n    addi s0, sp, 32       # verändert s0\n    # ... main ruft printf auf ...\n    ld   ra, 24(sp)\n    ld   s0, 16(sp)\n    addi sp, sp, 32\n    ret",
             "language": "asm",
-            "caption": "Prologue and epilogue of `main`; the call to `printf` occurs between the shown sections."
+            "caption": "Prologue and epilogue of `main`; the call to `printf` occurs between the sections shown."
           },
           "options": [
             {
               "id": "a",
-              "text": "The value in `a1` is guaranteed to remain intact after `printf`."
+              "text": "The value in `a1` is guaranteed to be preserved after `printf`."
             },
             {
               "id": "b",
@@ -1446,7 +1446,7 @@
             },
             {
               "id": "e",
-              "text": "`main` saves its incoming return address before the later call to `printf`."
+              "text": "`main` saves the return address it received on entry before the later call to `printf`."
             }
           ],
           "correct": [
@@ -1454,7 +1454,7 @@
             "d",
             "e"
           ],
-          "explanation": "`main` saves `ra` before calling `printf`, restores the modified callee-saved register `s0`, and releases the frame with `sp = sp + 32`. `a1` and `t0` are caller-saved and therefore are not guaranteed to remain unchanged across the call.",
+          "explanation": "`main` saves `ra` before calling `printf`, restores the modified callee-saved register `s0`, and releases the frame with `sp = sp + 32`. `a1` and `t0` are caller-saved, so they are not guaranteed to remain unchanged across the call.",
           "source": {
             "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO6.md",
             "heading": "Caller-saved und Callee-saved"
@@ -1462,15 +1462,15 @@
           "difficulty": 3,
           "concepts": [
             "Calling convention",
-            "Caller-saved registers",
-            "Callee-saved registers",
+            "Caller-saved",
+            "Callee-saved",
             "Stack frame"
           ]
         },
         {
           "id": "era-06-l4-q06-r1",
           "type": "calc",
-          "prompt": "Before allocating a stack frame, a stack pointer has address `0x1000`. A 32-byte frame is allocated by subtracting the frame size from `sp`. Afterward, `s0 = sp + 32`. The local variable `n` is at `-20(s0)`: the offset is a signed byte offset from the base address `s0` and is given here in decimal. What hexadecimal address contains `n`?",
+          "prompt": "Before a stack frame is created, a stack pointer has address `0x1000`. A 32-byte frame is allocated by subtracting the frame size from `sp`. Afterward, `s0 = sp + 32`. The local variable `n` is at `-20(s0)`: the offset is a signed byte offset from the base address `s0` and is given here in decimal. What hexadecimal address contains `n`?",
           "options": [
             {
               "id": "a",
@@ -1525,7 +1525,7 @@
             },
             {
               "id": "c",
-              "text": "The loop body is executed one more time with `i = 10`."
+              "text": "The loop body executes one more time with `i = 10`."
             },
             {
               "id": "d",
@@ -1535,7 +1535,7 @@
           "correct": [
             "a"
           ],
-          "explanation": "Since `10 >= 10` holds, `bge` takes the jump to `.Lprint`. The loop body is not executed when `i = 10`.",
+          "explanation": "Because `10 >= 10`, `bge` takes the jump to `.Lprint`. The loop body is not executed for `i = 10`.",
           "source": {
             "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO6.md",
             "heading": "2. Schleifenbedingung und Schleifenrumpf"
@@ -1550,15 +1550,15 @@
         {
           "id": "era-06-l4-q08",
           "type": "multi",
-          "prompt": "Which statements about `j`, `jr`, and the zero register are correct? More than one answer may be correct.",
+          "prompt": "Which statements about `j`, `jr`, and the zero register are correct? Select all that apply.",
           "options": [
             {
               "id": "a",
-              "text": "`j label` corresponds to `jal x0, label`."
+              "text": "`j label` is equivalent to `jal x0, label`."
             },
             {
               "id": "b",
-              "text": "`jr reg` corresponds to `jalr x0, reg, 0`."
+              "text": "`jr reg` is equivalent to `jalr x0, reg, 0`."
             },
             {
               "id": "c",
@@ -1578,7 +1578,7 @@
             "b",
             "e"
           ],
-          "explanation": "Both pseudoinstructions use `x0` as the destination register when no new return address should be saved. Because `x0` remains zero and cannot be changed, these writes are discarded.",
+          "explanation": "Both pseudoinstructions use `x0` as the destination register when no new return address is to be saved. Because `x0` remains zero, these writes are discarded.",
           "source": {
             "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO6.md",
             "heading": "Echte Sprungbefehle und Pseudobefehle"
@@ -1592,7 +1592,7 @@
         {
           "id": "era-06-l4-q09",
           "type": "single",
-          "prompt": "Which order correctly completes the current call at the end of `main`?",
+          "prompt": "Which sequence correctly completes the current call at the end of `main`?",
           "options": [
             {
               "id": "a",
@@ -1629,11 +1629,11 @@
         {
           "id": "era-06-l4-q10",
           "type": "diagram",
-          "prompt": "What is the situation immediately after C returns?\n\n```mermaid\nflowchart TB\n A[\"A aktiv\"] --> B[\"B-Frame aktiv\"]\n B --> C[\"C-Frame aktiv\"]\n C --> D[\"C zurück; C-Frame freigegeben\"]\n D --> E[\"B-Frame aktiv\"]\n```",
+          "prompt": "What is the state immediately after C has returned?\n\n```mermaid\nflowchart TB\n A[\"A active\"] --> B[\"B frame active\"]\n B --> C[\"C frame active\"]\n C --> D[\"C returned; C frame released\"]\n D --> E[\"B frame active\"]\n```",
           "options": [
             {
               "id": "a",
-              "text": "A's frame has been released, and C is still active."
+              "text": "A's frame has been released, while C is still active."
             },
             {
               "id": "b",
@@ -1641,17 +1641,17 @@
             },
             {
               "id": "c",
-              "text": "All three frames have been released and A has finished."
+              "text": "All three frames have been released, and A has finished."
             },
             {
               "id": "d",
-              "text": "C's frame has been released, while calls B and A are still active."
+              "text": "C's frame has been released while calls to B and A are still active."
             }
           ],
           "correct": [
             "d"
           ],
-          "explanation": "When C returns, its own frame is released first. B and A are still active calls and retain their frames.",
+          "explanation": "When C returns, its own frame is released first. B and A are still active calls, and their frames remain allocated.",
           "source": {
             "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO6.md",
             "heading": "Stack: LIFO statt FIFO"
@@ -1670,7 +1670,7 @@
             "type": "code",
             "content": "# Vor dem Aufruf: n=10, i=0, c=0; solange i<n: c=c+i; i=i+1\nla   a0, .Lformat\nlw   a1, -28(s0)       # c\ncall printf",
             "language": "asm",
-            "caption": "Excerpt immediately before the call; `.Lformat` is the format string address."
+            "caption": "Excerpt immediately before the call; `.Lformat` is the format string's address."
           },
           "options": [
             {
@@ -1679,7 +1679,7 @@
             },
             {
               "id": "b",
-              "text": "`a0` contains the format string address, and `a1` contains the value `45`."
+              "text": "`a0` contains the format string's address, and `a1` contains the value `45`."
             },
             {
               "id": "c",
@@ -1687,13 +1687,13 @@
             },
             {
               "id": "d",
-              "text": "`a0` and `a1` both contain the address of the stack frame."
+              "text": "`a0` and `a1` both contain the stack frame's address."
             }
           ],
           "correct": [
             "b"
           ],
-          "explanation": "The loop adds the values 0 through 9, so `c = 45`. Immediately before the call, `la` loads the format string address into `a0`, and `lw` loads the value of `c` into `a1`.",
+          "explanation": "The loop adds the values 0 through 9, so `c = 45`. Immediately before the call, `la` loads the format string's address into `a0`, and `lw` loads the value of `c` into `a1`.",
           "source": {
             "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO6.md",
             "heading": "3. Ausgabe, Register wiederherstellen und zurückkehren"
@@ -1702,7 +1702,7 @@
           "concepts": [
             "Argument registers",
             "Loop",
-            "Program execution"
+            "Program flow"
           ]
         }
       ]
@@ -1716,7 +1716,7 @@
         {
           "id": "era-06-l5-q01",
           "type": "single",
-          "prompt": "You are developing a navigation app: route calculation calls traffic analysis, which in turn calculates the arrival time. What allows each nested active call to manage its own local intermediate values and return information?",
+          "prompt": "You are developing a navigation app: route calculation calls traffic analysis, which in turn calculates the arrival time. What lets each active nested call manage its own local intermediate values and return information?",
           "options": [
             {
               "id": "a",
@@ -1728,7 +1728,7 @@
             },
             {
               "id": "c",
-              "text": "The program's Text segment"
+              "text": "The program's Text section"
             },
             {
               "id": "d",
@@ -1757,19 +1757,19 @@
           "options": [
             {
               "id": "a",
-              "text": "Save the value in your own stack frame before the call."
+              "text": "Save the value in your own stack frame before the call"
             },
             {
               "id": "b",
-              "text": "Save only `ra`; `t0` is preserved automatically."
+              "text": "Save only `ra`; `t0` is automatically preserved"
             },
             {
               "id": "c",
-              "text": "Copy the value to `x0` after the call."
+              "text": "Copy the value to `x0` after the call"
             },
             {
               "id": "d",
-              "text": "Leave `t0` unchanged because the callee must preserve it."
+              "text": "Leave `t0` unchanged, because the callee must preserve it"
             }
           ],
           "correct": [
@@ -1782,7 +1782,7 @@
           },
           "difficulty": 3,
           "concepts": [
-            "Caller-saved and callee-saved registers",
+            "Caller-saved and callee-saved",
             "Stack frame",
             "Calling convention"
           ]
@@ -1790,7 +1790,7 @@
         {
           "id": "era-06-l5-q03",
           "type": "estimate",
-          "prompt": "You are writing a small RISC-V wrapper: six 64-bit values must be present simultaneously as payload in the stack frame. How many bytes of payload space do you need for that alone?",
+          "prompt": "You are writing a small RISC-V wrapper: six 64-bit values must be held simultaneously as data in the stack frame. How many bytes of data space do you need for them alone?",
           "options": [],
           "correct": [],
           "slider": {
@@ -1802,7 +1802,7 @@
             "unit": "Byte",
             "scale": "linear"
           },
-          "explanation": "A 64-bit value occupies 8 bytes. That requires $6\\cdot 8=48$ bytes of payload space; additional requirements such as frame alignment are not included here.",
+          "explanation": "A 64-bit value occupies 8 bytes. That means $6\\cdot 8=48$ bytes of data space; additional requirements such as frame alignment are not included here.",
           "source": {
             "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO6.md",
             "heading": "1. Stackframe anlegen und Variablen initialisieren"
@@ -1816,7 +1816,7 @@
         {
           "id": "era-06-l5-q04",
           "type": "single",
-          "prompt": "A Sudoku solver tries a number, calls itself recursively, and must return to the most recently started open attempt when it encounters a contradiction. What principle is at work?",
+          "prompt": "A Sudoku solver tries a number, calls itself recursively, and must return to the most recently started unresolved attempt when it encounters a contradiction. Which principle is this?",
           "options": [
             {
               "id": "a",
@@ -1828,7 +1828,7 @@
             },
             {
               "id": "c",
-              "text": "LIFO: the last call finishes first"
+              "text": "LIFO: the most recent call finishes first"
             },
             {
               "id": "d",
@@ -1838,7 +1838,7 @@
           "correct": [
             "c"
           ],
-          "explanation": "Recursive calls finish according to the LIFO principle: the most recent call returns first. Nested stack frames are suited to this order.",
+          "explanation": "Recursive calls finish according to the LIFO principle: the most recent call returns first. Nested stack frames are suited to this behavior.",
           "source": {
             "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO6.md",
             "heading": "Stack: LIFO statt FIFO"
@@ -1857,7 +1857,7 @@
           "options": [
             {
               "id": "a",
-              "text": "Call `retry`, storing the return address in `ra`"
+              "text": "Call `retry`, saving the return address in `ra`"
             },
             {
               "id": "b",
@@ -1890,7 +1890,7 @@
         {
           "id": "era-06-l5-q06",
           "type": "estimate",
-          "prompt": "A memory diagram labels an area $1\\,\\mathrm{KiB}$. How many bytes is that?",
+          "prompt": "A memory diagram labels a region $1\\,\\mathrm{KiB}$. How many bytes is that?",
           "options": [],
           "correct": [],
           "slider": {
@@ -1916,11 +1916,11 @@
         {
           "id": "era-06-l5-q07",
           "type": "single",
-          "prompt": "A database API builds a dynamically growing contact list of unknown length during a request; the list must remain available after a helper function returns. Where is this list typically stored?",
+          "prompt": "A database API builds a dynamically growing contact list of unknown length during a request, and the list must remain available after a helper function returns. Where is this list typically stored?",
           "options": [
             {
               "id": "a",
-              "text": "In the Text segment"
+              "text": "In the Text section"
             },
             {
               "id": "b",
@@ -1938,7 +1938,7 @@
           "correct": [
             "d"
           ],
-          "explanation": "Dynamically allocated data of variable size and longer lifetime is typically stored on the heap. A stack frame belongs to a specific active call.",
+          "explanation": "Dynamically allocated data of variable size and longer lifetime is typically stored on the heap. A stack frame belongs to a particular active call.",
           "source": {
             "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO6.md",
             "heading": "Typische Speicheraufteilung"
@@ -1953,7 +1953,7 @@
         {
           "id": "era-06-l5-q08",
           "type": "estimate",
-          "prompt": "A telemetry program sums the counters $0$ through $9$, like a small loop body. What value does it report at the end?",
+          "prompt": "A telemetry program sums the counters from $0$ through $9$, as in a small loop body. What value does it report at the end?",
           "options": [],
           "correct": [],
           "slider": {
@@ -1979,7 +1979,7 @@
         {
           "id": "era-06-l5-q09",
           "type": "single",
-          "prompt": "A RISC-V networking function passes two arguments to a checksum routine: a start address and a length. Which registers are the natural choice under the calling convention?",
+          "prompt": "A RISC-V networking function passes two arguments to a checksum routine: a start address and a length. According to the calling convention, which registers are the natural choice?",
           "options": [
             {
               "id": "a",
@@ -2001,7 +2001,7 @@
           "correct": [
             "a"
           ],
-          "explanation": "The argument registers `a0` through `a7` carry function arguments, so the first two arguments go in `a0` and `a1`. `ra`, by contrast, contains the return address.",
+          "explanation": "The argument registers `a0` through `a7` pass function arguments, so the first two arguments go in `a0` and `a1`. `ra` holds the return address instead.",
           "source": {
             "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO6.md",
             "heading": "Argumente, Ergebnisse und Calling Convention"
@@ -2016,7 +2016,7 @@
         {
           "id": "era-06-l5-q10",
           "type": "truefalse",
-          "prompt": "Is this correct? If a RISC-V stack grows toward lower addresses when a frame is allocated, this direction is mandated by the hardware.",
+          "prompt": "Is this statement correct? If a RISC-V stack grows toward lower addresses when a frame is allocated, this direction is mandated by the hardware.",
           "options": [
             {
               "id": "true",
@@ -2030,7 +2030,7 @@
           "correct": [
             "false"
           ],
-          "explanation": "Growth toward lower addresses is a convention, not a technical necessity. In this model, `sp` decreases when a frame is allocated and increases again when it is released.",
+          "explanation": "Growth toward lower addresses is a convention, not a technical requirement. In this model, `sp` decreases when a frame is allocated and increases again when it is released.",
           "source": {
             "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO6.md",
             "heading": "Warum wächst der Stack nach unten?"

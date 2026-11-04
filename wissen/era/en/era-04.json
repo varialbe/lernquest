@@ -5,14 +5,14 @@
   "unitNumber": 4,
   "unitTitle": "Arithmetic, Memory, and Jumps",
   "sourceSha": "09649143182adc74786d4fe6deddb7560290a1660ba0e0627dee29f47cf2136b",
-  "overview": "This unit covers immediate and arithmetic instructions, the M extension (M-Erweiterung), and logical operations and shifts in RISC-V. It explains byte addressing (Byteadressierung), word width (Wortbreite), alignment (Ausrichtung), endianness (Little Endian und Big Endian), and data transfers between main memory (Hauptspeicher) and registers. Jumps and branches (bedingte Sprünge) change the program counter (Program Counter) to control branches and loops.",
+  "overview": "This unit covers immediate and arithmetic instructions, the M extension (M-Erweiterung), and logical operations and shifts in RISC-V. It explains byte addressing, word width, alignment, endianness, and data transfers between main memory and registers. Jumps and branches change the program counter to control conditional execution and loops.",
   "entries": [
     {
       "id": "era-04-k01",
-      "term": "Immediate operand (Immediate Operand)",
+      "term": "Immediate operand",
       "kind": "definition",
       "short": "An immediate operand is a numeric value encoded directly as a constant in an instruction.",
-      "explanation": "An immediate operand is part of the machine instruction and does not first need to be read from a register. In `addi a, b, imm`, `imm` is the immediate operand. Its possible size and interpretation depend on the instruction format.",
+      "explanation": "An immediate operand is part of the machine instruction and does not need to be read from a register first. In `addi a, b, imm`, `imm` is the immediate operand. Its possible size and interpretation depend on the instruction format.",
       "example": "`addi t0, t1, 7` adds the encoded constant `7` to the value in `t1`.",
       "pitfalls": [
         "An immediate operand is not a register operand.",
@@ -29,7 +29,7 @@
       "term": "addi (Add Immediate)",
       "kind": "notation",
       "short": "`addi a, b, imm` adds a sign-extended immediate to `b` and writes the result to `a`.",
-      "explanation": "The operand order is `addi ziel, quelle, immediate`: the instruction computes the source register's value plus the constant and stores the sum in the destination register. The immediate is a signed 12-bit value in the range of $-2048$ to $2047$ and is sign-extended to the register width. To subtract a constant, use a negative immediate; there is no dedicated `subi` instruction. Since `x0` always contains zero, `addi a, x0, imm` copies the immediate value into `a`.",
+      "explanation": "The operand order is `addi ziel, quelle, immediate`: the instruction adds the source register's value to the constant and places the sum in the destination register. The immediate is a signed 12-bit value in the range $-2048$ to $2047$, and is sign-extended to the register width. To subtract a constant, use a negative immediate; there is no separate `subi` instruction. Since `x0` always contains zero, `addi a, x0, imm` loads the immediate value into `a`.",
       "example": "```asm\naddi t0, t1, -3   # t0 = t1 - 3\naddi t2, x0, 12   # t2 = 12\n```",
       "pitfalls": [
         "The immediate is limited to 12 bits.",
@@ -47,12 +47,12 @@
       "id": "era-04-k03",
       "term": "Sign extension for two's-complement numbers (Vorzeichenerweiterung für Zweierkomplementzahlen)",
       "kind": "method",
-      "short": "In sign extension, the sign bit is copied into the newly added higher bits.",
-      "explanation": "Sign extension (Vorzeichenerweiterung) increases the width of a signed binary value without changing its numeric value. In two's-complement representation, copies of the most significant bit are added on the left. Thus, the 12-bit value `111111111111` becomes a 32-bit value of all ones and still represents $-1$. RISC-V uses this extension, among other cases, for negative `addi` immediates.",
+      "short": "Sign extension copies the sign bit into the newly added higher-order bits.",
+      "explanation": "Sign extension (Vorzeichenerweiterung) increases the width of a signed binary value without changing its numeric value. In two's-complement representation, copies of the most significant bit are added on the left. Thus, the 12-bit value `111111111111` becomes a 32-bit value consisting entirely of ones and still represents $-1$. RISC-V uses this extension, for example, for negative immediate values in `addi`.",
       "example": "The 8-bit two's-complement value `11111101` ($-3$) is extended to 12 bits as `111111111101`.",
       "pitfalls": [
-        "For a negative number, zeros are not added on the left.",
-        "Zero extension adds zeros on the left and can therefore change a negative two's-complement value."
+        "For a negative number, the leftmost bits are not filled with zeros.",
+        "Zero extension fills the leftmost bits with zeros and can therefore change a negative two's-complement value."
       ],
       "related": [
         "addi (Add Immediate)",
@@ -64,12 +64,12 @@
       "id": "era-04-k04",
       "term": "Loading constants with lui and addi",
       "kind": "method",
-      "short": "`lui` sets an upper constant part, and `addi` adds a signed lower part.",
-      "explanation": "`lui` (load upper immediate) places the 20-bit immediate field in the upper bits; in RV32, this is equivalent to shifting it left by 12 bits. Then `addi` can add a signed 12-bit part. The upper part must be chosen so that the sum, after sign extension of the lower part, gives the desired constant. If the highest bit of the lower 12-bit part is `1`, the upper part must be adjusted accordingly.",
+      "short": "`lui` sets the upper part of a constant, and `addi` adds a signed lower part.",
+      "explanation": "`lui` (load upper immediate) places the 20-bit immediate part in the upper bits; in RV32, this is equivalent to shifting it left by 12 bits. Then `addi` can add a signed 12-bit part. The upper part must be chosen so that, after sign extension of the lower part, the sum gives the desired constant. If the most significant bit of the lower 12-bit part is `1`, the upper part must be adjusted accordingly.",
       "example": "```asm\nlui  t0, 0x12345\naddi t0, t0, 0x678   # t0 = 0x12345678\n```",
       "pitfalls": [
-        "With `addi`, the lower part is sign-extended; it is not treated as an unsigned 12-bit number.",
-        "`lui` places the immediate field in the upper bits, not the lowest bits."
+        "In `addi`, the lower part is sign-extended; it is not treated as an unsigned 12-bit number.",
+        "`lui` places the immediate part in the upper bits, not the lowest bits."
       ],
       "related": [
         "Immediate operand",
@@ -80,30 +80,30 @@
     },
     {
       "id": "era-04-k05",
-      "term": "M extension",
+      "term": "M extension (M-Erweiterung)",
       "kind": "definition",
       "short": "The M extension adds integer multiplication, division, and remainder instructions to RISC-V.",
-      "explanation": "The M extension is a RISC-V ISA extension for multiplication and division with integer operands. Its instructions are not part of the base instruction set and are available only when the extension is supported. They include variants for the lower and upper product parts, as well as for signed and unsigned operands.",
+      "explanation": "The M extension is a RISC-V ISA extension for multiplication and division with integer operands. Its instructions are not part of the base instruction set and are available only when the extension is supported. They include variants for the lower and upper parts of a product, as well as for signed and unsigned operands.",
       "example": "Instructions in the M extension include `mul`, `mulh`, `div`, and `rem`.",
       "pitfalls": [
         "The M extension is an ISA extension, not a type of memory."
       ],
       "related": [
         "RISC-V",
-        "M-extension multiplication instructions",
+        "Multiplication instructions in the M extension",
         "Division and remainder in the M extension"
       ],
       "heading": "Multiplikation, Division und Rest: M-Erweiterung"
     },
     {
       "id": "era-04-k06",
-      "term": "M-extension multiplication instructions",
+      "term": "Multiplication instructions in the M extension",
       "kind": "definition",
-      "short": "`mul`, `mulh`, `mulhsu`, and `mulhu` return product parts with defined signedness interpretations.",
-      "explanation": "The full product of two XLEN-bit values can be up to 2 × XLEN bits wide. `mul` returns the lower XLEN bits of the product; these bits are independent of whether the operands are interpreted as signed or unsigned. `mulh` returns the upper part for two signed operands, `mulhsu` for a signed first operand and an unsigned second operand, and `mulhu` for two unsigned operands.",
+      "short": "`mul`, `mulh`, `mulhsu`, and `mulhu` return product parts with specified signedness interpretations.",
+      "explanation": "The full product of two XLEN-bit values can be up to 2 × XLEN bits wide. `mul` returns the lower XLEN bits of the product; these bits are the same whether the operands are interpreted as signed or unsigned. `mulh` returns the upper part for two signed operands, `mulhsu` for a signed first operand and an unsigned second operand, and `mulhu` for two unsigned operands.",
       "example": "`mulh t0, t1, t2` writes the upper XLEN-bit part of the product of the signed values in `t1` and `t2` to `t0`.",
       "pitfalls": [
-        "The `h` in `mulh` means the upper product part; `mul` returns the lower part.",
+        "The `h` in `mulh` denotes the upper product part; `mul` returns the lower part.",
         "`mulhsu` interprets the first operand as signed and the second as unsigned."
       ],
       "related": [
@@ -118,10 +118,10 @@
       "term": "Division and remainder in the M extension",
       "kind": "definition",
       "short": "`div` and `rem` use signed operands, while `divu` and `remu` interpret their operands as unsigned.",
-      "explanation": "`div rd, rs1, rs2` writes the quotient of the signed operands to `rd`; `rem rd, rs1, rs2` writes the remainder. The `divu` and `remu` variants interpret both operands as unsigned numbers. Signed division rounds the quotient toward zero, and the remainder is the one associated with that division.",
-      "example": "`rem t0, t1, t2` computes the remainder when `t1` is divided by `t2` and stores it in `t0`.",
+      "explanation": "`div rd, rs1, rs2` writes the quotient of the signed operands to `rd`; `rem rd, rs1, rs2` writes the remainder. The `divu` and `remu` variants interpret both operands as unsigned numbers. Signed division rounds the quotient toward zero, and the remainder corresponds to that division.",
+      "example": "`rem t0, t1, t2` computes the remainder when `t1` is divided by `t2` and places it in `t0`.",
       "pitfalls": [
-        "The `u` indicates unsigned interpretation.",
+        "The `u` indicates an unsigned interpretation.",
         "`rem` returns the remainder, not the quotient."
       ],
       "related": [
@@ -136,12 +136,12 @@
       "id": "era-04-k08",
       "term": "Bitwise logical instructions",
       "kind": "definition",
-      "short": "`and`, `or`, and `xor` apply their respective logical operation independently to each pair of bits.",
-      "explanation": "The `and`, `or`, and `xor` instructions combine two source registers bit by bit. `and` yields `1` only if both bits are `1`; `or` yields `1` if at least one is `1`; `xor` yields `1` if the bits differ. The result is stored in the destination register.",
+      "short": "`and`, `or`, and `xor` apply their respective logical operations independently to each pair of bits.",
+      "explanation": "The instructions `and`, `or`, and `xor` combine two source registers bit by bit. `and` yields `1` only when both bits are `1`; `or` yields `1` when at least one bit is `1`; and `xor` yields `1` when the bits differ. The result is placed in the destination register.",
       "example": "```asm\nand s3, s1, s2\nor  s4, s1, s2\nxor s5, s1, s2\n```\nFor `s1 = 1010` and `s2 = 1100`, the results are `1000`, `1110`, and `0110`.",
       "pitfalls": [
-        "These operations are performed bitwise; they do not add numeric values.",
-        "`xor` yields `0` when the two bits are the same."
+        "These operations are performed bit by bit; they do not add numeric values.",
+        "`xor` yields `0` for two equal bits."
       ],
       "related": [
         "AND mask",
@@ -151,14 +151,14 @@
     },
     {
       "id": "era-04-k09",
-      "term": "AND mask",
+      "term": "AND mask (AND-Maske)",
       "kind": "concept",
       "short": "An AND mask preserves only bits whose positions also contain a one in the other operand.",
-      "explanation": "A bit mask is applied to a value bitwise with `and`. At each position, a one is preserved only if both the value and the mask have a one there. Zeros in the mask therefore set the corresponding result bits to zero.",
-      "example": "`1010 AND 1100 = 1000`: Only the second position from the left has a one in both operands.",
+      "explanation": "A bit mask is applied to a value bit by bit using `and`. At each position, a one is preserved only if both the value and the mask have a one there. Zeros in the mask therefore set the corresponding result bits to zero.",
+      "example": "`1010 AND 1100 = 1000`: Only the second position from the left contains a one in both operands.",
       "pitfalls": [
         "A zero in the mask clears the corresponding result bit.",
-        "The mask is applied bit by bit; it is not subtracted as an integer."
+        "The mask is applied bit by bit, not subtracted as an integer."
       ],
       "related": [
         "Bitwise logical instructions"
@@ -167,14 +167,14 @@
     },
     {
       "id": "era-04-k10",
-      "term": "Shift instructions",
+      "term": "Shift instructions (Shift-Befehle)",
       "kind": "definition",
-      "short": "`sll`, `srl`, and `sra` shift register bits using different rules for the newly vacated bits.",
-      "explanation": "`sll` and `slli` shift left and fill the right with zeros. `srl` and `srli` shift right logically and fill the left with zeros; `sra` and `srai` shift right arithmetically and copy the sign bit into the newly vacated high bits. For register variants, the shift amount comes from a register; for immediate variants, it comes from an unsigned immediate. The immediate shift amount is five bits wide in RV32 and six bits wide in RV64.",
-      "example": "In an 8-bit illustration, shifting `10110100` right by one position gives `01011010` logically and `11011010` arithmetically.",
+      "short": "`sll`, `srl`, and `sra` shift register bits using different rules for the bits introduced.",
+      "explanation": "`sll` and `slli` shift left and fill the rightmost positions with zeros. `srl` and `srli` shift logically right and fill the leftmost positions with zeros; `sra` and `srai` shift arithmetically right and copy the sign bit into the newly vacant high-order bits. For register variants, the shift amount comes from a register; for immediate variants, it comes from an unsigned immediate. The immediate shift amount is five bits wide in RV32 and six bits wide in RV64.",
+      "example": "In an 8-bit illustration, `10110100` shifted logically right by one position becomes `01011010`, and shifted arithmetically it becomes `11011010`.",
       "pitfalls": [
-        "`srl` and `sra` behave differently when the highest bit is set.",
-        "`>>` and `>>>` are not unambiguous RISC-V mnemonics; `srl` and `sra` are the relevant instructions."
+        "`srl` and `sra` behave differently when the most significant bit is set.",
+        "`>>` and `>>>` are not unambiguous RISC-V mnemonics; use `srl` and `sra`."
       ],
       "related": [
         "Two's complement",
@@ -184,10 +184,10 @@
     },
     {
       "id": "era-04-k11",
-      "term": "Floating-point numbers and arithmetic in RISC-V",
+      "term": "Floating-point numbers and floating-point arithmetic in RISC-V (Gleitkommazahlen und Gleitkomma-Arithmetik in RISC-V)",
       "kind": "concept",
       "short": "Floating-point arithmetic is not part of the RISC-V base instruction set; it is provided by extensions.",
-      "explanation": "Floating-point numbers represent real numbers in a finite binary format. The RISC-V base integer instructions do not include floating-point operations; these are provided by extensions such as F for single precision and D for double precision. `fadd` and `fsub` denote addition and subtraction schematically; concrete instructions usually specify the format, for example `.s` or `.d`.",
+      "explanation": "Floating-point numbers represent real numbers in a limited binary format. The RISC-V base integer instructions do not include floating-point operations; extensions provide them, such as F for single precision and D for double precision. `fadd` and `fsub` are schematic names for addition and subtraction; concrete instructions usually specify the format, for example `.s` or `.d`.",
       "example": "```asm\nfadd.s ft0, ft1, ft2   # Addition mit einfacher Genauigkeit\nfsub.d ft0, ft1, ft2   # Subtraktion mit doppelter Genauigkeit\n```",
       "pitfalls": [
         "Floating-point arithmetic is not automatically included in the RISC-V base instruction set.",
@@ -202,14 +202,14 @@
     },
     {
       "id": "era-04-k12",
-      "term": "Main memory (RAM)",
+      "term": "Main memory (RAM) (Hauptspeicher)",
       "kind": "definition",
-      "short": "Main memory is a large, addressable memory in which a program stores the data it currently needs.",
-      "explanation": "Main memory, usually called RAM (Random Access Memory), holds data that the processor accesses during execution. It typically has greater capacity than registers, while registers are especially fast temporary storage. “Random access” means that a specified address can be accessed directly; the term does not refer to secondary storage such as a hard drive.",
+      "short": "Main memory is a large, addressable storage area where a program keeps the data it currently needs.",
+      "explanation": "Main memory, usually called RAM (Random Access Memory), holds data that the processor accesses during execution. It typically has greater capacity than the registers, while registers are especially fast temporary storage. “Random access” means that a specified address can be accessed directly; the term does not refer to secondary storage such as a hard drive.",
       "example": "A program can store a number in RAM and later load it into a register with a load instruction.",
       "pitfalls": [
         "Main memory is not the same as secondary storage.",
-        "RAM is accessed by an address; a register is accessed by a register identifier."
+        "A RAM access uses an address, whereas a register access uses a register identifier."
       ],
       "related": [
         "Registers, operands, and mnemonics",
@@ -220,14 +220,14 @@
     },
     {
       "id": "era-04-k13",
-      "term": "Load/store architecture in RISC-V",
+      "term": "Load/store architecture in RISC-V (Load/Store-Architektur in RISC-V)",
       "kind": "concept",
       "short": "In RISC-V, load and store instructions transfer data between main memory and registers, while arithmetic instructions operate on registers.",
-      "explanation": "A load reads data from main memory into a register. A store writes register data to main memory. Arithmetic and logical instructions use register values instead of operating directly on a memory operand. Other ISAs may allow memory operands in arithmetic instructions.",
+      "explanation": "A load reads data from main memory into a register. A store writes register data to main memory. Arithmetic and logical instructions use register values rather than operating directly on a memory operand. Other ISAs may allow memory operands in arithmetic instructions.",
       "example": "A value is loaded into a register, added there, and then written back to main memory with a store.",
       "pitfalls": [
         "An arithmetic instruction such as `add` does not automatically read an operand from RAM.",
-        "Load and store instructions transfer data, but do not themselves perform the subsequent arithmetic."
+        "Load and store instructions transfer data but do not perform the subsequent arithmetic themselves."
       ],
       "related": [
         "Main memory (RAM)",
@@ -239,33 +239,33 @@
     },
     {
       "id": "era-04-k14",
-      "term": "Byte addressing",
+      "term": "Byte addressing (Byteadressierung)",
       "kind": "definition",
-      "short": "With byte addressing, each memory address identifies exactly one 8-bit byte.",
-      "explanation": "A byte-addressed memory assigns an address to each individual 8-bit memory location. A multibyte value occupies several consecutive byte addresses. A 32-bit value occupies four bytes, and a 64-bit value occupies eight bytes.",
-      "example": "A 32-bit value beginning at address `100` occupies byte addresses `100` through `103`.",
+      "short": "In a byte-addressed memory, each memory address identifies exactly one 8-bit byte.",
+      "explanation": "A byte-addressed memory assigns an address to each individual 8-bit memory cell. A multibyte value occupies several consecutive byte addresses. A 32-bit value occupies four bytes, and a 64-bit value occupies eight bytes.",
+      "example": "A 32-bit value starting at address `100` occupies byte addresses `100` through `103`.",
       "pitfalls": [
-        "An address identifies a byte; it does not automatically identify an entire 32-bit or 64-bit word.",
+        "An address identifies a byte, not necessarily an entire 32-bit or 64-bit word.",
         "Byte addressing does not specify the order in which a value's bytes are stored."
       ],
       "related": [
         "Main memory (RAM)",
         "Address width and address space",
         "Word width",
-        "Little- and big-endian byte order"
+        "Little-endian and big-endian"
       ],
       "heading": "Adressen, Speicherzellen und Wortbreite"
     },
     {
       "id": "era-04-k15",
-      "term": "Address width and address space",
+      "term": "Address width and address space (Adressbreite und Adressraum)",
       "kind": "theorem",
       "short": "An address width of $n$ bits can represent at most $2^n$ distinct byte addresses.",
-      "explanation": "An address field of $n$ bits has $2^n$ distinct bit patterns and can therefore name at most $2^n$ addresses. With byte addressing, each of these addresses corresponds to a byte position. The formula describes the number of representable addresses; the platform may limit how much memory can actually be used.",
-      "example": "With three address bits, the addresses are `000` through `111`, giving $2^3=8$ byte addresses.",
+      "explanation": "An address field of $n$ bits has $2^n$ distinct bit patterns and can therefore name at most $2^n$ addresses. With byte addressing, each of these addresses corresponds to a byte position. The formula gives the number of representable addresses; the platform may limit how much memory is actually usable.",
+      "example": "With three address bits, the addresses range from `000` to `111`, for a total of $2^3=8$ byte addresses.",
       "pitfalls": [
-        "The number of representable addresses depends on the address width, not on the processor's word width.",
-        "The formula does not say whether every address can actually be used on a particular platform."
+        "The number of representable addresses depends on the address width, not the processor's word width.",
+        "The formula does not say whether every address is actually usable on a particular platform."
       ],
       "related": [
         "Byte addressing",
@@ -275,13 +275,13 @@
     },
     {
       "id": "era-04-k16",
-      "term": "Word width",
+      "term": "Word width (Wortbreite)",
       "kind": "definition",
       "short": "Word width describes a central processing width of the processor; it is not the size of a memory cell.",
-      "explanation": "Word width denotes a central width at which the processor typically processes data; examples are 16, 32, 64, or 128 bits. A single addressable memory location can still be only one 8-bit byte. A 32-bit value therefore occupies four byte addresses, and a 32-bit instruction occupies four bytes in the address space, without this implying that four separate byte accesses must occur.",
+      "explanation": "Word width refers to a central width at which the processor typically processes data; examples include 16, 32, 64, or 128 bits. An individual addressable memory cell can still be only one 8-bit byte. A 32-bit value therefore occupies four byte addresses, and a 32-bit instruction occupies four bytes in the address space, without necessarily requiring four separate byte accesses.",
       "example": "In byte-addressed memory, a 64-bit value occupies eight consecutive byte addresses.",
       "pitfalls": [
-        "Word width and the size of the smallest addressable memory location are different properties.",
+        "Word width and the size of the smallest addressable memory cell are different properties.",
         "Word width alone does not determine the byte order of a multibyte value."
       ],
       "related": [
@@ -293,10 +293,10 @@
     },
     {
       "id": "era-04-k17",
-      "term": "Alignment",
+      "term": "Alignment (Ausrichtung)",
       "kind": "definition",
-      "short": "A datum is aligned to an $n$-byte boundary if its starting address $A$ is divisible by $n$.",
-      "explanation": "Alignment to an $n$-byte boundary satisfies $A \\bmod n=0$. For example, a 4-byte datum is aligned at starting addresses `0`, `4`, and `8`, but not at `1` or `6`. Alignment can make accesses more efficient and is required or supported depending on the architecture or platform.",
+      "short": "A datum is aligned to a $n$-byte boundary if its starting address $A$ is divisible by $n$.",
+      "explanation": "For alignment to an $n$-byte boundary, $A \\bmod n=0$ must hold. For example, a 4-byte datum is aligned at starting addresses `0`, `4`, and `8`, but not at `1` or `6`. Alignment can make accesses more efficient and may be required or supported, depending on the architecture or platform.",
       "example": "An 8-byte value at address `24` is aligned to an 8-byte boundary because $24 \\bmod 8=0$.",
       "pitfalls": [
         "The alignment boundary is specified in bytes.",
@@ -311,11 +311,11 @@
     },
     {
       "id": "era-04-k18",
-      "term": "Little- and big-endian byte order",
+      "term": "Little-endian and big-endian (Little Endian und Big Endian)",
       "kind": "definition",
-      "short": "Endianness specifies which byte of a multibyte value is stored at the lowest memory address.",
-      "explanation": "In little-endian order, the least significant byte of a multibyte value is at the lowest address. In big-endian order, the most significant byte is there. The choice does not change the numeric value in the register, only the order of its bytes in memory.",
-      "example": "For `0x10325476`, at addresses `n` through `n+3`, the bytes are `76 54 32 10` in little-endian order and `10 32 54 76` in big-endian order.",
+      "short": "Endianness determines which byte of a multibyte value is stored at the lowest memory address.",
+      "explanation": "In little-endian order, the least significant byte of a multibyte value is stored at the lowest address. In big-endian order, the most significant byte is stored there. The choice does not change the numeric value in the register; it changes only the order of the bytes in memory.",
+      "example": "For `0x10325476`, the bytes at addresses `n` through `n+3` are `76 54 32 10` in little-endian order and `10 32 54 76` in big-endian order.",
       "pitfalls": [
         "Little-endian order does not reverse the bits within an individual byte.",
         "Byte order does not follow from word width."
@@ -329,10 +329,10 @@
     },
     {
       "id": "era-04-k19",
-      "term": "offset(base) addressing mode",
+      "term": "The offset(base) addressing mode (Adressierungsform offset(base))",
       "kind": "notation",
-      "short": "The notation `offset(base)` denotes the address calculated from the base register value plus an immediate offset.",
-      "explanation": "In a memory instruction such as `ld a1, 8(s0)`, `8(s0)` means the value of base register `s0` plus offset `8`. The effective address is therefore the value in `s0` plus `8`. The offset is a signed number of bytes.",
+      "short": "The notation `offset(base)` denotes the address obtained by adding an immediate offset to the base register value.",
+      "explanation": "In a memory instruction such as `ld a1, 8(s0)`, `8(s0)` is read as the value of the base register `s0` plus the offset `8`. The effective address is therefore the value in `s0` plus `8`. The offset is a signed number of bytes.",
       "example": "If `s0 = 1000`, the effective address of `8(s0)` is `1008`.",
       "pitfalls": [
         "The offset is a number of bytes, not a register index.",
@@ -349,34 +349,34 @@
       "id": "era-04-k20",
       "term": "64-bit transfers with ld and sd",
       "kind": "notation",
-      "short": "In RV64, `ld` loads a 64-bit datum from memory, and `sd` stores a 64-bit datum from a register.",
-      "explanation": "The notation `ld ziel, offset(base)` first calculates the effective address and then transfers the 64-bit datum beginning there into the destination register. With `sd quelle, offset(base)`, the value comes from the source register and is written to memory starting at the effective address. In RV64, such a value occupies eight consecutive byte addresses.",
+      "short": "`ld` loads a 64-bit datum from memory in RV64, and `sd` stores a 64-bit datum from a register.",
+      "explanation": "The notation `ld ziel, offset(base)` first computes the effective address and then transfers the 64-bit datum starting there to the destination register. In `sd quelle, offset(base)`, the value comes from the source register and is written to memory starting at the effective address. In RV64, such a value occupies eight consecutive byte addresses.",
       "example": "With `s0 = 1000`, `ld a1, 8(s0)` and `sd a1, 8(s0)` access memory starting at address `1008`; the 64-bit value occupies bytes `1008` through `1015`.",
       "pitfalls": [
-        "With `ld`, the first register is the destination; with `sd`, it is the source.",
-        "In RV64, `ld` and `sd` each transfer 64 bits."
+        "In `ld`, the first register is the destination; in `sd`, it is the source.",
+        "`ld` and `sd` each transfer 64 bits in RV64."
       ],
       "related": [
-        "offset(base) addressing mode",
+        "The offset(base) addressing mode",
         "Byte addressing",
-        "Little- and big-endian byte order",
+        "Little-endian and big-endian",
         "Alignment"
       ],
       "heading": "Laden und Speichern von 64 Bit"
     },
     {
       "id": "era-04-k21",
-      "term": "Program counter (PC) and control flow",
+      "term": "Program counter (PC) and control flow (Program Counter und Kontrollfluss)",
       "kind": "concept",
-      "short": "The program counter contains the address of the instruction being executed and thus determines program flow.",
-      "explanation": "The program counter (PC) is a processor register that holds the address of the current instruction during execution. In normal execution, it is updated to the next instruction. A jump sets the PC to another target, and a conditional jump does so only if its comparison is satisfied.",
-      "example": "A branch can set the PC back to the beginning of a loop as long as the branch condition is satisfied.",
+      "short": "The program counter contains the address of the instruction being executed and thereby determines program flow.",
+      "explanation": "The program counter (PC) is a processor register that holds the address of the current instruction during execution. In normal execution, it is updated to point to the next instruction. A jump sets the PC to a different target, while a conditional jump does so only if its comparison succeeds.",
+      "example": "A branch can set the PC back to the start of a loop as long as the branch condition is met.",
       "pitfalls": [
-        "A jump changes control flow even when it does not compute an ordinary data value.",
-        "A label names a program location; it is not a data value of its own."
+        "A jump changes control flow even though it does not compute an ordinary data value.",
+        "A label names a location in the program; it is not itself a data value."
       ],
       "related": [
-        "Label",
+        "Label (Sprungmarke)",
         "Unconditional jump",
         "Conditional jump (branch)"
       ],
@@ -384,14 +384,14 @@
     },
     {
       "id": "era-04-k22",
-      "term": "Label",
+      "term": "Label (Sprungmarke)",
       "kind": "definition",
-      "short": "A label is a name for a location in the program that a jump instruction can target.",
-      "explanation": "A label names an instruction address in an assembly program. The assembler associates the name with the corresponding address or the offset needed for the jump. Labels must not be reserved identifiers.",
+      "short": "A label is a name for a location in a program that a jump instruction can target.",
+      "explanation": "A label names an instruction address in an assembly program. The assembler associates the name with the corresponding address or with the offset needed for the jump. Labels must not use reserved identifiers.",
       "example": "```asm\nloop:\n    add t0, t0, t1\n    j loop\n```",
       "pitfalls": [
         "A label is a target name, not an instruction to be executed.",
-        "A reserved instruction name is not suitable as a freely chosen label name."
+        "A reserved instruction name cannot be used as a freely chosen label."
       ],
       "related": [
         "Program counter (PC) and control flow",
@@ -402,13 +402,13 @@
     },
     {
       "id": "era-04-k23",
-      "term": "Unconditional jump",
+      "term": "Unconditional jump (Unbedingter Sprung)",
       "kind": "concept",
       "short": "An unconditional jump always resumes execution at its target.",
-      "explanation": "An unconditional jump transfers control flow to the specified target without checking a data condition. In RISC-V, `j label` is an assembler pseudoinstruction for `jal x0, label`; `jal` is the actual jump instruction. `jr rs1` is a pseudoinstruction for `jalr x0, 0(rs1)` and jumps to the address specified in the register.",
+      "explanation": "An unconditional jump transfers control flow to the specified target without checking a data condition. In RISC-V, `j label` is an assembly pseudoinstruction for `jal x0, label`; `jal` is the actual jump instruction. `jr rs1` is a pseudoinstruction for `jalr x0, 0(rs1)` and jumps to the address given in the register.",
       "example": "```asm\nj target\nadd s2, s2, s3   # wird auf diesem Weg übersprungen\ntarget:\nadd s1, s1, s0\n```",
       "pitfalls": [
-        "The jump occurs regardless of the register values.",
+        "The jump occurs independently of the register values.",
         "`j` and `jr` are pseudoinstructions; the underlying instructions are `jal` and `jalr`."
       ],
       "related": [
@@ -420,14 +420,14 @@
     },
     {
       "id": "era-04-k24",
-      "term": "Conditional jump (branch)",
+      "term": "Conditional jump (branch) (Bedingter Sprung)",
       "kind": "concept",
       "short": "A branch changes control flow only if the comparison of its register operands satisfies the condition.",
-      "explanation": "A conditional jump compares two registers and jumps to the target if its condition is true. `beq` checks for equality, `bne` for inequality, `blt` for a signed less-than comparison, and `bge` for a signed greater-than-or-equal comparison. The target offset is encoded in the instruction and determined relative to the PC; a label can provide the assembler with a readable target name.",
+      "explanation": "A conditional jump compares two registers and branches to the target if its condition is true. `beq` tests for equality, `bne` for inequality, `blt` for a signed less-than comparison, and `bge` for a signed greater-than-or-equal comparison. The target offset is encoded in the instruction and is determined relative to the PC; a label can provide the assembler with a readable target name.",
       "example": "```asm\nbne s3, s4, L1\nadd s0, s1, s2\nL1:\nsub s0, s0, s3\n```\nIf `s3` and `s4` differ, the addition is skipped; the subtraction at `L1` is executed in either case.",
       "pitfalls": [
-        "`blt` and `bge` compare signed values; unsigned variants such as `bltu` and `bgeu` are available.",
-        "If the condition is false, the program continues with the next instruction."
+        "`blt` and `bge` perform signed comparisons; unsigned variants include `bltu` and `bgeu`.",
+        "If the condition is false, execution continues with the next instruction."
       ],
       "related": [
         "Program counter (PC) and control flow",

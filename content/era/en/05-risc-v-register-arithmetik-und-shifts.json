@@ -5,37 +5,37 @@
   "number": 5,
   "slug": "risc-v-register-arithmetik-und-shifts",
   "title": "RISC-V: Registers, Arithmetic, and Shifts",
-  "summary": "This unit explores the modular RISC-V ISA (modulare RISC-V-ISA), register conventions (Registerkonventionen), and signed and unsigned arithmetic (signed- und unsigned-Arithmetik). You will learn how multiplication, division, and shifts (Shifts) change bit patterns, and which pseudo-instructions (Pseudobefehle) and immediate operations (Immediate-Operationen) are used for them. The unit concludes with common errors in assembly programming.",
+  "summary": "This unit explores the modular RISC-V ISA (modulare RISC-V-ISA), register conventions (Registerkonventionen), and signed and unsigned arithmetic (signed- und unsigned-Arithmetik). You will learn how multiplication and division (Multiplikation und Division) and shifts (Shifts) change bit patterns, and which pseudoinstructions (Pseudobefehle) and immediate operations (Immediate-Operationen) are used for them. The unit concludes with common errors in assembly programming (Assemblerprogrammierung).",
   "concepts": [
     "RISC-V base and extensions",
     "Registers and register conventions",
-    "Signed and unsigned interpretation",
+    "Signed/unsigned interpretation",
     "Multiplication and division",
     "Shifts",
-    "Left shifts and overflow",
+    "Left shift and overflow",
     "Logical and arithmetic right shifts",
-    "Pseudo-instructions",
+    "Pseudoinstructions",
     "Immediate instructions",
     "Bitwise logical operations",
     "Sign extension",
     "Assembly programming"
   ],
   "keyFacts": [
-    "`RV32` denotes a RISC-V variant with 32-bit-wide registers; `I` stands for the base integer ISA, and `M` for multiplication and division.",
+    "`RV32` denotes a RISC-V variant with 32-bit registers; `I` stands for the integer base, and `M` for multiplication and division.",
     "`RV32I` has 32 registers, from `x0` to `x31`, each 32 bits wide.",
-    "`x0` always returns the value zero; no initial value should be assumed for any other register.",
-    "Register names such as `a0`, `s0`, and `t0` are usage conventions; they do not indicate different types of registers.",
-    "`mul` returns the lower 32 product bits; `mulh`, `mulhu`, and `mulhsu` return upper product bits using different signedness interpretations.",
+    "`x0` always returns zero; no initial value should be assumed for any other register.",
+    "Register names such as `a0`, `s0`, and `t0` are usage conventions and do not indicate different register types.",
+    "`mul` returns the low 32 product bits; `mulh`, `mulhu`, and `mulhsu` return high product bits with different signedness interpretations.",
     "`div` and `rem` operate on signed values; `divu` and `remu` operate on unsigned values.",
-    "For a left shift, `sll` and `slli` fill the vacated right-hand positions with zeros; for a logical right shift, `srl` and `srli` fill the vacated left-hand positions with zeros.",
-    "For an arithmetic right shift, `sra` and `srai` fill the vacated left-hand positions with copies of the sign bit.",
-    "A one-bit left shift is guaranteed to correspond to multiplication by 2 only if the result fits in the chosen word width.",
+    "`sll` and `slli` fill the vacated rightmost positions with zeros during a left shift; `srl` and `srli` fill the vacated leftmost positions with zeros during a logical right shift.",
+    "`sra` and `srai` fill the vacated leftmost positions with copies of the sign bit during an arithmetic right shift.",
+    "A one-bit left shift is reliably equivalent to multiplication by 2 only if the result fits in the chosen word width.",
     "For negative odd numbers, an arithmetic right shift can differ from signed division because division rounds toward zero.",
-    "A pseudo-instruction is not a separate machine instruction; the assembler translates it into real instructions.",
-    "Depending on the constant, `li` can require different numbers of real instructions; for large constants, `lui` and `addi` are possible, for example.",
-    "An immediate is a constant included directly in the instruction.",
+    "A pseudoinstruction is not a machine instruction of its own; the assembler translates it into real instructions.",
+    "`li` may require different numbers of real instructions depending on the constant; for large constants, `lui` and `addi` are examples of instructions that may be used.",
+    "An immediate is a constant encoded directly in an instruction.",
     "Sign extension must be taken into account for negative immediates.",
-    "When programming in assembly, check register values, signs, loop execution, and register usage step by step."
+    "When programming in assembly, check register values, signedness, loop behavior, and register assignments step by step."
   ],
   "tags": [],
   "links": [],
@@ -71,25 +71,25 @@
           "options": [
             {
               "id": "a",
-              "text": "A 32-bit variant whose base includes multiplication and division"
+              "text": "32-bit variant whose base includes multiplication and division"
             },
             {
               "id": "b",
-              "text": "A 64-bit variant with the base integer ISA"
+              "text": "64-bit variant with the integer base"
             },
             {
               "id": "c",
-              "text": "A 32-bit variant with the base integer ISA"
+              "text": "32-bit variant with the integer base"
             },
             {
               "id": "d",
-              "text": "A 32-bit variant with a floating-point base"
+              "text": "32-bit variant with the floating-point base"
             }
           ],
           "correct": [
             "c"
           ],
-          "explanation": "`RV32` denotes 32-bit registers, and `I` stands for the base integer ISA. Multiplication and division belong to the `M` extension.",
+          "explanation": "`RV32` denotes 32-bit registers, and `I` stands for the integer base. Multiplication and division are part of the `M` extension.",
           "source": {
             "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO5.md",
             "heading": "RISC-V: Basis und Erweiterungen"
@@ -102,7 +102,7 @@
         {
           "id": "era-05-l1-q02",
           "type": "multi",
-          "prompt": "Select all correct matches. More than one answer may be correct.",
+          "prompt": "Select all correct mappings. More than one answer may be correct.",
           "options": [
             {
               "id": "a",
@@ -110,11 +110,11 @@
             },
             {
               "id": "b",
-              "text": "`F` stands for floating point."
+              "text": "`F` stands for floating-point operations."
             },
             {
               "id": "c",
-              "text": "`I` stands for the base integer ISA."
+              "text": "`I` stands for the integer base."
             },
             {
               "id": "d",
@@ -130,7 +130,7 @@
             "b",
             "c"
           ],
-          "explanation": "`I` denotes the base integer ISA, `M` multiplication and division, and `F` floating point. `A` stands for atomic operations, and `V` for vector operations.",
+          "explanation": "`I` denotes the integer base, `M` denotes multiplication and division, and `F` denotes floating-point operations. `A` stands for atomic operations, and `V` for vector operations.",
           "source": {
             "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO5.md",
             "heading": "RISC-V: Basis und Erweiterungen"
@@ -157,7 +157,7 @@
           "correct": [
             "true"
           ],
-          "explanation": "The registers run from `x0` to `x31`, so there are 32 registers. In `RV32I`, each register is 32 bits wide.",
+          "explanation": "The registers range from `x0` to `x31`, giving 32 registers in total. In `RV32I`, each register is 32 bits wide.",
           "source": {
             "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO5.md",
             "heading": "Register"
@@ -171,7 +171,7 @@
         {
           "id": "era-05-l1-q04",
           "type": "cloze",
-          "prompt": "Register `x0` always returns ___.",
+          "prompt": "The register `x0` always returns ___.",
           "options": [
             {
               "id": "a",
@@ -193,7 +193,7 @@
           "correct": [
             "b"
           ],
-          "explanation": "`x0` is the zero register and always returns the value zero, regardless of other instructions.",
+          "explanation": "`x0` is the zero register and always returns zero, regardless of other instructions.",
           "source": {
             "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO5.md",
             "heading": "Register"
@@ -210,7 +210,7 @@
           "options": [
             {
               "id": "a",
-              "text": "They are fixed hardware types with different arithmetic."
+              "text": "They are fixed hardware types with different arithmetic capabilities."
             },
             {
               "id": "b",
@@ -228,7 +228,7 @@
           "correct": [
             "c"
           ],
-          "explanation": "The names describe common roles, such as argument, saved, or temporary registers. They are still ordinary registers.",
+          "explanation": "These names describe conventional roles, such as argument, saved, or temporary registers. They are still ordinary registers.",
           "source": {
             "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO5.md",
             "heading": "Register"
@@ -241,7 +241,7 @@
         {
           "id": "era-05-l1-q06",
           "type": "single",
-          "prompt": "What information does `mul` return for 32-bit operands?",
+          "prompt": "What information does `mul` provide for 32-bit operands?",
           "options": [
             {
               "id": "a",
@@ -249,21 +249,21 @@
             },
             {
               "id": "b",
-              "text": "The lower 32 bits of the product"
+              "text": "The low 32 bits of the product"
             },
             {
               "id": "c",
-              "text": "The upper 32 bits of an unsigned product"
+              "text": "The high 32 bits of an unsigned product"
             },
             {
               "id": "d",
-              "text": "The upper 32 bits of a signed product"
+              "text": "The high 32 bits of a signed product"
             }
           ],
           "correct": [
             "b"
           ],
-          "explanation": "`mul` returns the lower part of the product. Use `mulh`, `mulhu`, or `mulhsu` for the upper product bits.",
+          "explanation": "`mul` returns the low part of the product. The instructions `mulh`, `mulhu`, or `mulhsu` are used to obtain high product bits.",
           "source": {
             "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO5.md",
             "heading": "Multiplikation und Division: signed oder unsigned?"
@@ -271,13 +271,13 @@
           "difficulty": 1,
           "concepts": [
             "Multiplication and division",
-            "Signed and unsigned interpretation"
+            "Signed/unsigned interpretation"
           ]
         },
         {
           "id": "era-05-l1-q07",
           "type": "multi",
-          "prompt": "Select all correct matches. More than one answer may be correct.",
+          "prompt": "Select all correct mappings. More than one answer may be correct.",
           "options": [
             {
               "id": "a",
@@ -289,7 +289,7 @@
             },
             {
               "id": "c",
-              "text": "`mulhu` returns the lower product bits for two unsigned operands."
+              "text": "`mulhu` returns the low product bits for two unsigned operands."
             },
             {
               "id": "d",
@@ -297,7 +297,7 @@
             },
             {
               "id": "e",
-              "text": "`mulh` returns upper product bits for two signed operands."
+              "text": "`mulh` returns high product bits for two signed operands."
             }
           ],
           "correct": [
@@ -305,7 +305,7 @@
             "d",
             "e"
           ],
-          "explanation": "`mulh` is signed/signed, `mulhsu` is signed/unsigned, and `div` and `rem` operate on signed values. `mulhu` returns upper, not lower, product bits; `divu` and `remu` are unsigned.",
+          "explanation": "`mulh` uses signed/signed operands, `mulhsu` uses signed/unsigned operands, and `div` and `rem` both operate on signed values. `mulhu` returns high, not low, product bits; `divu` and `remu` are unsigned.",
           "source": {
             "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO5.md",
             "heading": "Multiplikation und Division: signed oder unsigned?"
@@ -313,13 +313,13 @@
           "difficulty": 2,
           "concepts": [
             "Multiplication and division",
-            "Signed and unsigned interpretation"
+            "Signed/unsigned interpretation"
           ]
         },
         {
           "id": "era-05-l1-q08",
           "type": "single",
-          "prompt": "How does `srl` fill the positions vacated on the left by a right shift?",
+          "prompt": "How does `srl` fill the positions vacated on the left during a right shift?",
           "options": [
             {
               "id": "a",
@@ -341,7 +341,7 @@
           "correct": [
             "b"
           ],
-          "explanation": "`srl` is a logical right shift and fills the left-hand positions with zeros. Copying the sign bit is done by `sra`.",
+          "explanation": "`srl` is a logical right shift and fills the leftmost positions with zeros. Copying the sign bit is the behavior of `sra`.",
           "source": {
             "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO5.md",
             "heading": "Shifts: Bits verschieben"
@@ -355,7 +355,7 @@
         {
           "id": "era-05-l1-q09",
           "type": "truefalse",
-          "prompt": "A pseudo-instruction is a machine instruction with its own separate opcode.",
+          "prompt": "A pseudoinstruction is a machine instruction of its own with a separate opcode.",
           "options": [
             {
               "id": "true",
@@ -369,20 +369,20 @@
           "correct": [
             "false"
           ],
-          "explanation": "A pseudo-instruction is only a readable assembly notation. The assembler translates it into one or more real machine instructions.",
+          "explanation": "A pseudoinstruction is only a readable assembly notation. The assembler translates it into one or more real machine instructions.",
           "source": {
             "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO5.md",
             "heading": "Pseudobefehle"
           },
           "difficulty": 1,
           "concepts": [
-            "Pseudo-instructions"
+            "Pseudoinstructions"
           ]
         },
         {
           "id": "era-05-l1-q10",
           "type": "cloze",
-          "prompt": "An immediate is a ___ included directly in the instruction.",
+          "prompt": "An immediate is a ___ encoded directly in an instruction.",
           "options": [
             {
               "id": "a",
@@ -404,7 +404,7 @@
           "correct": [
             "b"
           ],
-          "explanation": "An immediate is a fixed numeric value contained in the instruction; it is not read from a register.",
+          "explanation": "An immediate is a fixed numeric value encoded in an instruction; it is not read from a register first.",
           "source": {
             "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO5.md",
             "heading": "Immediate-Befehle: eigene kleine Beispiele"
@@ -417,7 +417,7 @@
         {
           "id": "era-05-l1-q11",
           "type": "single",
-          "prompt": "For `t0 = 0x2C`, which operation keeps only the lower four bits?",
+          "prompt": "Which operation keeps only the low four bits when `t0 = 0x2C`?",
           "options": [
             {
               "id": "a",
@@ -439,7 +439,7 @@
           "correct": [
             "b"
           ],
-          "explanation": "`andi` with the mask `0x0F` sets all higher bits to zero and keeps only the lower four bits.",
+          "explanation": "`andi` with the mask `0x0F` sets all higher bits to zero and keeps only the low four bits.",
           "source": {
             "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO5.md",
             "heading": "Immediate-Befehle: eigene kleine Beispiele"
@@ -469,21 +469,21 @@
             },
             {
               "id": "b",
-              "text": "32-bit registers, the base integer ISA, and multiplication/division"
+              "text": "32-bit registers, the integer base, and multiplication/division"
             },
             {
               "id": "c",
-              "text": "64-bit registers, the base integer ISA, and floating point"
+              "text": "64-bit registers, the integer base, and floating-point operations"
             },
             {
               "id": "d",
-              "text": "32-bit registers, floating point only"
+              "text": "32-bit registers, floating-point operations only"
             }
           ],
           "correct": [
             "b"
           ],
-          "explanation": "`RV32` specifies the register width, `I` denotes the base integer ISA, and `M` adds multiplication and division.",
+          "explanation": "`RV32` indicates the register width, `I` denotes the integer base, and `M` adds multiplication and division.",
           "source": {
             "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO5.md",
             "heading": "RISC-V: Basis und Erweiterungen"
@@ -518,7 +518,7 @@
           "correct": [
             "d"
           ],
-          "explanation": "As signed values, `1101` is −3 and `0010` is 2. Their product is −6, represented as `1111 1010`.",
+          "explanation": "As signed values, `1101` represents −3 and `0010` represents 2. Their product is −6, represented as `1111 1010`.",
           "source": {
             "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO5.md",
             "heading": "Multiplikation und Division: signed oder unsigned?"
@@ -526,13 +526,13 @@
           "difficulty": 3,
           "concepts": [
             "Multiplication and division",
-            "Signed and unsigned interpretation"
+            "Signed/unsigned interpretation"
           ]
         },
         {
           "id": "era-05-l2-q03-r1",
           "type": "calc",
-          "prompt": "The 4-bit patterns `0110` and `0101` are multiplied as unsigned numbers. The complete product is represented with 8 bits. Which bit pattern is produced?",
+          "prompt": "The 4-bit patterns `0110` and `0101` are multiplied as unsigned numbers. The full product is represented using 8 bits. What bit pattern is produced?",
           "options": [
             {
               "id": "a",
@@ -554,7 +554,7 @@
           "correct": [
             "d"
           ],
-          "explanation": "As unsigned values, the operands are 6 and 5. Their product is 30, which is represented by the 8-bit pattern `0001 1110`.",
+          "explanation": "As unsigned numbers, the operands are 6 and 5. Their product is 30, which is represented by the 8-bit pattern `0001 1110`.",
           "source": {
             "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO5.md",
             "heading": "Multiplikation und Division: signed oder unsigned?"
@@ -591,7 +591,7 @@
           "correct": [
             "b"
           ],
-          "explanation": "`div` returns the signed quotient. `divu` is the unsigned variant; `rem` and `remu` return the remainder.",
+          "explanation": "`div` returns the signed quotient. `divu` is the unsigned variant; `rem` and `remu` each return the remainder.",
           "source": {
             "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO5.md",
             "heading": "Multiplikation und Division: signed oder unsigned?"
@@ -599,7 +599,7 @@
           "difficulty": 2,
           "concepts": [
             "Multiplication and division",
-            "Signed and unsigned interpretation"
+            "Signed/unsigned interpretation"
           ]
         },
         {
@@ -627,7 +627,7 @@
           "correct": [
             "b"
           ],
-          "explanation": "In a left shift, the bits move one position to the left and a 0 is added on the right. This gives `0101 1000`, or 88.",
+          "explanation": "A left shift moves the bits one position to the left and appends a 0 on the right. The result is `0101 1000`, which is 88.",
           "source": {
             "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO5.md",
             "heading": "Links um eine Stelle: Multiplikation mit 2"
@@ -635,7 +635,7 @@
           "difficulty": 2,
           "concepts": [
             "Shifts",
-            "Left shifts and overflow"
+            "Left shift and overflow"
           ]
         },
         {
@@ -663,7 +663,7 @@
           "correct": [
             "c"
           ],
-          "explanation": "A logical right shift adds a 0 on the left. `1101 0000` becomes `0110 1000`, which is 104 as an unsigned value.",
+          "explanation": "A logical right shift appends a 0 on the left. `1101 0000` becomes `0110 1000`, which represents unsigned 104.",
           "source": {
             "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO5.md",
             "heading": "Rechts um eine Stelle: zwei Arten"
@@ -699,7 +699,7 @@
           "correct": [
             "c"
           ],
-          "explanation": "The sign bit 1 is copied to the left. This produces `1110 1000`, which represents −24 in 8-bit two's complement.",
+          "explanation": "The sign bit 1 is copied on the left. This produces `1110 1000`, which represents −24 in 8-bit two's complement.",
           "source": {
             "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO5.md",
             "heading": "Rechts um eine Stelle: zwei Arten"
@@ -735,21 +735,21 @@
           "correct": [
             "d"
           ],
-          "explanation": "XOR with a bit mask of all ones flips every bit. Therefore, `not` expands to `xori t0, t1, -1`.",
+          "explanation": "XOR with a bit mask consisting entirely of ones flips every bit. Therefore, `not` expands to `xori t0, t1, -1`.",
           "source": {
             "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO5.md",
             "heading": "Pseudobefehle"
           },
           "difficulty": 3,
           "concepts": [
-            "Pseudo-instructions",
+            "Pseudoinstructions",
             "Bitwise logical operations"
           ]
         },
         {
           "id": "era-05-l2-q09",
           "type": "calc",
-          "prompt": "For `t0 = 0x2C`, what value does `ori t2, t0, 0x10` produce?",
+          "prompt": "Given `t0 = 0x2C`, what value does `ori t2, t0, 0x10` produce?",
           "options": [
             {
               "id": "a",
@@ -771,7 +771,7 @@
           "correct": [
             "c"
           ],
-          "explanation": "`0x2C` is `0010 1100`, and `0x10` is `0001 0000`. The bitwise OR gives `0011 1100`, or `0x3C`.",
+          "explanation": "`0x2C` is `0010 1100`, and `0x10` is `0001 0000`. The bitwise OR produces `0011 1100`, or `0x3C`.",
           "source": {
             "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO5.md",
             "heading": "Immediate-Befehle: eigene kleine Beispiele"
@@ -785,7 +785,7 @@
         {
           "id": "era-05-l2-q10",
           "type": "calc",
-          "prompt": "For `t0 = 0x2C`, what value does `addi t1, t0, 4` produce?",
+          "prompt": "Given `t0 = 0x2C`, what value does `addi t1, t0, 4` produce?",
           "options": [
             {
               "id": "a",
@@ -807,7 +807,7 @@
           "correct": [
             "b"
           ],
-          "explanation": "`0x2C` is 44. Adding 4 gives 48, or `0x30`.",
+          "explanation": "`0x2C` represents 44. Adding 4 gives 48, or `0x30`.",
           "source": {
             "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO5.md",
             "heading": "Immediate-Befehle: eigene kleine Beispiele"
@@ -820,7 +820,7 @@
         {
           "id": "era-05-l2-q11",
           "type": "truefalse",
-          "prompt": "A one-bit left shift is guaranteed to correspond to multiplication by 2, with the correct mathematical result, only if that result fits in the chosen word width.",
+          "prompt": "A one-bit left shift is reliably equivalent to multiplication by 2 only when the mathematical result fits in the chosen word width.",
           "options": [
             {
               "id": "true",
@@ -834,7 +834,7 @@
           "correct": [
             "true"
           ],
-          "explanation": "The bit operation itself is always the same, but a left shift discards bits that leave the word. In that case, the bit pattern no longer represents the complete product.",
+          "explanation": "The bit operation itself is always the same, but during overflow, bits shifted off the left are lost. The resulting bit pattern then no longer represents the full product.",
           "source": {
             "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO5.md",
             "heading": "Links um eine Stelle: Multiplikation mit 2"
@@ -842,7 +842,7 @@
           "difficulty": 3,
           "concepts": [
             "Shifts",
-            "Left shifts and overflow"
+            "Left shift and overflow"
           ]
         }
       ]
@@ -851,7 +851,7 @@
       "id": "era-05-l3",
       "index": 3,
       "kind": "deepen",
-      "title": "Deepen Your Understanding",
+      "title": "Explore",
       "questions": [
         {
           "id": "era-05-l3-q01",
@@ -868,7 +868,7 @@
             },
             {
               "id": "c",
-              "text": "`RV32I` has the registers `x0` through `x31`."
+              "text": "`RV32I` has registers `x0` through `x31`."
             },
             {
               "id": "d",
@@ -880,7 +880,7 @@
             "c",
             "d"
           ],
-          "explanation": "Only `x0` is guaranteed to be zero. No initial value is assumed for other registers; their names describe common roles.",
+          "explanation": "Only `x0` is guaranteed to be zero. No initial value is assumed for other registers; their names describe conventional roles.",
           "source": {
             "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO5.md",
             "heading": "Register"
@@ -894,19 +894,19 @@
         {
           "id": "era-05-l3-q02",
           "type": "single",
-          "prompt": "How do you obtain the complete 64-bit product of two signed 32-bit operands?",
+          "prompt": "How do you obtain the full 64-bit product of two signed 32-bit operands?",
           "options": [
             {
               "id": "a",
-              "text": "Lower bits with `mul`, upper bits with `mulhu`"
+              "text": "Low bits with `mul`, high bits with `mulhu`"
             },
             {
               "id": "b",
-              "text": "Lower bits with `mulh`, upper bits with `mul`"
+              "text": "Low bits with `mulh`, high bits with `mul`"
             },
             {
               "id": "c",
-              "text": "Lower bits with `mul`, upper bits with `mulh`"
+              "text": "Low bits with `mul`, high bits with `mulh`"
             },
             {
               "id": "d",
@@ -916,7 +916,7 @@
           "correct": [
             "c"
           ],
-          "explanation": "`mul` returns the lower part of the product. For two signed operands, `mulh` returns the corresponding upper part.",
+          "explanation": "`mul` returns the low part of the product. For two signed operands, `mulh` returns the corresponding high part.",
           "source": {
             "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO5.md",
             "heading": "Multiplikation und Division: signed oder unsigned?"
@@ -924,13 +924,13 @@
           "difficulty": 3,
           "concepts": [
             "Multiplication and division",
-            "Signed and unsigned interpretation"
+            "Signed/unsigned interpretation"
           ]
         },
         {
           "id": "era-05-l3-q03-r1",
           "type": "truefalse",
-          "prompt": "Consider the 4-bit patterns `1101` and `0011`. Multiply them as unsigned numbers and as signed 4-bit two's-complement numbers; give both complete products using 8 bits. Statement: For these operands, the lower 4 bits of the products are the same, while the upper 4 bits differ. Is the statement true or false?",
+          "prompt": "Consider the 4-bit patterns `1101` and `0011`. Multiply them once as unsigned numbers and once as signed numbers in 4-bit two's complement, and give both full products using 8 bits. Statement: For these operands, the low 4 bits of the products are the same, while the high 4 bits differ. Is the statement true or false?",
           "options": [
             {
               "id": "true",
@@ -944,7 +944,7 @@
           "correct": [
             "true"
           ],
-          "explanation": "As unsigned values, the patterns give $13\\cdot3=39$, or `0010 0111`. In 4-bit two's complement they are $-3$ and $3$; the product $-9$ is `1111 0111` in 8-bit two's complement. Both products end in `0111`, but their upper 4 bits are `0010` and `1111`.",
+          "explanation": "As unsigned numbers, the patterns give $13\\cdot3=39$, or `0010 0111`. In 4-bit two's complement, they represent $-3$ and $3$; their product $-9$ is represented in 8-bit two's complement as `1111 0111`. Both products end in `0111`, but their high 4 bits are `0010` and `1111`.",
           "source": {
             "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO5.md",
             "heading": "Multiplikation und Division: signed oder unsigned?"
@@ -953,13 +953,13 @@
           "concepts": [
             "Signed and unsigned multiplication",
             "Two's complement",
-            "Lower and upper product bits"
+            "Low and high product bits"
           ]
         },
         {
           "id": "era-05-l3-q04",
           "type": "cloze",
-          "prompt": "For true division by 2 of negative odd signed values, use ___ instead of an arithmetic right shift.",
+          "prompt": "To divide negative odd signed values by 2 correctly, use ___ instead of an arithmetic right shift.",
           "options": [
             {
               "id": "a",
@@ -981,7 +981,7 @@
           "correct": [
             "b"
           ],
-          "explanation": "An arithmetic right shift can round down for negative odd numbers. `div` performs signed division with rounding toward zero.",
+          "explanation": "For negative odd numbers, an arithmetic right shift can round down. `div` performs signed division with rounding toward zero.",
           "source": {
             "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO5.md",
             "heading": "Rechts um eine Stelle: zwei Arten"
@@ -995,29 +995,29 @@
         {
           "id": "era-05-l3-q05",
           "type": "calc",
-          "prompt": "`1101 0001` is −47 as a signed value. Which combination of shift and division by 2 is correct?",
+          "prompt": "`1101 0001` represents the signed value −47. Which combination of shift and division by 2 is correct?",
           "options": [
             {
               "id": "a",
-              "text": "`srai` gives `1110 1000` = −24; `div` gives −23"
+              "text": "`srai` produces `1110 1000` = −24; `div` produces −23"
             },
             {
               "id": "b",
-              "text": "`srai` gives `1110 1001` = −23; `div` gives −24"
+              "text": "`srai` produces `1110 1001` = −23; `div` produces −24"
             },
             {
               "id": "c",
-              "text": "`srai` gives `1110 1000` = −24; `div` gives −24"
+              "text": "`srai` produces `1110 1000` = −24; `div` produces −24"
             },
             {
               "id": "d",
-              "text": "`srai` gives `0110 1000` = 104; `div` gives −23"
+              "text": "`srai` produces `0110 1000` = 104; `div` produces −23"
             }
           ],
           "correct": [
             "a"
           ],
-          "explanation": "The arithmetic shift gives `1110 1000`, or −24. Signed division of −47 by 2 rounds toward zero and gives −23.",
+          "explanation": "The arithmetic shift produces `1110 1000`, or −24. Signed division of −47 by 2 rounds toward zero and gives −23.",
           "source": {
             "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO5.md",
             "heading": "Rechts um eine Stelle: zwei Arten"
@@ -1035,19 +1035,19 @@
           "options": [
             {
               "id": "a",
-              "text": "`sra` fills the left-hand positions with copies of the sign bit."
+              "text": "`sra` fills the leftmost positions with copies of the sign bit."
             },
             {
               "id": "b",
-              "text": "The suffix `i` indicates the immediate variant."
+              "text": "The suffix `i` marks the immediate variant."
             },
             {
               "id": "c",
-              "text": "The shift amount can be in a register or directly in the instruction."
+              "text": "The shift amount can be specified in a register or directly in the instruction."
             },
             {
               "id": "d",
-              "text": "`srl` fills the left-hand positions with copies of the sign bit."
+              "text": "`srl` fills the leftmost positions with copies of the sign bit."
             }
           ],
           "correct": [
@@ -1055,7 +1055,7 @@
             "b",
             "c"
           ],
-          "explanation": "Variants without `i` use a register; variants with `i` use an immediate. `sra` preserves the sign, whereas `srl` inserts zeros on the left.",
+          "explanation": "The variants without `i` use a register, while those with `i` use an immediate. `sra` preserves the sign, whereas `srl` inserts zeros on the left.",
           "source": {
             "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO5.md",
             "heading": "Shifts: Bits verschieben"
@@ -1077,7 +1077,7 @@
             },
             {
               "id": "b",
-              "text": "`li` is always exactly one machine instruction."
+              "text": "`li` always expands to exactly one machine instruction."
             },
             {
               "id": "c",
@@ -1085,27 +1085,27 @@
             },
             {
               "id": "d",
-              "text": "Depending on the constant, `li` may require several real instructions."
+              "text": "`li` may require multiple real instructions, depending on the constant."
             }
           ],
           "correct": [
             "d"
           ],
-          "explanation": "For small constants, one `addi` is often enough; larger constants can be constructed using, for example, `lui` and `addi`. Therefore, `li` does not always expand to the same number of instructions.",
+          "explanation": "For small constants, a single `addi` is often sufficient; larger constants can be constructed using, for example, `lui` and `addi`. Therefore, there is no fixed expansion for every `li`.",
           "source": {
             "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO5.md",
             "heading": "Pseudobefehle"
           },
           "difficulty": 3,
           "concepts": [
-            "Pseudo-instructions",
+            "Pseudoinstructions",
             "Immediate instructions"
           ]
         },
         {
           "id": "era-05-l3-q08",
           "type": "cloze",
-          "prompt": "For negative immediates, I must account for ___.",
+          "prompt": "For negative immediates, I need to account for ___.",
           "options": [
             {
               "id": "a",
@@ -1141,7 +1141,7 @@
         {
           "id": "era-05-l3-q09",
           "type": "truefalse",
-          "prompt": "At the start of an assembly program, all registers except `x0` may be assumed to contain zero.",
+          "prompt": "At the start of an assembly program, all registers except `x0` may be assumed to be zero.",
           "options": [
             {
               "id": "true",
@@ -1155,7 +1155,7 @@
           "correct": [
             "false"
           ],
-          "explanation": "Only `x0` is guaranteed to return zero. The initial value of every other register is unknown unless it has been initialized.",
+          "explanation": "Only `x0` is guaranteed to return zero. The initial value of any other register is unknown unless it was initialized beforehand.",
           "source": {
             "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO5.md",
             "heading": "Typische Fehler beim Assemblerprogrammieren"
@@ -1181,7 +1181,7 @@
             },
             {
               "id": "c",
-              "text": "Replace every pseudo-instruction with `mul`"
+              "text": "Replace every pseudoinstruction with `mul`"
             },
             {
               "id": "d",
@@ -1191,7 +1191,7 @@
           "correct": [
             "b"
           ],
-          "explanation": "The loop length depends on the initial state, the termination condition, and the actual number of iterations. The other checks do not directly address this issue.",
+          "explanation": "The loop length depends on the starting state, the termination condition, and the actual number of iterations. The other checks do not directly address this issue.",
           "source": {
             "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO5.md",
             "heading": "Typische Fehler beim Assemblerprogrammieren"
@@ -1208,7 +1208,7 @@
           "options": [
             {
               "id": "a",
-              "text": "Plan the flow and register usage before writing the code."
+              "text": "Plan the execution flow and register assignments before writing the code."
             },
             {
               "id": "b",
@@ -1216,7 +1216,7 @@
             },
             {
               "id": "c",
-              "text": "Comment the code sufficiently."
+              "text": "Comment the code adequately."
             },
             {
               "id": "d",
@@ -1228,7 +1228,7 @@
             "c",
             "d"
           ],
-          "explanation": "Planning, comments, and checking the code step by step make it easier to follow and help with debugging. Uninitialized registers, however, must not automatically be treated as zero.",
+          "explanation": "Planning, comments, and step-by-step checking make the code easier to follow and help with debugging. Uninitialized registers, however, must not automatically be treated as zero.",
           "source": {
             "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO5.md",
             "heading": "Typische Fehler beim Assemblerprogrammieren"
@@ -1250,7 +1250,7 @@
         {
           "id": "era-05-l4-q01",
           "type": "single",
-          "prompt": "An assembly program uses the pseudo-instruction `neg`. Which statement correctly describes the relationship between the ISA and a pseudo-instruction?",
+          "prompt": "An assembly program uses the pseudoinstruction `neg`. Which statement correctly describes the relationship between the ISA and the pseudoinstruction?",
           "options": [
             {
               "id": "a",
@@ -1258,11 +1258,11 @@
             },
             {
               "id": "b",
-              "text": "`neg` automatically extends the hardware with a new opcode."
+              "text": "`neg` automatically adds a new opcode to the hardware."
             },
             {
               "id": "c",
-              "text": "Pseudo-instructions belong only to the operating system layer and are not translated."
+              "text": "Pseudoinstructions belong only to the operating-system layer and are not translated."
             },
             {
               "id": "d",
@@ -1272,21 +1272,21 @@
           "correct": [
             "d"
           ],
-          "explanation": "The ISA defines the executable machine instructions. `neg` is only a readable notation and is expanded into real instructions, for example `sub t0, x0, t1`.",
+          "explanation": "The ISA defines the executable machine instructions. `neg` is only a readable notation and is expanded, for example, into `sub t0, x0, t1`.",
           "source": {
             "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO5.md",
             "heading": "Pseudobefehle"
           },
           "difficulty": 4,
           "concepts": [
-            "Pseudo-instructions",
+            "Pseudoinstructions",
             "RISC-V base and extensions"
           ]
         },
         {
           "id": "era-05-l4-q02",
           "type": "calc",
-          "prompt": "Which bit sequence is in a 32-bit register after `addi t0, x0, -1`?",
+          "prompt": "What bit sequence is in a 32-bit register after `addi t0, x0, -1`?",
           "options": [
             {
               "id": "a",
@@ -1371,7 +1371,7 @@
             },
             {
               "id": "c",
-              "text": "`srai` fills the left-hand positions with zeros."
+              "text": "`srai` fills the leftmost positions with zeros."
             },
             {
               "id": "d",
@@ -1382,7 +1382,7 @@
             "b",
             "d"
           ],
-          "explanation": "`srli` inserts a 0 on the left; `srai` copies the sign bit 1. This produces different bit patterns and interpretations.",
+          "explanation": "`srli` inserts a 0 on the left, while `srai` copies the sign bit 1. The resulting bit patterns and interpretations therefore differ.",
           "source": {
             "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO5.md",
             "heading": "Rechts um eine Stelle: zwei Arten"
@@ -1391,13 +1391,13 @@
           "concepts": [
             "Shifts",
             "Logical and arithmetic right shifts",
-            "Signed and unsigned interpretation"
+            "Signed/unsigned interpretation"
           ]
         },
         {
           "id": "era-05-l4-q05",
           "type": "calc",
-          "prompt": "The 4-bit patterns `1101` and `0010` are multiplied once as unsigned values and once as signed values. Which complete mapping is correct?",
+          "prompt": "The 4-bit patterns `1101` and `0010` are multiplied once as unsigned numbers and once as signed numbers. Which complete mapping is correct?",
           "options": [
             {
               "id": "a",
@@ -1419,7 +1419,7 @@
           "correct": [
             "a"
           ],
-          "explanation": "As unsigned values, 13 · 2 = 26, or `0001 1010`. As signed values, −3 · 2 = −6, or `1111 1010`.",
+          "explanation": "As unsigned numbers, the product is 13 · 2 = 26, or `0001 1010`. As signed numbers, the product is −3 · 2 = −6, or `1111 1010`.",
           "source": {
             "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO5.md",
             "heading": "Multiplikation und Division: signed oder unsigned?"
@@ -1427,13 +1427,13 @@
           "difficulty": 5,
           "concepts": [
             "Multiplication and division",
-            "Signed and unsigned interpretation"
+            "Signed/unsigned interpretation"
           ]
         },
         {
           "id": "era-05-l4-q06",
           "type": "single",
-          "prompt": "A complete product requires the upper bits; the first operand is signed and the second is unsigned. Which instruction returns the upper part of the product?",
+          "prompt": "The full product requires the high bits; the first operand is signed and the second is unsigned. Which instruction returns the high part of the product?",
           "options": [
             {
               "id": "a",
@@ -1455,7 +1455,7 @@
           "correct": [
             "c"
           ],
-          "explanation": "`mulhsu` is designed for a signed first operand and an unsigned second operand. `mul` returns only the lower product bits, regardless of signedness.",
+          "explanation": "`mulhsu` is specifically for a signed first operand and an unsigned second operand. Regardless of signedness, `mul` returns only the low product bits.",
           "source": {
             "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO5.md",
             "heading": "Multiplikation und Division: signed oder unsigned?"
@@ -1463,13 +1463,13 @@
           "difficulty": 5,
           "concepts": [
             "Multiplication and division",
-            "Signed and unsigned interpretation"
+            "Signed/unsigned interpretation"
           ]
         },
         {
           "id": "era-05-l4-q07",
           "type": "single",
-          "prompt": "Which sequence of real instructions implements the pseudo-instruction `neg t0, t1`?",
+          "prompt": "Which sequence of real instructions implements the pseudoinstruction `neg t0, t1`?",
           "options": [
             {
               "id": "a",
@@ -1491,21 +1491,21 @@
           "correct": [
             "a"
           ],
-          "explanation": "Since `x0` always returns zero, `sub t0, x0, t1` computes 0 − `t1`, producing its negative.",
+          "explanation": "Because `x0` always returns zero, `sub t0, x0, t1` computes 0 − `t1`, producing the negated value.",
           "source": {
             "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO5.md",
             "heading": "Pseudobefehle"
           },
           "difficulty": 4,
           "concepts": [
-            "Pseudo-instructions",
+            "Pseudoinstructions",
             "Registers and register conventions"
           ]
         },
         {
           "id": "era-05-l4-q08-r1",
           "type": "calc",
-          "prompt": "Given `t0 = 0x2C`. Execute the three instructions; each reads the unchanged value from `t0` and writes to its own destination register:\n\n- `ori t1, t0, 0x10`\n- `xori t2, t0, 0x0F`\n- `andi t3, t0, 0x0F`\n\nWhich result line is entirely correct? Results are given in hexadecimal.",
+          "prompt": "Given `t0 = 0x2C`, execute the three instructions; each reads the unchanged value from `t0` and writes to its own destination register:\n\n- `ori t1, t0, 0x10`\n- `xori t2, t0, 0x0F`\n- `andi t3, t0, 0x0F`\n\nWhich result line is completely correct? Results are given in hexadecimal.",
           "options": [
             {
               "id": "a",
@@ -1546,19 +1546,19 @@
           "options": [
             {
               "id": "a",
-              "text": "Determine whether the signed or unsigned interpretation applies before calculating."
+              "text": "Before doing a calculation, determine whether the interpretation is signed or unsigned."
             },
             {
               "id": "b",
-              "text": "Assume `t0` and `t1` are zero without initializing them."
+              "text": "You may assume `t0` and `t1` are zero without initializing them."
             },
             {
               "id": "c",
-              "text": "Check the starting point, termination condition, and number of loop iterations."
+              "text": "For loops, check the start, termination condition, and number of iterations."
             },
             {
               "id": "d",
-              "text": "Check the affected register values after each relevant instruction."
+              "text": "After each relevant instruction, check the values of the affected registers."
             }
           ],
           "correct": [
@@ -1566,7 +1566,7 @@
             "c",
             "d"
           ],
-          "explanation": "Signedness, register values, and loop conditions are common sources of errors. Only `x0`, not `t0` or `t1`, is automatically zero.",
+          "explanation": "Signedness, register values, and loop conditions are common sources of errors. Only `x0` is automatically zero; `t0` and `t1` are not.",
           "source": {
             "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO5.md",
             "heading": "Typische Fehler beim Assemblerprogrammieren"
@@ -1574,7 +1574,7 @@
           "difficulty": 5,
           "concepts": [
             "Assembly programming",
-            "Signed and unsigned interpretation",
+            "Signed/unsigned interpretation",
             "Registers and register conventions"
           ]
         },
@@ -1585,25 +1585,25 @@
           "options": [
             {
               "id": "a",
-              "text": "The pattern is `1010 0000`; as signed it represents −96 and as unsigned 160."
+              "text": "The pattern is `1010 0000`; it represents signed −96 and unsigned 160."
             },
             {
               "id": "b",
-              "text": "The pattern is `1010 0000`; as signed and unsigned it represents 416."
+              "text": "The pattern is `1010 0000`; it represents 416 as both signed and unsigned."
             },
             {
               "id": "c",
-              "text": "The pattern is `0110 1000`; as unsigned it represents 104."
+              "text": "The pattern is `0110 1000`; it represents unsigned 104."
             },
             {
               "id": "d",
-              "text": "The pattern is `1110 1000`; as signed it represents −24."
+              "text": "The pattern is `1110 1000`; it represents signed −24."
             }
           ],
           "correct": [
             "a"
           ],
-          "explanation": "The shift produces `1010 0000`. This pattern can be interpreted as signed −96 or unsigned 160; the complete unsigned product 208 · 2 = 416 does not fit in 8 bits.",
+          "explanation": "The bit shift produces `1010 0000`. This pattern can be interpreted as signed −96 or unsigned 160; the full unsigned product 208 · 2 = 416 does not fit in 8 bits.",
           "source": {
             "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO5.md",
             "heading": "Links um eine Stelle: Multiplikation mit 2"
@@ -1611,14 +1611,14 @@
           "difficulty": 5,
           "concepts": [
             "Shifts",
-            "Left shifts and overflow",
-            "Signed and unsigned interpretation"
+            "Left shift and overflow",
+            "Signed/unsigned interpretation"
           ]
         },
         {
           "id": "era-05-l4-q11",
           "type": "truefalse",
-          "prompt": "If the result of the unsigned left shift of `1101 0000` is the bit pattern `1010 0000`, which represents the value 160, no overflow occurred.",
+          "prompt": "If an unsigned left shift of `1101 0000` produces the bit pattern `1010 0000`, which represents 160, no overflow has occurred.",
           "options": [
             {
               "id": "true",
@@ -1632,15 +1632,15 @@
           "correct": [
             "false"
           ],
-          "explanation": "The bit pattern does represent 160 within 8 bits, but the complete product is 208 · 2 = 416 and does not fit in 8 bits. The leftmost bit, or additional product bits, were lost.",
+          "explanation": "The bit pattern does represent 160 within 8 bits, but the full product is 208 · 2 = 416, which does not fit in 8 bits. The leftmost bit, along with other product bits, was lost.",
           "source": {
             "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO5.md",
             "heading": "Links um eine Stelle: Multiplikation mit 2"
           },
           "difficulty": 4,
           "concepts": [
-            "Left shifts and overflow",
-            "Signed and unsigned interpretation"
+            "Left shift and overflow",
+            "Signed/unsigned interpretation"
           ]
         }
       ]
@@ -1649,28 +1649,28 @@
       "id": "era-05-l5",
       "index": 5,
       "kind": "bonus",
-      "title": "Practice: Bits, Numbers & Real Systems",
+      "title": "In Practice: Bits, Numbers, and Real Systems",
       "questions": [
         {
           "id": "era-05-l5-q01",
           "type": "multi",
-          "prompt": "Your smartwatch packs eight yes/no states into one byte. Which operations are commonly used with a bit field like this?",
+          "prompt": "Your smartwatch packs eight yes/no states into one byte. Which operations are typical tools for working with this kind of bit field?",
           "options": [
             {
               "id": "a",
-              "text": "Set a flag with `OR` without clearing other set bits"
+              "text": "Use `OR` to set a flag without clearing other set bits"
             },
             {
               "id": "b",
-              "text": "Isolate an arbitrary flag directly with `div`"
+              "text": "Use `div` to isolate any flag directly"
             },
             {
               "id": "c",
-              "text": "Toggle a flag with `XOR`"
+              "text": "Use `XOR` to toggle a flag"
             },
             {
               "id": "d",
-              "text": "Read an individual status flag with `AND`"
+              "text": "Use `AND` to read a single status flag"
             }
           ],
           "correct": [
@@ -1696,7 +1696,7 @@
           "options": [
             {
               "id": "a",
-              "text": "Only if an arithmetic right shift follows"
+              "text": "Only if an arithmetic right shift follows it"
             },
             {
               "id": "b",
@@ -1714,7 +1714,7 @@
           "correct": [
             "d"
           ],
-          "explanation": "A left shift fills the right-hand positions with zeros, but discards bits that leave on the left. It is therefore guaranteed to correspond to multiplication by 2 only if the result fits in the word width.",
+          "explanation": "A left shift appends zeros on the right, but discards bits that fall off the left. Therefore, it is guaranteed to be equivalent to multiplication by 2 only when the result fits in the word width.",
           "source": {
             "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO5.md",
             "heading": "Links um eine Stelle: Multiplikation mit 2"
@@ -1722,13 +1722,13 @@
           "difficulty": 2,
           "concepts": [
             "Shifts",
-            "Left shifts and overflow"
+            "Left shift and overflow"
           ]
         },
         {
           "id": "era-05-l5-q03",
           "type": "estimate",
-          "prompt": "A sensor protocol reserves 12 bits for a measurement value. How many different bit patterns can this field represent?",
+          "prompt": "A sensor protocol reserves 12 bits for a measurement. How many different bit patterns can this field represent?",
           "options": [],
           "correct": [],
           "slider": {
@@ -1737,10 +1737,10 @@
             "step": 2,
             "answer": 4096,
             "tolerance": 0,
-            "unit": "values",
+            "unit": "Values",
             "scale": "linear"
           },
-          "explanation": "Each of the 12 bits can be 0 or 1: 2^12 = 4096 different bit patterns.",
+          "explanation": "Each of the 12 bits can be 0 or 1, so there are 2^12 = 4096 different bit patterns.",
           "source": {
             "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO5.md",
             "heading": "RISC-V: Basis und Erweiterungen"
@@ -1748,13 +1748,13 @@
           "difficulty": 1,
           "concepts": [
             "RISC-V base and extensions",
-            "Signed and unsigned interpretation"
+            "Signed/unsigned interpretation"
           ]
         },
         {
           "id": "era-05-l5-q04",
           "type": "single",
-          "prompt": "A temperature sensor returns the signed value −47. Your code must divide by 2 using integer division and round toward zero. Which RISC-V instruction is appropriate?",
+          "prompt": "A temperature sensor returns the signed value −47. Your code must divide it by 2 as an integer and round toward zero. Which RISC-V tool is appropriate?",
           "options": [
             {
               "id": "a",
@@ -1776,14 +1776,14 @@
           "correct": [
             "a"
           ],
-          "explanation": "The signed `div` instruction from the M extension rounds −47 divided by 2 toward zero and returns −23. An arithmetic right shift instead gives −24 because it rounds down for negative values.",
+          "explanation": "The signed instruction `div` from the M extension rounds −47 divided by 2 toward zero and returns −23. An arithmetic right shift instead gives −24 because it rounds down for negative values.",
           "source": {
             "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO5.md",
             "heading": "Rechts um eine Stelle: zwei Arten"
           },
           "difficulty": 3,
           "concepts": [
-            "Signed and unsigned interpretation",
+            "Signed/unsigned interpretation",
             "Multiplication and division",
             "Shifts",
             "RISC-V base and extensions"
@@ -1792,7 +1792,7 @@
         {
           "id": "era-05-l5-q05",
           "type": "single",
-          "prompt": "When assembling `li t0, 100000`, you want to estimate how many instructions your program actually executes. Which statement is realistic?",
+          "prompt": "When assembling, `li t0, 100000` is used, and you want to estimate how many instructions your program actually executes. Which statement is realistic?",
           "options": [
             {
               "id": "a",
@@ -1800,7 +1800,7 @@
             },
             {
               "id": "b",
-              "text": "`li` is a pseudo-instruction and may expand to several real instructions, depending on the constant"
+              "text": "`li` is a pseudoinstruction and may expand into several real instructions depending on the constant"
             },
             {
               "id": "c",
@@ -1821,7 +1821,7 @@
           },
           "difficulty": 2,
           "concepts": [
-            "Pseudo-instructions",
+            "Pseudoinstructions",
             "Immediate instructions",
             "Assembly programming"
           ]
@@ -1838,10 +1838,10 @@
             "step": 1,
             "answer": 160,
             "tolerance": 0,
-            "unit": "value",
+            "unit": "Value",
             "scale": "linear"
           },
-          "explanation": "208 corresponds to the bit pattern 11010000. After `<< 1`, the result is 10100000, or 160. The mathematical product 416 does not fit in 8 bits, so the leftmost bit is discarded.",
+          "explanation": "208 is the bit pattern 11010000. After `<< 1`, the result is 10100000, or 160. The mathematical product 416 does not fit in 8 bits, so the leftmost bit is discarded.",
           "source": {
             "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO5.md",
             "heading": "Links um eine Stelle: Multiplikation mit 2"
@@ -1849,14 +1849,14 @@
           "difficulty": 3,
           "concepts": [
             "Shifts",
-            "Left shifts and overflow",
-            "Signed and unsigned interpretation"
+            "Left shift and overflow",
+            "Signed/unsigned interpretation"
           ]
         },
         {
           "id": "era-05-l5-q07",
           "type": "truefalse",
-          "prompt": "Is this correct? In a network packet, the lower four bits of a status field are flags. `andi` with the mask `0x0F` can isolate these four bits without including the upper bits in the result.",
+          "prompt": "Is this correct? In a network packet, the low four bits of a status field are flags. `andi` with the mask `0x0F` can isolate these four bits without including the upper bits in the result.",
           "options": [
             {
               "id": "true",
@@ -1870,7 +1870,7 @@
           "correct": [
             "true"
           ],
-          "explanation": "A bitwise AND with `0x0F` preserves only the lower four bits; all other result bits are zero. This is a typical use of immediate masks.",
+          "explanation": "A bitwise AND with `0x0F` preserves only the low four bits; all other result bits become zero. This is a typical use of immediate masks.",
           "source": {
             "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO5.md",
             "heading": "Immediate-Befehle: eigene kleine Beispiele"
@@ -1884,7 +1884,7 @@
         {
           "id": "era-05-l5-q08",
           "type": "estimate",
-          "prompt": "How many different 32-bit bit patterns can a writable data register in RV32 store?",
+          "prompt": "How many different 32-bit patterns can a writable data register in RV32 store?",
           "options": [],
           "correct": [],
           "slider": {
@@ -1893,7 +1893,7 @@
             "step": 1,
             "answer": 4294967296,
             "tolerance": 0,
-            "unit": "bit patterns",
+            "unit": "Bit patterns",
             "scale": "linear"
           },
           "explanation": "A writable RV32 data register has 32 bits. Each bit can be 0 or 1, so there are 2^32 = 4,294,967,296 different bit patterns. The register `x0`, which is hardwired to zero, is not meant here.",
@@ -1905,13 +1905,13 @@
           "concepts": [
             "RISC-V base and extensions",
             "Registers and register conventions",
-            "Signed and unsigned interpretation"
+            "Signed/unsigned interpretation"
           ]
         },
         {
           "id": "era-05-l5-q09",
           "type": "single",
-          "prompt": "You are reading a RISC-V function from a library: a result is returned in `a0`, while `s0` must be preserved across a function call. What explains this?",
+          "prompt": "You are reading a RISC-V function from a library: one result is returned in `a0`, while `s0` must be preserved across a function call. What explains this?",
           "options": [
             {
               "id": "a",
@@ -1919,7 +1919,7 @@
             },
             {
               "id": "b",
-              "text": "`a0` and `s0` are hardware register types different from `x0` through `x31`"
+              "text": "`a0` and `s0` are hardware register types that differ from `x0` through `x31`"
             },
             {
               "id": "c",
@@ -1933,7 +1933,7 @@
           "correct": [
             "d"
           ],
-          "explanation": "`a0` and `s0` are alternative names for registers with agreed-upon roles. These conventions help compilers, libraries, and subroutines work together, but do not change the register hardware.",
+          "explanation": "`a0` and `s0` are alternative names for registers with agreed roles. These conventions help compilers, libraries, and subroutines work together, but they do not change the register hardware.",
           "source": {
             "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO5.md",
             "heading": "Register"
@@ -1947,30 +1947,30 @@
         {
           "id": "era-05-l5-q10",
           "type": "multi",
-          "prompt": "A big-integer library, for example one used in cryptography, multiplies two unsigned 32-bit chunks and needs the complete 64-bit product. Which statements apply?",
+          "prompt": "A big-integer library, such as one used in cryptography, multiplies two unsigned 32-bit limbs and needs the full 64-bit product. Which statements apply?",
           "options": [
             {
               "id": "a",
-              "text": "`mul` returns the lower 32 product bits"
+              "text": "`mul` returns the low 32 product bits"
             },
             {
               "id": "b",
-              "text": "`mulh` is always correct because signedness does not matter for the upper bits"
+              "text": "`mulh` is always correct because signedness does not matter for the high bits"
             },
             {
               "id": "c",
-              "text": "`mulhu` returns the upper 32 product bits for two unsigned operands"
+              "text": "`mulhu` returns the high 32 product bits for two unsigned operands"
             },
             {
               "id": "d",
-              "text": "`mul` alone is always enough because two 32-bit numbers produce at most 32 product bits"
+              "text": "`mul` alone is always sufficient because multiplying two 32-bit numbers produces at most 32 product bits"
             }
           ],
           "correct": [
             "a",
             "c"
           ],
-          "explanation": "A complete product is formed by combining the lower bits from `mul` with the corresponding upper bits. For unsigned chunks, `mulhu` from the M extension returns the upper bits; the signedness interpretation is therefore important.",
+          "explanation": "To obtain the full product, combine the low bits from `mul` with the appropriate high bits. For unsigned limbs, `mulhu` from the M extension provides the high bits; signedness therefore matters.",
           "source": {
             "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO5.md",
             "heading": "Multiplikation und Division: signed oder unsigned?"
@@ -1978,7 +1978,7 @@
           "difficulty": 4,
           "concepts": [
             "Multiplication and division",
-            "Signed and unsigned interpretation",
+            "Signed/unsigned interpretation",
             "RISC-V base and extensions"
           ]
         }

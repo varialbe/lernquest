@@ -5,14 +5,14 @@
   "unitNumber": 5,
   "unitTitle": "RISC-V: Registers, Arithmetic, and Shifts",
   "sourceSha": "4b7b23f7e76142f55927d407e4781ee9de310136b1a7642a5f450a0606d9f91f",
-  "overview": "This unit covers the modular RISC-V instruction set architecture (RISC-V-ISA), registers and their usage conventions (Verwendungskonventionen), and signed and unsigned arithmetic (signed- und unsigned-Arithmetik). It explains how multiplication (Multiplikation), division (Division), and shifts (Shifts) change bit patterns, when shifts are equivalent to multiplication or division, and how pseudoinstructions (Pseudobefehle) and immediate instructions (Immediate-Befehle) are used. Step-by-step checks of register values, signs, register allocation, and loop execution help prevent errors in assembly programs.",
+  "overview": "This unit covers the modular RISC-V ISA, registers and their usage conventions, and signed and unsigned arithmetic. It explains how multiplication, division, and shifts change bit patterns, when shifts correspond to multiplication or division, and how pseudoinstructions and immediate instructions are used. Checking register values, signs, register allocation, and loop behavior step by step helps prevent errors in assembly programs.",
   "entries": [
     {
       "id": "era-05-k01",
-      "term": "RISC-V base and extensions (RISC-V-Basis und Erweiterungen)",
+      "term": "RISC-V Base and Extensions (RISC-V-Basis und Erweiterungen)",
       "kind": "concept",
       "short": "RISC-V is an open, modular instruction set whose base can be supplemented with optional extensions.",
-      "explanation": "`RV32` denotes a 32-bit variant; the number indicates the register width in bits. `I` stands for the integer base, with about 40 base instructions, and `M` adds multiplication and division instructions. Other extensions include `F` for floating-point, `A` for atomic operations, and `V` for vector operations. `RV32I` denotes the 32-bit base; `RV32IM` adds the M extension.",
+      "explanation": "`RV32` denotes a 32-bit variant; the number gives the register width in bits. `I` is the integer base with about 40 basic instructions, and `M` adds multiplication and division instructions. Other extensions include `F` for floating-point operations, `A` for atomic operations, and `V` for vector operations. `RV32I` denotes the 32-bit base; `RV32IM` adds the M extension to it.",
       "example": "A processor with `RV32IM` can use base instructions from `RV32I` and M instructions such as `mul` and `div`.",
       "pitfalls": [
         "`RV32` specifies the register width; `I` and `M` identify components of the instruction set.",
@@ -30,13 +30,13 @@
       "term": "Registers in RV32I (Register in RV32I)",
       "kind": "definition",
       "short": "RV32I has 32 registers, from `x0` to `x31`, each 32 bits wide.",
-      "explanation": "Registers reside in the processor and serve as sources and destinations for instruction operands. `x0` always supplies the value zero and cannot be changed. No particular initial value may be assumed for any other register. A program must therefore set or load any values it needs before using them.",
+      "explanation": "Registers are located in the processor and serve as sources and destinations for instruction operands. `x0` always provides the value zero and cannot be changed. No particular initial value should be assumed for any other register. A program must therefore set or load any values it needs before using them.",
       "example": "In `add t0, t1, t2`, values are read from two registers and the result is written to a register.",
       "pitfalls": [
         "Registers other than `x0` are not automatically zero."
       ],
       "related": [
-        "Register conventions (Registerkonventionen)",
+        "Register conventions",
         "Zero register x0 and initial values",
         "Registers"
       ],
@@ -44,14 +44,14 @@
     },
     {
       "id": "era-05-k03",
-      "term": "Register conventions (Registerkonventionen)",
+      "term": "Register Conventions (Registerkonventionen)",
       "kind": "concept",
       "short": "Names such as `a0`, `s0`, and `t0` are conventional aliases for registers `x0` through `x31`.",
-      "explanation": "The aliases describe customary roles, not different register types. `x0` is called `zero`, `x1` is `ra`, `x2` is `sp`, `x3` is `gp`, and `x4` is `tp`. `x5` through `x7` are called `t0` through `t2`, `x8` is `s0` or `fp`, `x9` is `s1`, `x10` through `x17` are `a0` through `a7`, `x18` through `x27` are `s2` through `s11`, and `x28` through `x31` are `t3` through `t6`. `a0` and `a1` are also commonly used for return values; the specific calling convention defines how registers are used in subroutine calls.",
-      "example": "`a0` and `x10` refer to the same register; `a0` highlights its customary role as an argument or return-value register.",
+      "explanation": "The aliases describe conventional roles, not different register types. `x0` is called `zero`, `x1` is called `ra`, `x2` is called `sp`, `x3` is called `gp`, and `x4` is called `tp`. `x5` through `x7` are called `t0` through `t2`; `x8` is called `s0` or `fp`; `x9` is called `s1`; `x10` through `x17` are called `a0` through `a7`; `x18` through `x27` are called `s2` through `s11`; and `x28` through `x31` are called `t3` through `t6`. `a0` and `a1` are also commonly used for return values; the precise calling convention specifies how registers are used in subroutine calls.",
+      "example": "`a0` and `x10` refer to the same register; `a0` highlights its conventional role as an argument or return-value register.",
       "pitfalls": [
-        "An alias does not change the register's width or hardware properties.",
-        "The register name alone does not guarantee that it contains a particular value."
+        "An alias does not change a register’s width or hardware properties.",
+        "A register’s name alone does not guarantee that it contains a particular value."
       ],
       "related": [
         "Registers in RV32I",
@@ -62,11 +62,11 @@
     },
     {
       "id": "era-05-k04",
-      "term": "Zero register x0 and initial values (Nullregister x0 und Anfangswerte)",
+      "term": "Zero Register x0 and Initial Values (Nullregister x0 und Anfangswerte)",
       "kind": "definition",
-      "short": "`x0` always supplies zero, while no initial value may be assumed for other registers.",
-      "explanation": "Register `x0` is hardwired to zero; an attempt to write to it does not change its value. All other registers can contain arbitrary values at the start of a program section unless the code sets them beforehand. A program must therefore explicitly load or compute any values it needs.",
-      "example": "`addi t0, x0, 7` sets `t0` to 7 because `x0` supplies zero as the source.",
+      "short": "`x0` always provides zero, while no initial value should be assumed for other registers.",
+      "explanation": "Register `x0` is fixed at zero; an attempt to write to it does not change its value. All other registers may contain arbitrary values at the start of a program segment unless the code sets them beforehand. A program must therefore explicitly load or compute the values it needs.",
+      "example": "`addi t0, x0, 7` sets `t0` to 7 because `x0`, used as the source, provides zero.",
       "pitfalls": [
         "Do not assume that a register such as `t0` initially contains zero.",
         "`x0` is not an ordinary register whose value can be changed by a write instruction."
@@ -80,49 +80,49 @@
     },
     {
       "id": "era-05-k05",
-      "term": "Signed and unsigned interpretation in M instructions (Signed- und Unsigned-Interpretation bei M-Befehlen)",
+      "term": "Signed and Unsigned Interpretation in M Instructions (Signed- und Unsigned-Interpretation bei M-Befehlen)",
       "kind": "concept",
-      "short": "The same bit pattern can represent different numbers when interpreted as signed or unsigned, so M instructions provide different interpretations.",
-      "explanation": "Under a signed interpretation, a bit pattern is read as a two's-complement signed number; under an unsigned interpretation, it is read as a nonnegative number. The bits themselves do not change, but the numerical value and the result of a multiplication or division can differ. The respective M instructions specify which interpretation applies to the operation.",
-      "example": "The 4-bit pattern `1101` represents 13 as unsigned and −3 as signed in two's complement.",
+      "short": "The same bit pattern can represent different numbers as signed and unsigned, so M instructions provide different interpretations.",
+      "explanation": "Under a signed interpretation, a bit pattern is read as a two’s-complement signed number; under an unsigned interpretation, it is read as a nonnegative number. The bits themselves do not change, but the numeric value and the result of multiplication or division can differ. The M instruction used specifies which interpretation applies to the operation.",
+      "example": "The 4-bit pattern `1101` represents 13 as unsigned and −3 as a signed two’s-complement number.",
       "pitfalls": [
-        "The bits alone do not determine a signed or unsigned value; the interpretation must be known."
+        "The bits alone do not determine a signed or unsigned numeric value; the interpretation must be known."
       ],
       "related": [
         "Multiplication instructions mul, mulh, mulhu, and mulhsu",
         "Division and remainder instructions div, divu, rem, and remu",
-        "Two's complement",
+        "Two’s complement",
         "Signed/unsigned interpretation"
       ],
       "heading": "Multiplikation und Division: signed oder unsigned?"
     },
     {
       "id": "era-05-k06",
-      "term": "Multiplication instructions mul, mulh, mulhu, and mulhsu (Multiplikationsbefehle mul, mulh, mulhu und mulhsu)",
+      "term": "Multiplication Instructions mul, mulh, mulhu, and mulhsu (Multiplikationsbefehle mul, mulh, mulhu und mulhsu)",
       "kind": "definition",
-      "short": "`mul` returns the lower product bits, while `mulh`, `mulhu`, and `mulhsu` return the upper bits according to the signedness interpretation.",
+      "short": "`mul` returns the lower product bits, while `mulh`, `mulhu`, and `mulhsu` return the upper bits according to the signedness of the operands.",
       "explanation": "Two 32-bit operands can produce a product of up to 64 bits. `mul` writes the lower 32 product bits; for the same bit patterns, these are independent of whether the operands are interpreted as signed or unsigned. `mulh` returns the upper 32 bits for two signed operands, `mulhu` for two unsigned operands, and `mulhsu` for a signed first operand and an unsigned second operand. To obtain the full 64-bit product, combine the lower bits from `mul` with the appropriately computed upper part.",
-      "example": "With four bits per operand, `1101 · 0010` yields `0001 1010` (26) as unsigned and `1111 1010` (−6) as signed; in both cases, the lower four bits are `1010`.",
+      "example": "With four bits per operand, `1101 · 0010` gives `0001 1010` (26) as unsigned and `1111 1010` (−6) as signed; in both cases, the lower four bits are `1010`.",
       "pitfalls": [
         "`mul` does not automatically return the full 64-bit product.",
-        "For the upper product bits, the signed or unsigned interpretation of both operands must match the intended calculation."
+        "For the upper product bits, the signed or unsigned interpretation of each operand must match the intended calculation."
       ],
       "related": [
         "Signed and unsigned interpretation in M instructions",
         "M extension",
-        "Two's complement"
+        "Two’s complement"
       ],
       "heading": "Multiplikation und Division: signed oder unsigned?"
     },
     {
       "id": "era-05-k07",
-      "term": "Division and remainder instructions div, divu, rem, and remu (Divisions- und Restbefehle div, divu, rem und remu)",
+      "term": "Division and Remainder Instructions div, divu, rem, and remu (Divisions- und Restbefehle div, divu, rem und remu)",
       "kind": "definition",
       "short": "`div` and `rem` operate on signed values, while `divu` and `remu` compute an unsigned quotient and remainder, respectively.",
-      "explanation": "`div` computes a signed quotient, and `rem` computes the corresponding signed remainder. `divu` and `remu` perform the corresponding operations on operands interpreted as unsigned. Signed integer division rounds toward zero; for negative odd numbers, its result can therefore differ from an arithmetic right shift.",
-      "example": "For signed `−47`, `div` by 2 yields `−23`; an arithmetic right shift by one position yields `−24`.",
+      "explanation": "`div` computes a signed quotient, and `rem` computes the corresponding signed remainder. `divu` and `remu` perform the corresponding operations on unsigned operands. Signed integer division rounds toward zero; for negative odd numbers, its result can therefore differ from an arithmetic right shift.",
+      "example": "For signed `−47`, `div` by 2 gives `−23`; an arithmetic right shift by one position gives `−24`.",
       "pitfalls": [
-        "`div` and `divu` are not interchangeable when a bit pattern is intended to represent a signed negative number.",
+        "`div` and `divu` are not interchangeable when a bit pattern represents a signed negative number.",
         "For negative odd numbers, a right shift is not always equivalent to signed division by 2."
       ],
       "related": [
@@ -134,30 +134,30 @@
     },
     {
       "id": "era-05-k08",
-      "term": "Shift instructions and shift amount (Shift-Befehle und Shiftweite)",
+      "term": "Shift Instructions and Shift Amount (Shift-Befehle und Shiftweite)",
       "kind": "notation",
-      "short": "RISC-V instructions specify the shift direction and fill rule, while the suffix `i` indicates an immediate shift amount.",
-      "explanation": "For `sll`, `srl`, and `sra`, the shift amount comes from a register; for `slli`, `srli`, and `srai`, it is given as an immediate in the instruction. The instruction family also determines the shift direction and how the vacated bit positions are filled. In RISC-V, `srl` and `sra` clearly distinguish the two kinds of right shift. Symbols such as `>>` or `>>>` can have different meanings in different programming languages.",
+      "short": "RISC-V instructions specify the shift direction and fill rule, while the suffix `i` indicates an explicitly provided shift amount.",
+      "explanation": "For `sll`, `srl`, and `sra`, the shift amount comes from a register; for `slli`, `srli`, and `srai`, it is an immediate encoded in the instruction. The instruction family also determines the shift direction and how vacated bit positions are filled. In RISC-V, `srl` and `sra` clearly distinguish the two types of right shift. Symbols such as `>>` or `>>>` can have different meanings depending on the programming language.",
       "example": "`slli t1, t0, 1` shifts the value in `t0` one position to the left and writes the result to `t1`.",
       "pitfalls": [
-        "The `i` in `slli` indicates an immediate for the shift amount; it does not mean “arithmetic.”",
+        "The `i` in `slli` marks an immediate shift amount; it does not mean “arithmetic”.",
         "Do not infer a specific RISC-V shift type from `>>` alone."
       ],
       "related": [
-        "Left shift (Linksshift; sll, slli)",
-        "Logical right shift (Logischer Rechtsshift; srl, srli)",
-        "Arithmetic right shift (Arithmetischer Rechtsshift; sra, srai)",
+        "Left shift (sll, slli)",
+        "Logical right shift (srl, srli)",
+        "Arithmetic right shift (sra, srai)",
         "Shifts"
       ],
       "heading": "Shifts: Bits verschieben"
     },
     {
       "id": "era-05-k09",
-      "term": "Left shift (Linksshift; sll, slli)",
+      "term": "Left Shift (sll, slli) (Linksshift (sll, slli))",
       "kind": "concept",
-      "short": "`sll` and `slli` shift bits to the left, fill with zeros on the right, and discard high bits shifted out.",
-      "explanation": "A left shift by one position moves each bit pattern one position to the left. The result can be interpreted as multiplication by 2 without information loss only if the mathematical product is representable at the chosen word width. The bit operation is the same for signed and unsigned interpretations. In the event of overflow, only the result at the register width is retained.",
-      "example": "With 8 bits, `0010 1100` (44) becomes `0101 1000` (88). The pattern `1101 0000` becomes `1010 0000`; as unsigned values, this corresponds to 208 becoming 160 after the shifted-out bit is discarded.",
+      "short": "`sll` and `slli` shift bits left, fill the right with zeros, and discard high bits shifted out.",
+      "explanation": "A one-position left shift moves each bit pattern one position to the left. The result can be interpreted as multiplication by 2 only when the mathematical product is representable at the chosen word width, without information loss. The bit operation is the same under signed and unsigned interpretations. If overflow occurs, only the result at the register width is retained.",
+      "example": "With 8 bits, `0010 1100` (44) becomes `0101 1000` (88). The pattern `1101 0000` becomes `1010 0000`; as unsigned values, this is 208 becoming 160 after the shifted-out bit is discarded.",
       "pitfalls": [
         "A left shift can lose significant high bits.",
         "Equality with mathematical multiplication holds only if the result fits in the width being considered."
@@ -171,11 +171,11 @@
     },
     {
       "id": "era-05-k10",
-      "term": "Logical right shift (Logischer Rechtsshift; srl, srli)",
+      "term": "Logical Right Shift (srl, srli) (Logischer Rechtsshift (srl, srli))",
       "kind": "definition",
-      "short": "`srl` and `srli` shift bits to the right and fill the vacated high bits with zeros.",
-      "explanation": "In a logical right shift, the remaining bits move to the right and bits at the right edge are discarded. Zeros are inserted on the left regardless of the previous sign. This operation is especially useful when a bit pattern is treated as an unsigned number or a bit field is shifted.",
-      "example": "The 8-bit pattern `1101 0000` becomes `0110 1000` after a logical shift right by one position; as unsigned values, this corresponds to 208 divided by 2, which equals 104.",
+      "short": "`srl` and `srli` shift bits right and fill the vacated high bits with zeros.",
+      "explanation": "In a logical right shift, the remaining bits move to the right and the bits at the right edge are discarded. Zeros are inserted on the left regardless of the previous sign. This operation is especially useful when a bit pattern is treated as an unsigned number or when shifting a bit field.",
+      "example": "The 8-bit pattern `1101 0000` is logically shifted right one position to `0110 1000`; as unsigned values, this is 208 divided by 2, which equals 104.",
       "pitfalls": [
         "For a bit pattern interpreted as negative, the sign bit is not preserved.",
         "A logical right shift is not the same as an arithmetic right shift."
@@ -189,20 +189,20 @@
     },
     {
       "id": "era-05-k11",
-      "term": "Arithmetic right shift (Arithmetischer Rechtsshift; sra, srai)",
+      "term": "Arithmetic Right Shift (sra, srai) (Arithmetischer Rechtsshift (sra, srai))",
       "kind": "definition",
-      "short": "`sra` and `srai` shift bits to the right and fill on the left with copies of the sign bit.",
-      "explanation": "Copying the most significant bit preserves the sign of a two's-complement result. For even numbers, an arithmetic right shift by one position is equivalent to division by 2. For negative odd numbers, however, the shift rounds toward the smaller value, while signed integer division rounds toward zero. Therefore, use `div` for true signed division.",
-      "example": "The 8-bit pattern `1101 0000` (−48) becomes `1110 1000` (−24); `1101 0001` (−47) also becomes `1110 1000` (−24), while `−47 div 2` equals `−23`.",
+      "short": "`sra` and `srai` shift bits right and fill the left with copies of the sign bit.",
+      "explanation": "Copying the most significant bit preserves the sign of the result for a two’s-complement number. For even numbers, a one-position arithmetic right shift is equivalent to division by 2. For negative odd numbers, however, the shift rounds toward the smaller value, while signed integer division rounds toward zero. Therefore, use `div` for true signed division.",
+      "example": "The 8-bit pattern `1101 0000` (−48) becomes `1110 1000` (−24); `1101 0001` (−47) also becomes `1110 1000` (−24), whereas `−47 div 2` equals `−23`.",
       "pitfalls": [
         "Filling with the sign bit distinguishes `sra` from `srl`.",
-        "For negative odd values, `srai` does not replace signed division."
+        "For negative odd values, `srai` is not a substitute for signed division."
       ],
       "related": [
         "Shift instructions and shift amount",
         "Logical right shift (srl, srli)",
         "Division and remainder instructions div, divu, rem, and remu",
-        "Two's complement"
+        "Two’s complement"
       ],
       "heading": "Rechts um eine Stelle: zwei Arten"
     },
@@ -210,11 +210,11 @@
       "id": "era-05-k12",
       "term": "Pseudoinstruction (Pseudobefehl)",
       "kind": "definition",
-      "short": "A pseudoinstruction is a readable assembly form that the assembler translates into one or more actual machine instructions.",
-      "explanation": "Pseudoinstructions make assembly programs shorter and easier to read, but they are not machine instructions of their own. One possible expansion for `mv t0, t1` is `addi t0, t1, 0`; `not t0, t1` can be implemented as `xori t0, t1, -1`. `neg t0, t1` can, for example, be expressed as `sub t0, x0, t1`. The expansion depends on the pseudoinstruction and, in some cases, on the constant.",
+      "short": "A pseudoinstruction is a readable assembly form that the assembler translates into one or more real machine instructions.",
+      "explanation": "Pseudoinstructions make assembly programs shorter and easier to read, but they are not machine instructions of their own. One possible expansion of `mv t0, t1` is `addi t0, t1, 0`; `not t0, t1` can be implemented as `xori t0, t1, -1`. `neg t0, t1` can, for example, be expressed as `sub t0, x0, t1`. The expansion depends on the pseudoinstruction and, where applicable, on the constant.",
       "example": "`mv t0, t1` copies the value from `t1` to `t0`; one possible RV32I expansion is `addi t0, t1, 0`.",
       "pitfalls": [
-        "A pseudoinstruction is not necessarily exactly one machine instruction.",
+        "A pseudoinstruction does not necessarily correspond to exactly one machine instruction.",
         "The specific expansion can depend on the constant used."
       ],
       "related": [
@@ -226,13 +226,13 @@
     },
     {
       "id": "era-05-k13",
-      "term": "li pseudoinstruction",
+      "term": "li Pseudoinstruction (li-Pseudobefehl)",
       "kind": "definition",
-      "short": "`li` loads a constant into a register, with the assembler generating a suitable instruction sequence depending on the constant.",
-      "explanation": "For a small constant such as 7, `li t0, 7` can, for example, become `addi t0, x0, 7`. Larger constants do not necessarily fit in a single immediate and may require several actual instructions, such as `lui` and `addi`. Thus, `li` has no single fixed expansion.",
+      "short": "`li` loads a constant into a register; depending on the constant, the assembler generates a suitable instruction sequence.",
+      "explanation": "For a small constant such as 7, `li t0, 7` can, for example, become `addi t0, x0, 7`. Larger constants may not fit in a single immediate and may require several real instructions, such as `lui` and `addi`. Thus, there is no single fixed expansion for `li`.",
       "example": "One possible expansion of `li t0, 7` is `addi t0, x0, 7`.",
       "pitfalls": [
-        "Do not assume that every `li` generates exactly one machine instruction.",
+        "Do not assume that every `li` expands to exactly one machine instruction.",
         "For larger constants, the assembler may need to split the constant into parts."
       ],
       "related": [
@@ -244,10 +244,10 @@
     },
     {
       "id": "era-05-k14",
-      "term": "Immediate",
+      "term": "Immediate (Immediate)",
       "kind": "definition",
       "short": "An immediate is a constant encoded directly in a machine instruction.",
-      "explanation": "An instruction with an immediate gets an operand value from the instruction itself instead of reading it from a register. In the RV32I instructions considered here, `addi`, `andi`, `ori`, and `xori`, the immediate is extended to the register width before the operation. A negative immediate is extended by sign extension so that its negative value is preserved.",
+      "explanation": "An instruction with an immediate takes an operand value from the instruction itself instead of reading it from a register. In the RV32I instructions considered here, `addi`, `andi`, `ori`, and `xori`, the immediate is extended to the register width before the operation. A negative immediate is extended by sign extension so that its negative value is preserved.",
       "example": "`addi t1, t0, 4` adds the constant 4 specified in the instruction to the value in `t0`.",
       "pitfalls": [
         "An immediate is an instruction operand, not an additional register.",
@@ -262,14 +262,14 @@
     },
     {
       "id": "era-05-k15",
-      "term": "Immediate instructions and sign extension (Immediate-Befehle und Sign Extension)",
+      "term": "Immediate Instructions and Sign Extension (Immediate-Befehle und Sign Extension)",
       "kind": "concept",
-      "short": "In immediate instructions, the encoded constant is extended to the register width, with sign extension preserving the sign of negative values.",
-      "explanation": "In the RV32I immediate operations considered here, a negative immediate is extended to 32 bits by copying its sign bit. This preserves its signed numerical value instead of interpreting it as a small positive value. When a byte is loaded with `lb`, the sign of the loaded byte is also extended to the register width.",
-      "example": "A 12-bit immediate with the value −1 is extended to 32 bits as all ones and still represents −1.",
+      "short": "In immediate instructions, the encoded constant is extended to the register width, with negative values retaining their sign through sign extension.",
+      "explanation": "In the RV32I immediate operations considered here, a negative immediate is extended to 32 bits by copying its sign bit. This preserves its signed numeric value instead of interpreting it as a small positive value. When loading a byte with `lb`, the sign of the byte read is also propagated to the register width through sign extension.",
+      "example": "A 12-bit immediate with the value −1 is extended to 32 bits with all ones and still represents −1.",
       "pitfalls": [
         "Sign extension copies the sign bit; it does not always fill with zeros.",
-        "With `lb`, the loaded byte is sign-extended; other load instructions may use a different extension."
+        "With `lb`, the byte read is sign-extended; other load instructions may use a different extension."
       ],
       "related": [
         "Immediate",
@@ -281,14 +281,14 @@
     },
     {
       "id": "era-05-k16",
-      "term": "Bitwise logical instructions and immediate variants (Bitweise logische Befehle und Immediate-Varianten)",
+      "term": "Bitwise Logical Instructions and Immediate Variants (Bitweise logische Befehle und Immediate-Varianten)",
       "kind": "concept",
-      "short": "`and`, `or`, and `xor` combine register bits bitwise, while their immediate variants `andi`, `ori`, and `xori` also use a constant from the instruction.",
-      "explanation": "`and` sets a result bit to 1 only when both input bits are 1; `or` sets it when at least one input bit is 1; `xor` sets it when the input bits differ. The variants `andi`, `ori`, and `xori` perform the same bitwise operations with an immediate. By contrast, `addi` adds the numerical value of the immediate and does not perform a bitwise logical operation. Sign extension must be taken into account for negative immediates.",
-      "example": "If `t0 = 0x2C`, `ori t2, t0, 0x10` yields `0x3C`, `xori t3, t0, 0x0F` yields `0x23`, and `andi t4, t0, 0x0F` yields `0x0C`.",
+      "short": "`and`, `or`, and `xor` combine register bits bit by bit, while their immediate variants `andi`, `ori`, and `xori` also use a constant from the instruction.",
+      "explanation": "`and` sets a result bit to 1 only when both input bits are 1; `or` sets it when at least one input bit is 1; `xor` sets it when the input bits differ. The variants `andi`, `ori`, and `xori` perform the same bitwise operations with an immediate. By contrast, `addi` adds the numeric value of the immediate; it does not perform a bitwise logical operation. Account for sign extension when using negative immediates.",
+      "example": "When `t0 = 0x2C`, `ori t2, t0, 0x10` returns `0x3C`, `xori t3, t0, 0x0F` returns `0x23`, and `andi t4, t0, 0x0F` returns `0x0C`.",
       "pitfalls": [
         "XOR flips only bits at positions where one operand has a 1 and the other has a 0.",
-        "`andi` is a bitwise operation, not arithmetic subtraction."
+        "`andi` is not arithmetic subtraction; it is a bitwise operation."
       ],
       "related": [
         "Immediate",
@@ -299,14 +299,14 @@
     },
     {
       "id": "era-05-k17",
-      "term": "Assembly programming (Assemblerprogrammierung)",
+      "term": "Assembly Programming (Assemblerprogrammierung)",
       "kind": "method",
-      "short": "Checking registers, signs, and control flow step by step helps find common errors in assembly programming.",
-      "explanation": "Trace the code instruction by instruction and record the affected register values after each step. Note initial values, and assume zero only for `x0`. Before each arithmetic operation, determine whether the operands are intended as signed or unsigned and whether sign extension occurs. Plan the control flow and register allocation before writing, comment the code adequately, and for loops check the start, termination condition, and number of iterations. Observe the applicable register conventions for subroutine calls.",
-      "example": "Record the counter, termination test, and affected registers at each loop iteration to detect an execution that runs one iteration too many or too few.",
+      "short": "Checking registers, signs, and control flow step by step helps identify common errors in assembly programming.",
+      "explanation": "Trace the code instruction by instruction and record the affected register values after each step. Note the initial values, assuming zero only for `x0`. Before each arithmetic operation, determine whether the operands are signed or unsigned and whether sign extension occurs. Plan the control flow and register allocation before writing the code, add sufficient comments, and check each loop’s starting point, termination condition, and iteration count. Follow the applicable register conventions for subroutine calls.",
+      "example": "For each loop iteration, record the counter, termination test, and affected registers to detect an execution that runs one iteration too long or too short.",
       "pitfalls": [
         "Do not treat uninitialized register values as zero.",
-        "For signed byte values loaded with `lb`, account for sign extension.",
+        "For signed byte values loaded with instructions such as `lb`, account for sign extension.",
         "Trace loop termination and register allocation instruction by instruction."
       ],
       "related": [

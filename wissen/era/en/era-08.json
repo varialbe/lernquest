@@ -5,302 +5,302 @@
   "unitNumber": 8,
   "unitTitle": "RISC-V: Memory and Program Flow",
   "sourceSha": "27467f29e703b0a4feb7e3ba3a4d1ecdd3040d592503532596f0f07b6f21fd8e",
-  "overview": "This unit explains memory accesses in RV32 and shows how bytes, words, strings, arrays, and structs are laid out in memory. It covers sections, pointer arithmetic, and stack and heap management. Conditional branches and loops control program flow; subroutine calls use a return address and may require registers to be saved.",
+  "overview": "This unit explains memory accesses (Speicherzugriffe) in RV32 and shows how bytes, words, strings, arrays, and structs are laid out in memory. It covers sections (Sections), pointer arithmetic (Pointerarithmetik), and stack and heap management (Stack- und Heap-Verwaltung). Conditional branches (bedingte Sprünge) and loops control program flow; subroutine calls (Unterprogrammaufrufe) use a return address (Rücksprungadresse) and may require registers to be saved.",
   "entries": [
     {
       "id": "era-08-k01",
-      "term": "RV32 Notation (RV32-Notation)",
+      "term": "RV32 notation (RV32-Notation)",
       "kind": "notation",
-      "short": "The notation identifies registers, immediate values, memory addresses, and branch targets in RV32 instructions.",
-      "explanation": "RV32 uses 32-bit registers and 32-bit pointers. `rd` denotes the destination register; `rs`, `rs1`, and `rs2` denote source registers; `ra` is the return address and corresponds to `x1`. `imm` denotes a 12-bit signed immediate, `uimm` a 5-bit unsigned immediate, such as a shift amount, and `upimm` the upper 20-bit portion of a 32-bit immediate. `Address` is a memory address, `[Address]` is the data stored there, and `BTA` and `JTA` are the branch and jump targets, respectively.",
+      "short": "This notation names registers, immediate values, memory addresses, and jump targets in RV32 instructions.",
+      "explanation": "RV32 uses 32-bit registers and 32-bit pointers. `rd` denotes the destination register; `rs`, `rs1`, and `rs2` denote source registers; `ra` is the return address and corresponds to `x1`. `imm` denotes a 12-bit signed immediate, `uimm` a 5-bit unsigned immediate, such as a shift amount, and `upimm` the upper 20-bit portion of a 32-bit immediate. `Address` is a memory address, `[Address]` the data stored there, and `BTA` and `JTA` the branch and jump targets, respectively.",
       "example": "In `lw t0, 4(sp)`, `t0` is the destination register, `sp` the base register, and `4` the offset.",
       "pitfalls": [
         "`[Address]` denotes the contents at an address, not the address itself."
       ],
       "related": [
-        "Memory Access: Loads and Stores",
-        "Pointers and Dereferencing"
+        "Memory accesses: loads and stores",
+        "Pointers and dereferencing"
       ],
       "heading": "Notation"
     },
     {
       "id": "era-08-k02",
-      "term": "Memory Access: Loads and Stores (Speicherzugriffe: Load und Store)",
+      "term": "Memory accesses: loads and stores (Speicherzugriffe: Load und Store)",
       "kind": "concept",
       "short": "Loads read bytes from memory, and stores write selected bytes to memory.",
-      "explanation": "RV32 memory is byte-addressable, so each address identifies one byte. The suffixes `b`, `h`, and `w` denote a byte (1 byte), halfword (2 bytes), and word (4 bytes), respectively. The effective address of a load or store instruction is the sum of the base register and the sign-extended offset: $\\mathrm{Address}=\\mathrm{rs1}+\\operatorname{SignExt}(\\mathrm{imm})$. The base register holds the base address; the immediate is an offset, not an absolute address.",
+      "explanation": "RV32 memory is byte-addressable, so each address refers to one byte. The suffixes `b`, `h`, and `w` denote a byte (1 byte), halfword (2 bytes), and word (4 bytes), respectively. The effective address of a load or store instruction is the sum of the base register and the sign-extended offset: $\\mathrm{Address}=\\mathrm{rs1}+\\operatorname{SignExt}(\\mathrm{imm})$. The base register contains the base address; the immediate is an offset, not an absolute address.",
       "example": "`lw t0, 8(sp)` reads a 4-byte word starting at address `sp + 8`.",
       "pitfalls": [
         "The immediate is an offset from the base register, not an absolute address.",
         "`w` means four bytes in RV32, not four bits."
       ],
       "related": [
-        "RV32 Notation",
-        "Sign Extension and Zero Extension",
-        "Little Endian and Big Endian"
+        "RV32 notation",
+        "Sign extension and zero extension",
+        "Little endian and big endian"
       ],
       "heading": "Speicherzugriffe: Load und Store"
     },
     {
       "id": "era-08-k03",
-      "term": "Sign Extension and Zero Extension (Sign Extension und Zero Extension)",
+      "term": "Sign extension and zero extension (Sign Extension und Zero Extension)",
       "kind": "concept",
-      "short": "When a short value is extended, its sign bit is either repeated to the left or zeros are added.",
-      "explanation": "Sign extension repeats the most significant bit of the loaded value to the left, preserving its signed interpretation. Zero extension adds zeros to the left, treating the value as nonnegative. In RV32, `lb` and `lh` use sign extension, while `lbu` and `lhu` use zero extension; `lw` already loads the full register width. Stores such as `sb` and `sh` write only the selected low-order bits and do not extend the value.",
-      "example": "For the byte `10000000`, `lb` produces `0xFFFFFF80` in RV32, whereas `lbu` produces `0x00000080`.",
+      "short": "When a short value is extended, its sign bit is either repeated on the left or zeros are added.",
+      "explanation": "Sign extension repeats the most significant bit of the loaded value on the left, preserving its signed interpretation. Zero extension adds zeros on the left, treating the value as nonnegative. In RV32, `lb` and `lh` use sign extension, while `lbu` and `lhu` use zero extension; `lw` already loads the full register width. Stores such as `sb` and `sh` write only the selected low bits and do not extend the value.",
+      "example": "For the byte `10000000`, `lb` yields `0xFFFFFF80` in RV32, while `lbu` yields `0x00000080`.",
       "pitfalls": [
         "`lb` and `lbu` both read one byte but differ in how they extend it.",
         "Stores perform neither sign extension nor zero extension."
       ],
       "related": [
-        "Memory Access: Loads and Stores",
-        "Signed and Unsigned Interpretation"
+        "Memory accesses: loads and stores",
+        "Signed and unsigned interpretation"
       ],
       "heading": "Befehle und Erweiterung auf Registerbreite"
     },
     {
       "id": "era-08-k04",
-      "term": "Load/Store Encoding Fields (Load/Store-Codierungsfelder)",
+      "term": "Load/store encoding fields (Load/Store-Codierungsfelder)",
       "kind": "notation",
       "short": "The opcode, instruction format, and funct3 encode, among other things, the width and variant of a load or store instruction.",
-      "explanation": "The loads `lb`, `lh`, `lw`, `lbu`, and `lhu` use opcode `0000011` (decimal 3), the I-format, and the following `funct3` values in that order: `000`, `001`, `010`, `100`, and `101`. The stores `sb`, `sh`, and `sw` use opcode `0100011` (decimal 35), the S-format, and the `funct3` values `000`, `001`, and `010`. The encoding table specifies no `funct7` field for these instructions.",
+      "explanation": "The loads `lb`, `lh`, `lw`, `lbu`, and `lhu` use opcode `0000011` (decimal 3), the I-type format, and the following `funct3` values in that order: `000`, `001`, `010`, `100`, and `101`. The stores `sb`, `sh`, and `sw` use opcode `0100011` (decimal 35), the S-type format, and `funct3` values `000`, `001`, and `010`. The encoding table specifies no `funct7` field for these instructions.",
       "example": "For `lw`, the specified opcode is `0000011` and `funct3 = 010`.",
       "pitfalls": [
         "The `funct3` values distinguish instructions within the load or store group."
       ],
       "related": [
-        "Memory Access: Loads and Stores",
-        "Machine Instruction Format"
+        "Memory accesses: loads and stores",
+        "Machine instruction format"
       ],
       "heading": "Codierungsfelder aus dem Handout"
     },
     {
       "id": "era-08-k05",
-      "term": "Little Endian and Big Endian (Little Endian und Big Endian)",
+      "term": "Little endian and big endian (Little Endian und Big Endian)",
       "kind": "concept",
-      "short": "Endianness determines the order in which the bytes of a multibyte value occupy consecutive addresses.",
-      "explanation": "In little-endian order, the least significant byte is at the lowest address. In big-endian order, the most significant byte is there. This does not reverse the order of bits within an individual byte. For `0x012E9613`, the bytes at increasing addresses are `13`, `96`, `2E`, `01` in little-endian order and `01`, `2E`, `96`, `13` in big-endian order.",
-      "example": "If `0x012E9613` begins at address `n`, then `n` contains byte `13` in little-endian order and `01` in big-endian order.",
+      "short": "Endianness determines the order in which the bytes of a multibyte value are placed at consecutive addresses.",
+      "explanation": "In little-endian order, the least significant byte is at the lowest address. In big-endian order, the most significant byte is there. This does not reverse the order of bits within an individual byte. For `0x012E9613`, the bytes at increasing addresses are `13`, `96`, `2E`, and `01` in little-endian order, and `01`, `2E`, `96`, and `13` in big-endian order.",
+      "example": "If `0x012E9613` starts at address `n`, the byte at `n` is `13` in little-endian order and `01` in big-endian order.",
       "pitfalls": [
-        "Endianness describes the byte order of a multibyte value, not a reversal of bit order."
+        "Endianness describes the byte order of a multibyte value, not a reversed bit order."
       ],
       "related": [
-        "Byte Addressing",
-        "Memory Access: Loads and Stores"
+        "Byte addressing",
+        "Memory accesses: loads and stores"
       ],
       "heading": "Little Endian und Big Endian"
     },
     {
       "id": "era-08-k06",
-      "term": "Sections and Memory Layout (Sections und Speicherlayout)",
+      "term": "Sections and memory layout (Sections und Speicherlayout)",
       "kind": "concept",
       "short": "Sections organize program code and global data according to their use and properties.",
-      "explanation": "`.text` contains executable code, `.data` writable, initialized global data, `.rodata` read-only, initialized global data, and `.bss` writable, uninitialized global data. `.bss` reserves storage without specifying an initial value for each byte in the program image. In the schematic layout, code and global data are at low addresses, the heap is above them, and the stack is near high addresses; the heap typically grows upward and the stack downward. The specific layout and starting addresses are not universal.",
+      "explanation": "`.text` contains executable code, `.data` writable and initialized global data, `.rodata` read-only and initialized global data, and `.bss` writable, uninitialized global data. `.bss` reserves memory without specifying an initial value for every byte in the program image. In the schematic layout, code and global data are at low addresses, the heap is above them, and the stack is near high addresses; the heap typically grows upward and the stack downward. The specific layout and start addresses are not universal.",
       "example": "An initialized global number may be placed in `.data`, a string literal in `.rodata`, and an uninitialized global buffer in `.bss`.",
       "pitfalls": [
-        "The illustrated memory layout is schematic and does not guarantee fixed starting addresses for all programs.",
-        "`.bss` reserves storage even when no initial values are specified in the program image."
+        "The depicted memory layout is schematic and does not guarantee fixed start addresses for all programs.",
+        "`.bss` reserves memory even when no initial values are specified in the program image."
       ],
       "related": [
-        "Heap and Stack",
-        "Main Memory",
-        "Programs and Data in the Same Memory"
+        "Heap and stack",
+        "Main memory",
+        "Programs and data in the same memory"
       ],
       "heading": "Sections und Speicherlayout"
     },
     {
       "id": "era-08-k07",
-      "term": "Assembler Data Directives (Assembler-Direktiven für Daten)",
+      "term": "Assembler directives for data (Assembler-Direktiven für Daten)",
       "kind": "notation",
       "short": "Assembler directives place data in the program image, initialize it, or affect its layout.",
-      "explanation": "Directives such as `.org`, `.data`, `.word`, `.short`, and `.byte` control the layout and initialization of data; they are not RV32 machine instructions. In the example, `.org` specifies a position, `.word` allocates 4-byte values, `.short` 2-byte values, and `.byte` individual bytes. `.asciz` stores the character bytes of a string and automatically appends a terminating NULL byte. The precise behavior and support for individual directives depend on the assembler.",
-      "example": "`.word 1, 2, 3, 4` allocates four consecutive words; `.asciz \"Hi\"` stores the character bytes and a NULL byte.",
+      "explanation": "Directives such as `.org`, `.data`, `.word`, `.short`, and `.byte` control data layout and initialization; they are not RV32 machine instructions. In the example, `.org` specifies a position, `.word` allocates 4-byte values, `.short` 2-byte values, and `.byte` individual bytes. `.asciz` places the character bytes of a string and automatically appends a terminating NUL byte. The exact behavior and support for individual directives depend on the assembler.",
+      "example": "`.word 1, 2, 3, 4` places four consecutive words; `.asciz \"Hi\"` places the character bytes and a NUL byte.",
       "pitfalls": [
         "Assembler directives describe how the program is generated; they are not executed as ordinary instructions."
       ],
       "related": [
-        "Sections and Memory Layout",
-        "Strings: ASCII, C Strings, and Pascal Strings"
+        "Sections and memory layout",
+        "Strings: ASCII, C strings, and Pascal strings"
       ],
       "heading": "Daten mit Assembler-Direktiven anlegen"
     },
     {
       "id": "era-08-k08",
-      "term": "Strings: ASCII, C Strings, and Pascal Strings (Strings: ASCII, C-Strings und Pascal-Strings)",
+      "term": "Strings: ASCII, C strings, and Pascal strings (Strings: ASCII, C-Strings und Pascal-Strings)",
       "kind": "definition",
       "short": "A string is stored in memory as a sequence of encoded numbers; C and Pascal strings mark their end or length differently.",
-      "explanation": "In the ASCII character set, characters correspond to numeric values from 0 to 127, which can be stored as bytes. A C string ends with a NULL byte whose value is 0; this terminator is not part of the character length. A Pascal string, as presented here, stores its length in a preceding byte. In assembly, `.asciz` automatically appends a terminating NULL byte.",
+      "explanation": "In the ASCII character set, characters correspond to numeric values from 0 to 127, which can be stored as bytes. A C string ends with a NUL byte whose value is 0; this terminating byte is not included in the character length. A Pascal string, as presented here, stores its length in a preceding byte. In assembly, `.asciz` automatically appends a terminating NUL byte.",
       "example": "The C string `\"Hi\"` consists of the character bytes for `H` and `i`, followed by `0`; its character length is 2.",
       "pitfalls": [
-        "For a C string, the NULL byte marks the end but is not counted in the character length.",
-        "In the Pascal string presented here, the length byte precedes the characters."
+        "For a C string, the NUL byte marks the end but is not counted in the character length.",
+        "In the Pascal string presented here, the length byte comes before the characters."
       ],
       "related": [
-        "Assembler Data Directives",
-        "Pointers and Dereferencing",
+        "Assembler directives for data",
+        "Pointers and dereferencing",
         "ASCII and UTF-16"
       ],
       "heading": "Strings sind Arrays aus Zahlen"
     },
     {
       "id": "era-08-k09",
-      "term": "Pointers and Dereferencing (Pointer und Dereferenzierung)",
+      "term": "Pointers and dereferencing (Pointer und Dereferenzierung)",
       "kind": "definition",
-      "short": "A pointer contains a memory address; dereferencing means accessing the value at that address.",
-      "explanation": "In RV32, a pointer is 32 bits wide. In C, `&x` returns the address of `x`, whereas `*p` denotes the value at the address stored in `p`. In assembly, `la` loads the address of a label into a register; `lw` instead reads a 4-byte word from memory at a computed address. `la` is a pseudoinstruction, whereas `lw` is a load instruction.",
+      "short": "A pointer contains a memory address, and dereferencing means accessing the value at that address.",
+      "explanation": "In RV32, a pointer is 32 bits wide. In C, `&x` yields the address of `x`, while `*p` denotes the value at the address stored in `p`. In assembly, `la` loads a label's address into a register; `lw` instead reads a 4-byte word from memory at a computed address. `la` is a pseudo-instruction, while `lw` is a load instruction.",
       "example": "After `la t0, x`, `t0` contains the address of `x`; after `lw t1, 0(t0)`, `t1` contains the word stored there.",
       "pitfalls": [
         "`la` loads an address; `lw` loads data from memory.",
         "A pointer is not automatically the value it points to."
       ],
       "related": [
-        "RV32 Notation",
-        "Memory Access: Loads and Stores",
-        "Arrays and Pointer Arithmetic"
+        "RV32 notation",
+        "Memory accesses: loads and stores",
+        "Arrays and pointer arithmetic"
       ],
       "heading": "Pointer: Adresse und Datum auseinanderhalten"
     },
     {
       "id": "era-08-k10",
-      "term": "Example with Three Words (Beispiel mit drei Words)",
+      "term": "Three-word example (Beispiel mit drei Words)",
       "kind": "example",
       "short": "Three consecutive words illustrate the difference between a loaded address and a loaded value.",
-      "explanation": "If the label `x` begins at address `0x200` and the words `3`, `0x11`, and `0x2A` are stored there, each occupies four bytes. Their starting addresses are therefore `0x200`, `0x204`, and `0x208`. After `la t0, x`, `t0` contains address `0x200`; `lw t1, 0(t0)` reads the first word and sets `t1` to `3`.",
+      "explanation": "If the label `x` starts at address `0x200` and the words `3`, `0x11`, and `0x2A` are stored there, each occupies four bytes. Their starting addresses are therefore `0x200`, `0x204`, and `0x208`. After `la t0, x`, `t0` contains the address `0x200`; `lw t1, 0(t0)` reads the first word and sets `t1` to `3`.",
       "example": "```asm\nla t0, x\nlw t1, 0(t0)\n```",
       "pitfalls": [
         "The register holding the loaded address and the register holding the word read contain different things."
       ],
       "related": [
-        "Pointers and Dereferencing",
-        "Memory Access: Loads and Stores",
-        "Arrays and Pointer Arithmetic"
+        "Pointers and dereferencing",
+        "Memory accesses: loads and stores",
+        "Arrays and pointer arithmetic"
       ],
       "heading": "Beispiel mit drei Words"
     },
     {
       "id": "era-08-k11",
-      "term": "Arrays and Pointer Arithmetic (Arrays und Pointerarithmetik)",
+      "term": "Arrays and pointer arithmetic (Arrays und Pointerarithmetik)",
       "kind": "concept",
       "short": "The address of an array element is the array's starting address plus the index multiplied by the element size.",
       "explanation": "Array elements are stored consecutively in memory and have the same type. In C, for an array `a`: $a[i]=*(a+i)$ and $\\operatorname{Adresse}(a[i])=\\operatorname{Adresse}(a)+i\\cdot\\operatorname{sizeof}(a[0])$. Pointer arithmetic counts elements of the pointer's type, so the step is scaled by the element size. For 4-byte `int` elements, `a[2]` is eight bytes from the start of the array.",
-      "example": "For an array of 4-byte ints, `a[2]` corresponds to byte offset $2\\cdot4=8$.",
+      "example": "For an array of 4-byte ints, `a[2]` corresponds to the byte offset $2\\cdot4=8$.",
       "pitfalls": [
-        "In pointer arithmetic, the index is scaled by the size of the element.",
-        "A byte offset is not always the same as an array index."
+        "In pointer arithmetic, the index is scaled by the element size.",
+        "A byte offset is not always equal to the array index."
       ],
       "related": [
-        "Pointers and Dereferencing",
-        "Structs and Struct Layout",
-        "Byte Addressing"
+        "Pointers and dereferencing",
+        "Structs and struct layout",
+        "Byte addressing"
       ],
       "heading": "Arrays und Pointerarithmetik"
     },
     {
       "id": "era-08-k12",
-      "term": "Structs and Struct Layout (Structs und Struct-Layout)",
+      "term": "Structs and struct layout (Structs und Struct-Layout)",
       "kind": "concept",
-      "short": "A struct groups named fields of different types in one contiguous region of memory.",
-      "explanation": "The fields of a struct are called members and may have different data types; an array, by contrast, contains elements of the same type. The ERA course simplification ignores padding between fields. In the example, `int operand1`, `short operand2`, `unsigned int ergebnis`, and `unsigned char operation` are at byte offsets 0, 4, 6, and 10; together they require 11 bytes without padding. The assembler does not automatically know these C types; it works with addresses and memory sizes.",
-      "example": "In the simplified layout shown, `ergebnis` is stored using `sw` at offset 6 relative to the struct's address.",
+      "short": "A struct groups named fields of different types in a contiguous region of memory.",
+      "explanation": "The fields of a struct are called members and can have different data types; an array, by contrast, contains elements of the same type. The ERA course simplification ignores padding between fields. In the example, `int operand1`, `short operand2`, `unsigned int ergebnis`, and `unsigned char operation` are at byte offsets 0, 4, 6, and 10; together they require 11 bytes without padding. The assembler does not know these C types automatically; it works with addresses and memory sizes.",
+      "example": "In the simplified layout shown in the example, `ergebnis` is stored using `sw` at offset 6 relative to the struct address.",
       "pitfalls": [
-        "The layout without padding is a course simplification and is not necessarily the layout used by every C compiler.",
+        "The layout without padding is a course simplification and is not automatically the layout used by every C compiler.",
         "A word access at byte offset 6 is unaligned; support for unaligned accesses depends on the execution environment."
       ],
       "related": [
-        "Arrays and Pointer Arithmetic",
-        "Memory Access: Loads and Stores",
+        "Arrays and pointer arithmetic",
+        "Memory accesses: loads and stores",
         "Alignment"
       ],
       "heading": "Structs: unterschiedliche Datentypen hintereinander"
     },
     {
       "id": "era-08-k13",
-      "term": "Stack: PUSH and POP (Stack: PUSH und POP)",
+      "term": "Stack: push and pop (Stack: PUSH und POP)",
       "kind": "method",
-      "short": "PUSH first decrements `sp` and then writes, whereas POP first reads and then increments `sp`.",
-      "explanation": "The stack typically grows from high addresses to low addresses. To save a 32-bit register, `sp` is first decremented by 4, and the register value is then stored at `0(sp)`. To restore it, the value is first loaded from `0(sp)` and then `sp` is incremented by 4. PUSH and POP refer to these instruction sequences; they are not additional RV32I machine instructions.",
+      "short": "PUSH first decrements `sp` and then writes, while POP first reads and then increments `sp`.",
+      "explanation": "The stack typically grows from high to low addresses. To save a 32-bit register, `sp` is first decremented by 4, and the register value is then stored at `0(sp)`. To restore it, the value is first loaded from `0(sp)` and then `sp` is incremented by 4. PUSH and POP refer to these instruction sequences; they are not additional RV32I machine instructions.",
       "example": "```asm\n# PUSH\naddi sp, sp, -4\nsw   t0, 0(sp)\n\n# POP\nlw   t0, 0(sp)\naddi sp, sp, 4\n```",
       "pitfalls": [
         "For PUSH, `sp` is decremented before writing; for POP, `sp` is incremented only after reading.",
-        "When saving multiple values, the restore order must match the order in which they were saved."
+        "When saving multiple values, restore them in an order that matches the order in which they were saved."
       ],
       "related": [
-        "Stack Frame",
-        "Stack Pointer",
-        "Subroutine Call",
-        "Registers and Register Conventions"
+        "Stack frame",
+        "Stack pointer",
+        "Subroutine call",
+        "Registers and register conventions"
       ],
       "heading": "Stack / Keller: PUSH und POP"
     },
     {
       "id": "era-08-k14",
-      "term": "Heap and Stack (Heap und Stack)",
+      "term": "Heap and stack (Heap und Stack)",
       "kind": "concept",
       "short": "The stack typically manages data for individual calls, while the heap provides dynamically managed data.",
-      "explanation": "The stack typically holds local variables, saved registers, and intermediate results for a function call; in assembly, it is managed through `sp`. The heap is used for dynamically managed data that may persist across individual calls. Its management usually requires a runtime library or allocator. The stack size of approximately 8 MiB mentioned in the notes is a Linux guideline, not a general architectural limit.",
-      "example": "A register value can be saved on the stack for a subroutine call; a dynamically created list element can reside on the heap.",
+      "explanation": "The stack typically holds local variables, saved registers, and intermediate results for a function call; in assembly, it is managed through `sp`. The heap is used for dynamically managed data that may persist across individual calls. Managing it usually requires a runtime library or allocator. The stack size of approximately 8 MiB mentioned in the lecture notes is a Linux guideline, not a general architectural limit.",
+      "example": "A register value can be saved on the stack for a subroutine call; a dynamically created list element can be stored on the heap.",
       "pitfalls": [
         "The stated heap and stack sizes are not fixed properties of the RV32 architecture.",
         "In assembly, stack space must be managed explicitly through the stack pointer."
       ],
       "related": [
-        "Stack: PUSH and POP",
-        "Stack Frame",
-        "Memory Allocation"
+        "Stack: push and pop",
+        "Stack frame",
+        "Memory allocation"
       ],
       "heading": "Heap und Stack – einfach auseinanderhalten"
     },
     {
       "id": "era-08-k15",
-      "term": "Conditional Branches (Bedingte Sprünge (Branches))",
+      "term": "Conditional branches (Bedingte Sprünge (Branches))",
       "kind": "definition",
-      "short": "A branch compares register values and changes the program counter only if its condition is met.",
-      "explanation": "A branch compares two registers. If the condition is met, execution jumps to the specified label; otherwise, it continues with the next instruction. `beq` and `bne` test equality and inequality, respectively; `blt` and `bge` compare signed values; and `bltu` and `bgeu` compare unsigned values. These instructions use opcode `1100011` (decimal 99), the B-format, and a PC-relative target with an approximate range of ±4 KiB.",
-      "example": "`blt t0, t1, smaller` branches to `smaller` if the signed value in `t0` is less than the one in `t1`.",
+      "short": "A branch compares register values and changes the program counter only when its condition is satisfied.",
+      "explanation": "A branch compares two registers; if the condition is satisfied, execution jumps to the specified label, otherwise it continues with the next instruction. `beq` and `bne` test equality and inequality, respectively; `blt` and `bge` compare signed values, and `bltu` and `bgeu` compare unsigned values. These instructions use opcode `1100011` (decimal 99), the B-type format, and a PC-relative target with a range of approximately ±4 KiB.",
+      "example": "`blt t0, t1, smaller` jumps to `smaller` if the signed value in `t0` is less than the value in `t1`.",
       "pitfalls": [
         "`blt` and `bltu` differ in how they interpret the compared values.",
         "A branch target is PC-relative and has a limited range."
       ],
       "related": [
-        "Jumps and Branches",
-        "Signed and Unsigned Interpretation",
-        "Assembler for Loop"
+        "Jumps and branches",
+        "Signed and unsigned interpretation",
+        "Assembly for loop"
       ],
       "heading": "Bedingte Sprünge"
     },
     {
       "id": "era-08-k16",
-      "term": "Branch Pseudoinstructions (Branch-Pseudoinstruktionen)",
+      "term": "Branch pseudo-instructions (Branch-Pseudoinstruktionen)",
       "kind": "notation",
-      "short": "The assembler translates branch pseudoinstructions into existing real branch instructions.",
-      "explanation": "`bgt rs1, rs2, label` becomes `blt rs2, rs1, label`, and `ble rs1, rs2, label` becomes `bge rs2, rs1, label`. The unsigned variants `bgtu` and `bleu` are translated in the same way to `bltu` and `bgeu`, with the operands swapped. `beqz rs, label` is equivalent to `beq rs, zero, label`, while `bnez rs, label` is equivalent to `bne rs, zero, label`.",
+      "short": "Branch pseudo-instructions are translated by the assembler into existing real branch instructions.",
+      "explanation": "`bgt rs1, rs2, label` expands to `blt rs2, rs1, label`, and `ble rs1, rs2, label` expands to `bge rs2, rs1, label`. The unsigned variants `bgtu` and `bleu` similarly expand to `bltu` and `bgeu`, with the operands swapped. `beqz rs, label` corresponds to `beq rs, zero, label`, while `bnez rs, label` corresponds to `bne rs, zero, label`.",
       "example": "`bgt t0, t1, done` is translated as `blt t1, t0, done`.",
       "pitfalls": [
-        "`bgt` is a pseudoinstruction here, not a separate branch machine instruction.",
-        "When translating `bgt` and `ble`, the operands are swapped."
+        "`bgt` is a pseudo-instruction here, not a distinct branch machine instruction.",
+        "The operands are swapped when `bgt` and `ble` are expanded."
       ],
       "related": [
-        "Conditional Branches",
-        "Pseudoinstructions"
+        "Conditional branches",
+        "Pseudo-instructions"
       ],
       "heading": "Branch-Pseudoinstruktionen"
     },
     {
       "id": "era-08-k17",
-      "term": "Subroutine Calls and Register Saving (Unterprogrammaufruf und Register-Sicherung)",
+      "term": "Subroutine calls and register preservation (Unterprogrammaufruf und Register-Sicherung)",
       "kind": "method",
-      "short": "Before a subroutine call, preserve values that are still needed, and restore any modified callee-saved registers before returning.",
-      "explanation": "The caller prepares arguments and saves any values it will still need after the call; these may include values in `a0`–`a7`. The callee saves any callee-saved registers it modifies and restores them before returning. Return values are typically placed in `a0` or `a1`, and in some procedures they may also be placed on the stack. This preserves the caller's state across the subroutine call.",
-      "example": "If the caller still needs a value in a temporary register after the call, it saves the value before the call and restores it afterward.",
+      "short": "Before a subroutine call, protect any values still needed afterward, and restore modified callee-saved registers before returning.",
+      "explanation": "The caller prepares parameters and saves values it still needs after the call; these may include values in `a0`–`a7`. The callee saves any callee-saved register it modifies and restores it before returning. Return values are typically placed in `a0` or `a1`, and in some procedures on the stack. This preserves the caller's state across the subroutine call.",
+      "example": "If the caller still needs a value in a temporary register after the call, it saves that value before the call and restores it afterward.",
       "pitfalls": [
-        "An argument register may be modified by a call, so save its old value if it is still needed.",
+        "A parameter register may be modified by a call and must be saved if its old value is still needed.",
         "A modified callee-saved register must be restored to its original value before returning."
       ],
       "related": [
-        "Calling Convention",
-        "Caller-Saved and Callee-Saved Registers",
-        "Stack: PUSH and POP",
-        "Subroutine Call"
+        "Calling convention",
+        "Caller-saved and callee-saved registers",
+        "Stack: push and pop",
+        "Subroutine call"
       ],
       "heading": "Unterprogramme: sichern, aufrufen, zurückkehren"
     },
@@ -309,87 +309,87 @@
       "term": "jal and jalr (jal und jalr)",
       "kind": "definition",
       "short": "`jal` and `jalr` save a return address and set the program counter to a jump target.",
-      "explanation": "`jal rd, label` saves the address of the following instruction, that is, the old `PC + 4`, in `rd` and jumps PC-relatively to the target. `jalr rd, rs, imm` also saves `PC + 4` and jumps to `rs + SignExt(imm)`; the least significant bit of the target address is cleared. The range of `jal` is approximately ±1 MiB. The shorthand `jal label` is a pseudoinstruction for `jal ra, label`; `j label` is equivalent to `jal zero, label`, and `call` can reach a more distant target using `auipc` and `jalr`.",
+      "explanation": "`jal rd, label` stores the address of the following instruction, that is, the old `PC + 4`, in `rd` and jumps PC-relatively to the target. `jalr rd, rs, imm` also stores `PC + 4` and jumps to `rs + SignExt(imm)`; the least significant bit of the target address is cleared. The range of `jal` is approximately ±1 MiB. The shorthand `jal label` is a pseudo-instruction for `jal ra, label`; `j label` corresponds to `jal zero, label`, and `call` can reach a more distant target using `auipc` and `jalr`.",
       "example": "If `jal ra, simple` is at address `0x200`, `0x204` is stored in `ra`.",
       "pitfalls": [
-        "The label in `jal` denotes a PC-relative jump target, not an absolute target value stored in the instruction.",
-        "`jalr` uses a register plus a sign-extended immediate to specify the target."
+        "The label at `jal` specifies a PC-relative jump target, not an absolute target value stored in the instruction.",
+        "`jalr` uses a register plus a sign-extended immediate for the target."
       ],
       "related": [
-        "Subroutine Calls and Register Saving",
-        "Return Address",
-        "Return Pseudoinstructions",
-        "Pseudoinstructions"
+        "Subroutine calls and register preservation",
+        "Return address",
+        "Return pseudo-instructions",
+        "Pseudo-instructions"
       ],
       "heading": "Unterprogramme: sichern, aufrufen, zurückkehren"
     },
     {
       "id": "era-08-k19",
-      "term": "Distant Jump Targets (Weit entfernte Sprungziele)",
+      "term": "Distant jump targets (Weit entfernte Sprungziele)",
       "kind": "method",
       "short": "For a more distant target, `auipc` and `jalr` can work together to form an address relative to the program counter and jump to it.",
-      "explanation": "The illustrated pattern uses `auipc` to form an upper offset portion relative to the PC, and `jalr` to add the remaining portion and jump to the target. The notation `offset[31:12]` and `offset[11:0]` is schematic; the toolchain calculates the split for a specific offset. The pseudoinstruction `call` can also be used for a subroutine call.",
+      "explanation": "The illustrated sequence uses `auipc` to form an upper offset part relative to the PC, and `jalr` to add the remaining part and jump to the target. The notation `offset[31:12]` and `offset[11:0]` is schematic; the toolchain calculates the split for a specific offset. The pseudo-instruction `call` can also be used for a subroutine call.",
       "example": "```asm\nauipc ra, offset[31:12]\njalr  ra, ra, offset[11:0]\n```",
       "pitfalls": [
-        "The offset fields in the pattern are placeholders, not numbers that can be inserted directly."
+        "The offset fields in the diagram are placeholders, not numbers that can be inserted directly."
       ],
       "related": [
         "jal and jalr",
-        "Subroutine Calls and Register Saving"
+        "Subroutine calls and register preservation"
       ],
       "heading": "Weiter entfernte Ziele"
     },
     {
       "id": "era-08-k20",
-      "term": "Return Pseudoinstructions (Rücksprung-Pseudobefehle)",
+      "term": "Return pseudo-instructions (Rücksprung-Pseudobefehle)",
       "kind": "notation",
       "short": "`ret` and `jr` are shorthand for `jalr` instructions that do not save a return address in a register.",
-      "explanation": "`ret` is equivalent to `jalr zero, ra, 0` and jumps to the saved return address. `jr rs` is equivalent to `jalr zero, rs, 0` and jumps to the address contained in register `rs`. The destination register `zero` discards the return address computed by `jalr`. Similarly, `jalr rs` is shorthand for `jalr ra, rs, 0`.",
+      "explanation": "`ret` corresponds to `jalr zero, ra, 0` and jumps to the saved return address. `jr rs` corresponds to `jalr zero, rs, 0` and jumps to the address held in register `rs`. The destination register `zero` discards the return address computed by `jalr`. Similarly, `jalr rs` is shorthand for `jalr ra, rs, 0`.",
       "example": "`ret` is the usual shorthand for `jalr zero, ra, 0`.",
       "pitfalls": [
-        "`ret` reads the jump target from `ra`; it does not itself compute the caller's address of the following instruction."
+        "`ret` reads the jump target from `ra`; it does not itself compute the address of the following instruction in the caller."
       ],
       "related": [
         "jal and jalr",
-        "Return Address",
-        "Subroutine Calls and Register Saving"
+        "Return address",
+        "Subroutine calls and register preservation"
       ],
       "heading": "Rücksprung und Adressbeispiel"
     },
     {
       "id": "era-08-k21",
-      "term": "Assembler for Loop (Assembler-for-Schleife)",
+      "term": "Assembly for loop (Assembler-for-Schleife)",
       "kind": "method",
       "short": "A typical assembly for loop checks the negated termination condition before the body, increments the counter, and jumps back.",
-      "explanation": "For `for (int i = a; i < b; ++i)`, the initial value `a` is first loaded into the counter. At the start of the loop, a branch checks the termination condition `i >= b`; if it is true, execution jumps to the end. Otherwise, the body runs, `i` is incremented, and execution jumps back to the start of the loop. In the illustrated pattern, the counter is in `t0` and the limit `b` is in `a0`.",
+      "explanation": "For `for (int i = a; i < b; ++i)`, first load the initial value `a` into the counter. At the start of the loop, a branch checks the termination condition `i >= b`; if it is true, execution jumps to the end. Otherwise, the body executes, `i` is incremented, and execution jumps back to the start of the loop. In the illustrated sequence, the counter is in `t0` and the bound `b` is in `a0`.",
       "example": "```asm\nli t0, a\nloop:\n    bge t0, a0, end\n    # Rumpf\n    addi t0, t0, 1\n    j loop\nend:\n```",
       "pitfalls": [
         "The branch checks the termination condition, which is the negation of `i < b`.",
         "`li t0, a` assumes that `a` is available as a suitable constant."
       ],
       "related": [
-        "Conditional Branches",
+        "Conditional branches",
         "jal and jalr",
-        "Assembly Programming"
+        "Assembly programming"
       ],
       "heading": "Eine for-Schleife in Assembler"
     },
     {
       "id": "era-08-k22",
-      "term": "Storing String Length in a Struct (Stringlänge in einem Struct speichern)",
+      "term": "Storing a string length in a struct (Stringlänge in einem Struct speichern)",
       "kind": "method",
-      "short": "The length of a C string can be found by counting bytes up to the NULL byte and stored in a struct field.",
-      "explanation": "In the illustrated RV32 struct, `data` contains a 4-byte pointer at offset 0, and `length` contains a 4-byte value at offset 4. The pointer `s` points to the struct instance, and the field `data` contains a pointer to a valid C string. The bytes starting at the string address are counted until a NULL byte with value 0 is reached; the count excluding this terminator is stored in `length`. An empty string has length 0.",
+      "short": "The length of a C string can be determined by counting the bytes up to the NUL byte and stored in a struct field.",
+      "explanation": "In the illustrated RV32 struct, `data` at offset 0 contains a 4-byte pointer, and `length` at offset 4 contains a 4-byte value. The pointer `s` points to the struct instance, and the field `data` contains a pointer to a valid C string. Count the bytes starting at the string address until a NUL byte with value 0 is reached; store the count, excluding that terminating byte, in `length`. An empty string has length 0.",
       "example": "For the C string `\"Hallo ERA!\"`, the stored length is 10.",
       "pitfalls": [
-        "The NULL byte ends the search but is not counted.",
+        "The NUL byte ends the search but is not counted.",
         "The first pointer points to the struct; its field `data` contains another pointer to the string."
       ],
       "related": [
-        "Strings: ASCII, C Strings, and Pascal Strings",
-        "Pointers and Dereferencing",
-        "Structs and Struct Layout",
-        "Memory Access: Loads and Stores"
+        "Strings: ASCII, C strings, and Pascal strings",
+        "Pointers and dereferencing",
+        "Structs and struct layout",
+        "Memory accesses: loads and stores"
       ],
       "heading": "Livecoding: Stringlänge in einem Struct speichern"
     }

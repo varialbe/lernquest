@@ -3,17 +3,17 @@
   "unitId": "era-06",
   "module": "ERA",
   "unitNumber": 6,
-  "unitTitle": "Subroutine Calls and Stack Frames (Unterprogramme und Stackframes)",
+  "unitTitle": "Subprograms and Stack Frames (Unterprogramme und Stackframes)",
   "sourceSha": "225a15da0828339fef200ad573f811048a1c254dc280f9236350c8e609fe7658",
-  "overview": "This unit explains subroutine calls and returns in RISC-V, the roles of caller and callee, and the register convention. Nested calls require separate stack frames, which are managed using the LIFO principle. The lecture notes also cover the typical memory layout, real jump instructions and pseudoinstructions, inspecting binary files with objdump, and an RV64 summation program that computes 45.",
+  "overview": "This unit explains subprogram calls (Unterprogrammaufrufe) and returns in RISC-V, the roles of the caller and callee, and the register convention. Nested calls require separate stack frames (Stackframes), managed on the stack according to the LIFO principle. The lecture notes also cover the typical memory layout, real jump instructions and pseudoinstructions, examining binary files with objdump, and an RV64 sum program that computes 45.",
   "entries": [
     {
       "id": "era-06-k01",
-      "term": "Subroutine call (Unterprogrammaufruf)",
+      "term": "Subprogram call (Unterprogrammaufruf)",
       "kind": "concept",
-      "short": "A subroutine call transfers control to a function and allows execution to return to the calling code.",
-      "explanation": "A complete call requires a jump to the subroutine and a saved return address. After execution, the caller resumes at the instruction following the call. With nested calls, every return address that is still needed must be preserved.",
-      "example": "When `main` calls a function, execution proceeds into it and then resumes in `main`.",
+      "short": "A subprogram call transfers control to a function and then allows execution to return to the calling code.",
+      "explanation": "A complete call requires a jump to the subprogram and a saved return address (Rücksprungadresse). After execution, the caller resumes at the instruction following the call. With nested calls, every return address that is still needed must be preserved.",
+      "example": "When `main` calls a function, the function executes and then execution continues at `main`.",
       "pitfalls": [
         "A jump without a saved return address does not allow a reliable return."
       ],
@@ -28,9 +28,9 @@
     },
     {
       "id": "era-06-k02",
-      "term": "Caller and callee (Caller und Callee)",
+      "term": "Caller and callee",
       "kind": "definition",
-      "short": "The caller invokes a subroutine, and the callee is the subroutine being called.",
+      "short": "The caller invokes a subprogram, and the callee is the subprogram being invoked.",
       "explanation": "Caller and callee describe the roles in a particular call. These roles determine, among other things, who must preserve register values across a function call. A function can be the callee in one call and the caller in another.",
       "example": "When `printf` is called, `main` is the caller and `printf` is the callee.",
       "pitfalls": [
@@ -38,8 +38,8 @@
       ],
       "related": [
         "Calling convention",
-        "Caller-saved registers",
-        "Callee-saved registers"
+        "Caller-saved register",
+        "Callee-saved register"
       ],
       "heading": "Unterprogramme: Aufruf und Rücksprung"
     },
@@ -48,7 +48,7 @@
       "term": "Program Counter (PC)",
       "kind": "definition",
       "short": "The PC contains the address of the current instruction.",
-      "explanation": "PC stands for Program Counter and denotes the instruction address where execution is currently taking place. A jump changes the PC, so execution continues at a different address. For a 32-bit instruction, the next instruction here is at `PC+4`.",
+      "explanation": "PC stands for Program Counter and denotes the instruction address at which execution is currently taking place. A jump changes the PC so that execution continues at a different address. For a 32-bit instruction, the next instruction is at `PC+4`.",
       "example": "If a 32-bit call is at `0x00000300`, the next instruction is at `0x00000304`.",
       "pitfalls": [
         "The PC is an instruction address, not a general-purpose data register."
@@ -64,11 +64,11 @@
       "id": "era-06-k04",
       "term": "Return address (Rücksprungadresse)",
       "kind": "definition",
-      "short": "The return address is where the caller resumes after the subroutine finishes executing.",
-      "explanation": "In RISC-V, the return address is usually held in register `ra` (`x1`). A call using `jal` stores the address of the next instruction there. Another call can overwrite `ra`, so a subroutine that makes calls of its own must save the current address.",
+      "short": "The return address is where the caller resumes execution after the subprogram finishes.",
+      "explanation": "In RISC-V, the return address is usually held in register `ra` (`x1`). A call using `jal` stores the address of the next instruction there. Another call can overwrite `ra`, so a subprogram that makes calls of its own must save the existing address.",
       "example": "For a 32-bit call at `0x00000300`, the return address is `0x00000304`.",
       "pitfalls": [
-        "The return address identifies where execution continues in the caller, not the start of the subroutine."
+        "The return address identifies the continuation in the caller, not the start of the subprogram."
       ],
       "related": [
         "jal",
@@ -82,8 +82,8 @@
       "term": "jal",
       "kind": "notation",
       "short": "`jal rd, offset` stores `PC+4` in `rd` and jumps to `PC+offset`.",
-      "explanation": "For a 32-bit instruction, `jal` stores the address of the next instruction in the destination register and calculates the jump target relative to the address of the `jal` instruction. For a subroutine call, `ra` is the usual destination register. To return correctly, a return address that is still needed must not be overwritten without being saved.",
-      "example": "With `jal ra, 0x21c` at address `0x00000300`, `0x00000304` is written to `ra`, and execution jumps to `0x0000051c`.",
+      "explanation": "For a 32-bit instruction, `jal` stores the address of the next instruction in the destination register and calculates the jump target relative to the address of the `jal` instruction. For a subprogram call, `ra` is the usual destination register. For the return to work, a return address that is still needed must not be overwritten without being saved.",
+      "example": "With `jal ra, 0x21c` at address `0x00000300`, `0x00000304` is written to `ra` and execution jumps to `0x0000051c`.",
       "pitfalls": [
         "The offset is added to the address of the `jal` instruction, not to the return address."
       ],
@@ -96,13 +96,13 @@
     },
     {
       "id": "era-06-k06",
-      "term": "Return with `jr ra` (Rücksprung)",
+      "term": "Return via `jr ra`",
       "kind": "method",
       "short": "`jr ra` resumes execution at the address stored in `ra`.",
-      "explanation": "`jr ra` is the pseudoinstruction notation for a register jump that does not create a new return address. It is equivalent to `jalr x0, ra, 0`. Writes to `x0` are discarded, so no new address is saved.",
+      "explanation": "`jr ra` is the pseudoinstruction form for a register jump that does not create a new return address. It corresponds to `jalr x0, ra, 0`. Since writes to `x0` are discarded, no new address is saved.",
       "example": "If `ra` contains the value `0x00000304`, `jr ra` jumps to that address.",
       "pitfalls": [
-        "The return works only if `ra` still contains the correct return address."
+        "The return succeeds only if `ra` still contains the correct return address."
       ],
       "related": [
         "Return address",
@@ -115,17 +115,17 @@
       "id": "era-06-k07",
       "term": "Calling convention",
       "kind": "definition",
-      "short": "The calling convention defines how functions exchange arguments, results, and register values.",
-      "explanation": "The calling convention assigns specific roles to registers and defines who must preserve their values across a call. In the RISC-V convention covered here, arguments are passed in `a0` through `a7`; return values are typically placed in `a0` and, when needed, `a1`. The convention lets separately implemented functions work together reliably.",
-      "example": "When `printf` is called, the first two arguments in the summation program are in `a0` and `a1`.",
+      "short": "The calling convention specifies how functions exchange arguments, results, and register values.",
+      "explanation": "The calling convention assigns specific roles to registers and specifies who must preserve their values across a call. In the RISC-V convention covered here, arguments are passed in `a0` through `a7`; return values are typically placed in `a0` and, if needed, `a1`. The convention lets independently implemented functions work together reliably.",
+      "example": "When `printf` is called, the first two arguments in the sum program are in `a0` and `a1`.",
       "pitfalls": [
-        "A register value is not preserved automatically just because it was there before the call."
+        "A register value is not automatically preserved just because it was there before the call."
       ],
       "related": [
         "Caller and callee",
         "Argument and result registers",
-        "Caller-saved registers",
-        "Callee-saved registers"
+        "Caller-saved register",
+        "Callee-saved register"
       ],
       "heading": "Argumente, Ergebnisse und Calling Convention"
     },
@@ -134,15 +134,15 @@
       "term": "Argument and result registers (Argument- und Ergebnisregister)",
       "kind": "concept",
       "short": "`a0` through `a7` serve as argument registers, and `a0` and `a1` also serve as result registers.",
-      "explanation": "Registers `a0` through `a7` are designated for function arguments. Return values are usually passed in `a0` and, when needed, also in `a1`. These registers are caller-saved, so the called subroutine may change them.",
-      "example": "Before `printf`, in the summation program `a0` contains the address of the format string and `a1` contains the sum to be printed.",
+      "explanation": "Registers `a0` through `a7` are designated for function arguments. Return values are usually passed in `a0` and, if needed, also in `a1`. These registers are caller-saved, so the called subprogram may change them.",
+      "example": "Before `printf`, in the sum program `a0` contains the address of the format string and `a1` contains the sum to be printed.",
       "pitfalls": [
-        "After a call, argument registers are not safe places to keep values that must remain unchanged."
+        "After a call, argument registers are not a safe place for values that must remain unchanged."
       ],
       "related": [
         "Calling convention",
-        "Caller-saved registers",
-        "RV64 summation program"
+        "Caller-saved register",
+        "RV64 sum program"
       ],
       "heading": "Argumente, Ergebnisse und Calling Convention"
     },
@@ -150,7 +150,7 @@
       "id": "era-06-k09",
       "term": "Caller-saved register (Caller-saved-Register)",
       "kind": "definition",
-      "short": "The callee may change caller-saved registers, and the caller must save any values it needs beforehand.",
+      "short": "The callee may change caller-saved registers, so the caller must save any values it needs beforehand.",
       "explanation": "The caller is responsible for preserving a value across a call. The callee may change a caller-saved register without restoring its old value. This group includes `t0` through `t6` and `a0` through `a7`.",
       "example": "If the caller still needs the value in `t0` after a call, it can save it in the stack frame beforehand.",
       "pitfalls": [
@@ -158,7 +158,7 @@
       ],
       "related": [
         "Calling convention",
-        "Callee-saved registers",
+        "Callee-saved register",
         "Stack frame"
       ],
       "heading": "Caller-saved und Callee-saved"
@@ -168,25 +168,25 @@
       "term": "Callee-saved register (Callee-saved-Register)",
       "kind": "definition",
       "short": "If the callee changes a callee-saved register, it must restore the original value before returning.",
-      "explanation": "A callee-saved register must appear unchanged to the caller. The callee may use it, but must save the old value and restore it before returning. This group includes `s0` through `s11`.",
-      "example": "If a function uses `s0` as a base for local variables, it saves the previous value of `s0` and restores it before returning.",
+      "explanation": "A callee-saved register must appear unchanged to the caller. The callee may use it, but must save its old value and restore it before returning. This group includes `s0` through `s11`.",
+      "example": "If a function uses `s0` as a reference point for local variables, it saves the previous `s0` value and restores it before returning.",
       "pitfalls": [
-        "The callee must save a callee-saved register only if it changes that register's value."
+        "The callee only needs to save a callee-saved register if it changes its value."
       ],
       "related": [
         "Calling convention",
-        "Caller-saved registers",
+        "Caller-saved register",
         "Stack frame"
       ],
       "heading": "Caller-saved und Callee-saved"
     },
     {
       "id": "era-06-k11",
-      "term": "Additional storage for subroutine calls (Zusätzlicher Speicher für Unterprogrammaufrufe)",
+      "term": "Additional storage for subprogram calls (Zusätzlicher Speicher für Unterprogrammaufrufe)",
       "kind": "concept",
       "short": "Additional storage keeps local data, temporary values, and saved registers separate for each active call.",
-      "explanation": "Registers are limited and may not be sufficient for all parameters, local data, and temporary values. Storage is also needed when values must survive a call or a return address must be saved. Fixed memory addresses are insufficient for nested and recursive calls, because the calls could otherwise overwrite one another's data.",
-      "example": "In a recursive function, every call that has not yet finished needs its own local data and, when necessary, its own saved return address.",
+      "explanation": "The number of registers is limited, and they may not be sufficient for all parameters, local data, and temporary values. Storage is also needed when values must survive a call or a return address must be saved. Fixed memory addresses are insufficient for nested and recursive calls because they could overwrite one another.",
+      "example": "In a recursive function, each call that has not yet finished needs its own local data and, when required, its own saved return address.",
       "pitfalls": [
         "Data belonging to different active calls must not use the same memory location without protection."
       ],
@@ -201,17 +201,17 @@
       "id": "era-06-k12",
       "term": "Stack frame (Stackframe)",
       "kind": "definition",
-      "short": "A stack frame is the temporary storage area used by one active subroutine call.",
+      "short": "A stack frame is the temporary storage area used by one active subprogram call.",
       "explanation": "A frame can contain local variables, saved registers, and a saved return address. It is allocated on entry and released before returning. Each active call gets its own frame, keeping data separate across nested and recursive calls.",
-      "example": "In the RV64 summation program, `main` allocates a 32-byte frame for `ra`, `s0`, and local variables.",
+      "example": "In the RV64 sum program, `main` allocates a 32-byte frame for `ra`, `s0`, and local variables.",
       "pitfalls": [
-        "A frame must not overwrite data from another frame that is still needed."
+        "A frame must not overwrite data in another frame that is still needed."
       ],
       "related": [
         "Stack",
-        "Stack pointer (`sp`)",
-        "Additional storage for subroutine calls",
-        "Callee-saved registers"
+        "Stack Pointer (`sp`)",
+        "Additional storage for subprogram calls",
+        "Callee-saved register"
       ],
       "heading": "Warum zusätzlicher Speicher nötig ist"
     },
@@ -219,8 +219,8 @@
       "id": "era-06-k13",
       "term": "Stack",
       "kind": "definition",
-      "short": "The stack is a memory area where stack frames are managed according to the LIFO principle.",
-      "explanation": "The stack typically holds local data, saved registers, and return addresses for active calls. `push` denotes placing an item on the stack, and `pop` denotes removing the top item; here these are names for operations, not additional RISC-V machine instructions. The most recently added call data is released first.",
+      "short": "The stack is a memory area in which stack frames are managed according to the LIFO principle.",
+      "explanation": "The stack typically holds local data, saved registers, and return addresses for active calls. `push` refers to placing an item on the stack, and `pop` to removing the top item; here, these are operation names, not additional RISC-V machine instructions. Call data placed on the stack most recently is released first.",
       "example": "If A calls B, and B then calls C, C's frame is released first, followed by B's.",
       "pitfalls": [
         "A stack follows LIFO; it is not a FIFO queue."
@@ -228,7 +228,7 @@
       "related": [
         "LIFO and FIFO",
         "Stack frame",
-        "Stack pointer (`sp`)"
+        "Stack Pointer (`sp`)"
       ],
       "heading": "Stack: LIFO statt FIFO"
     },
@@ -236,11 +236,11 @@
       "id": "era-06-k14",
       "term": "LIFO and FIFO",
       "kind": "concept",
-      "short": "LIFO processes the most recently added item first, whereas FIFO processes the item added first.",
-      "explanation": "LIFO stands for “Last In, First Out” and describes the order of stack operations. FIFO stands for “First In, First Out” and describes, for example, a queue. Nested subroutine calls follow LIFO because the most recently started call returns first.",
-      "example": "If A and then B are placed on a stack, LIFO removes B first.",
+      "short": "LIFO processes the most recently placed item first, whereas FIFO processes the earliest placed item first.",
+      "explanation": "LIFO stands for “Last In, First Out” and describes the order of stack operations. FIFO stands for “First In, First Out” and describes, for example, a queue. Nested subprogram calls follow LIFO because the most recently started call returns first.",
+      "example": "If A and then B are placed on a stack, under LIFO, B is removed first.",
       "pitfalls": [
-        "With FIFO, A would be removed first; that is not the order of nested calls."
+        "Under FIFO, A would be removed first; that is not the order of nested calls."
       ],
       "related": [
         "Stack",
@@ -250,33 +250,33 @@
     },
     {
       "id": "era-06-k15",
-      "term": "Stack pointer (`sp`)",
+      "term": "Stack Pointer (`sp`)",
       "kind": "definition",
       "short": "`sp` (`x2`) marks the current end of the stack area.",
-      "explanation": "The stack pointer is adjusted when a frame is allocated or released. Stack accesses can be addressed relative to `sp`. The specific arrangement of data within a frame depends on the frame layout.",
-      "example": "`sd ra, 24(sp)` stores the value of `ra` at address `sp+24` in an RV64 example.",
+      "explanation": "The stack pointer is adjusted when a frame is allocated or released. Stack accesses can be addressed relative to `sp`. The specific arrangement of data within a frame depends on its layout.",
+      "example": "In an RV64 example, `sd ra, 24(sp)` stores the value of `ra` at address `sp+24`.",
       "pitfalls": [
         "`sp` marks the stack boundary; it does not automatically refer to a particular local variable."
       ],
       "related": [
         "Stack",
         "Stack frame",
-        "Downward-growing stack"
+        "Stack growth toward lower addresses"
       ],
       "heading": "Stack: LIFO statt FIFO"
     },
     {
       "id": "era-06-k16",
-      "term": "Downward-growing stack (Stackwachstum nach unten)",
+      "term": "Stack growth toward lower addresses (Stackwachstum nach unten)",
       "kind": "concept",
-      "short": "In the convention shown, allocating a frame changes `sp` to a lower address.",
-      "explanation": "When a frame is allocated, its size is subtracted from `sp`; when it is released, the size is added back. This can be expressed as `sp ← sp − Framegröße` during allocation and `sp ← sp + Framegröße` during release. Growth toward lower addresses is a convention, not a technical necessity.",
-      "example": "A 32-byte frame can be allocated with `addi sp, sp, -32` and released with `addi sp, sp, 32`.",
+      "short": "Under the convention shown, allocating a frame changes `sp` to a lower address.",
+      "explanation": "When a frame is allocated, its size is subtracted from `sp`; when it is released, that size is added back. This can be expressed as `sp ← sp − Framegröße` when allocating and `sp ← sp + Framegröße` when releasing the frame. Growth toward lower addresses is a convention, not a technical necessity.",
+      "example": "For a 32-byte frame, `addi sp, sp, -32` can allocate it and `addi sp, sp, 32` can release it.",
       "pitfalls": [
         "“Downward” means toward lower memory addresses."
       ],
       "related": [
-        "Stack pointer (`sp`)",
+        "Stack Pointer (`sp`)",
         "Stack frame",
         "Memory layout"
       ],
@@ -286,16 +286,16 @@
       "id": "era-06-k17",
       "term": "Memory layout (Speicheraufteilung)",
       "kind": "concept",
-      "short": "The schematic memory model separates text, Static Data, heap, and stack.",
-      "explanation": "In the model shown, the text area containing program code is at low addresses, followed by Static Data with global variables and the heap for dynamic data. The stack is in the high-address region and grows toward lower addresses; the heap grows toward higher addresses. Both areas can grow into the free space between them, and their exact arrangement depends on the program and environment.",
-      "example": "A global counter variable is in Static Data, dynamically allocated data is in the heap, and local variables are typically in the stack frame.",
+      "short": "The schematic memory model separates text, static data, heap, and stack.",
+      "explanation": "In the model shown, the text area containing program code is at low addresses, followed by static data containing global variables and the heap for dynamic data. The stack is at high addresses and grows toward lower addresses; the heap grows toward higher addresses. Both areas can grow into the free space between them, and their exact arrangement depends on the program and its environment.",
+      "example": "A global counter variable is in static data, dynamically allocated data is in the heap, and local variables are typically in a stack frame.",
       "pitfalls": [
-        "The memory map and growth directions shown are a model; the layout can be different."
+        "The memory map and growth directions shown are a model; the arrangement can differ."
       ],
       "related": [
         "Stack",
         "Stack frame",
-        "Downward-growing stack"
+        "Stack growth toward lower addresses"
       ],
       "heading": "Typische Speicheraufteilung"
     },
@@ -304,8 +304,8 @@
       "term": "Stack overflow",
       "kind": "definition",
       "short": "A stack overflow occurs when the stack uses more memory than is available to it.",
-      "explanation": "Many simultaneously active calls can keep numerous frames on the stack. Deep or unbounded recursion can exhaust the available stack area. In the model shown, the stack can grow up to the heap; the actual limit and overflow detection depend on the environment.",
-      "example": "A function that calls itself recursively without a stopping condition can keep allocating frames and cause a stack overflow.",
+      "explanation": "Many simultaneously active calls can keep numerous frames on the stack. Deep or infinite recursion can exhaust the available stack area. In the model shown, the stack can grow into the heap; the actual limit and how an overflow is detected depend on the environment.",
+      "example": "A function that calls itself recursively without a stopping condition can create more and more frames and cause a stack overflow.",
       "pitfalls": [
         "A stack overflow does not necessarily mean that the heap is overwritten in every environment."
       ],
@@ -320,11 +320,11 @@
       "id": "era-06-k19",
       "term": "Real jump instructions and pseudoinstructions (Echte Sprungbefehle und Pseudobefehle)",
       "kind": "concept",
-      "short": "Real machine instructions have an ISA encoding, while pseudoinstructions are readable forms that the assembler translates.",
-      "explanation": "A real machine instruction corresponds to an encoded instruction in the target ISA. A pseudoinstruction is an additional assembler notation that the assembler translates into one or more real instructions. A direct mapping between the assembler representation and the encoding applies to real machine instructions.",
-      "example": "`j label` is a pseudoinstruction equivalent to `jal x0, label`.",
+      "short": "Real machine instructions have an ISA encoding, whereas pseudoinstructions are readable forms that the assembler translates.",
+      "explanation": "A real machine instruction corresponds to an encoded instruction in the target ISA. A pseudoinstruction is an additional assembler notation that the assembler translates into one or more real instructions. A direct mapping between assembler notation and encoding applies to real machine instructions.",
+      "example": "`j label` is a pseudoinstruction and corresponds to `jal x0, label`.",
       "pitfalls": [
-        "A pseudoinstruction is not necessarily a single additional machine instruction."
+        "A pseudoinstruction is not necessarily one additional machine instruction."
       ],
       "related": [
         "jal",
@@ -338,7 +338,7 @@
       "id": "era-06-k20",
       "term": "jalr",
       "kind": "notation",
-      "short": "`jalr rd, rs1, imm` jumps to a register address and stores `PC+4` in `rd`.",
+      "short": "`jalr rd, rs1, imm` jumps via a register address and stores `PC+4` in `rd`.",
       "explanation": "`jalr` calculates the jump target from the value of `rs1` and the immediate offset. At the same time, the instruction writes the address of the next instruction to `rd`. A destination register of `x0` discards the link value.",
       "example": "`jalr x0, ra, 0` jumps to the address in `ra` without saving a new return address.",
       "pitfalls": [
@@ -347,7 +347,7 @@
       "related": [
         "jal",
         "Return address",
-        "Return with `jr ra`"
+        "Return via `jr ra`"
       ],
       "heading": "Echte Sprungbefehle und Pseudobefehle"
     },
@@ -356,10 +356,10 @@
       "term": "j and jr",
       "kind": "notation",
       "short": "`j label` and `jr reg` are pseudoinstructions for jumps that do not save a new return address.",
-      "explanation": "`j label` is equivalent to `jal x0, label`. `jr reg` is equivalent to `jalr x0, reg, 0` and jumps to a register address. Because writes to `x0` are discarded, no new return address is preserved.",
+      "explanation": "`j label` corresponds to `jal x0, label`. `jr reg` corresponds to `jalr x0, reg, 0` and jumps to a register address. Since writes to `x0` are discarded, no new return address is preserved.",
       "example": "`j .Ltest` jumps back to the loop condition without changing a link register.",
       "pitfalls": [
-        "`jr ra` uses `ra` as the jump target, but does not save a new return address."
+        "`jr ra` uses `ra` as the jump target but does not save a new return address."
       ],
       "related": [
         "jal",
@@ -373,8 +373,8 @@
       "id": "era-06-k22",
       "term": "mv",
       "kind": "notation",
-      "short": "`mv rd, rs` is a pseudoinstruction that copies the value of `rs` to `rd`.",
-      "explanation": "`mv` is a readable assembler notation, not an independent RISC-V instruction. Possible replacement instructions are `add rd, rs, x0` and `addi rd, rs, 0`. Both preserve the value because `x0` or the immediate, respectively, is zero.",
+      "short": "`mv rd, rs` is a pseudoinstruction that copies the value from `rs` to `rd`.",
+      "explanation": "`mv` is a readable assembler notation, not a standalone RISC-V instruction. Possible replacement instructions are `add rd, rs, x0` and `addi rd, rs, 0`. Both leave the value unchanged because `x0` or the immediate, respectively, is zero.",
       "example": "`mv t0, t1` copies the value from `t1` to `t0`.",
       "pitfalls": [
         "`mv` copies a register value; it does not load a value from memory."
@@ -388,9 +388,9 @@
     },
     {
       "id": "era-06-k23",
-      "term": "Stack-frame offset notation (Stackframe-Offsetnotation)",
+      "term": "Stack frame offset notation (Stackframe-Offsetnotation)",
       "kind": "notation",
-      "short": "`offset(register)` denotes a memory address formed from a base register value plus an offset.",
+      "short": "`offset(register)` denotes a memory address calculated from a base register value plus an offset.",
       "explanation": "For a memory instruction such as `lw t0, -24(s0)`, the address is calculated by adding the offset to the contents of `s0`. The offset is specified in bytes. The load or store instruction determines how many bytes are transferred.",
       "example": "`sw t0, -20(s0)` stores the value from `t0` at address `s0-20`.",
       "pitfalls": [
@@ -398,7 +398,7 @@
       ],
       "related": [
         "Stack frame",
-        "Stack pointer (`sp`)",
+        "Stack Pointer (`sp`)",
         "Load/store architecture"
       ],
       "heading": "1. Stackframe anlegen und Variablen initialisieren"
@@ -408,10 +408,10 @@
       "term": "objdump",
       "kind": "method",
       "short": "`objdump` displays information about a binary file and can disassemble its machine instructions.",
-      "explanation": "`objdump -h datei` displays an overview of the sections. `objdump -d datei` displays the encoded program instructions as disassembly. These commands can be used to inspect both the section structure and the instructions in a binary file.",
+      "explanation": "`objdump -h datei` displays an overview of the sections. `objdump -d datei` presents encoded program instructions as disassembly. These commands let you examine both the section structure and the instructions in a binary file.",
       "example": "`objdump -d count` displays the disassembly of the program `count`.",
       "pitfalls": [
-        "`-h` displays the section overview; use `-d` for the disassembly."
+        "`-h` displays the section overview; use `-d` for disassembly."
       ],
       "related": [
         "Disassembly",
@@ -424,8 +424,8 @@
       "term": "Disassembly",
       "kind": "definition",
       "short": "A disassembly is a readable assembly representation of encoded machine instructions.",
-      "explanation": "A disassembly typically shows the instruction address, encoding, and a readable assembly representation. It is generated from the encoded instructions and is not additionally stored as assembly text in RAM. This makes it possible to inspect which instructions are contained in a binary file.",
-      "example": "A line can contain an address, the encoding, and a representation such as `addi sp, sp, -32`.",
+      "explanation": "A disassembly typically shows the instruction address, its encoding, and a readable assembly representation. It is generated from the encoded instructions; it is not additionally present as assembly text in RAM. This makes it possible to inspect the instructions contained in a binary file.",
+      "example": "A line can contain an address, an encoding, and a representation such as `addi sp, sp, -32`.",
       "pitfalls": [
         "The representation is an interpretation of the encoded instructions, not necessarily the original source code."
       ],
@@ -438,27 +438,27 @@
     },
     {
       "id": "era-06-k26",
-      "term": "Target architecture with `-march` (Zielarchitektur)",
+      "term": "Target architecture with `-march`",
       "kind": "notation",
       "short": "`-march` specifies the target ISA and available extensions during compilation.",
-      "explanation": "The compiler option specifies the architecture and instruction extensions for which code may be generated. `rv64imafd` denotes RV64 with the I, M, A, F, and D extensions here; `rv64imafdc` adds C. In the disassembly shown without C, all instructions considered are 32 bits wide and are spaced four bytes apart.",
+      "explanation": "The compiler option specifies the architecture and instruction extensions for which code may be generated. `rv64imafd` denotes RV64 with extensions I, M, A, F, and D; `rv64imafdc` adds C. In the disassembly shown, which does not include C, the instructions under consideration are all 32 bits wide and are spaced four bytes apart.",
       "example": "`gcc -o count -O0 -g count.c -march=rv64imafd` selects this RISC-V target architecture for compilation.",
       "pitfalls": [
         "Which target architecture is used without `-march` depends on the installed toolchain."
       ],
       "related": [
         "RISC-V",
-        "Machine-instruction format",
+        "Machine instruction format",
         "Compiler and binary file"
       ],
       "heading": "Zielarchitektur beim Kompilieren"
     },
     {
       "id": "era-06-k27",
-      "term": "RV64 summation program (RV64-Summenprogramm)",
+      "term": "RV64 sum program",
       "kind": "example",
-      "short": "The RV64 summation program adds the values 0 through 9 in ten loop iterations and computes 45.",
-      "explanation": "The C program initializes `n=10`, `i=0`, and `c=0`, adds `i` to `c` during each loop iteration, and then increments `i`. The loop ends when `i=10`, after adding exactly the values 0 through 9. In the schematic RV64 example, `main` allocates a 32-byte stack frame, saves `ra` and `s0`, and stores local variables there. Before calling `printf`, it places the arguments in `a0` and `a1`. After the call, it restores the saved registers, releases the frame, and returns.",
+      "short": "The RV64 sum program adds the values 0 through 9 over ten loop iterations and computes 45.",
+      "explanation": "The C program initializes `n=10`, `i=0`, and `c=0`, adds `i` to `c` on each loop iteration, and then increments `i`. The loop ends at `i=10`, after adding exactly the values 0 through 9. In the schematic RV64 example, `main` allocates a 32-byte stack frame, saves `ra` and `s0`, stores local variables there, and sets the arguments in `a0` and `a1` before `printf`. After the call, it restores the saved registers, releases the frame, and returns.",
       "example": "`c = 0 + 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9 = 45`.",
       "pitfalls": [
         "The loop body runs ten times; `i=10` is considered only in the termination check.",
@@ -468,25 +468,25 @@
         "Stack frame",
         "Argument and result registers",
         "Return address",
-        "Stack-frame offset notation"
+        "Stack frame offset notation"
       ],
       "heading": "Ausgangspunkt in C"
     },
     {
       "id": "era-06-k28",
-      "term": "Pseudoinstructions `call`, `ret`, `la`, and `li` (Pseudobefehle)",
+      "term": "Pseudoinstructions `call`, `ret`, `la`, and `li`",
       "kind": "notation",
       "short": "`call`, `ret`, `la`, and `li` are pseudoinstructions for calling, returning, loading an address, and loading an immediate value.",
-      "explanation": "The lecture notes use these readable forms as additions in the RV64 summation program. `call` calls a subroutine, `ret` returns via `ra`, `la` loads an address, and `li` loads an immediate value. The assembler translates these forms into real instructions.",
-      "example": "In the example, `la a0, .Lformat` loads the address of the format string, and `ret` is equivalent to `jalr x0, ra, 0`.",
+      "explanation": "The lecture notes use these readable forms as additions to the RV64 sum program. `call` calls a subprogram, `ret` returns via `ra`, `la` loads an address, and `li` loads an immediate value. The assembler translates these forms into real instructions.",
+      "example": "In the example, `la a0, .Lformat` loads the address of the format string, and `ret` corresponds to `jalr x0, ra, 0`.",
       "pitfalls": [
-        "Pseudoinstructions are assembler notations, not independent machine instructions."
+        "Pseudoinstructions are assembler notations, not standalone machine instructions."
       ],
       "related": [
         "Real jump instructions and pseudoinstructions",
         "jalr",
         "Return address",
-        "RV64 summation program"
+        "RV64 sum program"
       ],
       "heading": "3. Ausgabe, Register wiederherstellen und zurückkehren"
     }
