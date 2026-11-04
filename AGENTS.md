@@ -32,6 +32,13 @@ Karteikarten-Fortschritt (`card_items`) hängt an den Eintrags-IDs: Eine neu erz
 - Nach Änderungen an Unit, Wissen oder Voraussetzungsbegründungen: `pnpm pipeline translate <unit-id>` (betroffene spätere Units ebenfalls nachziehen). Der normale Lauf übersetzt neue/veraltete Inhalte bis `TRANSLATE_CATCH_UP` (Standard wie `KNOWLEDGE_CATCH_UP`).
 - Vor dem Deploy: `pnpm pipeline wissen-check` und `pnpm pipeline translate-check --strict`. Übersetzungen müssen aktuell sein und den deterministischen Validator bestehen: gleiche Struktur, IDs, Antworten, Zahlen, Formeln, Code und Lückenmarker. Original-JSONs und Metadaten nicht zur Umgehung der Prüfung verändern.
 - Übersetzungen ausschließlich über die Pipeline erzeugen/reparieren; eine Übersetzung setzt keine Karten zurück. Die API fällt bei fehlenden, veralteten oder ungültigen Übersetzungen auf Deutsch zurück.
+- **Mermaid-Diagramme werden mitübersetzt**: Die Pipeline schickt nur die sichtbaren Beschriftungen (Knoten, Kanten, Subgraph-Titel) als Felder `<pfad>#m<k>` ans Modell (`packages/shared/src/mermaid.ts`) und setzt das Diagramm deterministisch wieder zusammen; der Validator vergleicht das Diagramm-Skelett ohne Beschriftungen. Diagramm-Code nie von Hand übersetzen. Nach Änderungen an der Übersetzungslogik bestehende Fassungen mit `pnpm pipeline translate <id> --force` neu erzeugen (der Validator hält alte, deutsche Diagramme für gültig).
+
+## Formatierung und Rechtschreibung
+
+- `pnpm pipeline lint --strict` muss vor jedem Deploy `✓` melden. Er rendert alle Texte (DE + EN) wie die App (GFM + remark-math + KaTeX) und findet kaputte Formeln, vergessene `$`, LaTeX außerhalb von Formeln, Markdown-Reste und deutsche Reste im Englischen. Das Quality-Gate behandelt Formatfehler einer Frage wie einen durchgefallenen Blind-Test (Reparatur).
+- Lücken `___` dürfen in Formeln stehen (`$F_{n+2}=___$`); die App teilt die Formel an der Lücke (`apps/web/src/components/Markdown.tsx`, `gapsInMath`).
+- Rechtschreib-/Grammatikfehler über `pnpm pipeline proofread <unit-id …>|--all --lang de|en|both [--dry-run]` korrigieren, nicht von Hand. Er ändert nur Wortlaut (Formeln, Code, Lücken, IDs, Diagrammstruktur byte-gleich, höchstens 25 % (DE) bzw. 40 % (EN) geänderte Wörter pro Feld), importiert geänderte deutsche Units in die DB und schreibt einen Bericht nach `data/reports/proofread-*.json`. Reihenfolge: erst `--lang de`, dann `translate --all` (deutsche Änderungen machen die Übersetzung veraltet), dann `--lang en`. Karten bleiben erhalten (IDs unverändert).
 
 ## Weitere Regeln
 
