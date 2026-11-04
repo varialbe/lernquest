@@ -225,4 +225,3 @@ export function evaluatePrereqs(graphDir?: string) {
   }
   return { text: table(rows), rows };
 }
-

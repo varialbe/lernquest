@@ -94,4 +94,3 @@ describe('Voraussetzungs-Migration', () => {
     expect(options(['--rollback', 'x'])).toMatchObject({ rollback: 'x' });
   });
 });
-

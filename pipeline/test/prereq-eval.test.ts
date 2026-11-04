@@ -32,4 +32,3 @@ describe('Voraussetzungs-Evaluation', () => {
     expect(report.text).toContain('Aktuell (Baseline)');
   });
 });
-

@@ -189,6 +189,7 @@ export function buildPrereqsGraph(base: Graph, target: UnitKnowledge, raw: RawLi
     const count = counts.get(c.from)!;
     if (count[c.type] >= limits[c.type]) dropped.push(`${c.from} → ${c.to}: mehr als ${limits[c.type]} ${c.type}-Kanten`);
     else if (c.type !== 'related' && reaches(requires, c.to, c.from)) dropped.push(`${c.from} → ${c.to}: Zyklus`);
+    else if (c.type !== 'related' && hasCanonicalPrereqCycle({ ...requires, [c.from]: [...out, { id: c.to, type: c.type, why: c.why, legacy: false, locked: false }] }, g.aliases)) dropped.push(`${c.from} → ${c.to}: Alias erzeugt Lernpfad-Zyklus`);
     else {
       out.push({ id: c.to, type: c.type, why: c.why, legacy: false, locked: false });
       count[c.type]++;

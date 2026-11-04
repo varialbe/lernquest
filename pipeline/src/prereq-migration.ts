@@ -265,4 +265,3 @@ export function parseMigrationOptions(args: string[]): MigrationOptions {
     rollback: rollbackStamp,
   };
 }
-
