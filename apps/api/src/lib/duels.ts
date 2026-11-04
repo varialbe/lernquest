@@ -113,7 +113,7 @@ export function declineDuel(db: DB, u: AuthUser, duelId: string) {
   if (!d || d.opponentId !== u.id) throw notFound('Duell nicht gefunden');
   if (d.status !== 'open') throw conflict('closed', 'Dieses Duell ist schon vorbei.');
   db.update(duels).set({ status: 'declined', finishedAt: Date.now() }).where(eq(duels.id, d.id)).run();
-  void sendToUser(db, d.challengerId, { title: 'Duell abgelehnt', body: `${u.displayName} hat dein Duell abgelehnt.`, url: '/duels' });
+  void sendToUser(db, d.challengerId, { title: 'Duell abgelehnt', body: `${u.displayName} hat dein Duell abgelehnt.`, en: { title: 'Duel declined', body: `${u.displayName} declined your duel.` }, url: '/duels' });
 }
 
 function finish(db: DB, d: DuelRow, winnerId: number | null, now: number) {
@@ -143,6 +143,7 @@ export function resolveDuel(db: DB, duelId: string, viewerId: number, now = Date
       void sendToUser(db, me.userId, {
         title: draw ? '🤝 Unentschieden!' : won ? '🏆 Duell gewonnen!' : 'Duell verloren',
         body: `${me.correct}:${other.correct} gegen ${name}${won ? ` · +${DUEL.winCoins} Coins` : ''}`,
+        en: { title: draw ? '🤝 It is a draw!' : won ? '🏆 Duel won!' : 'Duel lost', body: `${me.correct}:${other.correct} against ${name}${won ? ` · +${DUEL.winCoins} coins` : ''}` },
         url: '/duels',
       });
     }
@@ -154,6 +155,7 @@ export function resolveDuel(db: DB, duelId: string, viewerId: number, now = Date
     void sendToUser(db, waiting, {
       title: run.userId === d.challengerId ? `⚔️ ${name} fordert dich heraus` : '⚔️ Du bist dran',
       body: `${MODULE_INFO[d.module as ModuleId].short}-Duell: ${name} hat ${run.correct}/${d.questionIds.length} vorgelegt. Noch ${Math.max(1, Math.round((d.expiresAt - now) / 3600_000))} Std.`,
+      en: { title: run.userId === d.challengerId ? `⚔️ ${name} challenged you` : '⚔️ Your turn', body: `${MODULE_INFO[d.module as ModuleId].short} duel: ${name} scored ${run.correct}/${d.questionIds.length}. ${Math.max(1, Math.round((d.expiresAt - now) / 3600_000))} hours left.` },
       url: '/duels',
     });
   }

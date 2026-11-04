@@ -26,6 +26,9 @@ export const users = sqliteTable('users', {
   soundOn: integer('sound_on', { mode: 'boolean' }).notNull().default(true),
   /** Wochenrückblick als Push (nur wenn Mitteilungen aktiv sind) */
   weeklyRecap: integer('weekly_recap', { mode: 'boolean' }).notNull().default(true),
+  /** null follows the device language; device_locale is refreshed from authenticated requests. */
+  locale: text('locale', { enum: ['de', 'en'] }),
+  deviceLocale: text('device_locale', { enum: ['de', 'en'] }).notNull().default('en'),
   activePet: text('active_pet'),
   invitedWith: text('invited_with'),
   /** veraltet (Klartext, nur kurz in 0003) – wird beim Start nach email_enc verschoben und geleert */

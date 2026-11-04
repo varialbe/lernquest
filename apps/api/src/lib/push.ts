@@ -5,6 +5,8 @@ import type { DB } from '../db/index.ts';
 import { pipelineState, pushSubscriptions, units, users } from '../db/schema.ts';
 import { todayXp } from './game.ts';
 import { berlinDay, berlinHour } from './time.ts';
+import { localeForUser } from './locale.ts';
+import { localizedUnitTitle } from './content-locale.ts';
 
 export const pushEnabled = () => !!(process.env.VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY);
 
@@ -41,9 +43,10 @@ export async function remindersTick(db: DB, now = Date.now()) {
     db.update(pushSubscriptions).set({ lastRemindedDay: day }).where(eq(pushSubscriptions.id, sub.id)).run();
     if (xp >= user.dailyGoal) continue;
     const atRisk = user.streak > 0 && user.lastActiveDay !== day;
+    const english = localeForUser(user) === 'en';
     const ok = await sendPush(db, sub, {
-      title: atRisk ? `🔥 Dein ${user.streak}-Tage-Streak wartet!` : 'Zeit für eine kleine Runde 📚',
-      body: atRisk ? 'Ein Level reicht, um ihn zu retten.' : `Noch ${user.dailyGoal - xp} XP bis zu deinem Tagesziel.`,
+      title: english ? (atRisk ? `🔥 Your ${user.streak}-day streak is waiting!` : 'Time for a quick study round 📚') : (atRisk ? `🔥 Dein ${user.streak}-Tage-Streak wartet!` : 'Zeit für eine kleine Runde 📚'),
+      body: english ? (atRisk ? 'One level is enough to keep it going.' : `${user.dailyGoal - xp} XP to go until your daily goal.`) : (atRisk ? 'Ein Level reicht, um ihn zu retten.' : `Noch ${user.dailyGoal - xp} XP bis zu deinem Tagesziel.`),
       url: '/',
     });
     if (ok) sent++;
@@ -52,10 +55,12 @@ export async function remindersTick(db: DB, now = Date.now()) {
 }
 
 /** An alle Geräte einer Person (Duelle). Ohne VAPID oder Abo passiert nichts. */
-export async function sendToUser(db: DB, userId: number, payload: { title: string; body: string; url?: string }) {
+export async function sendToUser(db: DB, userId: number, payload: { title: string; body: string; url?: string; en?: { title: string; body: string } }) {
   if (!pushEnabled()) return 0;
   let sent = 0;
-  for (const sub of db.select().from(pushSubscriptions).where(eq(pushSubscriptions.userId, userId)).all()) if (await sendPush(db, sub, payload)) sent++;
+  const user = db.select().from(users).where(eq(users.id, userId)).get();
+  const localized = user && localeForUser(user) === 'en' && payload.en ? { ...payload.en, url: payload.url } : { title: payload.title, body: payload.body, url: payload.url };
+  for (const sub of db.select().from(pushSubscriptions).where(eq(pushSubscriptions.userId, userId)).all()) if (await sendPush(db, sub, localized)) sent++;
   return sent;
 }
 
@@ -76,12 +81,16 @@ export async function newUnitsTick(db: DB, now = Date.now()) {
   if (!fresh.length) return 0;
   db.update(pipelineState).set({ value: String(fresh.at(-1)!.createdAt), updatedAt: now }).where(eq(pipelineState.key, ANNOUNCED)).run();
   const first = fresh[0]!;
-  const payload =
-    fresh.length === 1
-      ? { title: `📚 Neu in ${MODULE_INFO[first.module as ModuleId]?.short ?? first.module}: ${first.title}`, body: 'Vier frische Level + Praxis warten auf dich.', url: '/' }
-      : { title: `📚 ${fresh.length} neue Units sind da`, body: fresh.map((u) => `${u.module} ${u.number}: ${u.title}`).join(' · ').slice(0, 180), url: '/' };
-  let sent = 0;
   const subs = db.select({ sub: pushSubscriptions, user: users }).from(pushSubscriptions).innerJoin(users, eq(users.id, pushSubscriptions.userId)).all();
-  for (const { sub, user } of subs) if (!user.disabled && (await sendPush(db, sub, payload))) sent++;
+  let sent = 0;
+  for (const { sub, user } of subs) {
+    if (user.disabled) continue;
+    const english = localeForUser(user) === 'en';
+    const titleOf = (u: typeof first) => english ? localizedUnitTitle(u.id, u.title, 'en') : u.title;
+    const payload = fresh.length === 1
+      ? { title: english ? `📚 New in ${MODULE_INFO[first.module as ModuleId]?.short ?? first.module}: ${titleOf(first)}` : `📚 Neu in ${MODULE_INFO[first.module as ModuleId]?.short ?? first.module}: ${first.title}`, body: english ? 'Four new levels and a practice round are ready.' : 'Vier frische Level + Praxis warten auf dich.', url: '/' }
+      : { title: english ? `📚 ${fresh.length} new units are here` : `📚 ${fresh.length} neue Units sind da`, body: fresh.map((u) => `${u.module} ${u.number}: ${titleOf(u)}`).join(' · ').slice(0, 180), url: '/' };
+    if (await sendPush(db, sub, payload)) sent++;
+  }
   return sent;
 }

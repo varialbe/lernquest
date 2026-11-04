@@ -7,6 +7,7 @@ import { z } from 'zod';
 import type { DB } from '../db/index.ts';
 import { adminNotifications, invites, passkeys, pipelineRuns, processedFiles, questionReports, questions, sessions, units, users } from '../db/schema.ts';
 import { emailFields, emailOf, issueToken, resetProgress, sendVerify, subscriberCounts } from '../lib/account.ts';
+import { localeForUser } from '../lib/locale.ts';
 import { appUrl, resetMail, sendMail } from '../lib/mail.ts';
 import { hashPassword, randomInviteCode, randomPassword, requireAdmin, revokeAllSessions } from '../lib/auth.ts';
 import { badRequest, HttpError, notFound } from '../lib/http.ts';
@@ -110,7 +111,7 @@ export function adminRoutes(app: FastifyInstance, db: DB) {
     if (!to) throw badRequest('no_email', 'Für dieses Konto ist keine E-Mail-Adresse hinterlegt – nutze das temporäre Passwort.');
     const target = appUrl();
     const token = issueToken(db, u.id, 'reset', 24 * 3_600_000, target);
-    await sendMail(resetMail({ to, name: u.displayName, username: u.username, link: `${target}/reset?token=${token}`, app: target }));
+    await sendMail(resetMail({ to, name: u.displayName, username: u.username, link: `${target}/reset?token=${token}`, app: target, locale: localeForUser(u) }));
     return { ok: true, to };
   });
 

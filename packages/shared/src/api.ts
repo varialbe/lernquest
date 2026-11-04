@@ -63,6 +63,7 @@ export const SettingsReq = z.object({
   activePet: z.string().max(40).optional(),
   soundOn: z.boolean().optional(),
   weeklyRecap: z.boolean().optional(),
+  locale: z.enum(['de', 'en']).nullable().optional(),
   newsletter: z.boolean().optional(),
   email: Email.optional(),
 });
@@ -106,6 +107,8 @@ export type MeResponse = {
     frame: string | null;
     soundOn: boolean;
     weeklyRecap: boolean;
+    /** User override; null follows the device language. */
+    locale: 'de' | 'en' | null;
     activePet: string | null;
     newsletter: 'none' | 'pending' | 'confirmed';
     email: string | null;

@@ -7,6 +7,7 @@ import { hashPassword } from './auth.ts';
 import { decrypt, emailHash, encrypt, newToken, normalizeEmail, sign, tokenHash } from './crypto.ts';
 import { badRequest, conflict, HttpError } from './http.ts';
 import { apiUrl, optInMail, sendMail, verifyMail } from './mail.ts';
+import { localeForUser } from './locale.ts';
 
 /** Klartext-E-Mail eines Nutzers (entschlüsselt) */
 export const emailOf = (u: Pick<AuthUser, 'emailEnc'>) => decrypt(u.emailEnc);
@@ -56,7 +57,7 @@ export async function sendVerify(db: DB, u: AuthUser, app: string) {
   const to = emailOf(u);
   if (!to) return;
   const token = issueToken(db, u.id, 'verify', 7 * DAY, app);
-  await sendMail(verifyMail({ to, name: u.displayName, link: `${apiUrl()}/auth/verify?token=${token}`, app }));
+  await sendMail(verifyMail({ to, name: u.displayName, link: `${apiUrl()}/auth/verify?token=${token}`, app, locale: localeForUser(u) }));
 }
 
 /** Newsletter: Anmeldung vormerken und Double-Opt-in-Mail schicken */
@@ -66,7 +67,7 @@ export async function requestNewsletter(db: DB, u: AuthUser, app: string) {
   if (u.newsletter) return;
   db.update(users).set({ newsletterRequestedAt: Date.now() }).where(eq(users.id, u.id)).run();
   const token = issueToken(db, u.id, 'newsletter', 7 * DAY, app);
-  await sendMail(optInMail({ to, name: u.displayName, link: `${apiUrl()}/newsletter/confirm?token=${token}`, app }));
+  await sendMail(optInMail({ to, name: u.displayName, link: `${apiUrl()}/newsletter/confirm?token=${token}`, app, locale: localeForUser(u) }));
 }
 
 export function stopNewsletter(db: DB, userId: number) {
@@ -79,7 +80,7 @@ export const unsubscribeUrl = (userId: number) => `${apiUrl()}/newsletter/unsubs
 
 export const confirmedSubscribers = (db: DB) =>
   db
-    .select({ id: users.id, emailEnc: users.emailEnc, displayName: users.displayName })
+    .select({ id: users.id, emailEnc: users.emailEnc, displayName: users.displayName, locale: users.locale, deviceLocale: users.deviceLocale })
     .from(users)
     .where(and(eq(users.newsletter, true), isNotNull(users.emailEnc), eq(users.disabled, false)))
     .all();

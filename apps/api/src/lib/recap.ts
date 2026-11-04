@@ -8,15 +8,19 @@ import { dueReviews } from './game.ts';
 import { pushEnabled, sendPush } from './push.ts';
 import { mastery } from './runs.ts';
 import { addDays, berlinDay, berlinHour, berlinMidnight, weekStart } from './time.ts';
+import { localizedConcept } from './content-locale.ts';
+import { localeForUser } from './locale.ts';
 
 /**
  * Wochenrückblick: XP, Fragen, Trefferquote, Streak, wackeligste Konzepte, Fälliges.
  * Web-App: Push sonntags ab 18 Uhr (einmal pro Woche und Gerät). iOS-App: lokal geplant mit GET /api/recap.
  * Nur für Personen mit aktivierten Mitteilungen und eingeschaltetem Wochenrückblick.
  */
-const fmt = (n: number) => n.toLocaleString('de-DE');
+const fmt = (n: number, locale: 'de' | 'en') => n.toLocaleString(locale === 'de' ? 'de-DE' : 'en-US');
 
 export function weeklyRecap(db: DB, u: AuthUser, now = Date.now()): RecapResponse {
+  const locale = localeForUser(u);
+  const de = locale === 'de';
   const monday = weekStart(now);
   const from = berlinMidnight(monday);
   const prevFrom = berlinMidnight(addDays(monday, -7));
@@ -36,29 +40,29 @@ export function weeklyRecap(db: DB, u: AuthUser, now = Date.now()): RecapRespons
     .filter((c) => c.level === 'weak')
     .sort((x, y) => x.score - y.score)
     .slice(0, 2)
-    .map((c) => c.concept);
+    .map((c) => localizedConcept(c.unitId, c.concept, locale));
   const due = dueReviews(db, u.id, berlinDay(now));
   const cards = dueCards(db, u.id, berlinDay(now));
 
   if (!xp && !answered) {
     return {
-      title: '📊 Deine Woche bei LernQuest',
+      title: de ? '📊 Deine Woche bei LernQuest' : '📊 Your week on LernQuest',
       body: [
-        'Diese Woche war ruhig.',
-        cards ? `${fmt(cards)} Karteikarten warten – 5 Minuten reichen für den Anfang.` : due ? `${fmt(due)} Fragen sind zum Wiederholen fällig.` : 'Starte mit einem Level oder ein paar Karteikarten.',
+        de ? 'Diese Woche war ruhig.' : 'It was a quiet week.',
+        cards ? (de ? `${fmt(cards, locale)} Karteikarten warten – 5 Minuten reichen für den Anfang.` : `${fmt(cards, locale)} flashcards are waiting — five minutes is a good start.`) : due ? (de ? `${fmt(due, locale)} Fragen sind zum Wiederholen fällig.` : `${fmt(due, locale)} questions are due for review.`) : (de ? 'Starte mit einem Level oder ein paar Karteikarten.' : 'Start with a level or a few flashcards.'),
       ].join(' '),
       url: cards ? '/karten' : '/',
     };
   }
   const trend = prevXp ? Math.round(((xp - prevXp) / prevXp) * 100) : null;
   const parts = [
-    `${fmt(answered)} Fragen, ${rate} % richtig`,
-    u.streak > 1 ? `🔥 ${u.streak} Tage Streak` : null,
-    weak.length ? `Wackelig: ${weak.join(', ')}` : null,
-    due + cards ? `Fällig: ${[due ? `${due} Fragen` : '', cards ? `${cards} Karten` : ''].filter(Boolean).join(' + ')}` : null,
+    de ? `${fmt(answered, locale)} Fragen, ${rate} % richtig` : `${fmt(answered, locale)} questions, ${rate}% correct`,
+    u.streak > 1 ? (de ? `🔥 ${u.streak} Tage Streak` : `🔥 ${u.streak}-day streak`) : null,
+    weak.length ? `${de ? 'Wackelig' : 'Needs practice'}: ${weak.join(', ')}` : null,
+    due + cards ? `${de ? 'Fällig' : 'Due'}: ${[due ? (de ? `${due} Fragen` : `${due} questions`) : '', cards ? (de ? `${cards} Karten` : `${cards} cards`) : ''].filter(Boolean).join(' + ')}` : null,
   ].filter(Boolean);
   return {
-    title: `📊 Deine Woche: ${fmt(xp)} XP${trend === null ? '' : trend >= 0 ? ` (+${trend} %)` : ` (${trend} %)`}`,
+    title: de ? `📊 Deine Woche: ${fmt(xp, locale)} XP${trend === null ? '' : trend >= 0 ? ` (+${trend} %)` : ` (${trend} %)`}` : `📊 Your week: ${fmt(xp, locale)} XP${trend === null ? '' : trend >= 0 ? ` (+${trend}%)` : ` (${trend}%)`}`,
     body: parts.join(' · ').slice(0, 220),
     url: weak.length ? '/mastery' : cards ? '/karten' : '/train',
   };

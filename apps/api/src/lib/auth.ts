@@ -5,6 +5,7 @@ import type { FastifyReply, FastifyRequest } from 'fastify';
 import type { PublicUser } from '@lernquest/shared';
 import type { DB } from '../db/index.ts';
 import { sessions, users } from '../db/schema.ts';
+import { deviceLocaleFromHeaders } from './locale.ts';
 import { HttpError } from './http.ts';
 
 const SESSION_DAYS = 90;
@@ -88,7 +89,12 @@ declare module 'fastify' {
 export const requireAuth = (db: DB) => async (req: FastifyRequest, _reply: FastifyReply) => {
   const u = userFromRequest(db, req);
   if (!u) throw new HttpError(401, 'unauthorized', 'Bitte melde dich an.');
-  req.user = u;
+  const hasDeviceLocale = req.headers['x-lq-device-locale'] != null || req.headers['accept-language'] != null;
+  const deviceLocale = hasDeviceLocale ? deviceLocaleFromHeaders(req.headers) : u.deviceLocale;
+  if ((deviceLocale === 'de' || deviceLocale === 'en') && deviceLocale !== u.deviceLocale) {
+    db.update(users).set({ deviceLocale }).where(eq(users.id, u.id)).run();
+    req.user = { ...u, deviceLocale };
+  } else req.user = u;
 };
 
 export const requireAdmin = (db: DB) => async (req: FastifyRequest, reply: FastifyReply) => {

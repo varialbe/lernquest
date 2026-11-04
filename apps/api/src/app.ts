@@ -17,7 +17,7 @@ export async function buildApp(db: DB, opts: { logger?: boolean } = {}): Promise
   await app.register(cors, {
     origin: (origin, cb) => cb(null, !origin || origins.has(origin) || /^http:\/\/localhost:\d+$/.test(origin)),
     methods: ['GET', 'POST', 'PATCH', 'DELETE'],
-    allowedHeaders: ['authorization', 'content-type'],
+    allowedHeaders: ['authorization', 'content-type', 'accept-language', 'x-lq-locale', 'x-lq-device-locale'],
     maxAge: 86400,
   });
   // global großzügig; Login/Registrierung haben eigene, strenge Limits (siehe routes/user.ts)
