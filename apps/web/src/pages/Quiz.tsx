@@ -1,4 +1,5 @@
 import { useCommonT, type CommonKey } from '../i18n/common.ts';
+import { useLocale } from '../i18n/index.tsx';
 import { AnimatePresence, motion } from 'motion/react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -39,6 +40,8 @@ export type RunSpec = { key: string; url: string; body?: unknown; back: string }
 const fmtClock = (s: number) => `${Math.floor(Math.max(0, s) / 60)}:${String(Math.max(0, s) % 60).padStart(2, '0')}`;
 
 function SourceLink({ q }: { q: Question }) {
+  const { locale } = useLocale();
+  const ct = useCommonT();
   const { data: cfg } = useConfig();
   const file = q.source.file.split('/').pop()!.replace(/\.md$/, '');
   const short = file.replace(/^(Diskrete Strukturen|Einführung in die Rechnerarchitektur|EIP)\s*/i, '') || file;
@@ -47,8 +50,7 @@ function SourceLink({ q }: { q: Question }) {
     <a href={href} target="_blank" rel="noreferrer" className="inline-flex max-w-full items-center gap-1.5 truncate rounded-xl bg-black/5 px-2.5 py-1 text-xs font-extrabold hover:underline dark:bg-white/10">
       <Icon name="link" size={14} />
       <span className="truncate">
-        {short}
-        {q.source.heading ? ` › ${q.source.heading}` : ''}
+        {locale === 'en' ? ct('Originalmitschrift (Deutsch)') : `${short}${q.source.heading ? ` › ${q.source.heading}` : ''}`}
       </span>
     </a>
   );

@@ -139,6 +139,7 @@ export const commonEn = {
   "Dein Fortschritt in diesem Level geht verloren.": "Your progress in this level will be lost.",
   "Weiterlernen": "Keep learning",
   "Quelle": "Source",
+  "Originalmitschrift (Deutsch)": "Original lecture notes (German)",
   "Fehler melden": "Report an error",
   "Senden": "Send",
   "Diagramm konnte nicht gezeichnet werden.": "Could not render the diagram.",
