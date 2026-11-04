@@ -71,7 +71,7 @@ async function translateAsset<T>(opts: {
     return { ...response, translations: response.translations.map((field) => typeof field?.text === 'string' ? { ...field, text: field.text.replace(/⟦LQ(\d+)⟧/g, (marker, index: string) => protectedSpans[Number(index)] ?? marker) } : field) };
   };
   const fieldsJson = JSON.stringify(maskedFields, null, 2);
-  const reference = protectedSpans.length ? `\n\nPROTECTED SPANS FOR CONTEXT (copy only their ⟦LQnumber⟧ placeholders unchanged in translations; never add delimiters around them):\n${JSON.stringify(protectedSpans.map((text, i) => ({ placeholder: `⟦LQ${i}⟧`, text })))}` : '';
+  const reference = protectedSpans.length ? `\n\nPROTECTED SPANS FOR CONTEXT (copy only their ⟦LQnumber⟧ placeholders unchanged in translations, exactly once and in their source occurrence order; rephrase English around that order and never add delimiters around them):\n${JSON.stringify(protectedSpans.map((text, i) => ({ placeholder: `⟦LQ${i}⟧`, text })))}` : '';
   const makePrompt = (name: string, vars: Record<string, string>) => fill(template(name), vars);
   const ask = async (attempt: number, prompt: string) => opts.runCodex({
     prompt: prompt + reference,
