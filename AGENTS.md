@@ -26,6 +26,13 @@ Der normale Lauf (`pnpm pipeline run`, nachts per n8n oder im Telegram-Bot per �
 
 Karteikarten-Fortschritt (`card_items`) hängt an den Eintrags-IDs: Eine neu erzeugte Wissenssammlung setzt die Karten dieser Unit zurück. Nur neu erzeugen, wenn es inhaltlich nötig ist.
 
+## Englisch mit den Inhalten synchron halten
+
+- Deutsche Units und Wissenssammlungen bleiben die Quelle. Englische Fassungen liegen in `content/<modul>/en/` und `wissen/<modul>/en/`; übersetzte Kantenbegründungen in `<unit-id>.prereqs.json` werden gegen Originalkanten und Quellhash geprüft; IDs und Lernfortschritt sind sprachunabhängig.
+- Nach Änderungen an Unit, Wissen oder Voraussetzungsbegründungen: `pnpm pipeline translate <unit-id>` (betroffene spätere Units ebenfalls nachziehen). Der normale Lauf übersetzt neue/veraltete Inhalte bis `TRANSLATE_CATCH_UP` (Standard wie `KNOWLEDGE_CATCH_UP`).
+- Vor dem Deploy: `pnpm pipeline wissen-check` und `pnpm pipeline translate-check --strict`. Übersetzungen müssen aktuell sein und den deterministischen Validator bestehen: gleiche Struktur, IDs, Antworten, Zahlen, Formeln, Code und Lückenmarker. Original-JSONs und Metadaten nicht zur Umgehung der Prüfung verändern.
+- Übersetzungen ausschließlich über die Pipeline erzeugen/reparieren; eine Übersetzung setzt keine Karten zurück. Die API fällt bei fehlenden, veralteten oder ungültigen Übersetzungen auf Deutsch zurück.
+
 ## Weitere Regeln
 
 - **Formeln** in allen Lerntexten nur als `$…$` / `$$…$$` (KaTeX), nie `\(…\)` oder `\[…\]`. Code in Backticks.
