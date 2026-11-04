@@ -1,10 +1,10 @@
 import { existsSync, readFileSync, statSync } from 'node:fs';
 import { join, resolve } from 'node:path';
-import { asc, eq } from 'drizzle-orm';
+import { and, asc, eq } from 'drizzle-orm';
 import { KnowledgeGraph, normalizeEntryMath, normalizeMathDelimiters, UnitKnowledge, type KnowledgeModuleResponse, type ModuleId } from '@lernquest/shared';
 import { ROOT } from '../env.ts';
 import type { DB } from '../db/index.ts';
-import { units } from '../db/schema.ts';
+import { cardItems, units } from '../db/schema.ts';
 
 /** Wissenssammlung: wissen/<modul>/<unit-id>.json (schreibt die Pipeline), hier nur gelesen + nach mtime gecacht. */
 const dir = () => process.env.KNOWLEDGE_DIR || resolve(ROOT, 'wissen');
@@ -46,13 +46,21 @@ export function moduleGraph(module: ModuleId): KnowledgeGraph | null {
   return data;
 }
 
-export function knowledgeForModule(db: DB, module: ModuleId): KnowledgeModuleResponse {
+export function knowledgeForModule(db: DB, module: ModuleId, userId?: number): KnowledgeModuleResponse {
   const list = db.select({ id: units.id, number: units.number, title: units.title }).from(units).where(eq(units.module, module)).orderBy(asc(units.number)).all();
   const loaded = list.map((u) => ({ u, k: unitKnowledge(u.id) }));
   const ids = new Set(loaded.flatMap(({ k }) => k?.entries.map((e) => e.id) ?? []));
   const graph = moduleGraph(module);
+  const masteredEntryIds = userId == null
+    ? []
+    : db.select({ entryId: cardItems.entryId, box: cardItems.box }).from(cardItems)
+        .where(and(eq(cardItems.userId, userId), eq(cardItems.module, module))).all()
+        .filter((row) => row.box >= 6)
+        .map((row) => row.entryId);
   return {
     module,
+    masteredEntryIds,
+    aliases: graph?.aliases ?? {},
     units: loaded.map(({ u, k }) => ({
       unitId: u.id,
       unitNumber: u.number,

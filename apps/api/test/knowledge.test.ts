@@ -40,6 +40,12 @@ beforeAll(async () => {
   mkdirSync(join(dir, 'ds'), { recursive: true });
   writeFileSync(join(dir, 'ds/ds-01.json'), JSON.stringify(knowledge));
   writeFileSync(join(dir, 'ds/ds-02.json'), '{"kaputt": true}'); // ungültig → wie „noch nicht da“
+  writeFileSync(join(dir, 'ds/_voraussetzungen.json'), JSON.stringify({
+    schemaVersion: 1,
+    module: 'DS',
+    units: { 'ds-01': { knowledgeAt: knowledge.generator.generatedAt, generatedAt: knowledge.generator.generatedAt, model: 'legacy' } },
+    requires: { 'ds-01-k02': [{ id: 'ds-01-k01', why: 'Die Mengenbasis wird bei Teilmengen verwendet.' }] },
+  }));
   app = await buildApp(testDb());
   const res = await app.inject({ method: 'POST', url: '/api/auth/register', payload: { inviteCode: 'LQ-TEST-CODE', username: 'wissen', email: 'w@test.local', displayName: 'W', password: 'geheim1234', acceptPrivacy: true } });
   token = res.json().token;
@@ -57,6 +63,9 @@ describe('wissenssammlung', () => {
     ]);
     expect(body.units[0]!.overview).toBe('Worum es geht.');
     expect(body.units[1]!.overview).toBeNull();
+    expect(body.units[0]!.entries[1]!.requires[0]).toMatchObject({ id: 'ds-01-k01', type: 'essential', legacy: true });
+    expect(body.aliases).toEqual({});
+    expect(body.masteredEntryIds).toEqual([]);
   });
 
   it('rejects unknown modules and anonymous requests', async () => {
@@ -101,6 +110,11 @@ describe('karteikarten', () => {
     }
     expect(days).toEqual([1, 2, 4, 7, 14, 30, 30]);
     expect(nextCard(6, false, '2026-11-02')).toEqual({ box: 1, dueDay: '2026-11-03' });
+  });
+  it('returns mastered card ids so the learning path can collapse them', async () => {
+    for (let i = 0; i < 6; i++) await app.inject({ method: 'POST', url: '/api/cards/review', headers: h(), payload: { entryId: 'ds-01-k03', known: true } });
+    const res = await app.inject({ method: 'GET', url: '/api/knowledge/ds', headers: h() });
+    expect(res.json<KnowledgeModuleResponse>().masteredEntryIds).toContain('ds-01-k03');
   });
 });
 

@@ -2,7 +2,7 @@ import { useQuery } from '@tanstack/react-query';
 import { AnimatePresence, motion } from 'motion/react';
 import { createContext, useContext, useEffect, useMemo, useState } from 'react';
 import { Link, useSearch } from 'wouter';
-import { KNOWLEDGE_KIND_LABEL, MODULE_INFO, MODULES, type KnowledgeEntryView as KnowledgeEntry, type KnowledgeModuleResponse, type ModuleId } from '@lernquest/shared';
+import { buildLearningPaths, canonicalEntryId, KNOWLEDGE_KIND_LABEL, MODULE_INFO, MODULES, type KnowledgeEntryView as KnowledgeEntry, type KnowledgeModuleResponse, type ModuleId } from '@lernquest/shared';
 import { Icon } from '../components/icons.tsx';
 import { Markdown } from '../components/Markdown.tsx';
 import { MathText, plainMath } from '../components/MathText.tsx';
@@ -64,59 +64,60 @@ function search(units: UnitK[], q: string): Hit[] {
 type Graph = {
   byId: Map<string, { e: KnowledgeEntry; unit: UnitK }>;
   usedBy: Map<string, string[]>;
+  aliases: Record<string, string>;
+  mastered: Set<string>;
   jump: (id: string) => void;
   explain: (id: string) => void;
 };
 const GraphCtx = createContext<Graph | null>(null);
 
-/**
- * Lernpfad „von Grund auf“: alle (transitiven) Voraussetzungen bis zum Begriff, Grundlagen zuerst.
- * Deterministisch aus dem Graphen; bei großen Bäumen die nächsten `max` Schritte.
- */
-export function learningPath(target: string, requires: (id: string) => { id: string }[], max = 12): string[] {
-  const depth = new Map<string, number>([[target, 0]]);
-  const queue = [target];
-  while (queue.length) {
-    const cur = queue.shift()!;
-    for (const l of requires(cur)) {
-      if (depth.has(l.id)) continue;
-      depth.set(l.id, depth.get(cur)! + 1);
-      queue.push(l.id);
-    }
-  }
-  const keep = new Set([...depth.entries()].sort((a, b) => a[1] - b[1]).slice(0, max).map(([id]) => id));
-  const out: string[] = [];
-  const seen = new Set<string>();
-  const visit = (id: string) => {
-    if (seen.has(id) || !keep.has(id)) return;
-    seen.add(id);
-    for (const l of requires(id)) visit(l.id);
-    out.push(id);
-  };
-  visit(target);
-  return out;
-}
-
 function PathView({ target, onClose }: { target: string; onClose: () => void }) {
   const g = useContext(GraphCtx)!;
   const req = (id: string) => g.byId.get(id)?.e.requires ?? [];
-  const steps = learningPath(target, req);
-  const [open, setOpen] = useState<string | null>(target);
+  const [extended, setExtended] = useState(false);
+  const [known, setKnown] = useState<Set<string>>(() => new Set([...g.mastered].map((id) => canonicalEntryId(id, g.aliases))));
+  const path = useMemo(() => buildLearningPaths(
+    target,
+    [...g.byId.entries()].map(([id, { e, unit }], order) => ({ id, unitNumber: unit.unitNumber, order, requires: e.requires })),
+    g.aliases,
+  ), [g, target]);
+  const steps = extended ? path.extended.ids : path.core.ids;
+  const [open, setOpen] = useState<string | null>(canonicalEntryId(target, g.aliases));
+  useEffect(() => {
+    setKnown(new Set([...g.mastered].map((id) => canonicalEntryId(id, g.aliases))));
+    setOpen(canonicalEntryId(target, g.aliases));
+    setExtended(false);
+  }, [target, g.mastered, g.aliases]);
   const t = g.byId.get(target);
   if (!t) return null;
+  const canonicalTarget = canonicalEntryId(target, g.aliases);
+  const title = <span>Von Grund auf: <MathText text={t.e.term} /></span>;
   return (
-    <Modal open onClose={onClose} title={`Von Grund auf: ${t.e.term}`}>
-      <p className="-mt-1 mb-3 text-sm font-semibold text-muted">
-        {steps.length - 1} {steps.length === 2 ? 'Grundlage' : 'Grundlagen'}, dann der Begriff selbst. Tippe einen Schritt an, um die Erklärung zu sehen.
-      </p>
+    <Modal open onClose={onClose} title={title} titleText={`Von Grund auf: ${plainMath(t.e.term)}`}>
+      <div className="-mt-1 mb-3 space-y-2 text-sm font-semibold text-muted">
+        <p>{path.core.ids.length - 1} Kern-Grundlagen · Tiefe {path.core.depth} Ebenen</p>
+        <button
+          type="button"
+          role="switch"
+          aria-checked={extended}
+          onClick={() => setExtended((value) => !value)}
+          className={`flex w-full items-center justify-between rounded-xl border-2 px-3 py-2 text-left ${extended ? 'border-primary bg-primary/10 text-primary' : 'border-line bg-surface'}`}
+        >
+          <span>Erweiterte Tiefe · +{path.extended.backgroundIds.length} Hintergrund · Tiefe {path.extended.depth} Ebenen</span>
+          <span className="font-black">{extended ? 'An' : 'Aus'}</span>
+        </button>
+        <p>Tippe einen Schritt an, um die Erklärung zu sehen.</p>
+      </div>
       <ol className="relative space-y-2 border-l-2 border-dashed border-line pl-4">
         {steps.map((id, i) => {
           const x = g.byId.get(id)!;
-          const isTarget = id === target;
+          const isTarget = id === canonicalTarget;
+          const isBackground = path.extended.backgroundIds.includes(id);
+          const alreadyKnown = known.has(id);
           // wofür braucht man diesen Schritt (spätere Schritte, die ihn voraussetzen)
           const forSteps = steps.slice(i + 1).flatMap((later) => {
-            const link = req(later).find((l) => l.id === id);
-            return link ? [{ term: g.byId.get(later)!.e.term, why: (link as { why?: string }).why ?? '' }] : [];
+            const link = req(later).find((l) => (l.type === 'essential' || (extended && l.type === 'background')) && canonicalEntryId(l.id, g.aliases) === id);
+            return link ? [{ term: g.byId.get(later)!.e.term, why: link.why }] : [];
           });
           const expanded = open === id;
           return (
@@ -127,14 +128,17 @@ function PathView({ target, onClose }: { target: string; onClose: () => void }) 
               >
                 {i + 1}
               </span>
-              <div className={`rounded-2xl border-2 bg-surface ${isTarget ? 'border-primary' : 'border-line'}`}>
+              <div className={`rounded-2xl border-2 bg-surface ${isTarget ? 'border-primary' : isBackground ? 'border-dashed border-muted' : 'border-line'}`}>
                 <button className="w-full p-3 text-left" onClick={() => setOpen(expanded ? null : id)} aria-expanded={expanded}>
                   <div className="flex flex-wrap items-center gap-1.5">
                     <span className="font-black"><MathText text={x.e.term} /></span>
                     <Pill className="bg-surface-2 text-muted">{KNOWLEDGE_KIND_LABEL[x.e.kind]}</Pill>
+                    {isBackground && <Pill className="bg-surface-2 text-muted">Hintergrund</Pill>}
+                    {alreadyKnown && <Pill className="bg-success/10 text-success">Kannst du schon</Pill>}
                     <span className="ml-auto text-xs font-bold text-muted">VO {x.unit.unitNumber}</span>
                   </div>
-                  <Markdown inline text={x.e.short} className="mt-1 block text-sm font-semibold text-muted" />
+                  {!alreadyKnown && <Markdown inline text={x.e.short} className="mt-1 block text-sm font-semibold text-muted" />}
+                  {alreadyKnown && <span className="mt-1 block text-xs font-bold text-muted">Diese Grundlage ist eingeklappt.</span>}
                   {forSteps.length > 0 && (
                     <p className="mt-1 text-xs font-bold text-primary">
                       → nötig für {plainMath(forSteps.map((f) => f.term).join(', '))}
@@ -142,7 +146,7 @@ function PathView({ target, onClose }: { target: string; onClose: () => void }) 
                     </p>
                   )}
                 </button>
-                {expanded && (
+                {expanded && !alreadyKnown && (
                   <div className="border-t-2 border-line px-3 pb-3 pt-2 text-sm">
                     <Markdown text={x.e.explanation} />
                     {x.e.example && (
@@ -153,6 +157,19 @@ function PathView({ target, onClose }: { target: string; onClose: () => void }) 
                     )}
                   </div>
                 )}
+                <div className="border-t border-line px-3 py-2">
+                  <button
+                    type="button"
+                    onClick={() => setKnown((value) => {
+                      const next = new Set(value);
+                      if (next.has(id)) next.delete(id); else next.add(id);
+                      return next;
+                    })}
+                    className="text-xs font-extrabold text-primary underline underline-offset-2"
+                  >
+                    {alreadyKnown ? 'Wieder einblenden' : 'Kenne ich'}
+                  </button>
+                </div>
               </div>
             </li>
           );
@@ -168,35 +185,37 @@ function PathView({ target, onClose }: { target: string; onClose: () => void }) 
 function Prereqs({ e }: { e: KnowledgeEntry }) {
   const g = useContext(GraphCtx);
   if (!g) return null;
-  const req = e.requires.filter((r) => g.byId.has(r.id));
-  const used = (g.usedBy.get(e.id) ?? []).filter((id) => g.byId.has(id));
-  if (!req.length && !used.length) return null;
+  const req = e.requires.filter((r) => r.type === 'essential' && g.byId.has(r.id));
+  const background = e.requires.filter((r) => r.type === 'background' && g.byId.has(r.id));
+  const related = e.requires.filter((r) => r.type === 'related' && g.byId.has(r.id));
+  const used = (g.usedBy.get(canonicalEntryId(e.id, g.aliases)) ?? []).filter((id) => g.byId.has(id));
+  if (!req.length && !background.length && !related.length && !used.length) return null;
+  const links = (title: string, items: typeof e.requires, faint = false) => items.length > 0 && (
+    <div className={faint ? 'mt-2 opacity-75' : ''}>
+      <p className="text-xs font-black uppercase tracking-wider text-muted">{title}</p>
+      <ul className="mt-1 space-y-1 text-sm">
+        {items.map((r) => (
+          <li key={r.id} className="font-semibold">
+            <button onClick={() => g.jump(r.id)} className="font-extrabold text-primary underline decoration-2 underline-offset-2 active:opacity-70">
+              <MathText text={g.byId.get(r.id)!.e.term} />
+            </button>
+            {r.why && <span className="text-muted">{' – '}<Markdown inline text={r.why} /></span>}
+          </li>
+        ))}
+      </ul>
+    </div>
+  );
   return (
     <div className="mt-3 rounded-xl bg-surface-2 p-3">
-      {req.length > 0 && (
-        <>
-          <p className="text-xs font-black uppercase tracking-wider text-muted">Dafür brauchst du</p>
-          <ul className="mt-1 space-y-1 text-sm">
-            {req.map((r) => (
-              <li key={r.id} className="font-semibold">
-                <button onClick={() => g.jump(r.id)} className="font-extrabold text-primary underline decoration-2 underline-offset-2 active:opacity-70">
-                  <MathText text={g.byId.get(r.id)!.e.term} />
-                </button>
-                {r.why && (
-                  <span className="text-muted">
-                    {' – '}
-                    <Markdown inline text={r.why} />
-                  </span>
-                )}
-              </li>
-            ))}
-          </ul>
-          <Button full variant="secondary" className="mt-3" onClick={() => g.explain(e.id)}>
-            <Icon name="sparkle" size={18} />
-            Von Grund auf erklären
-          </Button>
-        </>
+      {links('Dafür brauchst du', req)}
+      {(req.length > 0 || background.length > 0) && (
+        <Button full variant="secondary" className="mt-3" onClick={() => g.explain(e.id)}>
+          <Icon name="sparkle" size={18} />
+          Von Grund auf erklären
+        </Button>
       )}
+      {links('Hilfreicher Hintergrund', background, true)}
+      {links('Verwandt', related, true)}
       {used.length > 0 && (
         <div className={`flex flex-wrap items-center gap-1.5 ${req.length ? 'mt-3' : ''}`}>
           <span className="text-xs font-black uppercase tracking-wider text-muted">Baut darauf auf</span>
@@ -319,10 +338,14 @@ export default function Knowledge() {
   const graph = useMemo<Omit<Graph, 'jump' | 'explain'>>(() => {
     const byId = new Map<string, { e: KnowledgeEntry; unit: UnitK }>();
     const usedBy = new Map<string, string[]>();
+    const aliases = data?.aliases ?? {};
     for (const unit of units) for (const e of unit.entries) byId.set(e.id, { e, unit });
-    for (const { e } of byId.values()) for (const r of e.requires) usedBy.set(r.id, [...(usedBy.get(r.id) ?? []), e.id]);
-    return { byId, usedBy };
-  }, [units]);
+    for (const { e } of byId.values()) for (const r of e.requires) if (r.type === 'essential') {
+      const id = canonicalEntryId(r.id, aliases);
+      usedBy.set(id, [...(usedBy.get(id) ?? []), e.id]);
+    }
+    return { byId, usedBy, aliases, mastered: new Set(data?.masteredEntryIds ?? []) };
+  }, [units, data?.aliases, data?.masteredEntryIds]);
   const [pathFor, setPathFor] = useState<string | null>(null);
   const jump = (id: string) => {
     const hit = graph.byId.get(id);
