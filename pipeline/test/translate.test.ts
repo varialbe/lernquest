@@ -131,6 +131,55 @@ describe('English translation validation', () => {
     expect(protectedTokens(String.raw`$\text{Fall 1}$`)).not.toEqual(protectedTokens(String.raw`$\text{case 2}$`));
   });
 
+  it('repairs only rejected fields and retains the other first-pass translations', async () => {
+    const dir = mkdtempSync(join(tmpdir(), 'lq-translate-repair-'));
+    config.knowledgeDir = join(dir, 'wissen');
+    const unit = unitFixture();
+    const knowledge = knowledgeFixture();
+    const unitFile = join(dir, '01-relations.json');
+    writeFileSync(unitFile, JSON.stringify(unit));
+    const brokenPath = 'levels.0.questions.0.prompt';
+    let repaired = false;
+    const result = await translateUnit(unit, knowledge, unitFile, join(dir, 'work'), () => {}, async (options) => {
+      const fields = JSON.parse(options.prompt.split('TEXT FIELDS:\n')[1]!.split('\n\nPREVIOUS')[0]!.split('\n\nPROTECTED')[0]!) as {path: string; text: string}[];
+      if (options.label === 'translate-unit-2') {
+        expect(fields.map((field) => field.path)).toEqual([brokenPath]);
+        repaired = true;
+      }
+      return { data: { translations: fields.map((field) => ({ path: field.path, text: options.label === 'translate-unit-1' && field.path === brokenPath ? 'Broken prompt without the math and ___?' : `English: ${field.text}` })) }, tokens: 1 };
+    });
+    expect(repaired).toBe(true);
+    expect(result.tokens).toBe(3);
+    expect(JSON.parse(readFileSync(result.unitFile, 'utf8')).title).toBe('English: Relationen');
+    expect(translationStatus(unit, knowledge, unitFile).current).toBe(true);
+  });
+
+  it('translates concrete prerequisite explanations and invalidates stale sidecars', async () => {
+    const dir = mkdtempSync(join(tmpdir(), 'lq-translate-prereqs-'));
+    config.knowledgeDir = join(dir, 'wissen');
+    mkdirSync(join(config.knowledgeDir, 'ds'), { recursive: true });
+    const graphFile = join(config.knowledgeDir, 'ds', '_voraussetzungen.json');
+    const graph = { schemaVersion: 2, module: 'DS', units: {}, aliases: {}, requires: { 'ds-01-k01': [{ id: 'ds-01-k02', type: 'essential', why: 'Die Definition erklärt die gemeinsame Eigenschaft.' }] } };
+    writeFileSync(graphFile, JSON.stringify(graph));
+    const unit = unitFixture();
+    const knowledge = knowledgeFixture();
+    const unitFile = join(dir, '01-relations.json');
+    writeFileSync(unitFile, JSON.stringify(unit));
+    let calls = 0;
+    await translateUnit(unit, knowledge, unitFile, join(dir, 'work'), () => {}, async (options) => {
+      calls++;
+      const fields = JSON.parse(options.prompt.split('TEXT FIELDS:\n')[1]!.split('\n\nPROTECTED')[0]!) as {path: string; text: string}[];
+      return { data: { translations: fields.map((field) => ({ path: field.path, text: `English: ${field.text}` })) }, tokens: 1 };
+    });
+    expect(calls).toBe(3);
+    const sidecar = JSON.parse(readFileSync(join(config.knowledgeDir, 'ds', 'en', 'ds-01.prereqs.json'), 'utf8'));
+    expect(sidecar.translations[0]).toMatchObject({ entryId: 'ds-01-k01', id: 'ds-01-k02', type: 'essential', sourceWhy: graph.requires['ds-01-k01'][0]!.why, why: `English: ${graph.requires['ds-01-k01'][0]!.why}` });
+    expect(translationStatus(unit, knowledge, unitFile).current).toBe(true);
+    graph.requires['ds-01-k01'][0]!.why = 'Ein geänderter Grund erfordert eine neue Übersetzung.';
+    writeFileSync(graphFile, JSON.stringify(graph));
+    expect(translationStatus(unit, knowledge, unitFile).current).toBe(false);
+  });
+
   it('runs with fixture responses and writes source hashes for stale detection', async () => {
     const dir = mkdtempSync(join(tmpdir(), 'lq-translate-'));
     const knowledgeDir = join(dir, 'wissen');

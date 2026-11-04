@@ -1,7 +1,7 @@
 import { createHash } from 'node:crypto';
 import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { basename, dirname, join } from 'node:path';
-import { Unit, UnitKnowledge, unitTranslationFields, knowledgeTranslationFields, validateUnitTranslation, validateKnowledgeTranslation, type Unit as UnitType, type UnitKnowledge as KnowledgeType } from '@lernquest/shared';
+import { KnowledgeGraph, Unit, UnitKnowledge, unitTranslationFields, knowledgeTranslationFields, validateUnitTranslation, validateKnowledgeTranslation, protectedTokens, type Unit as UnitType, type UnitKnowledge as KnowledgeType } from '@lernquest/shared';
 export { unitTranslationFields, knowledgeTranslationFields, validateUnitTranslation, validateKnowledgeTranslation, protectedTokens } from '@lernquest/shared';
 import { codexJson, type CodexOptions, type CodexResult } from './codex.ts';
 import { config } from './config.ts';
@@ -18,7 +18,7 @@ export type TranslationMeta = {
   sourceKnowledgeGeneratedAt: string;
   translatedAt: string;
 };
-export type TranslationResult = { unitFile: string; knowledgeFile: string; metaFile: string; tokens: number };
+export type TranslationResult = { unitFile: string; knowledgeFile: string; metaFile: string; prereqFile?: string; tokens: number };
 
 const clone = <T>(value: T): T => JSON.parse(JSON.stringify(value)) as T;
 const hash = (value: unknown) => createHash('sha256').update(JSON.stringify(value)).digest('hex');
@@ -53,7 +53,7 @@ function applyFields<T>(source: T, expected: Field[], raw: unknown): { value: T;
 }
 
 async function translateAsset<T>(opts: {
-  kind: 'unit' | 'knowledge';
+  kind: 'unit' | 'knowledge' | 'prereqs';
   source: T;
   fields: Field[];
   validate: (candidate: unknown) => string[];
@@ -61,27 +61,84 @@ async function translateAsset<T>(opts: {
   log: (message: string) => void;
   runCodex: TranslateFn;
 }): Promise<{ value: T; tokens: number }> {
-  const fieldsJson = JSON.stringify(opts.fields, null, 2);
+  // Models occasionally drop delimiters even when instructed to copy formulas.
+  // Placeholders preserve complete protected spans; the final validator still checks bytes.
+  const protectedSpans: string[] = [];
+  const maskedFields = opts.fields.map((field) => ({ ...field, text: field.text.replace(/```[\s\S]*?```|`[^`\n]*`|\$\$[\s\S]*?\$\$|(?<!\\)\$(?!\$)[^$\n]+(?<!\\)\$/g, (span) => `⟦LQ${protectedSpans.push(span) - 1}⟧`) }));
+  const unmask = (raw: unknown): unknown => {
+    const response = raw as Partial<FieldResponse> | null;
+    if (!response || !Array.isArray(response.translations)) return raw;
+    return { ...response, translations: response.translations.map((field) => typeof field?.text === 'string' ? { ...field, text: field.text.replace(/⟦LQ(\d+)⟧/g, (marker, index: string) => protectedSpans[Number(index)] ?? marker) } : field) };
+  };
+  const fieldsJson = JSON.stringify(maskedFields, null, 2);
+  const reference = protectedSpans.length ? `\n\nPROTECTED SPANS FOR CONTEXT (copy only their ⟦LQnumber⟧ placeholders unchanged in translations; never add delimiters around them):\n${JSON.stringify(protectedSpans.map((text, i) => ({ placeholder: `⟦LQ${i}⟧`, text })))}` : '';
   const makePrompt = (name: string, vars: Record<string, string>) => fill(template(name), vars);
   const ask = async (attempt: number, prompt: string) => opts.runCodex({
-    prompt,
+    prompt: prompt + reference,
     effort: config.codexEffort,
     workDir: opts.workDir,
     label: `translate-${opts.kind}-${attempt}`,
     log: opts.log,
     schema: config.translationFieldsSchemaFile,
   });
-  const first = await ask(1, makePrompt(opts.kind === 'unit' ? 'translate-unit.md' : 'translate-knowledge.md', { FIELDS: fieldsJson }));
-  let applied = applyFields(opts.source, opts.fields, first.data);
+  const first = await ask(1, makePrompt(opts.kind === 'unit' ? 'translate-unit.md' : opts.kind === 'prereqs' ? 'translate-prereqs.md' : 'translate-knowledge.md', { FIELDS: fieldsJson }));
+  const firstData = unmask(first.data);
+  let applied = applyFields(opts.source, opts.fields, firstData);
   let errors = [...applied.errors, ...opts.validate(applied.value)];
   if (!errors.length) return { value: applied.value, tokens: first.tokens };
 
   opts.log(`  ⚠ ${opts.kind} translation validation failed; requesting one repair (${errors.length} issue(s))`);
-  const second = await ask(2, makePrompt('repair-translation.md', { ERRORS: errors.map((e) => `- ${e}`).join('\n'), FIELDS: fieldsJson, CANDIDATE: JSON.stringify((first.data as FieldResponse)?.translations ?? [], null, 2) }));
-  applied = applyFields(opts.source, opts.fields, second.data);
+  // A repair changes only rejected fields; successful translations are retained.
+  // Structural errors have no path, so request a complete replacement in that case.
+  const rejected = opts.fields.filter((field) => errors.some((error) => error.startsWith(`${field.path}:`) || error === `missing path: ${field.path}`));
+  const repairFields = rejected.length && errors.every((error) => rejected.some((field) => error.startsWith(`${field.path}:`) || error === `missing path: ${field.path}`)) ? rejected : opts.fields;
+  const previous = (firstData as FieldResponse)?.translations ?? [];
+  const repairPaths = new Set(repairFields.map((field) => field.path));
+  const second = await ask(2, makePrompt('repair-translation.md', { ERRORS: errors.map((e) => `- ${e}`).join('\n'), FIELDS: JSON.stringify(maskedFields.filter((field) => repairPaths.has(field.path)), null, 2), CANDIDATE: JSON.stringify(previous.filter((field) => repairPaths.has(field.path)), null, 2) }));
+  const repaired = unmask(second.data) as Partial<FieldResponse> | null;
+  const repairedCheck = applyFields(opts.source, repairFields, repaired);
+  const merged = { translations: [...previous.filter((field) => !repairPaths.has(field.path)), ...(repaired?.translations ?? [])] };
+  applied = applyFields(opts.source, opts.fields, merged);
+  applied.errors.push(...repairedCheck.errors);
   errors = [...applied.errors, ...opts.validate(applied.value)];
   if (errors.length) throw new Error(`${opts.kind} translation rejected after repair: ${errors.join('; ').slice(0, 1800)}`);
   return { value: applied.value, tokens: first.tokens + second.tokens };
+}
+
+type PrereqTranslation = { schemaVersion: 1; unitId: string; sourceHash: string; translations: { entryId: string; id: string; type: string; sourceWhy: string; why: string }[] };
+
+function prereqSource(unit: UnitType, knowledge: KnowledgeType): PrereqTranslation {
+  const file = join(config.knowledgeDir, unit.module.toLowerCase(), '_voraussetzungen.json');
+  const graph = existsSync(file) ? KnowledgeGraph.parse(JSON.parse(readFileSync(file, 'utf8'))) : null;
+  const translations = knowledge.entries.flatMap((entry) => (graph?.requires[entry.id] ?? []).filter((link) => link.why.trim()).map((link) => ({ entryId: entry.id, id: link.id, type: link.type, sourceWhy: link.why, why: link.why })));
+  return { schemaVersion: 1, unitId: unit.id, sourceHash: hash(translations), translations };
+}
+
+function validatePrereqs(source: PrereqTranslation, raw: unknown): string[] {
+  const candidate = raw as PrereqTranslation | null;
+  if (!candidate || !Array.isArray(candidate.translations)) return ['invalid prerequisite translation structure'];
+  const errors: string[] = [];
+  const immutable = (value: PrereqTranslation) => ({ ...value, translations: value.translations.map((link) => ({ ...link, why: '' })) });
+  if (JSON.stringify(immutable(source)) !== JSON.stringify(immutable(candidate))) errors.push('prerequisite structure or source fields changed');
+  source.translations.forEach((link, i) => {
+    const translated = candidate.translations[i]?.why;
+    if (typeof translated !== 'string' || !translated.trim() || translated.length > 240) errors.push(`translations.${i}.why: expected nonempty text, max 240 characters`);
+    else if (protectedTokens(link.why).join('\n') !== protectedTokens(translated).join('\n')) errors.push(`translations.${i}.why: code or mathematical notation changed`);
+  });
+  return errors;
+}
+
+/** Translate concrete graph explanations independently; edges and types remain German-source identities. */
+export async function translatePrereqs(unit: UnitType, knowledge: KnowledgeType, workDir: string, log: (message: string) => void, runCodex: TranslateFn = codexJson): Promise<number> {
+  const source = prereqSource(unit, knowledge);
+  if (!source.translations.length) return 0;
+  const file = join(config.knowledgeDir, unit.module.toLowerCase(), 'en', `${unit.id}.prereqs.json`);
+  try { if (existsSync(file) && !validatePrereqs(source, JSON.parse(readFileSync(file, 'utf8'))).length) return 0; } catch { /* Recreate malformed or stale overlays. */ }
+  const fields = source.translations.map((link, i) => ({ path: `translations.${i}.why`, text: link.why }));
+  const result = await translateAsset({ kind: 'prereqs', source, fields, validate: (value) => validatePrereqs(source, value), workDir, log, runCodex });
+  mkdirSync(dirname(file), { recursive: true });
+  writeFileSync(file, JSON.stringify(result.value, null, 2) + '\n');
+  return result.tokens;
 }
 
 export function translationPaths(unitFile: string, unit: UnitType) {
@@ -89,7 +146,7 @@ export function translationPaths(unitFile: string, unit: UnitType) {
   const translatedUnit = join(unitDir, basename(unitFile));
   const knowledgeDir = join(config.knowledgeDir, unit.module.toLowerCase(), 'en');
   const translatedKnowledge = join(knowledgeDir, `${unit.id}.json`);
-  return { translatedUnit, translatedKnowledge, metaFile: `${translatedUnit}.meta.json` };
+  return { translatedUnit, translatedKnowledge, metaFile: `${translatedUnit}.meta.json`, prereqFile: join(knowledgeDir, `${unit.id}.prereqs.json`) };
 }
 
 export function findContentFile(unit: Pick<UnitType, 'module' | 'number'>): string | null {
@@ -112,6 +169,11 @@ export function translationStatus(unit: UnitType, knowledge: KnowledgeType | nul
     const unitErrors = validateUnitTranslation(unit, translatedUnit);
     const knowledgeErrors = validateKnowledgeTranslation(knowledge, translatedKnowledge);
     if (unitErrors.length || knowledgeErrors.length) return { current: false, reason: `English translation invalid: ${[...unitErrors, ...knowledgeErrors].join('; ').slice(0, 400)}` };
+    const prereqs = prereqSource(unit, knowledge);
+    if (prereqs.translations.length) {
+      const prereqFile = join(config.knowledgeDir, unit.module.toLowerCase(), 'en', `${unit.id}.prereqs.json`);
+      if (!existsSync(prereqFile) || validatePrereqs(prereqs, JSON.parse(readFileSync(prereqFile, 'utf8'))).length) return { current: false, reason: 'English prerequisite explanations missing, stale or invalid' };
+    }
     return { current: true, reason: '' };
   } catch {
     return { current: false, reason: 'English translation or metadata is invalid' };
@@ -135,6 +197,7 @@ export async function translateUnit(
     translateAsset({ kind: 'unit', source: unit, fields: unitTranslationFields(unit), validate: (v) => validateUnitTranslation(unit, v), workDir, log, runCodex }),
     translateAsset({ kind: 'knowledge', source: knowledge, fields: knowledgeTranslationFields(knowledge), validate: (v) => validateKnowledgeTranslation(knowledge, v), workDir, log, runCodex }),
   ]);
+  const prereqTokens = await translatePrereqs(unit, knowledge, workDir, log, runCodex);
   const meta: TranslationMeta = {
     sourceUnitHash: hash(Unit.parse(unit)),
     sourceUnitSha: unit.source.sha256,
@@ -148,7 +211,7 @@ export async function translateUnit(
   writeFileSync(paths.translatedUnit, JSON.stringify(translatedUnit.value, null, 2) + '\n');
   writeFileSync(paths.translatedKnowledge, JSON.stringify(translatedKnowledge.value, null, 2) + '\n');
   writeFileSync(paths.metaFile, JSON.stringify(meta, null, 2) + '\n');
-  return { unitFile: paths.translatedUnit, knowledgeFile: paths.translatedKnowledge, metaFile: paths.metaFile, tokens: translatedUnit.tokens + translatedKnowledge.tokens };
+  return { unitFile: paths.translatedUnit, knowledgeFile: paths.translatedKnowledge, metaFile: paths.metaFile, ...(existsSync(paths.prereqFile) ? { prereqFile: paths.prereqFile } : {}), tokens: translatedUnit.tokens + translatedKnowledge.tokens + prereqTokens };
 }
 
 /** Parse and validate one on-disk translation without making any Codex call. */

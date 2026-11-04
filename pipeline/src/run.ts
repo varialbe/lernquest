@@ -319,7 +319,7 @@ async function catchUpTranslations(runId: string, files: FileReport[], warnings:
       try {
         const result = await translateUnit(candidate.unit, candidate.knowledge, candidate.file, workDir, log);
         const changed = git.commitContent(
-          [result.unitFile, result.knowledgeFile, result.metaFile].map((file) => relative(config.lernquestRepo, file)),
+          [result.unitFile, result.knowledgeFile, result.metaFile, ...(result.prereqFile ? [result.prereqFile] : [])].map((file) => relative(config.lernquestRepo, file)),
           `translate: ${candidate.unit.module} lecture ${candidate.unit.number} to English`,
         );
         committed ||= changed;
