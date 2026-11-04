@@ -99,7 +99,7 @@ if (cmd === 'translate') {
     }
     try {
       const workDir = `${config.dataDir}/work/translate-${unit.id}-${process.pid}-${Date.now()}-${index + 1}`;
-      const result = await translateUnit(unit, knowledge, unitFile, workDir, (message) => console.log(message));
+      const result = await translateUnit(unit, knowledge, unitFile, workDir, (message) => console.log(message), undefined, { force });
       console.log(`✓ ${unit.id}: ${result.unitFile} · ${result.knowledgeFile}`);
       translated++;
     } catch (error) {

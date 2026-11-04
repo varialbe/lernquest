@@ -178,6 +178,18 @@ describe('English translation validation', () => {
     graph.requires['ds-01-k01'][0]!.why = 'Ein geänderter Grund erfordert eine neue Übersetzung.';
     writeFileSync(graphFile, JSON.stringify(graph));
     expect(translationStatus(unit, knowledge, unitFile).current).toBe(false);
+    let refreshed = 0;
+    const ask = async (options: { prompt: string; label: string }) => {
+      refreshed++;
+      expect(options.label).toBe('translate-prereqs-1');
+      const fields = JSON.parse(options.prompt.split('TEXT FIELDS:\n')[1]!.split('\n\nPROTECTED')[0]!) as {path: string; text: string}[];
+      return { data: { translations: fields.map((field) => ({ path: field.path, text: `English: ${field.text}` })) }, tokens: 1 };
+    };
+    await translateUnit(unit, knowledge, unitFile, join(dir, 'work-refresh'), () => {}, ask);
+    expect(refreshed).toBe(1);
+    expect(translationStatus(unit, knowledge, unitFile).current).toBe(true);
+    await translateUnit(unit, knowledge, unitFile, join(dir, 'work-current'), () => {}, ask);
+    expect(refreshed).toBe(1);
   });
 
   it('runs with fixture responses and writes source hashes for stale detection', async () => {

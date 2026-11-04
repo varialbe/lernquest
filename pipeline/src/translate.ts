@@ -129,11 +129,11 @@ function validatePrereqs(source: PrereqTranslation, raw: unknown): string[] {
 }
 
 /** Translate concrete graph explanations independently; edges and types remain German-source identities. */
-export async function translatePrereqs(unit: UnitType, knowledge: KnowledgeType, workDir: string, log: (message: string) => void, runCodex: TranslateFn = codexJson): Promise<number> {
+export async function translatePrereqs(unit: UnitType, knowledge: KnowledgeType, workDir: string, log: (message: string) => void, runCodex: TranslateFn = codexJson, force = false): Promise<number> {
   const source = prereqSource(unit, knowledge);
   if (!source.translations.length) return 0;
   const file = join(config.knowledgeDir, unit.module.toLowerCase(), 'en', `${unit.id}.prereqs.json`);
-  try { if (existsSync(file) && !validatePrereqs(source, JSON.parse(readFileSync(file, 'utf8'))).length) return 0; } catch { /* Recreate malformed or stale overlays. */ }
+  try { if (!force && existsSync(file) && !validatePrereqs(source, JSON.parse(readFileSync(file, 'utf8'))).length) return 0; } catch { /* Recreate malformed or stale overlays. */ }
   const fields = source.translations.map((link, i) => ({ path: `translations.${i}.why`, text: link.why }));
   const result = await translateAsset({ kind: 'prereqs', source, fields, validate: (value) => validatePrereqs(source, value), workDir, log, runCodex });
   mkdirSync(dirname(file), { recursive: true });
@@ -157,7 +157,7 @@ export function findContentFile(unit: Pick<UnitType, 'module' | 'number'>): stri
   return file ? join(dir, file) : null;
 }
 
-export function translationStatus(unit: UnitType, knowledge: KnowledgeType | null, unitFile = findContentFile(unit)) {
+export function translationStatus(unit: UnitType, knowledge: KnowledgeType | null, unitFile = findContentFile(unit), checkPrereqs = true) {
   if (!knowledge || !unitFile) return { current: false, reason: !knowledge ? 'missing German knowledge collection' : 'source unit file not found' };
   const paths = translationPaths(unitFile, unit);
   if (!existsSync(paths.translatedUnit) || !existsSync(paths.translatedKnowledge) || !existsSync(paths.metaFile)) return { current: false, reason: 'English translation missing' };
@@ -170,7 +170,7 @@ export function translationStatus(unit: UnitType, knowledge: KnowledgeType | nul
     const knowledgeErrors = validateKnowledgeTranslation(knowledge, translatedKnowledge);
     if (unitErrors.length || knowledgeErrors.length) return { current: false, reason: `English translation invalid: ${[...unitErrors, ...knowledgeErrors].join('; ').slice(0, 400)}` };
     const prereqs = prereqSource(unit, knowledge);
-    if (prereqs.translations.length) {
+    if (checkPrereqs && prereqs.translations.length) {
       const prereqFile = join(config.knowledgeDir, unit.module.toLowerCase(), 'en', `${unit.id}.prereqs.json`);
       if (!existsSync(prereqFile) || validatePrereqs(prereqs, JSON.parse(readFileSync(prereqFile, 'utf8'))).length) return { current: false, reason: 'English prerequisite explanations missing, stale or invalid' };
     }
@@ -187,17 +187,22 @@ export async function translateUnit(
   workDir: string,
   log: (message: string) => void,
   runCodex: TranslateFn = codexJson,
+  options: { force?: boolean } = {},
 ): Promise<TranslationResult> {
   const unit = Unit.parse(unitInput);
   const knowledge = UnitKnowledge.parse(knowledgeInput);
   if (knowledge.unitId !== unit.id || knowledge.sourceSha !== unit.source.sha256) throw new Error(`knowledge collection for ${unit.id} does not match the source unit`);
   const paths = translationPaths(unitFile, unit);
   mkdirSync(workDir, { recursive: true });
+  if (!options.force && translationStatus(unit, knowledge, unitFile, false).current) {
+    const tokens = await translatePrereqs(unit, knowledge, workDir, log, runCodex);
+    return { unitFile: paths.translatedUnit, knowledgeFile: paths.translatedKnowledge, metaFile: paths.metaFile, ...(existsSync(paths.prereqFile) ? { prereqFile: paths.prereqFile } : {}), tokens };
+  }
   const [translatedUnit, translatedKnowledge] = await Promise.all([
     translateAsset({ kind: 'unit', source: unit, fields: unitTranslationFields(unit), validate: (v) => validateUnitTranslation(unit, v), workDir, log, runCodex }),
     translateAsset({ kind: 'knowledge', source: knowledge, fields: knowledgeTranslationFields(knowledge), validate: (v) => validateKnowledgeTranslation(knowledge, v), workDir, log, runCodex }),
   ]);
-  const prereqTokens = await translatePrereqs(unit, knowledge, workDir, log, runCodex);
+  const prereqTokens = await translatePrereqs(unit, knowledge, workDir, log, runCodex, !!options.force);
   const meta: TranslationMeta = {
     sourceUnitHash: hash(Unit.parse(unit)),
     sourceUnitSha: unit.source.sha256,
