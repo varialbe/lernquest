@@ -1,5 +1,5 @@
 import type { Locale } from './index.tsx';
-import { KNOWLEDGE_KIND_LABEL, MODULE_INFO, type KnowledgeKind, type ModuleId } from '@lernquest/shared';
+import { ACHIEVEMENTS, KNOWLEDGE_KIND_LABEL, MODULE_INFO, PETS, SHOP_ITEMS, THEMES, type KnowledgeKind, type ModuleId, type PetDef } from '@lernquest/shared';
 
 /** IDs and game rules remain language independent; only catalogue display text changes. */
 export const gameTextEn = {
@@ -145,3 +145,25 @@ export function translateGameText(text: string, locale: Locale): string {
 
 export const knowledgeKindLabel = (kind: KnowledgeKind, locale: Locale) => translateGameText(KNOWLEDGE_KIND_LABEL[kind], locale);
 export const moduleName = (module: ModuleId, locale: Locale) => translateGameText(MODULE_INFO[module].name, locale);
+
+/** ID-based helpers for screens that already use catalogue objects. */
+export function localizedPet(petId: string, locale: Locale): PetDef | undefined {
+  const pet = PETS.find((item) => item.id === petId);
+  if (!pet || locale === 'de') return pet;
+  return { ...pet, name: translateGameText(pet.name, locale), blurb: translateGameText(pet.blurb, locale), stageNames: pet.stageNames.map((name) => translateGameText(name, locale)) as PetDef['stageNames'] };
+}
+
+export function localizedShopItem(itemId: string, locale: Locale) {
+  const item = SHOP_ITEMS.find((entry) => entry.id === itemId);
+  return item ? { ...item, name: translateGameText(item.name, locale), description: translateGameText(item.description, locale) } : undefined;
+}
+
+export function localizedAchievement(id: string, locale: Locale) {
+  const item = ACHIEVEMENTS.find((entry) => entry.id === id);
+  return item ? { ...item, name: translateGameText(item.name, locale), description: translateGameText(item.description, locale) } : undefined;
+}
+
+export function themeName(id: string, locale: Locale) {
+  const name = THEMES[id]?.name;
+  return name === undefined ? undefined : translateGameText(name, locale);
+}
