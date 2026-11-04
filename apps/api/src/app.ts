@@ -3,6 +3,7 @@ import rateLimit from '@fastify/rate-limit';
 import Fastify, { type FastifyInstance } from 'fastify';
 import { ZodError } from 'zod';
 import type { DB } from './db/index.ts';
+import { localeForUser } from './lib/locale.ts';
 import { HttpError } from './lib/http.ts';
 import { adminRoutes } from './routes/admin.ts';
 import { passkeyRoutes } from './routes/passkeys.ts';
@@ -19,6 +20,23 @@ export async function buildApp(db: DB, opts: { logger?: boolean } = {}): Promise
     methods: ['GET', 'POST', 'PATCH', 'DELETE'],
     allowedHeaders: ['authorization', 'content-type', 'accept-language', 'x-lq-locale', 'x-lq-device-locale'],
     maxAge: 86400,
+  });
+  // Cache API matches Vary headers, so offline responses remain separate per account and language.
+  app.addHook('onSend', async (req, reply, payload) => {
+    if (req.url.startsWith('/api/')) {
+      const existing = reply.getHeader('vary');
+      const vary = new Map<string, string>();
+      for (const name of [String(existing ?? ''), 'Authorization, Accept-Language, X-Lq-Locale, X-Lq-Device-Locale'].join(',').split(',')) {
+        const field = name.trim();
+        if (field) vary.set(field.toLowerCase(), field);
+      }
+      reply.header('vary', [...vary.values()].join(', '));
+      if (req.user) {
+        reply.header('content-language', localeForUser(req.user));
+        if (!reply.hasHeader('cache-control')) reply.header('cache-control', 'private');
+      }
+    }
+    return payload;
   });
   // global großzügig; Login/Registrierung haben eigene, strenge Limits (siehe routes/user.ts)
   await app.register(rateLimit, { global: true, max: 300, timeWindow: '1 minute', keyGenerator: (req) => req.ip });

@@ -139,3 +139,28 @@ describe('locale transport and source validation', () => {
     expect(unitKnowledge('ds-01', 'en')?.entries[0]!.term).toBe('Menge');
   });
 });
+
+
+describe('authenticated cache variants', () => {
+  it('separates account and language variants while preserving CORS Origin', async () => {
+    await app.inject({ method: 'PATCH', url: '/api/me/settings', headers: auth(), payload: { locale: null } });
+    for (const language of ['de', 'en']) {
+      const response = await app.inject({ url: '/api/path', headers: { ...auth(), origin: 'capacitor://localhost', 'accept-language': language, 'x-lq-locale': 'auto', 'x-lq-device-locale': language } });
+      expect(response.statusCode).toBe(200);
+      expect(response.headers['access-control-allow-origin']).toBe('capacitor://localhost');
+      const vary = String(response.headers.vary).toLowerCase().split(',').map((field) => field.trim());
+      expect(vary).toEqual(expect.arrayContaining(['origin', 'authorization', 'accept-language', 'x-lq-locale', 'x-lq-device-locale']));
+      expect(response.headers['content-language']).toBe(language);
+      expect(response.headers['cache-control']).toBe('private');
+      const ds = response.json().modules.find((item: { id: string }) => item.id === 'DS');
+      expect(ds.name).toBe(language === 'en' ? 'Discrete Structures' : 'Diskrete Strukturen');
+    }
+  });
+
+  it('varies unauthorized responses by authentication as well', async () => {
+    const response = await app.inject({ url: '/api/path' });
+    expect(response.statusCode).toBe(401);
+    expect(String(response.headers.vary).toLowerCase()).toContain('authorization');
+    expect(response.headers['content-language']).toBeUndefined();
+  });
+});
