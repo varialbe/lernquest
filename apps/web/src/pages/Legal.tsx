@@ -1,21 +1,23 @@
 import type { ReactNode } from 'react';
 import { Link, useLocation } from 'wouter';
 import { Icon } from '../components/icons.tsx';
+import { useLocale } from '../i18n/index.tsx';
 
 const OWNER = { name: 'Mateen Batt', street: 'Neustifter Straße 37', city: '80807 München', email: 'varialbe@varialbe.xyz' };
-const UPDATED = 'November 2026';
+const UPDATED = '4. November 2026';
 
 /** © unten auf Login, Profil und den Rechtsseiten */
 export function Copyright({ className = '' }: { className?: string }) {
+  const { locale } = useLocale();
   return (
     <p className={`text-center text-xs font-bold text-muted ${className}`}>
       © {Math.max(2026, new Date().getFullYear())} {OWNER.name} ·{' '}
       <Link href="/impressum" className="hover:underline">
-        Impressum
+        {locale === 'en' ? 'Legal notice' : 'Impressum'}
       </Link>
       {' · '}
       <Link href="/datenschutz" className="hover:underline">
-        Datenschutz
+        {locale === 'en' ? 'Privacy' : 'Datenschutz'}
       </Link>
     </p>
   );
@@ -23,11 +25,12 @@ export function Copyright({ className = '' }: { className?: string }) {
 
 function LegalLayout({ title, children }: { title: string; children: ReactNode }) {
   const [, navigate] = useLocation();
+  const { locale } = useLocale();
   return (
     <div className="min-h-dvh bg-bg">
       <header className="safe-top sticky top-0 z-20 border-b-2 border-line bg-bg/95 backdrop-blur">
         <div className="mx-auto flex h-14 max-w-xl items-center gap-2 px-3">
-          <button onClick={() => (history.length > 1 ? history.back() : navigate('/'))} aria-label="Zurück" className="rounded-xl p-1.5 text-muted hover:bg-surface-2">
+          <button onClick={() => (history.length > 1 ? history.back() : navigate('/'))} aria-label={locale === 'en' ? 'Back' : 'Zurück'} className="rounded-xl p-1.5 text-muted hover:bg-surface-2">
             <Icon name="chevronLeft" size={26} weight={2.8} />
           </button>
           <h1 className="text-lg font-black">{title}</h1>
@@ -60,8 +63,15 @@ const Address = () => (
 );
 
 export function Impressum() {
+  const { locale } = useLocale();
   return (
     <LegalLayout title="Impressum">
+      {locale === 'en' && (
+        <section className="rounded-2xl border-2 border-line bg-surface p-4">
+          <H>English summary</H>
+          <p>LernQuest is a private, non-commercial learning project for students. The operator and responsible person is {OWNER.name}, {OWNER.street}, {OWNER.city}. Email: <Mail />. The German version is legally binding.</p>
+        </section>
+      )}
       <H>Angaben gemäß § 5 DDG</H>
       <Address />
       <H>Verantwortlich für den Inhalt nach § 18 Abs. 2 MStV</H>
@@ -89,8 +99,15 @@ export function Impressum() {
 }
 
 export function Datenschutz() {
+  const { locale } = useLocale();
   return (
     <LegalLayout title="Datenschutz">
+      {locale === 'en' && (
+        <section className="rounded-2xl border-2 border-line bg-surface p-4">
+          <H>English summary</H>
+          <p>LernQuest processes account details, learning progress and settings to provide the app. The server is in Germany. Data is not sold; there are no ads, analytics or cookies. Your language preference and detected device language are stored so the app and account notifications use the right language. You can change your language preference in your profile. The German version is legally binding.</p>
+        </section>
+      )}
       <p>Diese Erklärung beschreibt, welche personenbezogenen Daten LernQuest (Web-App unter lern.varialbe.xyz und mateenbatt.de/lernen sowie die iOS-App) verarbeitet, wozu und wie lange.</p>
 
       <H>1. Verantwortlicher</H>
@@ -117,7 +134,7 @@ export function Datenschutz() {
       <H>5. Benutzerkonto</H>
       <p>
         Für die Nutzung brauchst du ein Konto. Gespeichert werden Benutzername, Anzeigename, deine E-Mail-Adresse, das Passwort ausschließlich als Argon2id-Hash (nie im Klartext), der Zeitpunkt, zu dem du diese Datenschutzerklärung bestätigt hast, und deine Einstellungen (Tagesziel,
-        Farbschema, Ton, Profilrahmen, aktives Pet). Gibst du freiwillig einen Einladungscode an, speichern wir ihn, damit der Betreiber sieht, über wen du gekommen bist. Rechtsgrundlage: Art. 6 Abs. 1 lit. b DSGVO (Bereitstellung der App).
+        Farbschema, Ton, Profilrahmen, aktives Pet sowie die Sprachwahl: Automatisch, Deutsch oder English). Bei „Automatisch“ speichern wir zusätzlich die erkannte Gerätesprache, damit Push-Mitteilungen und E-Mails in der passenden Sprache erstellt werden können. Gibst du freiwillig einen Einladungscode an, speichern wir ihn, damit der Betreiber sieht, über wen du gekommen bist. Rechtsgrundlage: Art. 6 Abs. 1 lit. b DSGVO (Bereitstellung der App).
       </p>
       <p className="mt-2">
         Für jede Anmeldung wird eine Sitzung angelegt: ein zufälliger Schlüssel (auf dem Server nur als Hash), die Browser-/App-Kennung und Zeitpunkte von Anmeldung und letzter Nutzung. Abgelaufene oder abgemeldete Sitzungen werden gelöscht.
@@ -176,7 +193,7 @@ export function Datenschutz() {
 
       <H>9. Lokaler Speicher auf deinem Gerät</H>
       <p>
-        Die App speichert im lokalen Speicher deines Browsers bzw. der App: den Anmeldeschlüssel, ob auf dem Gerät schon ein Konto benutzt wurde (damit die Anmeldung statt der Begrüßung erscheint), Ton- und Farbeinstellungen, das zuletzt gewählte Modul, ob Mitteilungen in der iOS-App aktiv sind, offline beantwortete Level, bis sie übertragen sind, und zwischengespeicherte Lerninhalte (z. B. die Wissenssammlung) für die Offline-Nutzung. Das ist für die Funktion technisch erforderlich (§ 25 Abs. 2 Nr. 2
+        Die App speichert im lokalen Speicher deines Browsers bzw. der App: den Anmeldeschlüssel, ob auf dem Gerät schon ein Konto benutzt wurde (damit die Anmeldung statt der Begrüßung erscheint), Ton- und Farbeinstellungen, die Sprachwahl, das zuletzt gewählte Modul, ob Mitteilungen in der iOS-App aktiv sind, offline beantwortete Level, bis sie übertragen sind, und zwischengespeicherte Lerninhalte (z. B. die Wissenssammlung) für die Offline-Nutzung. Das ist für die Funktion technisch erforderlich (§ 25 Abs. 2 Nr. 2
         TDDDG). Es werden keine Cookies gesetzt.
       </p>
 

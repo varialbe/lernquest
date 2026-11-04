@@ -1,6 +1,6 @@
 import { usePageT } from '../i18n/pages.ts';
 import { translateGameText } from '../i18n/catalog.ts';
-import { useLocale } from '../i18n/index.tsx';
+import { formatNumber, useLocale } from '../i18n/index.tsx';
 import { motion } from 'motion/react';
 import { useEffect, useState } from 'react';
 import { Link } from 'wouter';
@@ -37,6 +37,7 @@ function useCountdown(iso?: string) {
 
 function Row({ e, unit }: { e: LeaderboardEntry; unit: string }) {
   const t = usePageT();
+  const { locale } = useLocale();
   const medal = e.rank <= 3 ? ['#f5b301', '#a8b3c7', '#cd7f32'][e.rank - 1] : undefined;
   return (
     <Link href={e.me ? '/profile' : `/u/${e.username}`}>
@@ -50,7 +51,7 @@ function Row({ e, unit }: { e: LeaderboardEntry; unit: string }) {
           <p className="truncate text-xs font-bold text-muted">@{e.username}</p>
         </div>
         <span className="shrink-0 font-black tabular-nums">
-          {e.value} <span className="text-xs text-muted">{unit}</span>
+          {formatNumber(e.value, locale)} <span className="text-xs text-muted">{unit}</span>
         </span>
       </motion.div>
     </Link>

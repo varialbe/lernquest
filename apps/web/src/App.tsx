@@ -12,6 +12,7 @@ import { Quiz, type RunSpec } from './pages/Quiz.tsx';
 import { Datenschutz, Impressum } from './pages/Legal.tsx';
 import { initNative, rescheduleReminders, scheduleRecap } from './lib/native.ts';
 import { applyTheme } from './lib/theme.ts';
+import { useLocale, useT } from './i18n/index.tsx';
 
 const League = lazy(() => import('./pages/League.tsx'));
 const Pets = lazy(() => import('./pages/Pets.tsx'));
@@ -87,25 +88,34 @@ export function App() {
 
 function Authed({ onLogin, onLogout }: { onLogin: (t: string) => void; onLogout: () => void }) {
   const { data: me, isLoading, error } = useMe();
+  const { locale, syncAccountPreference } = useLocale();
+  const t = useT();
 
   const qc = useQueryClient();
+  useEffect(() => {
+    if (me) syncAccountPreference(me.settings.locale);
+  }, [me?.user.id, me?.settings.locale, syncAccountPreference]);
+  useEffect(() => {
+    // Refetch active content and mark inactive content stale after a language change.
+    void qc.invalidateQueries();
+  }, [locale, qc]);
   useEffect(() => {
     if (!me) return;
     applyTheme(me.settings.theme);
     setMuted(!me.settings.soundOn);
     void rescheduleReminders(me.stats);
     void scheduleRecap(me.settings.weeklyRecap).catch(() => {});
-  }, [me]);
+  }, [me, locale]);
   // iOS-App: Live-Update prüfen, beim Zurückkehren Daten auffrischen
   useEffect(() => void initNative(() => void qc.invalidateQueries()), [qc]);
 
-  if (isLoading) return <Spinner label="Lade …" />;
+  if (isLoading) return <Spinner label={t('Loading…')} />;
   if (error && !me) {
     return (
       <div className="flex min-h-dvh flex-col items-center justify-center gap-4 p-6 text-center">
         <p className="font-bold text-muted">{(error as Error).message}</p>
         <button className="font-black text-primary" onClick={() => location.reload()}>
-          Erneut versuchen
+          {t('Try again')}
         </button>
       </div>
     );

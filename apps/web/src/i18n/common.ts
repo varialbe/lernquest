@@ -2,6 +2,10 @@ import { useCallback } from 'react';
 import { useLocale, getDeviceLocale, getLocalePreference, type Locale } from './index.tsx';
 
 export const commonEn = {
+  "Brave blockiert Push: brave://settings/privacy → „Google-Dienste für Push-Nachrichten verwenden“ aktivieren, Browser neu starten.": "Brave is blocking push notifications: enable Google services for push messaging at brave://settings/privacy and restart the browser.",
+  "Der Push-Dienst des Browsers ist nicht erreichbar (privates Fenster, Firewall/VPN oder deaktivierte Google-Dienste?). Versuch es in einem normalen Chrome-, Edge-, Firefox- oder Safari-Fenster.": "The browser's push service is unavailable. Check private browsing, firewall/VPN or Google services settings, then try a regular Chrome, Edge, Firefox or Safari window.",
+  "Benachrichtigungen sind für diese Seite blockiert – in den Website-Einstellungen erlauben.": "Notifications are blocked for this site. Enable them in the site's settings.",
+  "Benachrichtigungen wurden nicht erlaubt.": "Notification permission was not granted.",
   "Die Google-Anmeldung ist fehlgeschlagen. Bitte versuche es erneut.": "Google sign-in failed. Please try again.",
   "Google-Anmeldung abgelaufen – bitte nochmal.": "Google sign-in expired. Please try again.",
   "oder": "or",

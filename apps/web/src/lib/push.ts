@@ -1,3 +1,4 @@
+import { currentText } from '../i18n/common.ts';
 import { api } from './api.ts';
 
 const b64ToBytes = (b64: string) => {
@@ -24,18 +25,18 @@ function explain(e: unknown): Error {
     const brave = 'brave' in navigator;
     return new Error(
       brave
-        ? 'Brave blockiert Push: brave://settings/privacy → „Google-Dienste für Push-Nachrichten verwenden“ aktivieren, Browser neu starten.'
-        : 'Der Push-Dienst des Browsers ist nicht erreichbar (privates Fenster, Firewall/VPN oder deaktivierte Google-Dienste?). Versuch es in einem normalen Chrome-, Edge-, Firefox- oder Safari-Fenster.',
+        ? currentText("Brave blockiert Push: brave://settings/privacy → „Google-Dienste für Push-Nachrichten verwenden“ aktivieren, Browser neu starten.")
+        : currentText("Der Push-Dienst des Browsers ist nicht erreichbar (privates Fenster, Firewall/VPN oder deaktivierte Google-Dienste?). Versuch es in einem normalen Chrome-, Edge-, Firefox- oder Safari-Fenster."),
     );
   }
-  if (name === 'NotAllowedError') return new Error('Benachrichtigungen sind für diese Seite blockiert – in den Website-Einstellungen erlauben.');
+  if (name === 'NotAllowedError') return new Error(currentText("Benachrichtigungen sind für diese Seite blockiert – in den Website-Einstellungen erlauben."));
   return e instanceof Error ? e : new Error(msg);
 }
 
 /** Abendliche Streak-Erinnerung aktivieren (iOS: nur als installierte Web-App). */
 export async function enablePush(vapidKey: string) {
   const perm = await Notification.requestPermission();
-  if (perm !== 'granted') throw new Error('Benachrichtigungen wurden nicht erlaubt.');
+  if (perm !== 'granted') throw new Error(currentText("Benachrichtigungen wurden nicht erlaubt."));
   const reg = await navigator.serviceWorker.ready;
   const key = b64ToBytes(vapidKey);
   // Altes Abo mit anderem Schlüssel (z. B. von einem früheren Build) blockiert sonst das neue
