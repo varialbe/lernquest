@@ -197,7 +197,7 @@ export function userRoutes(app: FastifyInstance, db: DB) {
   // ---------- Schwächen, Klausur-Check, Duelle ----------
   app.get('/api/mastery', auth, async (req) => mastery(db, req.user));
   // Wissenssammlung (Nachschlagewerk) je Modul
-  app.get<{ Params: { module: string } }>('/api/knowledge/:module', auth, async (req) => knowledgeForModule(db, ModuleId.parse(req.params.module.toUpperCase())));
+  app.get<{ Params: { module: string } }>('/api/knowledge/:module', auth, async (req) => knowledgeForModule(db, ModuleId.parse(req.params.module.toUpperCase()), req.user.id));
   // Karteikarten aus der Wissenssammlung (Leitner)
   app.get('/api/cards', auth, async (req) => cardsOverview(db, req.user));
   app.get<{ Params: { module: string }; Querystring: { unit?: string } }>('/api/cards/:module', auth, async (req) =>

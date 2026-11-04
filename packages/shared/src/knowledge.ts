@@ -55,9 +55,13 @@ export type UnitKnowledge = z.infer<typeof UnitKnowledge>;
 export type KnowledgeModuleResponse = {
   module: ModuleId;
   units: { unitId: string; unitNumber: number; unitTitle: string; overview: string | null; entries: KnowledgeEntryView[] }[];
+  /** Karteikarten-IDs in Box 6; nur für den angemeldeten Nutzer. */
+  masteredEntryIds?: string[];
+  /** Alias-ID → kanonische ID; Lernpfade zeigen die kanonische Fassung genau einmal. */
+  aliases?: Record<string, string>;
 };
-/** Eintrag + direkte Voraussetzungen (IDs anderer Einträge des Moduls, mit kurzer Begründung) */
-export type KnowledgeEntryView = KnowledgeEntry & { requires: { id: string; why: string }[] };
+/** Eintrag + klassifizierte direkte Voraussetzungen. */
+export type KnowledgeEntryView = KnowledgeEntry & { requires: PrereqLink[] };
 
 /**
  * `\( … \)` → `$…$` und `\[ … \]` → `$$…$$` (KaTeX/remark-math kennen nur `$`).
@@ -87,19 +91,68 @@ export const normalizeEntryMath = (e: KnowledgeEntry): KnowledgeEntry => ({
 });
 
 /**
- * Voraussetzungen: welche Einträge man verstanden haben muss, bevor ein Eintrag Sinn ergibt.
- * Datei `wissen/<modul>/_voraussetzungen.json`, einmal pro Unit von Codex erzeugt, deterministisch geprüft
- * (nur existierende Einträge derselben oder früherer Units, keine Zyklen).
+ * Voraussetzungen und hilfreiche Beziehungen des Wissensgraphen.
+ * v1-Dateien werden beim Lesen verlustfrei als essential-Kanten mit `legacy: true` normalisiert.
  */
-export const PrereqLink = z.object({ id: z.string().min(1).max(40), why: z.string().trim().max(240) });
+export const PREREQ_TYPES = ['essential', 'background', 'related'] as const;
+export const PrereqType = z.enum(PREREQ_TYPES);
+export type PrereqType = z.infer<typeof PrereqType>;
+export const PrereqLink = z.object({
+  id: z.string().min(1).max(40),
+  type: PrereqType,
+  why: z.string().trim().max(240),
+  /** Die Link stammt aus einem v1-Graphen; wird nach Neugenerierung entfernt. */
+  legacy: z.boolean().default(false),
+  /** Manuell fixierte Kante; Erzeugung und Migration dürfen sie nicht ändern. */
+  locked: z.boolean().default(false),
+}).superRefine((link, ctx) => {
+  if (!link.legacy && !link.why) ctx.addIssue({ code: 'custom', path: ['why'], message: 'Neue Kanten brauchen eine Begründung.' });
+});
 export type PrereqLink = z.infer<typeof PrereqLink>;
-export const KnowledgeGraph = z.object({
+const PrereqLinks = z.array(PrereqLink).max(13).superRefine((links, ctx) => {
+  const counts = { essential: 0, background: 0, related: 0 };
+  const ids = new Set<string>();
+  links.forEach((link, i) => {
+    counts[link.type]++;
+    if (ids.has(link.id)) ctx.addIssue({ code: 'custom', path: [i, 'id'], message: 'Doppelte Kante' });
+    ids.add(link.id);
+  });
+  if (counts.essential > 5 && !(counts.essential <= 6 && links.every((link) => link.type === 'essential' && link.legacy))) {
+    ctx.addIssue({ code: 'custom', message: 'Maximal 5 essential-Kanten' });
+  }
+  if (counts.background > 4) ctx.addIssue({ code: 'custom', message: 'Maximal 4 background-Kanten' });
+  if (counts.related > 4) ctx.addIssue({ code: 'custom', message: 'Maximal 4 related-Kanten' });
+});
+const GraphUnits = z.record(z.string(), z.object({
+  knowledgeAt: z.string(),
+  generatedAt: z.string(),
+  model: z.string(),
+  /** Version des Klassifikations-Prompts, fehlt bei v1. */
+  promptVersion: z.string().optional(),
+}));
+const KnowledgeGraphV1 = z.object({
   schemaVersion: z.literal(1),
   module: ModuleId,
-  /** je Unit: aus welcher Fassung der Wissenssammlung die Verknüpfungen stammen */
-  units: z.record(z.string(), z.object({ knowledgeAt: z.string(), generatedAt: z.string(), model: z.string() })),
-  /** Eintrag → direkte Voraussetzungen */
-  requires: z.record(z.string(), z.array(PrereqLink).max(6)),
+  units: GraphUnits,
+  requires: z.record(z.string(), z.array(z.object({ id: z.string().min(1).max(40), why: z.string().trim().max(240) }).strict()).max(6)),
+});
+const KnowledgeGraphV2 = z.object({
+  schemaVersion: z.literal(2),
+  module: ModuleId,
+  units: GraphUnits,
+  requires: z.record(z.string(), PrereqLinks),
+  /** Alias-ID → kanonische ID; Einträge selbst bleiben unverändert erhalten. */
+  aliases: z.record(z.string(), z.string().min(1).max(40)).default({}),
+});
+export const KnowledgeGraph = z.union([KnowledgeGraphV1, KnowledgeGraphV2]).transform((graph) => {
+  if (graph.schemaVersion === 2) return { ...graph, schemaVersion: 2 as const, aliases: graph.aliases ?? {} };
+  return {
+    schemaVersion: 2 as const,
+    module: graph.module,
+    units: graph.units,
+    aliases: {},
+    requires: Object.fromEntries(Object.entries(graph.requires).map(([id, links]) => [id, links.map((link) => ({ ...link, type: 'essential' as const, legacy: true, locked: false }))])),
+  };
 });
 export type KnowledgeGraph = z.infer<typeof KnowledgeGraph>;
 
