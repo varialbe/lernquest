@@ -1,0 +1,460 @@
+{
+  "schemaVersion": 1,
+  "unitId": "eip-07",
+  "module": "EIP",
+  "unitNumber": 7,
+  "unitTitle": "Recursion (Rekursion) and Search Algorithms (Suchalgorithmen)",
+  "sourceSha": "bc984befd7ce7a80a65a7bbbfb39f88cebccfce8ebc65cd1180458f2207ae56e",
+  "overview": "This unit explains recursive methods that reduce a problem to smaller subproblems and combine their results as the calls return. A base case (Basisfall), progress (Fortschritt), and combination (Kombination) make the computation traceable; the call stack and stack frames explain how active calls are managed. The sum from 1 to n (Summe von 1 bis n) and the factorial (Fakultät) illustrate the call and return phases. Linear search (lineare Suche) and binary search (binäre Suche) are compared: binary search requires an ascendingly sorted array and halves the search range, so its running time grows logarithmically.",
+  "entries": [
+    {
+      "id": "eip-07-k01",
+      "term": "Recursion",
+      "kind": "definition",
+      "short": "Recursion is a method calling itself to solve a smaller version of the same problem.",
+      "explanation": "Each recursive call handles a smaller subproblem and has its own parameters and local variables. A recursive solution needs a base case, progress toward that base case, and a way to combine the subproblem results. Without a reachable base case, calls may continue indefinitely until the call stack overflows.",
+      "example": "To compute the sum from 1 to 3, `sum(3)` first computes `sum(2)` and then uses its return value.",
+      "pitfalls": [
+        "A self-call alone does not make a method a correctly terminating recursive solution; the base case must be reachable."
+      ],
+      "related": [
+        "Base case",
+        "Progress",
+        "Combination",
+        "Call stack",
+        "Recursion anchor",
+        "Recursive step"
+      ],
+      "heading": "1. Rekursion: kleinere Probleme lösen"
+    },
+    {
+      "id": "eip-07-k02",
+      "term": "Base case",
+      "kind": "concept",
+      "short": "The base case answers the smallest case directly and does not trigger another recursive call.",
+      "explanation": "For the recursive sum, `n == 0` is the base case, and the method returns `0`. For the factorial, `n == 0` is the base case and returns `1`. A recursive call sequence must actually reach the base case for the computation to terminate.",
+      "example": "`sum(0)` returns `0`, while `factorial(0)` returns `1`.",
+      "pitfalls": [
+        "The base values for the sum and factorial are different.",
+        "A base case that is never reached for the allowed inputs does not prevent endless calls."
+      ],
+      "related": [
+        "Recursion",
+        "Progress",
+        "Combination",
+        "Recursion anchor"
+      ],
+      "heading": "1. Rekursion: kleinere Probleme lösen"
+    },
+    {
+      "id": "eip-07-k03",
+      "term": "Progress",
+      "kind": "concept",
+      "short": "Progress means that each recursive call moves closer to the base case.",
+      "explanation": "For the sum, `n` is decreased by one in each call, so the next call uses `n - 1`. For any allowed nonnegative starting value, the sequence of calls therefore eventually reaches `n == 0`. Without progress, the same subproblem may recur without reaching the base case.",
+      "example": "`sum(3)` calls `sum(2)`, then `sum(1)`, and then `sum(0)`.",
+      "pitfalls": [
+        "A recursive call that does not change the input toward the base case does not guarantee termination."
+      ],
+      "related": [
+        "Recursion",
+        "Base case",
+        "Combination",
+        "Termination"
+      ],
+      "heading": "1. Rekursion: kleinere Probleme lösen"
+    },
+    {
+      "id": "eip-07-k04",
+      "term": "Combination",
+      "kind": "concept",
+      "short": "Combination uses the smaller problem's return value to solve the original problem.",
+      "explanation": "For the sum, each call adds its own `n` to the result of `sum(n - 1)`. For the factorial, each call multiplies its own `n` by the result of `factorial(n - 1)`. The combination happens only after the recursive call has returned a value.",
+      "example": "When `sum(2)` returns `3`, `sum(3)` computes `3 + 3 = 6` from it.",
+      "pitfalls": [
+        "The result of the smaller problem can be used in the computation only after that problem returns."
+      ],
+      "related": [
+        "Recursion",
+        "Base case",
+        "Progress",
+        "Unwinding (Rückkehr- und Rückgabephase)"
+      ],
+      "heading": "1. Rekursion: kleinere Probleme lösen"
+    },
+    {
+      "id": "eip-07-k05",
+      "term": "Sum from 1 to n",
+      "kind": "example",
+      "short": "The sum from 1 to n can be expressed using a base value and the sum up to n − 1.",
+      "explanation": "Using $S(0)=0$ and $S(n)=S(n-1)+n$ for $n\\ge 1$, each sum is reduced to a smaller one. For $n=3$, $S(3)=S(2)+3$, $S(2)=S(1)+2$, and $S(1)=S(0)+1$. Thus, $S(3)=1+2+3=6$.",
+      "example": "For $n=4$, the rule gives $S(4)=S(3)+4=10$.",
+      "pitfalls": [
+        "The formula $S(n)=S(n-1)+n$ applies when $n\\ge 1$; for `n == 0`, use the base case."
+      ],
+      "related": [
+        "Recursion",
+        "Base case",
+        "Progress",
+        "Combination",
+        "Recursive summation method"
+      ],
+      "heading": "Beispiel: Summe von 1 bis n"
+    },
+    {
+      "id": "eip-07-k06",
+      "term": "Recursive summation method",
+      "kind": "method",
+      "short": "The recursive summation method returns zero for zero and otherwise adds n to the sum up to n − 1.",
+      "explanation": "The example method accepts inputs from `0` to `100`; for other values, it throws an `IllegalArgumentException`. For valid inputs, it first checks the base case, then waits for the smaller problem to return before adding `n`. The assignment to `smaller` is completed only when `sum(n - 1)` returns.",
+      "example": "```java\npublic static int sum(int n) {\n    if (n < 0 || n > 100)\n        throw new IllegalArgumentException();\n\n    if (n == 0)\n        return 0;\n\n    int smaller = sum(n - 1);\n    int result = smaller + n;\n    return result;\n}\n```",
+      "pitfalls": [
+        "The allowed input range from `0` to `100` is a restriction of this example method."
+      ],
+      "related": [
+        "Sum from 1 to n",
+        "Base case",
+        "Progress",
+        "Combination",
+        "Exception"
+      ],
+      "heading": "Java: vollständige Summenmethode"
+    },
+    {
+      "id": "eip-07-k07",
+      "term": "Unwinding (Rückkehr- und Rückgabephase)",
+      "kind": "concept",
+      "short": "Unwinding is the return from recursive calls and the continuation of computation with their return values.",
+      "explanation": "First, `sum(3)` creates calls down to `sum(0)`. After `sum(0)` returns the value `0`, each waiting call resumes its computation and returns its own result. The calls return in reverse order from which they started: first `sum(0)`, then `sum(1)`, `sum(2)`, and finally `sum(3)`.",
+      "example": "`sum(1)` receives `0` from `sum(0)`, computes `0 + 1`, and returns `1`.",
+      "pitfalls": [
+        "The waiting calls do not combine their results while the call chain is descending."
+      ],
+      "related": [
+        "Recursion",
+        "Combination",
+        "Call stack",
+        "Stack frame",
+        "LIFO principle (Last In, First Out)"
+      ],
+      "heading": "Aufrufphase und Rückgabephase bei sum(3)"
+    },
+    {
+      "id": "eip-07-k08",
+      "term": "Call stack",
+      "kind": "definition",
+      "short": "The call stack manages active method calls until they return.",
+      "explanation": "With a recursive method, each new call adds another active call to the stack. Waiting calls remain there until the call started beneath them returns. The return order follows the LIFO principle.",
+      "example": "While `sum(0)` is executing, the calls `sum(1)`, `sum(2)`, and `sum(3)` are waiting for their return values.",
+      "pitfalls": [
+        "Many simultaneously active recursive calls require stack memory and can cause a stack overflow if the recursion is too deep."
+      ],
+      "related": [
+        "Stack frame",
+        "LIFO principle (Last In, First Out)",
+        "Unwinding (Rückkehr- und Rückgabephase)",
+        "Call and return"
+      ],
+      "heading": "Call Stack und Stack Frames (Folien 303–319)"
+    },
+    {
+      "id": "eip-07-k09",
+      "term": "Stack frame",
+      "kind": "definition",
+      "short": "A stack frame contains the state of a single active method call.",
+      "explanation": "A stack frame contains, among other things, the parameters, local variables, and the point at which execution resumes after the call returns. Each recursive call has its own frame, even when all calls execute the same method. Therefore, each waiting call retains its own `n` and its own `smaller`.",
+      "example": "The frames for `sum(2)` and `sum(1)` contain different values for the parameter `n`.",
+      "pitfalls": [
+        "Recursive calls do not share their local variables, even though they execute the same method code."
+      ],
+      "related": [
+        "Call stack",
+        "Recursion",
+        "Local variable and precondition",
+        "Call and return"
+      ],
+      "heading": "Call Stack und Stack Frames (Folien 303–319)"
+    },
+    {
+      "id": "eip-07-k10",
+      "term": "LIFO principle (Last In, First Out)",
+      "kind": "concept",
+      "short": "LIFO means that the most recently started active call returns first.",
+      "explanation": "A recursive call starts the next call before it has finished itself. Therefore, the innermost call returns first, followed by its caller and then the preceding callers. The abbreviation stands for “Last In, First Out.”",
+      "example": "For `sum(3)`, `sum(0)` returns before `sum(1)`, `sum(2)`, and `sum(3)`.",
+      "pitfalls": [
+        "The return order is not the same as the order in which the calls were started."
+      ],
+      "related": [
+        "Call stack",
+        "Stack frame",
+        "Unwinding (Rückkehr- und Rückgabephase)"
+      ],
+      "heading": "Call Stack und Stack Frames (Folien 303–319)"
+    },
+    {
+      "id": "eip-07-k11",
+      "term": "Exception (Ausnahme)",
+      "kind": "definition",
+      "short": "An exception is an object that is thrown with `throw` and interrupts normal control flow.",
+      "explanation": "The summation method checks whether `n` is outside the allowed range from `0` to `100`, and then throws an `IllegalArgumentException`. `new IllegalArgumentException()` creates the exception object, while `throw` throws it. If the exception is not caught with `catch`, the shown program execution ends with an error.",
+      "example": "```java\nif (n < 0 || n > 100)\n    throw new IllegalArgumentException();\n```",
+      "pitfalls": [
+        "Creating the exception object and throwing it with `throw` are two separate steps."
+      ],
+      "related": [
+        "Recursive summation method",
+        "Factorial",
+        "Selection"
+      ],
+      "heading": "Exceptions: ungültige Argumente (Folie 302)"
+    },
+    {
+      "id": "eip-07-k12",
+      "term": "Factorial",
+      "kind": "definition",
+      "short": "The factorial of n is the product of the positive integers up to n, with $0!=1$.",
+      "explanation": "For $n\\ge 1$, $n!=1\\cdot2\\cdot\\ldots\\cdot n$, and recursively, $n!=n\\cdot(n-1)!$. The base case $0!=1$ allows the recursive calls to terminate. The example method limits the input to `0` through `12` because $12!$ fits in a Java `int`, whereas $13!$ does not.",
+      "example": "For $3!$, we have $3!=3\\cdot2!=3\\cdot2\\cdot1=6$.",
+      "pitfalls": [
+        "The base value is $0!=1$, not $0$.",
+        "A Java `int` cannot represent $13!$."
+      ],
+      "related": [
+        "Recursion",
+        "Base case",
+        "Progress",
+        "Combination",
+        "Overflow"
+      ],
+      "heading": "2. Fakultät / Factorial (Folien 321–332)"
+    },
+    {
+      "id": "eip-07-k13",
+      "term": "Recursive factorial method",
+      "kind": "method",
+      "short": "The recursive factorial method returns one for zero and otherwise multiplies n by the factorial of n − 1.",
+      "explanation": "The method accepts inputs from `0` to `12` and throws an `IllegalArgumentException` for invalid inputs. For `n == 0`, it returns `1`. Otherwise, it waits for `factorial(n - 1)` and multiplies the returned value by `n`.",
+      "example": "```java\npublic static int factorial(int n) {\n    if (n < 0 || n > 12)\n        throw new IllegalArgumentException();\n\n    if (n == 0)\n        return 1;\n\n    int smaller = factorial(n - 1);\n    return smaller * n;\n}\n```",
+      "pitfalls": [
+        "The input limit prevents the factorial result from exceeding the representable range of a Java `int`."
+      ],
+      "related": [
+        "Factorial",
+        "Base case",
+        "Progress",
+        "Combination",
+        "Exception"
+      ],
+      "heading": "2. Fakultät / Factorial (Folien 321–332)"
+    },
+    {
+      "id": "eip-07-k14",
+      "term": "Linear search",
+      "kind": "definition",
+      "short": "Linear search checks an array from left to right and returns the index of the searched-for value or −1.",
+      "explanation": "The search starts at index `0` and checks the elements in order. As soon as an element equals the searched-for value `x`, its index is returned. If the end of the array is reached without finding the value, the result is `-1`.",
+      "example": "In the array `[17, 3, -2, 9, 0, 1, 7, 42, 5]`, the value `7` is at index `6`.",
+      "pitfalls": [
+        "The result is the index of the value found, not the value itself.",
+        "An array index starts at `0`, not at `1`."
+      ],
+      "related": [
+        "Recursive linear search",
+        "Search invariant of linear search",
+        "Arrays and indices",
+        "Running time"
+      ],
+      "heading": "3. Lineare Suche / Linear Search (Folien 333–344)"
+    },
+    {
+      "id": "eip-07-k15",
+      "term": "Recursive linear search",
+      "kind": "method",
+      "short": "Recursive linear search checks the current index and, if it does not match, continues the search from the next index.",
+      "explanation": "The helper call `find0` first checks whether `i` has reached the end of the array, and accesses `a[i]` only afterward. It then returns `i` if `a[i]` equals `x`; otherwise, it calls itself with `i + 1`. The result of this next call is passed back unchanged.",
+      "example": "```java\npublic static int find(int[] a, int x) {\n    return find0(a, x, 0);\n}\n\npublic static int find0(int[] a, int x, int i) {\n    if (i == a.length)\n        return -1;\n\n    if (a[i] == x)\n        return i;\n\n    return find0(a, x, i + 1);\n}\n```",
+      "pitfalls": [
+        "The check `i == a.length` must come before accessing `a[i]`.",
+        "If the value occurs more than once, this method returns the first matching index."
+      ],
+      "related": [
+        "Linear search",
+        "Search invariant of linear search",
+        "Base case",
+        "Progress",
+        "Arrays and indices"
+      ],
+      "heading": "Rekursiver Java-Code"
+    },
+    {
+      "id": "eip-07-k16",
+      "term": "Search invariant of linear search",
+      "kind": "concept",
+      "short": "Before checking `a[i]`, it is known that no earlier index contains the searched-for value.",
+      "explanation": "When the search reaches index `i`, every index from `0` through `i-1` has already been checked and found not to match. This statement explains why a match at `i` is the first match and why continuing at `i + 1` does not skip any earlier possibilities. At the start, when `i == 0`, there are no earlier indices.",
+      "example": "Before checking `a[3]`, it is already known that `a[0]`, `a[1]`, and `a[2]` are not `x`.",
+      "pitfalls": [
+        "The value has not yet been ruled out at index `i`; that is the index checked next."
+      ],
+      "related": [
+        "Linear search",
+        "Recursive linear search",
+        "Invariant",
+        "Loop invariant"
+      ],
+      "heading": "Invariante und Kosten (Folie 344)"
+    },
+    {
+      "id": "eip-07-k17",
+      "term": "Cost of linear search",
+      "kind": "concept",
+      "short": "Linear search requires O(n) comparisons and O(n) additional stack space in the worst case.",
+      "explanation": "For an array with $n$ elements, every element may need to be checked, so the worst-case number of element comparisons is $O(n)$. If the searched-for value occurs exactly once and every position is equally likely, the average number of comparisons is $(n+1)/2$. The recursive version can have up to $n$ active search calls in the worst case and therefore requires additional stack space in $O(n)$.",
+      "example": "For `n = 9` and a value that occurs exactly once at an equally likely position, the average is `(9 + 1) / 2 = 5` comparisons.",
+      "pitfalls": [
+        "The average-case formula assumes exactly one occurrence and equally likely positions.",
+        "The space estimate refers to the recursive method's additional call stack."
+      ],
+      "related": [
+        "Linear search",
+        "Recursive linear search",
+        "Call stack",
+        "Running time"
+      ],
+      "heading": "Invariante und Kosten (Folie 344)"
+    },
+    {
+      "id": "eip-07-k18",
+      "term": "Binary search",
+      "kind": "method",
+      "short": "Binary search checks the middle of a search range and continues in the appropriate half.",
+      "explanation": "The method requires an array sorted in ascending order so that comparing `a[mid]` determines which half could still contain the value. The search range is described by the inclusive bounds `lo` and `hi`; an empty range, where `lo > hi`, means the value is absent. The method returns a matching index or `-1`.",
+      "example": "```java\npublic static int find(int[] a, int x) {\n    return find0(a, x, 0, a.length - 1);\n}\n\npublic static int find0(int[] a, int x, int lo, int hi) {\n    if (lo > hi)\n        return -1;\n\n    int mid = (lo + hi) / 2;\n\n    if (a[mid] == x)\n        return mid;\n\n    if (x > a[mid])\n        return find0(a, x, mid + 1, hi);\n\n    return find0(a, x, lo, mid - 1);\n}\n```",
+      "pitfalls": [
+        "In an unsorted array, the comparison with the midpoint value may discard the wrong half.",
+        "If the value occurs more than once, this method does not guarantee returning the first matching index."
+      ],
+      "related": [
+        "Requirement for binary search",
+        "Search interval [lo, hi]",
+        "Midpoint index mid",
+        "Logarithmic running time",
+        "Arrays and indices"
+      ],
+      "heading": "Java-Code aus Folie 356"
+    },
+    {
+      "id": "eip-07-k19",
+      "term": "Requirement for binary search",
+      "kind": "concept",
+      "short": "Binary search requires the array values to be sorted in ascending order.",
+      "explanation": "If `a[mid]` is less than `x`, the left half, including `mid`, can be discarded; if `a[mid]` is greater than `x`, the right half can be discarded. These conclusions are reliable only when the values are sorted in ascending order. Without that order, the searched-for value could be in a discarded half.",
+      "example": "In the sorted array `[-2, 0, 1, 3, 5, 7, 9]`, `a[mid] = 5` shows that a search for `7` must continue to the right.",
+      "pitfalls": [
+        "An array with the same values in a different order does not meet the requirement."
+      ],
+      "related": [
+        "Binary search",
+        "Search interval [lo, hi]",
+        "Midpoint index mid"
+      ],
+      "heading": "4. Binäre Suche / Binary Search (Folien 345–356)"
+    },
+    {
+      "id": "eip-07-k20",
+      "term": "Search interval [lo, hi]",
+      "kind": "notation",
+      "short": "`lo` and `hi` denote the inclusive lower and upper bounds of the current search range.",
+      "explanation": "The notation `[lo, hi]` includes the indices from `lo` through `hi`, including both bounds. The search range is empty when `lo > hi`; then binary search returns `-1`. After the comparison, the checked index `mid` is excluded from the next range by setting the new bound to `mid + 1` or `mid - 1`.",
+      "example": "If `lo = 5`, `hi = 8`, and `mid = 6`, the next range can be `[7, 8]` or `[5, 5]`.",
+      "pitfalls": [
+        "The bounds are inclusive; if the value is not found, the search ends only when `lo > hi`."
+      ],
+      "related": [
+        "Binary search",
+        "Requirement for binary search",
+        "Midpoint index mid"
+      ],
+      "heading": "4. Binäre Suche / Binary Search (Folien 345–356)"
+    },
+    {
+      "id": "eip-07-k21",
+      "term": "Midpoint index mid",
+      "kind": "notation",
+      "short": "`mid` is the integer-valued midpoint index computed for the current search range.",
+      "explanation": "In the Java method shown, `mid` is computed as `(lo + hi) / 2`; integer division produces an integer index. First, `a[mid]` is compared with `x`. Because this index has already been checked, the right subrange starts at `mid + 1` or the left subrange ends at `mid - 1`.",
+      "example": "With `lo = 0` and `hi = 8`, `mid = 4`.",
+      "pitfalls": [
+        "The already-checked index `mid` is no longer part of the next search range."
+      ],
+      "related": [
+        "Binary search",
+        "Search interval [lo, hi]",
+        "Requirement for binary search"
+      ],
+      "heading": "Java-Code aus Folie 356"
+    },
+    {
+      "id": "eip-07-k22",
+      "term": "Searching for 7 with binary search",
+      "kind": "example",
+      "short": "In the sorted example array, binary search finds the value 7 at index 5.",
+      "explanation": "The array is `[-2, 0, 1, 3, 5, 7, 9, 17, 42]`, and the initial search range is `[0, 8]`. First, `mid = 4` and `a[4] = 5`, so the search continues to the right; then `mid = 6` and `a[6] = 9`, so it continues to the left. In the range `[5, 5]`, `7` is at `mid = 5`, so the method returns `5`.",
+      "example": "The checked middle elements are `5`, `9`, and `7`.",
+      "pitfalls": [
+        "The index depends on the specific array order; in another array, `7` may be at a different index."
+      ],
+      "related": [
+        "Binary search",
+        "Search interval [lo, hi]",
+        "Midpoint index mid",
+        "Requirement for binary search"
+      ],
+      "heading": "Beispiel: Suche nach 7"
+    },
+    {
+      "id": "eip-07-k23",
+      "term": "Logarithmic running time",
+      "kind": "concept",
+      "short": "In the worst case, binary search performs O(log n) element checks because it approximately halves the search range.",
+      "explanation": "At each step, approximately half of the previous candidates remain. The number of steps therefore grows logarithmically with the array size: one million elements require at most about 20 checks of the middle elements in the worst case. This running time counts element checks, not every individual Java operator or method call.",
+      "example": "For `n = 1.000`, binary search requires at most about 10 checks of the middle elements in the worst case.",
+      "pitfalls": [
+        "Logarithmic running time assumes that the input meets binary search's sortedness requirement.",
+        "Even a successful search may require the worst-case search path."
+      ],
+      "related": [
+        "Binary search",
+        "Requirement for binary search",
+        "Running time",
+        "Linear search"
+      ],
+      "heading": "Warum logarithmisch?"
+    },
+    {
+      "id": "eip-07-k24",
+      "term": "Control-flow graph (CFG)",
+      "kind": "definition",
+      "short": "A control-flow graph describes the possible control-flow paths through a method.",
+      "explanation": "A control-flow diagram shows the order in which statements can be executed. During a recursive call, the same method is executed again, with the new call having its own parameters and local variables. The graph describes the method's flow; the call stack keeps the individual active calls separate.",
+      "example": "Each call to `sum` follows the same control flow but has its own parameter value `n`.",
+      "pitfalls": [
+        "A single control-flow graph does not represent the different local states of all recursive calls."
+      ],
+      "related": [
+        "Call stack",
+        "Stack frame",
+        "Recursion",
+        "Call and return"
+      ],
+      "heading": "Call Stack und Stack Frames (Folien 303–319)"
+    }
+  ],
+  "generator": {
+    "model": "gpt-6-luna",
+    "effort": "xhigh",
+    "promptVersion": "k1",
+    "generatedAt": "2026-11-04T20:35:31.651Z"
+  }
+}
