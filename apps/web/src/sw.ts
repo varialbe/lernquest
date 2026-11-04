@@ -8,6 +8,8 @@ declare const self: ServiceWorkerGlobalScope;
 
 self.skipWaiting();
 clientsClaim();
+// Old API responses have no locale/authentication Vary headers. Do not reuse them.
+self.addEventListener('activate', (event) => event.waitUntil(caches.delete('lq-api')));
 cleanupOutdatedCaches();
 
 // App-Shell + Assets (Bilder, Fonts, KaTeX, Mermaid-Chunks)
@@ -19,7 +21,7 @@ registerRoute(new NavigationRoute(createHandlerBoundToURL(`${BASE}index.html`), 
 // Bereits geladene Level, Pfad und Profil offline verfügbar halten
 registerRoute(
   ({ url, request }) => request.method === 'GET' && new RegExp(`^${BASE}api/(levels/|knowledge/|path$|me$|config$|shop$|practice$)`).test(url.pathname),
-  new NetworkFirst({ cacheName: 'lq-api', networkTimeoutSeconds: 4 }),
+  new NetworkFirst({ cacheName: 'lq-api-v2', networkTimeoutSeconds: 4 }),
 );
 
 // Web Push: Streak-Erinnerung
@@ -33,7 +35,7 @@ self.addEventListener('push', (event) => {
   })() as { title?: string; body?: string; url?: string };
   event.waitUntil(
     self.registration.showNotification(data.title ?? 'LernQuest', {
-      body: data.body ?? 'Zeit für eine kleine Lernrunde!',
+      body: data.body ?? (/^de/i.test(navigator.language) ? 'Zeit für eine kleine Lernrunde!' : 'Time for a short learning round!'),
       icon: `${BASE}app-icons/icon-192.png`,
       badge: `${BASE}app-icons/icon-192.png`,
       // Server-URLs sind relativ zur App ("/duels") → unter den Basis-Pfad hängen
