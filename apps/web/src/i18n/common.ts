@@ -278,8 +278,12 @@ export const commonEn = {
   "{p0} Begriffe & Konzepte": "{p0} terms & concepts",
   "kommt bald": "coming soon",
   "VO": "Lecture",
-  "{p0} Kern-Grundlagen · Tiefe {p1} Ebenen": "{p0} core foundations · depth {p1} levels",
-  "Erweiterte Tiefe · +{p0} Hintergrund · Tiefe {p1} Ebenen": "Extended depth · +{p0} background entries · depth {p1} levels"
+  "{count} Kern-Grundlage": "{count} core foundation",
+  "{count} Kern-Grundlagen": "{count} core foundations",
+  "Tiefe {depth} Ebene": "depth {depth} level",
+  "Tiefe {depth} Ebenen": "depth {depth} levels",
+  "Erweiterte Tiefe · +{count} Hintergrundeintrag": "Extended depth · +{count} background entry",
+  "Erweiterte Tiefe · +{count} Hintergrundeinträge": "Extended depth · +{count} background entries"
 } as const;
 export type CommonKey = keyof typeof commonEn;
 export const commonDe: Record<CommonKey, string> = Object.fromEntries(Object.keys(commonEn).map(key => [key, key])) as Record<CommonKey, string>;

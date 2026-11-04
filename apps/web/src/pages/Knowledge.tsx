@@ -96,11 +96,14 @@ function PathView({ target, onClose }: { target: string; onClose: () => void }) 
   const t = g.byId.get(target);
   if (!t) return null;
   const canonicalTarget = canonicalEntryId(target, g.aliases);
+  const coreCount = path.core.ids.length - 1;
+  const backgroundCount = path.extended.backgroundIds.length;
+  const depthLabel = (depth: number) => ct(depth === 1 ? "Tiefe {depth} Ebene" : "Tiefe {depth} Ebenen", { depth });
   const title = <span>{ct("Von Grund auf:")} <MathText text={t.e.term} /></span>;
   return (
     <Modal open onClose={onClose} title={title} titleText={ct("Von Grund auf: {p0}", { p0: plainMath(t.e.term) })}>
       <div className="-mt-1 mb-3 space-y-2 text-sm font-semibold text-muted">
-        <p>{ct("{p0} Kern-Grundlagen · Tiefe {p1} Ebenen", { p0: path.core.ids.length - 1, p1: path.core.depth })}</p>
+        <p>{ct(coreCount === 1 ? "{count} Kern-Grundlage" : "{count} Kern-Grundlagen", { count: coreCount })} · {depthLabel(path.core.depth)}</p>
         <button
           type="button"
           role="switch"
@@ -108,7 +111,7 @@ function PathView({ target, onClose }: { target: string; onClose: () => void }) 
           onClick={() => setExtended((value) => !value)}
           className={`flex w-full items-center justify-between rounded-xl border-2 px-3 py-2 text-left ${extended ? 'border-primary bg-primary/10 text-primary' : 'border-line bg-surface'}`}
         >
-          <span>{ct("Erweiterte Tiefe · +{p0} Hintergrund · Tiefe {p1} Ebenen", { p0: path.extended.backgroundIds.length, p1: path.extended.depth })}</span>
+          <span>{ct(backgroundCount === 1 ? "Erweiterte Tiefe · +{count} Hintergrundeintrag" : "Erweiterte Tiefe · +{count} Hintergrundeinträge", { count: backgroundCount })} · {depthLabel(path.extended.depth)}</span>
           <span className="font-black">{extended ? ct("An") : ct("Aus")}</span>
         </button>
         <p>{ct("Tippe einen Schritt an, um die Erklärung zu sehen.")}</p>
