@@ -1,3 +1,4 @@
+import { currentText } from '../i18n/common.ts';
 import { browserSupportsWebAuthn, browserSupportsWebAuthnAutofill, startAuthentication, startRegistration, WebAuthnAbortService } from '@simplewebauthn/browser';
 import type { PublicKeyCredentialCreationOptionsJSON, PublicKeyCredentialRequestOptionsJSON } from '@simplewebauthn/browser';
 import { api } from './api.ts';
@@ -38,6 +39,6 @@ export const isCancel = (e: unknown) => e instanceof Error && (e.name === 'NotAl
 
 /** Lesbare Fehlermeldung */
 export function passkeyError(e: unknown): string {
-  if (e instanceof Error && e.name === 'InvalidStateError') return 'Für dieses Gerät ist schon ein Passkey hinterlegt.';
-  return e instanceof Error ? e.message : 'Passkey fehlgeschlagen.';
+  if (e instanceof Error && e.name === 'InvalidStateError') return currentText("Für dieses Gerät ist schon ein Passkey hinterlegt.");
+  return e instanceof Error ? e.message : currentText("Passkey fehlgeschlagen.");
 }

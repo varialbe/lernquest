@@ -1,3 +1,4 @@
+import { useCommonT, currentLocale } from '../i18n/common.ts';
 import { motion } from 'motion/react';
 import { useMemo } from 'react';
 import type { Slider } from '@lernquest/shared';
@@ -8,7 +9,7 @@ import { sfx } from '../lib/sound.ts';
 export function fmtNum(v: number): string {
   const abs = Math.abs(v);
   const digits = abs >= 100 || Number.isInteger(v) ? 0 : abs >= 10 ? 1 : 2;
-  return v.toLocaleString('de-DE', { maximumFractionDigits: digits });
+  return v.toLocaleString(currentLocale(), { maximumFractionDigits: digits });
 }
 
 /** Regler-Mapping: Position 0…1000 ↔ Wert (linear oder logarithmisch, auf step bzw. 2 signifikante Stellen gerundet). */
@@ -40,6 +41,7 @@ export function useSliderScale(s: Slider) {
 
 /** Schätz-/Zahlenfrage mit Schieberegler und ± Feinjustierung. */
 export function EstimateInput({ slider, value, onChange, reveal, correct }: { slider: Slider; value: number | null; onChange: (v: number) => void; reveal: boolean; correct: boolean }) {
+  const ct = useCommonT();
   const scale = useSliderScale(slider);
   const start = scale.toValue(scale.STEPS / 2);
   const v = value ?? start;
@@ -56,7 +58,7 @@ export function EstimateInput({ slider, value, onChange, reveal, correct }: { sl
   return (
     <div className="rounded-3xl border-2 border-line bg-surface p-4 shadow-[0_4px_0_var(--c-border)]">
       <div className="flex items-center justify-center gap-3">
-        <button type="button" aria-label="weniger" disabled={reveal} onClick={() => nudge(-1)} className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border-2 border-line bg-surface-2 text-2xl font-black text-muted disabled:opacity-40">
+        <button type="button" aria-label={ct("weniger")} disabled={reveal} onClick={() => nudge(-1)} className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border-2 border-line bg-surface-2 text-2xl font-black text-muted disabled:opacity-40">
           −
         </button>
         <motion.div key={reveal ? 'r' : 'e'} initial={{ scale: 0.9 }} animate={{ scale: 1 }} className={`min-w-0 flex-1 text-center ${value === null ? 'text-muted' : reveal ? (correct ? 'text-success' : 'text-error') : 'text-primary'}`}>
@@ -65,7 +67,7 @@ export function EstimateInput({ slider, value, onChange, reveal, correct }: { sl
           </span>
           {slider.unit && <span className="ml-1.5 text-lg font-extrabold">{slider.unit}</span>}
         </motion.div>
-        <button type="button" aria-label="mehr" disabled={reveal} onClick={() => nudge(1)} className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border-2 border-line bg-surface-2 text-2xl font-black text-muted disabled:opacity-40">
+        <button type="button" aria-label={ct("mehr")} disabled={reveal} onClick={() => nudge(1)} className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border-2 border-line bg-surface-2 text-2xl font-black text-muted disabled:opacity-40">
           +
         </button>
       </div>
@@ -89,7 +91,7 @@ export function EstimateInput({ slider, value, onChange, reveal, correct }: { sl
           step={1}
           value={pos}
           disabled={reveal}
-          aria-label="Schätzwert"
+          aria-label={ct("Schätzwert")}
           aria-valuetext={`${fmtNum(v)} ${slider.unit ?? ''}`}
           onChange={(e) => {
             sfx.tick();
@@ -100,7 +102,7 @@ export function EstimateInput({ slider, value, onChange, reveal, correct }: { sl
       </div>
       <div className="mt-1 flex justify-between text-xs font-extrabold text-muted">
         <span>{fmtNum(slider.min)}</span>
-        {slider.scale === 'log' && <span>logarithmisch</span>}
+        {slider.scale === 'log' && <span>{ct("logarithmisch")}</span>}
         <span>{fmtNum(slider.max)}</span>
       </div>
     </div>

@@ -1,3 +1,4 @@
+import { currentText } from '../i18n/common.ts';
 import { Capacitor } from '@capacitor/core';
 import type { AppUpdateManifest } from '@lernquest/shared';
 
@@ -181,7 +182,7 @@ export async function setLocalReminders(on: boolean) {
   const { LocalNotifications } = await import('@capacitor/local-notifications');
   if (on) {
     const p = await LocalNotifications.requestPermissions();
-    if (p.display !== 'granted') throw new Error('Mitteilungen sind für LernQuest aus – in den iOS-Einstellungen erlauben.');
+    if (p.display !== 'granted') throw new Error(currentText("Mitteilungen sind für LernQuest aus – in den iOS-Einstellungen erlauben."));
   }
   localStorage.setItem(REMINDER_KEY, on ? '1' : '0');
   if (!on) await LocalNotifications.cancel({ notifications: REMINDER_IDS.map((id) => ({ id })) });
@@ -223,8 +224,8 @@ export async function rescheduleReminders(s: { streak: number; todayXp: number; 
     return [
       {
         id,
-        title: streak > 0 ? `🔥 Dein ${streak}-Tage-Streak wartet!` : 'Zeit für eine kleine Runde 📚',
-        body: streak > 0 ? 'Ein Level reicht, um ihn zu retten.' : 'Ein Level, ein paar Minuten – dein Pet freut sich.',
+        title: streak > 0 ? currentText("🔥 Dein {p0}-Tage-Streak wartet!", { p0: streak }) : currentText("Zeit für eine kleine Runde 📚"),
+        body: streak > 0 ? currentText("Ein Level reicht, um ihn zu retten.") : currentText("Ein Level, ein paar Minuten – dein Pet freut sich."),
         schedule: { at },
       },
     ];

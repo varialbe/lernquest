@@ -1,3 +1,4 @@
+import { useCommonT } from '../i18n/common.ts';
 import { lazy, Suspense, useEffect, useId, useState } from 'react';
 import { Icon } from './icons.tsx';
 
@@ -89,6 +90,7 @@ export type DiagramFrame = { content: string; caption: string | null };
 
 /** Diagramm in der Frage; Antippen öffnet den Erkunden-Modus (Vollbild, Zoom, Schritte). */
 export default function Mermaid({ code, frames, caption }: { code: string; frames?: DiagramFrame[]; caption?: string | null }) {
+  const ct = useCommonT();
   const { svg, error } = useMermaidSvg(code);
   const [open, setOpen] = useState(false);
   const steps: DiagramFrame[] = frames?.length ? frames : [{ content: code, caption: caption ?? null }];
@@ -111,7 +113,7 @@ export default function Mermaid({ code, frames, caption }: { code: string; frame
         <div className="flex justify-center [&_svg]:h-auto [&_svg]:max-h-[46dvh] [&_svg]:max-w-full" dangerouslySetInnerHTML={{ __html: svg }} />
         <span className="pointer-events-none absolute bottom-2 right-2 flex items-center gap-1 rounded-xl bg-surface/90 px-2 py-1 text-xs font-black text-primary shadow-card">
           <Icon name="search" size={14} />
-          {frames?.length ? `${frames.length} Schritte` : 'Erkunden'}
+          {frames?.length ? `${frames.length} Schritte` : ct("Erkunden")}
         </span>
       </button>
       {open && (

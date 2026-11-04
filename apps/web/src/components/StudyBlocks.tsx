@@ -1,3 +1,6 @@
+import { useLocale } from '../i18n/index.tsx';
+import { moduleName } from '../i18n/catalog.ts';
+import { useCommonT, currentLocale } from '../i18n/common.ts';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useState } from 'react';
 import { MODULE_INFO, STUDY, type StudyResponse } from '@lernquest/shared';
@@ -10,11 +13,13 @@ import { Button, Card, ProgressBar, SectionTitle, Toast } from './ui.tsx';
 /** Reihenfolge wie im Stundenplan */
 const ORDER = ['EIP', 'ERA', 'DS'] as const;
 
-const hours = (blocks: number) => ((blocks * STUDY.blockMinutes) / 60).toLocaleString('de-DE', { maximumFractionDigits: 1 });
-const dm = (day: string) => new Date(`${day}T12:00:00Z`).toLocaleDateString('de-DE', { day: 'numeric', month: 'numeric', timeZone: 'UTC' });
+const hours = (blocks: number) => ((blocks * STUDY.blockMinutes) / 60).toLocaleString(currentLocale(), { maximumFractionDigits: 1 });
+const dm = (day: string) => new Date(`${day}T12:00:00Z`).toLocaleDateString(currentLocale(), { day: 'numeric', month: 'numeric', timeZone: 'UTC' });
 
 /** Profil: Lernblöcke (90 min Eigenstudium) je Fach eintragen, Wochenziel, Belohnung am Wochenende */
 export function StudyBlocks() {
+  const { locale } = useLocale();
+  const ct = useCommonT();
   const qc = useQueryClient();
   const { data } = useQuery({ queryKey: ['study'], queryFn: () => api<StudyResponse>('/api/study'), staleTime: 15_000 });
   const [busy, setBusy] = useState<string | null>(null);
@@ -45,9 +50,9 @@ export function StudyBlocks() {
     if (before + 1 === goal) {
       fx.coins();
       sfx.achievement();
-      setMsg(`${MODULE_INFO[module as keyof typeof MODULE_INFO].short}: Wochenziel geschafft! 🎉`);
+      setMsg(ct("{p0}: Wochenziel geschafft! 🎉", { p0: MODULE_INFO[module as keyof typeof MODULE_INFO].short }));
     } else if (before + 1 > goal) {
-      setMsg('Ziel ist schon erreicht – denk auch an Pausen 😌');
+      setMsg(ct("Ziel ist schon erreicht – denk auch an Pausen 😌"));
     } else sfx.correct();
   };
 
@@ -56,24 +61,23 @@ export function StudyBlocks() {
     if (!r?.coins) return;
     fx.coins(el);
     sfx.claim();
-    setMsg(`+${r.coins} Coins für deine Lernwoche!`);
+    setMsg(ct("+{p0} Coins für deine Lernwoche!", { p0: r.coins }));
     void qc.invalidateQueries({ queryKey: ['me'] });
   };
 
   const r = data.reward;
   return (
     <>
-      <SectionTitle action={<span className="text-sm font-black text-muted">bis So {dm(data.weekEnd)}</span>}>Lernblöcke</SectionTitle>
+      <SectionTitle action={<span className="text-sm font-black text-muted">{ct("bis So")} {dm(data.weekEnd)}</span>}>{ct("Lernblöcke")}</SectionTitle>
 
       {data.pending.map((w) => (
         <Card key={w.week} className="mb-3 border-gold/70! bg-[color-mix(in_oklab,var(--c-gold)_12%,var(--c-surface))]">
           <div className="flex items-center gap-3">
             <img src={assetUrl('item-coin')} alt="" className="h-10 w-10 shrink-0" />
             <div className="min-w-0 flex-1">
-              <p className="font-black leading-tight">Woche {dm(w.week)}–{dm(new Date(Date.parse(`${w.week}T12:00:00Z`) + 6 * 864e5).toISOString().slice(0, 10))} geschafft</p>
+              <p className="font-black leading-tight">{ct("Woche {p0}–{p1} geschafft", { p0: dm(w.week), p1: dm(new Date(Date.parse(`${w.week}T12:00:00Z`) + 6 * 864e5).toISOString().slice(0, 10)) })}</p>
               <p className="text-sm font-semibold text-muted">
-                {Object.values(w.blocks).reduce((a, b) => a + b, 0)} Blöcke · {w.reward.goalsReached}/3 Ziele
-              </p>
+                {ct("{p0} Blöcke · {p1}/3 Ziele", { p0: Object.values(w.blocks).reduce((a, b) => a + b, 0), p1: w.reward.goalsReached })}</p>
             </div>
             <Button onClick={(e) => claim(w.week, e.currentTarget)} disabled={!!busy} className="shrink-0 px-4!">
               +{w.reward.total}
@@ -89,11 +93,11 @@ export function StudyBlocks() {
           return (
             <div key={m.module}>
               <div className="mb-1.5 flex items-baseline justify-between gap-2">
-                <span className="font-black" title={MODULE_INFO[m.module].name}>
-                  {MODULE_INFO[m.module].short} {done && <span aria-label="Ziel erreicht">✅</span>}
+                <span className="font-black" title={moduleName(m.module, locale)}>
+                  {MODULE_INFO[m.module].short} {done && <span aria-label={ct("Ziel erreicht")}>✅</span>}
                 </span>
                 <span className="text-sm font-black tabular-nums text-muted">
-                  {m.blocks}/{m.goalBlocks} Blöcke · {hours(m.blocks)}/{hours(m.goalBlocks)} h
+                  {ct("{p0}/{p1} Blöcke · {p2}/{p3} h", { p0: m.blocks, p1: m.goalBlocks, p2: hours(m.blocks), p3: hours(m.goalBlocks) })}
                 </span>
               </div>
               <div className="flex items-center gap-2">
@@ -105,7 +109,7 @@ export function StudyBlocks() {
                     onClick={() => run(`undo-${m.module}`, `/api/study/${m.module.toLowerCase()}/undo`)}
                     disabled={!!busy}
                     className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border-2 border-line text-muted active:scale-95"
-                    aria-label={`Letzten ${MODULE_INFO[m.module].name}-Block zurücknehmen`}
+                    aria-label={ct("Letzten {p0}-Block zurücknehmen", { p0: moduleName(m.module, locale) })}
                   >
                     <span className="text-xl font-black leading-none">−</span>
                   </button>
@@ -115,27 +119,26 @@ export function StudyBlocks() {
                   disabled={!!busy || m.today >= STUDY.maxPerModuleDay}
                   className="btn3d h-10 shrink-0 rounded-xl px-3 text-sm font-black text-white disabled:opacity-50"
                   style={{ background: color, boxShadow: `0 4px 0 color-mix(in oklab, ${color} 70%, black)` }}
-                  aria-label={`${MODULE_INFO[m.module].name}: 90 Minuten eintragen`}
+                  aria-label={ct("{p0}: 90 Minuten eintragen", { p0: moduleName(m.module, locale) })}
                 >
                   +90 min
                 </button>
               </div>
-              {m.today >= STUDY.maxPerModuleDay && <p className="mt-1 text-xs font-bold text-muted">Für heute genug {MODULE_INFO[m.module].short} – morgen geht es weiter.</p>}
+              {m.today >= STUDY.maxPerModuleDay && <p className="mt-1 text-xs font-bold text-muted">{ct("Für heute genug")} {MODULE_INFO[m.module].short} {ct("– morgen geht es weiter.")}</p>}
             </div>
           );
         })}
 
         <div className="rounded-xl bg-surface-2 p-3 text-sm">
           <div className="flex items-center justify-between font-black">
-            <span>Belohnung am Montag</span>
+            <span>{ct("Belohnung am Montag")}</span>
             <span className="flex items-center gap-1">
               <img src={assetUrl('item-coin')} alt="" className="h-5 w-5" />
               {r.total}
             </span>
           </div>
           <p className="mt-1 font-semibold text-muted">
-            {STUDY.coinsPerBlock} pro Block bis zum Ziel · +{STUDY.goalBonus} je erreichtem Ziel · +{STUDY.allGoalsBonus} wenn alle drei klappen. Darüber
-            gibt es nur noch {STUDY.coinsPerExtraBlock} pro Block (max. {STUDY.extraMax} je Fach), denn Pausen gehören dazu.
+            {ct("{p0} pro Block bis zum Ziel · +{p1} je erreichtem Ziel · +{p2} wenn alle drei klappen. Darüber gibt es nur noch {p3} pro Block (max. {p4} je Fach), denn Pausen gehören dazu.", { p0: STUDY.coinsPerBlock, p1: STUDY.goalBonus, p2: STUDY.allGoalsBonus, p3: STUDY.coinsPerExtraBlock, p4: STUDY.extraMax })}
           </p>
         </div>
       </Card>
