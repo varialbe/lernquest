@@ -198,10 +198,16 @@ export async function translateUnit(
     const tokens = await translatePrereqs(unit, knowledge, workDir, log, runCodex);
     return { unitFile: paths.translatedUnit, knowledgeFile: paths.translatedKnowledge, metaFile: paths.metaFile, ...(existsSync(paths.prereqFile) ? { prereqFile: paths.prereqFile } : {}), tokens };
   }
-  const [translatedUnit, translatedKnowledge] = await Promise.all([
+  // Finish both model calls before propagating a failure; otherwise a rejected
+  // sibling keeps running after the CLI advances to the next unit.
+  const [unitResult, knowledgeResult] = await Promise.allSettled([
     translateAsset({ kind: 'unit', source: unit, fields: unitTranslationFields(unit), validate: (v) => validateUnitTranslation(unit, v), workDir, log, runCodex }),
     translateAsset({ kind: 'knowledge', source: knowledge, fields: knowledgeTranslationFields(knowledge), validate: (v) => validateKnowledgeTranslation(knowledge, v), workDir, log, runCodex }),
   ]);
+  if (unitResult.status === 'rejected') throw unitResult.reason;
+  if (knowledgeResult.status === 'rejected') throw knowledgeResult.reason;
+  const translatedUnit = unitResult.value;
+  const translatedKnowledge = knowledgeResult.value;
   const prereqTokens = await translatePrereqs(unit, knowledge, workDir, log, runCodex, !!options.force);
   const meta: TranslationMeta = {
     sourceUnitHash: hash(Unit.parse(unit)),

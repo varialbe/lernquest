@@ -192,6 +192,22 @@ describe('English translation validation', () => {
     expect(refreshed).toBe(1);
   });
 
+  it('waits for the sibling model call before propagating a translation failure', async () => {
+    const dir = mkdtempSync(join(tmpdir(), 'lq-translate-settle-'));
+    config.knowledgeDir = join(dir, 'wissen');
+    const unit = unitFixture();
+    const unitFile = join(dir, '01-relations.json');
+    writeFileSync(unitFile, JSON.stringify(unit));
+    let unitFinished = false;
+    await expect(translateUnit(unit, knowledgeFixture(), unitFile, join(dir, 'work'), () => {}, async (options) => {
+      if (options.label === 'translate-knowledge-1') throw new Error('knowledge fixture rejected');
+      await new Promise((resolve) => setTimeout(resolve, 25));
+      unitFinished = true;
+      return { data: { translations: unitTranslationFields(unit).map((field) => ({ path: field.path, text: `English: ${field.text}` })) }, tokens: 1 };
+    })).rejects.toThrow('knowledge fixture rejected');
+    expect(unitFinished).toBe(true);
+  });
+
   it('runs with fixture responses and writes source hashes for stale detection', async () => {
     const dir = mkdtempSync(join(tmpdir(), 'lq-translate-'));
     const knowledgeDir = join(dir, 'wissen');
