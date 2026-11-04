@@ -1,3 +1,6 @@
+import { useLocale } from '../i18n/index.tsx';
+import { translateGameText } from '../i18n/catalog.ts';
+import { useCommonT } from '../i18n/common.ts';
 import { motion } from 'motion/react';
 import { useEffect, useRef, useState, type FormEvent, type ReactNode } from 'react';
 import { Link, useLocation } from 'wouter';
@@ -46,6 +49,8 @@ const ErrorBox = ({ msg }: { msg: string | null }) =>
 
 /** „Mit Google …“ – Web: Weiterleitung; iOS-App: Safari + Polling */
 function GoogleButton({ label, onLogin, onError }: { label: string; onLogin: (t: string) => void; onError: (m: string) => void }) {
+  const { locale } = useLocale();
+  const ct = useCommonT();
   const { data: cfg } = useConfig();
   const [, navigate] = useLocation();
   const [busy, setBusy] = useState(false);
@@ -57,8 +62,8 @@ function GoogleButton({ label, onLogin, onError }: { label: string; onLogin: (t:
       if (!r) return; // Seite wechselt zu Google
       if (r.status === 'code') onLogin(await exchangeGoogleCode(r.code));
       else if (r.status === 'pending') navigate(`/register?google=${r.pendingId}`);
-      else if (r.status === 'error') onError(r.message);
-      else if (r.status === 'expired') onError('Google-Anmeldung abgelaufen – bitte nochmal.');
+      else if (r.status === 'error') onError(locale === 'en' ? ct("Die Google-Anmeldung ist fehlgeschlagen. Bitte versuche es erneut.") : r.message);
+      else if (r.status === 'expired') onError(ct("Google-Anmeldung abgelaufen – bitte nochmal."));
     } catch (e) {
       onError((e as Error).message);
     } finally {
@@ -68,9 +73,7 @@ function GoogleButton({ label, onLogin, onError }: { label: string; onLogin: (t:
   return (
     <>
       <div className="my-1 flex items-center gap-3 text-xs font-black uppercase tracking-wider text-muted">
-        <span className="h-0.5 flex-1 bg-line" />
-        oder
-        <span className="h-0.5 flex-1 bg-line" />
+        <span className="h-0.5 flex-1 bg-line" />{ct("oder")}<span className="h-0.5 flex-1 bg-line" />
       </div>
       <button
         type="button"
@@ -79,7 +82,7 @@ function GoogleButton({ label, onLogin, onError }: { label: string; onLogin: (t:
         className="flex h-13 w-full items-center justify-center gap-3 rounded-2xl border-2 border-line bg-surface font-black shadow-[0_4px_0_var(--c-border)] active:translate-y-[2px] disabled:opacity-60"
       >
         <span dangerouslySetInnerHTML={{ __html: GOOGLE_G }} />
-        {busy ? 'Einen Moment …' : label}
+        {busy ? ct("Einen Moment …") : label}
       </button>
     </>
   );
@@ -104,16 +107,13 @@ export const rememberDevice = () => {
 
 /** Erster Besuch: großer Knopf zum Registrieren, Anmelden als zweite Wahl (wie Duolingo & Co.) */
 export function Welcome() {
+  const ct = useCommonT();
   const [, navigate] = useLocation();
   return (
-    <AuthLayout title="LernQuest" subtitle="DS, EIP und ERA – jeden Tag ein kleines Level. Kostenlos." pose="cheer">
+    <AuthLayout title="LernQuest" subtitle={ct("DS, EIP und ERA – jeden Tag ein kleines Level. Kostenlos.")} pose="cheer">
       <div className="space-y-3">
-        <Button full onClick={() => navigate('/register')}>
-          Los geht’s
-        </Button>
-        <Button full variant="secondary" onClick={() => navigate('/login')}>
-          Ich habe schon ein Konto
-        </Button>
+        <Button full onClick={() => navigate('/register')}>{ct("Los geht’s")}</Button>
+        <Button full variant="secondary" onClick={() => navigate('/login')}>{ct("Ich habe schon ein Konto")}</Button>
       </div>
       <Copyright className="mt-10" />
     </AuthLayout>
@@ -121,6 +121,8 @@ export function Welcome() {
 }
 
 export function Login({ onLogin }: { onLogin: (token: string) => void }) {
+  const { locale } = useLocale();
+  const ct = useCommonT();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -133,7 +135,7 @@ export function Login({ onLogin }: { onLogin: (token: string) => void }) {
     const p = new URLSearchParams(location.search);
     const code = p.get('oauth');
     const err = p.get('oauthError');
-    if (err) setError(err);
+    if (err) setError(locale === 'en' ? ct("Die Google-Anmeldung ist fehlgeschlagen. Bitte versuche es erneut.") : err);
     if (!code) return;
     history.replaceState(null, '', location.pathname);
     setBusy(true);
@@ -182,33 +184,27 @@ export function Login({ onLogin }: { onLogin: (token: string) => void }) {
     }
   };
   return (
-    <AuthLayout title="Willkommen zurück!" subtitle="Melde dich an und mach da weiter, wo du aufgehört hast.">
+    <AuthLayout title={ct("Willkommen zurück!")} subtitle={ct("Melde dich an und mach da weiter, wo du aufgehört hast.")}>
       <form onSubmit={submit} className="space-y-4">
-        <Field label="Benutzername oder E-Mail" id="username" name="username" autoComplete={canPasskey ? 'username webauthn' : 'username'} autoCapitalize="none" autoCorrect="off" spellCheck={false} value={username} onChange={(e) => setUsername(e.target.value)} required />
-        <Field label="Passwort" id="password" name="password" type="password" autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} required />
+        <Field label={ct("Benutzername oder E-Mail")} id="username" name="username" autoComplete={canPasskey ? 'username webauthn' : 'username'} autoCapitalize="none" autoCorrect="off" spellCheck={false} value={username} onChange={(e) => setUsername(e.target.value)} required />
+        <Field label={ct("Passwort")} id="password" name="password" type="password" autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} required />
         <div className="-mt-2 text-right">
-          <Link href="/forgot" className="px-1 text-sm font-bold text-primary hover:underline">
-            Passwort vergessen?
-          </Link>
+          <Link href="/forgot" className="px-1 text-sm font-bold text-primary hover:underline">{ct("Passwort vergessen?")}</Link>
         </div>
         <ErrorBox msg={error} />
         <Button type="submit" full disabled={busy || !username || !password}>
-          {busy ? 'Einen Moment …' : 'Anmelden'}
+          {busy ? ct("Einen Moment …") : ct("Anmelden")}
         </Button>
         {canPasskey && (
           <Button type="button" variant="secondary" full disabled={busy} onClick={passkey}>
             <span className="inline-flex items-center gap-2">
-              <Icon name="key" size={20} /> Mit Passkey anmelden
-            </span>
+              <Icon name="key" size={20} />{ct("Mit Passkey anmelden")}</span>
           </Button>
         )}
-        <GoogleButton label="Mit Google anmelden" onLogin={onLogin} onError={setError} />
+        <GoogleButton label={ct("Mit Google anmelden")} onLogin={onLogin} onError={setError} />
       </form>
-      <p className="mt-8 text-center text-sm font-bold text-muted">
-        Neu hier?{' '}
-        <Link href="/register" className="text-primary underline-offset-2 hover:underline">
-          Konto erstellen
-        </Link>
+      <p className="mt-8 text-center text-sm font-bold text-muted">{ct("Neu hier?")}{' '}
+        <Link href="/register" className="text-primary underline-offset-2 hover:underline">{ct("Konto erstellen")}</Link>
       </p>
       <Copyright className="mt-6" />
     </AuthLayout>
@@ -222,6 +218,8 @@ export function Register({ onLogin }: { onLogin: (token: string) => void }) {
 }
 
 function RegisterForm({ onLogin }: { onLogin: (token: string) => void }) {
+  const { locale } = useLocale();
+  const ct = useCommonT();
   const presetCode = new URLSearchParams(location.search).get('code') ?? '';
   const [f, setF] = useState({ inviteCode: presetCode, username: '', displayName: '', password: '', email: '' });
   const [newsletter, setNewsletter] = useState(false);
@@ -247,14 +245,14 @@ function RegisterForm({ onLogin }: { onLogin: (token: string) => void }) {
     }
   };
   return (
-    <AuthLayout title="Willkommen!" subtitle="Leg dir ein Konto an und such dir dein erstes Pet aus." pose="cheer">
+    <AuthLayout title={ct("Willkommen!")} subtitle={ct("Leg dir ein Konto an und such dir dein erstes Pet aus.")} pose="cheer">
       <form onSubmit={submit} className="space-y-4">
-        <Field label="Benutzername" id="username" name="username" autoComplete="username" autoCapitalize="none" autoCorrect="off" spellCheck={false} value={f.username} onChange={set('username')} hint="3–24 Zeichen: Buchstaben, Zahlen, _ . -" required />
-        <Field label="E-Mail" name="email" type="email" autoComplete="email" value={f.email} onChange={set('email')} hint="Zum Bestätigen und falls du dein Passwort vergisst" required />
-        <Field label="Anzeigename" name="nickname" autoComplete="nickname" value={f.displayName} onChange={set('displayName')} placeholder="So sehen dich die anderen" required />
-        <Field label="Passwort" id="new-password" name="new-password" type="password" autoComplete="new-password" value={f.password} onChange={set('password')} hint="Mindestens 8 Zeichen" required />
+        <Field label={ct("Benutzername")} id="username" name="username" autoComplete="username" autoCapitalize="none" autoCorrect="off" spellCheck={false} value={f.username} onChange={set('username')} hint={ct("3–24 Zeichen: Buchstaben, Zahlen, _ . -")} required />
+        <Field label={ct("E-Mail")} name="email" type="email" autoComplete="email" value={f.email} onChange={set('email')} hint={ct("Zum Bestätigen und falls du dein Passwort vergisst")} required />
+        <Field label={ct("Anzeigename")} name="nickname" autoComplete="nickname" value={f.displayName} onChange={set('displayName')} placeholder={ct("So sehen dich die anderen")} required />
+        <Field label={ct("Passwort")} id="new-password" name="new-password" type="password" autoComplete="new-password" value={f.password} onChange={set('password')} hint={ct("Mindestens 8 Zeichen")} required />
         <div>
-          <span className="mb-2 block px-1 text-sm font-extrabold text-muted">Wähle dein erstes Pet</span>
+          <span className="mb-2 block px-1 text-sm font-extrabold text-muted">{ct("Wähle dein erstes Pet")}</span>
           <div className="grid grid-cols-3 gap-3">
             {STARTER_PETS.map((id) => {
               const p = PETS.find((x) => x.id === id)!;
@@ -268,46 +266,36 @@ function RegisterForm({ onLogin }: { onLogin: (token: string) => void }) {
                   className={`flex flex-col items-center rounded-2xl border-2 p-2 transition-all ${active ? 'border-primary bg-primary-soft shadow-[0_4px_0_var(--c-primary)]' : 'border-line bg-surface shadow-[0_4px_0_var(--c-border)]'}`}
                 >
                   <PetImage petId={id} stage={1} size={72} />
-                  <span className="mt-1 text-sm font-black">{p.name}</span>
+                  <span className="mt-1 text-sm font-black">{translateGameText(p.name, locale)}</span>
                 </button>
               );
             })}
           </div>
         </div>
         <details className="group rounded-2xl border-2 border-line bg-surface px-4 py-3" open={!!presetCode}>
-          <summary className="flex cursor-pointer list-none items-center justify-between text-sm font-extrabold text-muted">
-            Einladungscode (optional)
-            <Icon name="chevronRight" size={18} className="transition-transform group-open:rotate-90" />
+          <summary className="flex cursor-pointer list-none items-center justify-between text-sm font-extrabold text-muted">{ct("Einladungscode (optional)")}<Icon name="chevronRight" size={18} className="transition-transform group-open:rotate-90" />
           </summary>
           <div className="mt-3">
-            <Field label="Code von der Person, die dich eingeladen hat" name="invite" autoComplete="off" placeholder="LQ-XXXX-XXXX" autoCapitalize="characters" value={f.inviteCode} onChange={set('inviteCode')} />
+            <Field label={ct("Code von der Person, die dich eingeladen hat")} name="invite" autoComplete="off" placeholder="LQ-XXXX-XXXX" autoCapitalize="characters" value={f.inviteCode} onChange={set('inviteCode')} />
           </div>
         </details>
         <label className="flex cursor-pointer items-start gap-3 px-1 text-sm font-bold">
           <input type="checkbox" className="mt-0.5 h-5 w-5 shrink-0 accent-[var(--c-primary)]" checked={newsletter} onChange={(e) => setNewsletter(e.target.checked)} />
-          <span>Newsletter abonnieren (gelegentlich Neuigkeiten zu LernQuest, jederzeit abbestellbar)</span>
+          <span>{ct("Newsletter abonnieren (gelegentlich Neuigkeiten zu LernQuest, jederzeit abbestellbar)")}</span>
         </label>
         <label className="flex cursor-pointer items-start gap-3 px-1 text-sm font-bold">
           <input type="checkbox" className="mt-0.5 h-5 w-5 shrink-0 accent-[var(--c-primary)]" checked={privacy} onChange={(e) => setPrivacy(e.target.checked)} required />
-          <span>
-            Ich habe die{' '}
-            <Link href="/datenschutz" className="text-primary underline">
-              Datenschutzerklärung
-            </Link>{' '}
-            gelesen und bin einverstanden.
-          </span>
+          <span>{ct("Ich habe die")}{' '}
+            <Link href="/datenschutz" className="text-primary underline">{ct("Datenschutzerklärung")}</Link>{' '}{ct("gelesen und bin einverstanden.")}</span>
         </label>
         <ErrorBox msg={error} />
         <Button type="submit" full disabled={busy || !privacy}>
-          {busy ? 'Einen Moment …' : 'Los geht’s'}
+          {busy ? ct("Einen Moment …") : ct("Los geht’s")}
         </Button>
-        <GoogleButton label="Mit Google registrieren" onLogin={onLogin} onError={setError} />
+        <GoogleButton label={ct("Mit Google registrieren")} onLogin={onLogin} onError={setError} />
       </form>
-      <p className="mt-8 text-center text-sm font-bold text-muted">
-        Schon dabei?{' '}
-        <Link href="/login" className="text-primary hover:underline">
-          Anmelden
-        </Link>
+      <p className="mt-8 text-center text-sm font-bold text-muted">{ct("Schon dabei?")}{' '}
+        <Link href="/login" className="text-primary hover:underline">{ct("Anmelden")}</Link>
       </p>
       <Copyright className="mt-6" />
     </AuthLayout>
@@ -315,6 +303,7 @@ function RegisterForm({ onLogin }: { onLogin: (token: string) => void }) {
 }
 
 export function ChangePassword({ forced, onDone, username }: { forced?: boolean; onDone: (token: string) => void; username?: string }) {
+  const ct = useCommonT();
   const [oldPassword, setOld] = useState('');
   const [newPassword, setNew] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -328,15 +317,13 @@ export function ChangePassword({ forced, onDone, username }: { forced?: boolean;
     }
   };
   return (
-    <AuthLayout title="Neues Passwort" subtitle={forced ? 'Leg jetzt ein eigenes Passwort fest.' : 'Ändere dein Passwort.'} pose="book">
+    <AuthLayout title={ct("Neues Passwort")} subtitle={forced ? ct("Leg jetzt ein eigenes Passwort fest.") : ct("Ändere dein Passwort.")} pose="book">
       <form onSubmit={submit} className="space-y-4">
         {username && <input type="text" name="username" autoComplete="username" value={username} readOnly hidden />}
-        {!forced && <Field label="Aktuelles Passwort" type="password" autoComplete="current-password" value={oldPassword} onChange={(e) => setOld(e.target.value)} required />}
-        <Field label="Neues Passwort" name="new-password" type="password" autoComplete="new-password" value={newPassword} onChange={(e) => setNew(e.target.value)} hint="Mindestens 8 Zeichen" required />
+        {!forced && <Field label={ct("Aktuelles Passwort")} type="password" autoComplete="current-password" value={oldPassword} onChange={(e) => setOld(e.target.value)} required />}
+        <Field label={ct("Neues Passwort")} name="new-password" type="password" autoComplete="new-password" value={newPassword} onChange={(e) => setNew(e.target.value)} hint={ct("Mindestens 8 Zeichen")} required />
         <ErrorBox msg={error} />
-        <Button type="submit" full disabled={newPassword.length < 8}>
-          Speichern
-        </Button>
+        <Button type="submit" full disabled={newPassword.length < 8}>{ct("Speichern")}</Button>
       </form>
     </AuthLayout>
   );
@@ -344,6 +331,8 @@ export function ChangePassword({ forced, onDone, username }: { forced?: boolean;
 
 /** Nach Google: Konto anlegen (Benutzername, Pet, Datenschutz) */
 function GoogleComplete({ pendingId, onLogin }: { pendingId: string; onLogin: (token: string) => void }) {
+  const { locale } = useLocale();
+  const ct = useCommonT();
   const [info, setInfo] = useState<{ email: string; name: string; username: string } | null>(null);
   const [f, setF] = useState({ username: '', displayName: '', inviteCode: '' });
   const [pet, setPet] = useState(STARTER_PETS[0]!);
@@ -374,55 +363,46 @@ function GoogleComplete({ pendingId, onLogin }: { pendingId: string; onLogin: (t
     }
   };
   return (
-    <AuthLayout title="Fast fertig!" subtitle={info ? `Konto für ${info.email} anlegen` : 'Google-Konto verbinden'} pose="cheer">
-      {!info && !error && <p className="text-center font-bold text-muted">Lade …</p>}
+    <AuthLayout title={ct("Fast fertig!")} subtitle={info ? ct("Konto für {p0} anlegen", { p0: info.email }) : ct("Google-Konto verbinden")} pose="cheer">
+      {!info && !error && <p className="text-center font-bold text-muted">{ct("Lade …")}</p>}
       {info && (
         <form onSubmit={submit} className="space-y-4">
-          <Field label="Benutzername" name="username" autoComplete="username" autoCapitalize="none" value={f.username} onChange={(e) => setF({ ...f, username: e.target.value })} hint="3–24 Zeichen: Buchstaben, Zahlen, _ . -" required />
-          <Field label="Anzeigename" name="nickname" value={f.displayName} onChange={(e) => setF({ ...f, displayName: e.target.value })} required />
+          <Field label={ct("Benutzername")} name="username" autoComplete="username" autoCapitalize="none" value={f.username} onChange={(e) => setF({ ...f, username: e.target.value })} hint={ct("3–24 Zeichen: Buchstaben, Zahlen, _ . -")} required />
+          <Field label={ct("Anzeigename")} name="nickname" value={f.displayName} onChange={(e) => setF({ ...f, displayName: e.target.value })} required />
           <div className="grid grid-cols-3 gap-3">
             {STARTER_PETS.map((id) => (
               <button type="button" key={id} onClick={() => setPet(id)} aria-pressed={pet === id} className={`flex flex-col items-center rounded-2xl border-2 p-2 ${pet === id ? 'border-primary bg-primary-soft' : 'border-line bg-surface'}`}>
                 <PetImage petId={id} stage={1} size={64} />
-                <span className="mt-1 text-sm font-black">{PETS.find((x) => x.id === id)!.name}</span>
+                <span className="mt-1 text-sm font-black">{translateGameText(PETS.find((x) => x.id === id)!.name, locale)}</span>
               </button>
             ))}
           </div>
           <details className="group rounded-2xl border-2 border-line bg-surface px-4 py-3">
-            <summary className="flex cursor-pointer list-none items-center justify-between text-sm font-extrabold text-muted">
-              Einladungscode (optional)
-              <Icon name="chevronRight" size={18} className="transition-transform group-open:rotate-90" />
+            <summary className="flex cursor-pointer list-none items-center justify-between text-sm font-extrabold text-muted">{ct("Einladungscode (optional)")}<Icon name="chevronRight" size={18} className="transition-transform group-open:rotate-90" />
             </summary>
             <div className="mt-3">
-              <Field label="Code von der Person, die dich eingeladen hat" name="invite" autoComplete="off" value={f.inviteCode} onChange={(e) => setF({ ...f, inviteCode: e.target.value })} />
+              <Field label={ct("Code von der Person, die dich eingeladen hat")} name="invite" autoComplete="off" value={f.inviteCode} onChange={(e) => setF({ ...f, inviteCode: e.target.value })} />
             </div>
           </details>
           <label className="flex cursor-pointer items-start gap-3 px-1 text-sm font-bold">
             <input type="checkbox" className="mt-0.5 h-5 w-5 shrink-0 accent-[var(--c-primary)]" checked={newsletter} onChange={(e) => setNewsletter(e.target.checked)} />
-            <span>Newsletter abonnieren (Bestätigung per Mail, jederzeit abbestellbar)</span>
+            <span>{ct("Newsletter abonnieren (Bestätigung per Mail, jederzeit abbestellbar)")}</span>
           </label>
           <label className="flex cursor-pointer items-start gap-3 px-1 text-sm font-bold">
             <input type="checkbox" className="mt-0.5 h-5 w-5 shrink-0 accent-[var(--c-primary)]" checked={privacy} onChange={(e) => setPrivacy(e.target.checked)} required />
-            <span>
-              Ich habe die{' '}
-              <Link href="/datenschutz" className="text-primary underline">
-                Datenschutzerklärung
-              </Link>{' '}
-              gelesen und bin einverstanden.
-            </span>
+            <span>{ct("Ich habe die")}{' '}
+              <Link href="/datenschutz" className="text-primary underline">{ct("Datenschutzerklärung")}</Link>{' '}{ct("gelesen und bin einverstanden.")}</span>
           </label>
           <ErrorBox msg={error} />
           <Button type="submit" full disabled={busy || !privacy}>
-            {busy ? 'Einen Moment …' : 'Konto anlegen'}
+            {busy ? ct("Einen Moment …") : ct("Konto anlegen")}
           </Button>
         </form>
       )}
       {!info && error && (
         <>
           <ErrorBox msg={error} />
-          <Link href="/login" className="mt-4 block text-center font-bold text-primary">
-            Zurück zur Anmeldung
-          </Link>
+          <Link href="/login" className="mt-4 block text-center font-bold text-primary">{ct("Zurück zur Anmeldung")}</Link>
         </>
       )}
       <Copyright className="mt-6" />
@@ -431,6 +411,7 @@ function GoogleComplete({ pendingId, onLogin }: { pendingId: string; onLogin: (t
 }
 
 export function Forgot() {
+  const ct = useCommonT();
   const [id, setId] = useState('');
   const [sent, setSent] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -449,24 +430,20 @@ export function Forgot() {
     }
   };
   return (
-    <AuthLayout title="Passwort vergessen?" subtitle="Wir schicken dir einen Link, mit dem du ein neues Passwort festlegst." pose="book">
+    <AuthLayout title={ct("Passwort vergessen?")} subtitle={ct("Wir schicken dir einen Link, mit dem du ein neues Passwort festlegst.")} pose="book">
       {sent ? (
-        <p className="rounded-2xl bg-success-soft px-4 py-3 font-bold text-success-dark dark:text-success">
-          Wenn es ein Konto mit dieser Angabe und hinterlegter E-Mail gibt, ist der Link unterwegs. Schau auch im Spam-Ordner nach (Absender: lernquest.reset@varialbe.xyz).
-        </p>
+        <p className="rounded-2xl bg-success-soft px-4 py-3 font-bold text-success-dark dark:text-success">{ct("Wenn es ein Konto mit dieser Angabe und hinterlegter E-Mail gibt, ist der Link unterwegs. Schau auch im Spam-Ordner nach (Absender: lernquest.reset@varialbe.xyz).")}</p>
       ) : (
         <form onSubmit={submit} className="space-y-4">
-          <Field label="Benutzername oder E-Mail" name="username" autoComplete="username" autoCapitalize="none" value={id} onChange={(e) => setId(e.target.value)} required />
+          <Field label={ct("Benutzername oder E-Mail")} name="username" autoComplete="username" autoCapitalize="none" value={id} onChange={(e) => setId(e.target.value)} required />
           <ErrorBox msg={error} />
           <Button type="submit" full disabled={busy || !id}>
-            {busy ? 'Einen Moment …' : 'Link schicken'}
+            {busy ? ct("Einen Moment …") : ct("Link schicken")}
           </Button>
         </form>
       )}
       <p className="mt-8 text-center text-sm font-bold text-muted">
-        <Link href="/login" className="text-primary hover:underline">
-          Zurück zur Anmeldung
-        </Link>
+        <Link href="/login" className="text-primary hover:underline">{ct("Zurück zur Anmeldung")}</Link>
       </p>
       <Copyright className="mt-6" />
     </AuthLayout>
@@ -474,6 +451,7 @@ export function Forgot() {
 }
 
 export function ResetPassword({ onLogin }: { onLogin: (token: string) => void }) {
+  const ct = useCommonT();
   const token = new URLSearchParams(location.search).get('token') ?? '';
   const [pw, setPw] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -493,12 +471,12 @@ export function ResetPassword({ onLogin }: { onLogin: (token: string) => void })
     }
   };
   return (
-    <AuthLayout title="Neues Passwort" subtitle="Leg ein neues Passwort fest. Danach bist du direkt angemeldet." pose="book">
+    <AuthLayout title={ct("Neues Passwort")} subtitle={ct("Leg ein neues Passwort fest. Danach bist du direkt angemeldet.")} pose="book">
       <form onSubmit={submit} className="space-y-4">
-        <Field label="Neues Passwort" name="new-password" type="password" autoComplete="new-password" value={pw} onChange={(e) => setPw(e.target.value)} hint="Mindestens 8 Zeichen" required />
+        <Field label={ct("Neues Passwort")} name="new-password" type="password" autoComplete="new-password" value={pw} onChange={(e) => setPw(e.target.value)} hint={ct("Mindestens 8 Zeichen")} required />
         <ErrorBox msg={error} />
         <Button type="submit" full disabled={busy || pw.length < 8 || !token}>
-          {busy ? 'Einen Moment …' : 'Speichern und anmelden'}
+          {busy ? ct("Einen Moment …") : ct("Speichern und anmelden")}
         </Button>
       </form>
       <Copyright className="mt-6" />

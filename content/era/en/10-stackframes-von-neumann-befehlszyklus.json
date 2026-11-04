@@ -1,0 +1,2000 @@
+{
+  "schemaVersion": 1,
+  "id": "era-10",
+  "module": "ERA",
+  "number": 10,
+  "slug": "stackframes-von-neumann-befehlszyklus",
+  "title": "Stack Frames, the Von Neumann Concept, and the Instruction Cycle",
+  "summary": "This unit reviews stack-frame prologues and epilogues and covers the Von Neumann concept, including its four units and shared memory for programs and data. It also shows how linking and self-modification relate to memory contents, and how the processor fetches, decodes, and executes instructions step by step.",
+  "concepts": [
+    "Stack frames",
+    "Prologues and epilogues (Prolog und Epilog)",
+    "Calling convention",
+    "Compiler optimization (Compileroptimierung)",
+    "Von Neumann concept",
+    "Four units (Vier Werke)",
+    "Memory organization (Speicherorganisation)",
+    "Encoded instructions and data (codierte Befehle und Daten)",
+    "Linking (Linken)",
+    "Self-modifying code (selbstmodifizierender Code)",
+    "Instruction cycle",
+    "PC/BZ and IR",
+    "Instruction and data access (Befehls- und Datenzugriff)",
+    "Instruction length (Instruktionslänge)",
+    "Loop execution (Schleifenablauf)"
+  ],
+  "keyFacts": [
+    "The stack is located in byte-addressable main memory.",
+    "The stack pointer marks the current top of the stack; the frame pointer serves as a reference point for locations within the stack frame.",
+    "The prologue sets up the stack frame and saves any necessary values; the epilogue restores values and releases the stack frame.",
+    "The calling convention specifies which registers must be preserved; not all registers have to remain unchanged.",
+    "Compiler optimization with -O2 can change register allocation and instruction order.",
+    "The four units are main memory, the control unit, the arithmetic unit (ALU), and the input/output unit.",
+    "In the Von Neumann concept, programs and data are stored in the same main memory.",
+    "Main memory consists of equal-sized cells with consecutive addresses.",
+    "Instructions and data are encoded memory contents; instructions are encoded according to the ISA.",
+    "Instructions are generally stored at increasing addresses and executed sequentially.",
+    "Conditional and unconditional jumps can change the sequential execution order.",
+    "Harvard uses separate program and data memories; one hybrid form uses shared main memory with separate instruction and data caches.",
+    "Write protection and the separation of program and data memories are separate issues.",
+    "Linking combines program components and libraries, resolves references, and adjusts address information when necessary.",
+    "Self-modifying code changes its own program code and is a rare exception today.",
+    "The program counter PC/BZ holds the instruction address; the fetched instruction is loaded into the instruction register IR.",
+    "The instruction cycle includes, among other steps, fetching, incrementing the PC, decoding, determining and fetching operands, executing, and storing the result.",
+    "For lw, the instruction address and data address are different; the data address is calculated from the base register plus the offset.",
+    "The PC is incremented according to the instruction length; an instruction can be, for example, 2 or 4 Byte long.",
+    "In the loop example considered, the numbers from 0 to 9 are added; the result is 45."
+  ],
+  "tags": [],
+  "links": [],
+  "source": {
+    "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO10.md",
+    "sha256": "74ffdde6f26a3838ba7e0097f981b519e865479ec9d396c862d753a1c3267bd4",
+    "commit": "381d5d7fcf5020f4ffe8d36fe3624dfb7ef07289"
+  },
+  "generator": {
+    "model": "gpt-6-luna",
+    "effort": "xhigh",
+    "reviewEffort": "high",
+    "promptVersion": "v3",
+    "generatedAt": "2026-11-03T16:51:53.619Z",
+    "review": {
+      "checked": 44,
+      "fixed": 13,
+      "removed": 0,
+      "notes": "Alle 44 Fragen geprüft. Korrigiert wurden nicht gelistete source.heading-Werte und zwei Verify-Skripte; außerdem wurde die Linken-/Selbstmodifikationsfrage präzisiert. Rechenwege und Codeausgaben nachgerechnet; keine Fragen entfernt."
+    }
+  },
+  "levels": [
+    {
+      "id": "era-10-l1",
+      "index": 1,
+      "kind": "basics",
+      "title": "Fundamentals",
+      "questions": [
+        {
+          "id": "era-10-l1-q01",
+          "type": "single",
+          "prompt": "Where is the stack located?",
+          "options": [
+            {
+              "id": "a",
+              "text": "In the instruction register"
+            },
+            {
+              "id": "b",
+              "text": "Exclusively in the processor"
+            },
+            {
+              "id": "c",
+              "text": "In main memory"
+            },
+            {
+              "id": "d",
+              "text": "In a register file separate from main memory"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "The stack is an area of main memory and, like main memory, is byte-addressable.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO10.md",
+            "heading": "Rückblick: Stackframes und Unterprogramme"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Stack frames"
+          ]
+        },
+        {
+          "id": "era-10-l1-q02",
+          "type": "cloze",
+          "prompt": "The ___ comes at the beginning of a routine and sets up the frame needed for the computation.",
+          "options": [
+            {
+              "id": "a",
+              "text": "Epilogue"
+            },
+            {
+              "id": "b",
+              "text": "Prologue"
+            },
+            {
+              "id": "c",
+              "text": "Instruction cycle"
+            },
+            {
+              "id": "d",
+              "text": "Linker"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "At the beginning of a routine, the prologue sets up the stack frame and any necessary saved values. The epilogue tears down this frame at the end.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO10.md",
+            "heading": "Prolog und Epilog"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Prologues and epilogues"
+          ]
+        },
+        {
+          "id": "era-10-l1-q03-r1",
+          "type": "multi",
+          "prompt": "In the Von Neumann model shown, which units belong to the processor? Select all correct answers.",
+          "context": {
+            "type": "mermaid",
+            "content": "flowchart TB\n    M[\"Hauptspeicher\"]\n    subgraph CPU[\"Prozessor\"]\n        L[\"Leitwerk / Steuerwerk\"]\n        R[\"Rechenwerk / ALU\"]\n        L --> R\n    end\n    IO[\"Ein-/Ausgabewerk\"]\n    M <--> L\n    M <--> R\n    IO <--> L",
+            "caption": "The units of the Von Neumann model; the processor is marked as a separate area."
+          },
+          "options": [
+            {
+              "id": "a",
+              "text": "The arithmetic unit (ALU)"
+            },
+            {
+              "id": "b",
+              "text": "The input/output unit"
+            },
+            {
+              "id": "c",
+              "text": "The control unit"
+            },
+            {
+              "id": "d",
+              "text": "Main memory"
+            }
+          ],
+          "correct": [
+            "a",
+            "c"
+          ],
+          "explanation": "In this model, the processor comprises the control unit and the arithmetic unit. Main memory and the input/output unit are shown outside the processor.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO10.md",
+            "heading": "Die vier Werke"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Von Neumann concept",
+            "Four units",
+            "Processor"
+          ]
+        },
+        {
+          "id": "era-10-l1-q04",
+          "type": "truefalse",
+          "prompt": "In the Von Neumann concept, programs and data are stored in the same main memory.",
+          "options": [
+            {
+              "id": "true",
+              "text": "True"
+            },
+            {
+              "id": "false",
+              "text": "False"
+            }
+          ],
+          "correct": [
+            "true"
+          ],
+          "explanation": "Shared main memory for programs and data is a feature of the Von Neumann concept.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO10.md",
+            "heading": "Die Merkpunkte mit bereinigter Nummerierung"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Von Neumann concept",
+            "Memory organization"
+          ]
+        },
+        {
+          "id": "era-10-l1-q05",
+          "type": "single",
+          "prompt": "What memory organization characterizes the Harvard architecture?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Data is stored exclusively in the input/output unit"
+            },
+            {
+              "id": "b",
+              "text": "A shared memory for programs and data"
+            },
+            {
+              "id": "c",
+              "text": "Separate memories for programs and data"
+            },
+            {
+              "id": "d",
+              "text": "Programs are stored only in registers"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Harvard separates program and data memories. A shared memory is the Von Neumann organization described here.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO10.md",
+            "heading": "Gemeinsamer oder getrennter Speicher?"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Memory organization"
+          ]
+        },
+        {
+          "id": "era-10-l1-q06",
+          "type": "multi",
+          "prompt": "Select all correct statements about the general instruction sequence.",
+          "options": [
+            {
+              "id": "a",
+              "text": "Instructions are generally stored at increasing addresses."
+            },
+            {
+              "id": "b",
+              "text": "Conditional and unconditional jumps can change the execution order."
+            },
+            {
+              "id": "c",
+              "text": "Instructions are always executed in this order, without exception."
+            },
+            {
+              "id": "d",
+              "text": "A jump generally changes the order in which instructions are stored in memory."
+            }
+          ],
+          "correct": [
+            "a",
+            "b"
+          ],
+          "explanation": "Instructions are usually stored at increasing addresses and generally executed sequentially. Jumps can change what happens next, but they do not reorder the stored instructions.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO10.md",
+            "heading": "Die Merkpunkte mit bereinigter Nummerierung"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Instruction cycle"
+          ]
+        },
+        {
+          "id": "era-10-l1-q07",
+          "type": "cloze",
+          "prompt": "The instruction counter (BZ), called the program counter in English, contains the address of the current or next instruction and is abbreviated ___.",
+          "options": [
+            {
+              "id": "a",
+              "text": "PC"
+            },
+            {
+              "id": "b",
+              "text": "ALU"
+            },
+            {
+              "id": "c",
+              "text": "MDR"
+            },
+            {
+              "id": "d",
+              "text": "IR"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "BZ is the German term for the program counter, abbreviated PC. The IR, in contrast, holds the fetched instruction.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO10.md",
+            "heading": "Wie wird ein Programm schrittweise abgearbeitet?"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "PC/BZ and IR"
+          ]
+        },
+        {
+          "id": "era-10-l1-q08",
+          "type": "truefalse",
+          "prompt": "After it is fetched, an instruction is loaded into the instruction register IR and then decoded.",
+          "options": [
+            {
+              "id": "true",
+              "text": "True"
+            },
+            {
+              "id": "false",
+              "text": "False"
+            }
+          ],
+          "correct": [
+            "true"
+          ],
+          "explanation": "In the simple model, the instruction is loaded into the IR and decoded there before the operation is executed.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO10.md",
+            "heading": "Wie wird ein Programm schrittweise abgearbeitet?"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "PC/BZ and IR",
+            "Instruction cycle"
+          ]
+        },
+        {
+          "id": "era-10-l1-q09",
+          "type": "diagram",
+          "prompt": "Which unit performs arithmetic operations?",
+          "context": {
+            "type": "mermaid",
+            "content": "flowchart TB\n    M[\"Hauptspeicher: Programme und Daten\"]\n    subgraph CPU[\"Prozessor\"]\n        L[\"Leitwerk: Befehlszyklus\"]\n        R[\"Rechenwerk: ALU\"]\n        L -->|steuert| R\n    end\n    IO[\"Ein-/Ausgabewerk\"]\n    M <-->|Befehle und Daten| L\n    M <-->|Daten| R\n    IO <--> L",
+            "caption": "The four units in the simplified model"
+          },
+          "options": [
+            {
+              "id": "a",
+              "text": "The control unit"
+            },
+            {
+              "id": "b",
+              "text": "The memory unit"
+            },
+            {
+              "id": "c",
+              "text": "The input/output unit"
+            },
+            {
+              "id": "d",
+              "text": "The arithmetic unit (ALU)"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "The arithmetic unit (ALU) performs arithmetic operations. The control unit directs the instruction cycle.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO10.md",
+            "heading": "Die vier Werke"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Four units"
+          ]
+        },
+        {
+          "id": "era-10-l1-q10",
+          "type": "single",
+          "prompt": "A program component calls `printf` from a library. Which task is part of linking?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Resolve the reference to `printf` and combine program components"
+            },
+            {
+              "id": "b",
+              "text": "Divide main memory into equal-sized cells"
+            },
+            {
+              "id": "c",
+              "text": "Keep all of a routine's register values unchanged"
+            },
+            {
+              "id": "d",
+              "text": "Decode every machine instruction again at runtime"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "During linking, translated program components and required libraries are combined. References are resolved, and address information may be adjusted.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO10.md",
+            "heading": "Was bedeutet Linken?"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Linking"
+          ]
+        },
+        {
+          "id": "era-10-l1-q11",
+          "type": "truefalse",
+          "prompt": "Self-modifying code changes its own program code and is considered a rare exception today.",
+          "options": [
+            {
+              "id": "true",
+              "text": "True"
+            },
+            {
+              "id": "false",
+              "text": "False"
+            }
+          ],
+          "correct": [
+            "true"
+          ],
+          "explanation": "Self-modifying code changes its own program contents. It is described as a rare exception today.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO10.md",
+            "heading": "Selbstmodifizierender Code"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Self-modifying code"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "era-10-l2",
+      "index": 2,
+      "kind": "apply",
+      "title": "Apply",
+      "questions": [
+        {
+          "id": "era-10-l2-q01",
+          "type": "calc",
+          "prompt": "Before a prologue, `sp = 0x1000`. The prologue reserves 48 Byte using `add sp,sp,-48`. What is the value of `sp` afterward?",
+          "options": [
+            {
+              "id": "a",
+              "text": "0x0FF0"
+            },
+            {
+              "id": "b",
+              "text": "0x0FD0"
+            },
+            {
+              "id": "c",
+              "text": "0x1030"
+            },
+            {
+              "id": "d",
+              "text": "0x1000"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "In this example, the stack grows toward lower addresses: $0x1000-48=0x0FD0$.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO10.md",
+            "heading": "Prolog und lokale Daten"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Stack frames",
+            "Prologues and epilogues"
+          ]
+        },
+        {
+          "id": "era-10-l2-q02",
+          "type": "single",
+          "prompt": "Before the prologue, `sp = 0x1000`. The routine then executes `add sp,sp,-48` and `add s0,sp,48`. What value does `s0` receive?",
+          "options": [
+            {
+              "id": "a",
+              "text": "0x1030"
+            },
+            {
+              "id": "b",
+              "text": "0x0FE0"
+            },
+            {
+              "id": "c",
+              "text": "0x0FD0"
+            },
+            {
+              "id": "d",
+              "text": "0x1000"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "After reserving space, $sp=0x1000-48=0x0FD0$. Adding 48 afterward gives `s0` its original `sp` value again: $0x1000$.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO10.md",
+            "heading": "Prolog und lokale Daten"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Stack frames",
+            "Prologues and epilogues"
+          ]
+        },
+        {
+          "id": "era-10-l2-q03",
+          "type": "multi",
+          "prompt": "A loop starts with `summe = 0` and `i = 0`. While `i ≤ 9` holds, it adds `i` to `summe` and then increments `i` by 1. Select all correct statements.",
+          "options": [
+            {
+              "id": "a",
+              "text": "The final sum is 45."
+            },
+            {
+              "id": "b",
+              "text": "The loop runs 9 times."
+            },
+            {
+              "id": "c",
+              "text": "The loop runs 10 times."
+            },
+            {
+              "id": "d",
+              "text": "When the loop exits, `i = 10`."
+            }
+          ],
+          "correct": [
+            "a",
+            "c",
+            "d"
+          ],
+          "explanation": "The loop adds the ten values from 0 to 9. Afterward, `i` has been incremented to 10, so the condition `i ≤ 9` no longer holds.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO10.md",
+            "heading": "Schleifenkörper und Bedingung"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Loop execution"
+          ]
+        },
+        {
+          "id": "era-10-l2-q04",
+          "type": "code_output",
+          "prompt": "What result does the code produce in `t0` after the loop?",
+          "context": {
+            "type": "code",
+            "content": "addi t0,x0,0\naddi t1,x0,0\nloop:\n  add t0,t0,t1\n  addi t1,t1,1\n  addi t2,x0,3\n  blt t1,t2,loop",
+            "language": "riscv",
+            "caption": "Register arithmetic and a conditional backward branch"
+          },
+          "options": [
+            {
+              "id": "a",
+              "text": "2"
+            },
+            {
+              "id": "b",
+              "text": "6"
+            },
+            {
+              "id": "c",
+              "text": "4"
+            },
+            {
+              "id": "d",
+              "text": "3"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "The loop adds the values 0, 1, and 2. Afterward, `t1` equals 3, so `blt t1,t2,loop` no longer branches; therefore, `t0` contains 3.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO10.md",
+            "heading": "Schleifenkörper und Bedingung"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Loop execution"
+          ]
+        },
+        {
+          "id": "era-10-l2-q05",
+          "type": "diagram",
+          "prompt": "In the instruction cycle shown, which phase follows decoding directly?",
+          "context": {
+            "type": "mermaid",
+            "content": "flowchart TD\n    H[\"Befehl holen\"] --> P[\"PC weiterstellen\"]\n    P --> D[\"Befehl dekodieren\"]\n    D --> V[\"Operand evaluieren\"]\n    V --> O[\"Operand holen, falls nötig\"]\n    O --> A[\"Befehl ausführen\"]\n    A --> S[\"Ergebnis speichern\"]\n    S --> H",
+            "caption": "Simplified instruction cycle"
+          },
+          "options": [
+            {
+              "id": "a",
+              "text": "Store result"
+            },
+            {
+              "id": "b",
+              "text": "Fetch instruction again"
+            },
+            {
+              "id": "c",
+              "text": "Evaluate operand"
+            },
+            {
+              "id": "d",
+              "text": "Execute instruction"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "After decoding, the processor determines where the required operands come from or which address to use.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO10.md",
+            "heading": "Instruktionszyklus"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Instruction cycle"
+          ]
+        },
+        {
+          "id": "era-10-l2-q06",
+          "type": "single",
+          "prompt": "A register `s0` contains `0x2000`. The word value 37 is stored at address `0x1FE8`. What does `lw a5,-24(s0)` do?",
+          "options": [
+            {
+              "id": "a",
+              "text": "The value 24 is loaded from address `0x2000` into `a5`."
+            },
+            {
+              "id": "b",
+              "text": "The value 37 is stored at address `0x2000`."
+            },
+            {
+              "id": "c",
+              "text": "The address `0x1FE8` is loaded into `a5`."
+            },
+            {
+              "id": "d",
+              "text": "The value 37 is loaded from address `0x1FE8` into `a5`."
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "The effective address is `0x2000 - 24 = 0x1FE8`. `lw` loads the word value stored there into `a5`; it does not load the address itself.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO10.md",
+            "heading": "Folienbeispiel: Ein      Schritt für Schritt"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Instruction and data access"
+          ]
+        },
+        {
+          "id": "era-10-l2-q07",
+          "type": "calc",
+          "prompt": "A 2 Byte instruction `mv` is at address `0x688`. Which address does the PC point to after it is incremented for the next instruction?",
+          "options": [
+            {
+              "id": "a",
+              "text": "0x68C"
+            },
+            {
+              "id": "b",
+              "text": "0x689"
+            },
+            {
+              "id": "c",
+              "text": "0x68A"
+            },
+            {
+              "id": "d",
+              "text": "0x688"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "The PC is incremented by the instruction length: $0x688+2=0x68A$.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO10.md",
+            "heading": "Folienbeispiel: Ein      Schritt für Schritt"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Instruction length",
+            "PC/BZ and IR"
+          ]
+        },
+        {
+          "id": "era-10-l2-q08",
+          "type": "truefalse",
+          "prompt": "After a 4 Byte instruction at `0x684` is fetched, the PC already points to `0x688` while the fetched instruction is still being processed.",
+          "options": [
+            {
+              "id": "true",
+              "text": "True"
+            },
+            {
+              "id": "false",
+              "text": "False"
+            }
+          ],
+          "correct": [
+            "true"
+          ],
+          "explanation": "After fetching, the PC is advanced to the next instruction. The current instruction can then still be decoded and executed.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO10.md",
+            "heading": "Folienbeispiel: Ein      Schritt für Schritt"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "PC/BZ and IR",
+            "Instruction length"
+          ]
+        },
+        {
+          "id": "era-10-l2-q09",
+          "type": "single",
+          "prompt": "A routine is supposed to return an agreed-upon result after a subroutine call. According to the calling convention, what should the caller expect?",
+          "options": [
+            {
+              "id": "a",
+              "text": "The agreed-upon result is available; which registers are preserved depends on the calling convention."
+            },
+            {
+              "id": "b",
+              "text": "The frame pointer always contains the return address."
+            },
+            {
+              "id": "c",
+              "text": "All registers remain unchanged."
+            },
+            {
+              "id": "d",
+              "text": "The stack frame remains allocated permanently."
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "The routine must provide the agreed-upon result. The calling convention specifies which register values must be preserved; it does not require all registers to remain unchanged.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO10.md",
+            "heading": "Prolog und Epilog"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Calling convention",
+            "Prologues and epilogues"
+          ]
+        },
+        {
+          "id": "era-10-l2-q10",
+          "type": "multi",
+          "prompt": "Select all correct statements about prologues and epilogues.",
+          "options": [
+            {
+              "id": "a",
+              "text": "The epilogue must set all registers to zero."
+            },
+            {
+              "id": "b",
+              "text": "The epilogue can restore saved values and release stack space."
+            },
+            {
+              "id": "c",
+              "text": "The prologue can reserve stack space and save required values."
+            },
+            {
+              "id": "d",
+              "text": "The prologue releases the stack frame after the computation."
+            }
+          ],
+          "correct": [
+            "b",
+            "c"
+          ],
+          "explanation": "The prologue sets up the frame; the epilogue restores saved values and releases the frame. Resetting all registers is not part of this.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO10.md",
+            "heading": "Prolog und Epilog"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Prologues and epilogues",
+            "Stack frames"
+          ]
+        },
+        {
+          "id": "era-10-l2-q11",
+          "type": "truefalse",
+          "prompt": "With `-O2`, a compiler must use the same register allocation and instruction order as in an unoptimized compilation.",
+          "options": [
+            {
+              "id": "true",
+              "text": "True"
+            },
+            {
+              "id": "false",
+              "text": "False"
+            }
+          ],
+          "correct": [
+            "false"
+          ],
+          "explanation": "Optimizations can change register allocation and instruction order. What matters is preserving the required behavior of the program.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO10.md",
+            "heading": "Compileroptimierung"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Compiler optimization"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "era-10-l3",
+      "index": 3,
+      "kind": "deepen",
+      "title": "Explore",
+      "questions": [
+        {
+          "id": "era-10-l3-q01",
+          "type": "multi",
+          "prompt": "A computer stores programs and data in the same main memory. Select all statements that apply.",
+          "options": [
+            {
+              "id": "a",
+              "text": "Program code and data are encoded memory contents."
+            },
+            {
+              "id": "b",
+              "text": "Shared memory necessarily means every program section is writable."
+            },
+            {
+              "id": "c",
+              "text": "The machine can in principle change memory contents."
+            },
+            {
+              "id": "d",
+              "text": "Write protection and the separation of program and data memories are different issues."
+            }
+          ],
+          "correct": [
+            "a",
+            "c",
+            "d"
+          ],
+          "explanation": "Programs and data are stored as encoded contents in memory, and memory contents can in principle be changed. This does not mean every area is writable: write protection is a separate issue.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO10.md",
+            "heading": "Gemeinsamer oder getrennter Speicher?"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Memory organization",
+            "Encoded instructions and data"
+          ]
+        },
+        {
+          "id": "era-10-l3-q02",
+          "type": "truefalse",
+          "prompt": "A shared main memory with separate instruction and data caches is a hybrid form and is not automatically the same as two separate main memories.",
+          "options": [
+            {
+              "id": "true",
+              "text": "True"
+            },
+            {
+              "id": "false",
+              "text": "False"
+            }
+          ],
+          "correct": [
+            "true"
+          ],
+          "explanation": "The hybrid form described retains shared main memory and separates only the instruction and data caches.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO10.md",
+            "heading": "Gemeinsamer oder getrennter Speicher?"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Memory organization"
+          ]
+        },
+        {
+          "id": "era-10-l3-q03",
+          "type": "single",
+          "prompt": "A compiled program contains a reference to a function in a library. What can the linker do?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Increment the program counter during execution"
+            },
+            {
+              "id": "b",
+              "text": "Recompile the function each time it is called"
+            },
+            {
+              "id": "c",
+              "text": "Copy the contents of every data register to main memory"
+            },
+            {
+              "id": "d",
+              "text": "Resolve the reference and adjust address information as needed"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "The linker combines program components and library components, resolves references, and adjusts address information when necessary.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO10.md",
+            "heading": "Was bedeutet Linken?"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Linking"
+          ]
+        },
+        {
+          "id": "era-10-l3-q04",
+          "type": "cloze",
+          "prompt": "After an instruction is fetched, the PC can already point to the ___ while the fetched instruction is still being decoded or executed.",
+          "options": [
+            {
+              "id": "a",
+              "text": "next instruction"
+            },
+            {
+              "id": "b",
+              "text": "last data value"
+            },
+            {
+              "id": "c",
+              "text": "stack pointer"
+            },
+            {
+              "id": "d",
+              "text": "frame pointer"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "The PC is incremented after fetching. Therefore, it can already contain the address of the next instruction while the current instruction is still being processed.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO10.md",
+            "heading": "Folienbeispiel: Ein      Schritt für Schritt"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "PC/BZ and IR",
+            "Instruction cycle"
+          ]
+        },
+        {
+          "id": "era-10-l3-q05",
+          "type": "calc",
+          "prompt": "With `s0 = 0x1000`, the data access is performed by `lw a5,-24(s0)`. Which effective address is read?",
+          "options": [
+            {
+              "id": "a",
+              "text": "0x1000"
+            },
+            {
+              "id": "b",
+              "text": "0x1018"
+            },
+            {
+              "id": "c",
+              "text": "0x0FE8"
+            },
+            {
+              "id": "d",
+              "text": "0x0FF8"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "The effective address is the base register plus the offset: $0x1000-24=0x0FE8$.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO10.md",
+            "heading": "Folienbeispiel: Ein      Schritt für Schritt"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Instruction and data access"
+          ]
+        },
+        {
+          "id": "era-10-l3-q06",
+          "type": "single",
+          "prompt": "For an instruction `lw a5,-24(s0)`, `fe842783` is shown as machine code. What does this hexadecimal value represent?",
+          "options": [
+            {
+              "id": "a",
+              "text": "The effective data address"
+            },
+            {
+              "id": "b",
+              "text": "The data value loaded from memory"
+            },
+            {
+              "id": "c",
+              "text": "The contents of register `s0`"
+            },
+            {
+              "id": "d",
+              "text": "The encoding of the instruction `lw`"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "The hexadecimal value is the machine code for the instruction. The data value is read separately from the address determined by `s0 - 24`.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO10.md",
+            "heading": "Folienbeispiel: Ein      Schritt für Schritt"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Encoded instructions and data",
+            "Instruction and data access"
+          ]
+        },
+        {
+          "id": "era-10-l3-q07",
+          "type": "diagram",
+          "prompt": "Which address is used for the data access of `lw`?",
+          "context": {
+            "type": "mermaid",
+            "content": "flowchart LR\n    F[\"Befehl holen bei PC 0x684\"] --> I[\"IR enthält lw\"]\n    F --> P[\"PC wird 0x688\"]\n    I --> E[\"Effektive Adresse: s0 - 24\"]\n    E --> D[\"Datenwert lesen\"]\n    D --> R[\"Wert nach a5 schreiben\"]",
+            "caption": "Instruction fetch and data access for an lw"
+          },
+          "options": [
+            {
+              "id": "a",
+              "text": "The address of the instruction register"
+            },
+            {
+              "id": "b",
+              "text": "`s0 - 24`"
+            },
+            {
+              "id": "c",
+              "text": "The next instruction address `0x688`"
+            },
+            {
+              "id": "d",
+              "text": "The instruction address `0x684`"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "The instruction is fetched at `0x684`, but its operand is at the effective address `s0 - 24`. Instruction and data accesses use different addresses.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO10.md",
+            "heading": "Folienbeispiel: Ein      Schritt für Schritt"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Instruction and data access",
+            "PC/BZ and IR"
+          ]
+        },
+        {
+          "id": "era-10-l3-q08",
+          "type": "single",
+          "prompt": "A 4 Byte instruction is at `0x684`, and the following 2 Byte instruction is at `0x688`. What does this example show about incrementing the PC?",
+          "options": [
+            {
+              "id": "a",
+              "text": "The PC is always incremented by exactly 1 Byte."
+            },
+            {
+              "id": "b",
+              "text": "The PC is always incremented by exactly 4 Byte."
+            },
+            {
+              "id": "c",
+              "text": "The PC is incremented by the length of the current instruction."
+            },
+            {
+              "id": "d",
+              "text": "The PC changes only after the result is stored."
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "The first instruction advances from `0x684` to `0x688`; the following 2 Byte instruction advances to `0x68A`. The increment depends on the instruction length.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO10.md",
+            "heading": "Folienbeispiel: Ein      Schritt für Schritt"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Instruction length",
+            "PC/BZ and IR"
+          ]
+        },
+        {
+          "id": "era-10-l3-q09",
+          "type": "truefalse",
+          "prompt": "Because main memory is byte-addressable, `PC++` always means that the PC increases by exactly one byte.",
+          "options": [
+            {
+              "id": "true",
+              "text": "True"
+            },
+            {
+              "id": "false",
+              "text": "False"
+            }
+          ],
+          "correct": [
+            "false"
+          ],
+          "explanation": "The PC advances to the next instruction. The increment depends on the instruction length, which can be, for example, 2 or 4 Byte.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO10.md",
+            "heading": "Folienbeispiel: Ein      Schritt für Schritt"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Instruction length",
+            "PC/BZ and IR"
+          ]
+        },
+        {
+          "id": "era-10-l3-q10",
+          "type": "multi",
+          "prompt": "A processor performs optimized steps internally. Select all statements that are consistent with the execution model described.",
+          "options": [
+            {
+              "id": "a",
+              "text": "Internal execution must always correspond exactly to a simple one-instruction-at-a-time model."
+            },
+            {
+              "id": "b",
+              "text": "An optimization must not arbitrarily change the required behavior of the program."
+            },
+            {
+              "id": "c",
+              "text": "The externally observable behavior of the program must be preserved."
+            },
+            {
+              "id": "d",
+              "text": "A jump can set the PC to a different instruction address."
+            }
+          ],
+          "correct": [
+            "b",
+            "c",
+            "d"
+          ],
+          "explanation": "Internal execution may differ from the simple model, but it must preserve the required externally observable behavior. Jumps change the address from which the next instruction is fetched.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO10.md",
+            "heading": "Wie wird ein Programm schrittweise abgearbeitet?"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Compiler optimization",
+            "Instruction cycle"
+          ]
+        },
+        {
+          "id": "era-10-l3-q11-r1",
+          "type": "truefalse",
+          "prompt": "For a stack frame, the local-variable-to-offset mapping relative to the frame pointer `s0` is given in the context. Statement: the running sum is at `-24(s0)` and the loop counter is at `-20(s0)`.",
+          "context": {
+            "type": "table",
+            "content": "| Offset relative to `s0` | Contents |\n|---|---|\n| `-20` | Loop counter |\n| `-24` | Running sum |",
+            "caption": "Mapping of local variables in the stack frame."
+          },
+          "options": [
+            {
+              "id": "true",
+              "text": "True"
+            },
+            {
+              "id": "false",
+              "text": "False"
+            }
+          ],
+          "correct": [
+            "true"
+          ],
+          "explanation": "The table assigns the running sum to offset `-24` and the loop counter to offset `-20` relative to `s0`. The statement is therefore true.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO10.md",
+            "heading": "Prolog und lokale Daten"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Stack frame",
+            "Frame pointer",
+            "Local variables"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "era-10-l4",
+      "index": 4,
+      "kind": "boss",
+      "title": "Boss",
+      "questions": [
+        {
+          "id": "era-10-l4-q01",
+          "type": "multi",
+          "prompt": "A 4 Byte instruction `lw a5,-24(s0)` is at PC `0x684`; `s0 = 0x2000`, and the word value 37 is at `0x1FE8`. Select all correct statements about the sequence.",
+          "options": [
+            {
+              "id": "a",
+              "text": "The data access reads the value 37 from `0x1FE8`."
+            },
+            {
+              "id": "b",
+              "text": "The data access reads the instruction code at `0x684` as a word value."
+            },
+            {
+              "id": "c",
+              "text": "After fetching, the PC may already contain `0x688` while `lw` is still being processed."
+            },
+            {
+              "id": "d",
+              "text": "The instruction is first fetched from address `0x684`."
+            }
+          ],
+          "correct": [
+            "a",
+            "c",
+            "d"
+          ],
+          "explanation": "The instruction is fetched at `0x684`, and the PC is incremented by 4 Byte to `0x688`. Then `lw` reads the data value at `s0 - 24 = 0x1FE8` and writes it to `a5`.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO10.md",
+            "heading": "Folienbeispiel: Ein      Schritt für Schritt"
+          },
+          "difficulty": 5,
+          "concepts": [
+            "Instruction cycle",
+            "Instruction and data access",
+            "Instruction length"
+          ]
+        },
+        {
+          "id": "era-10-l4-q02",
+          "type": "single",
+          "prompt": "During a subroutine call, `jal` stores the return address in `ra`. A routine later makes another `jal` itself. Why must it save its original return address?",
+          "options": [
+            {
+              "id": "a",
+              "text": "The second `jal` overwrites `ra`; without saving it, the original return address would be lost."
+            },
+            {
+              "id": "b",
+              "text": "The calling convention prohibits nested calls."
+            },
+            {
+              "id": "c",
+              "text": "The second `jal` automatically deletes the stack frame."
+            },
+            {
+              "id": "d",
+              "text": "`ra` always contains the stack pointer instead of an address."
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "`jal` writes the return address to `ra`. Another call overwrites this value, so the routine must save the address it still needs beforehand and restore it before returning.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO6.md",
+            "heading": null
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Stack frames",
+            "Calling convention"
+          ]
+        },
+        {
+          "id": "era-10-l4-q03",
+          "type": "calc",
+          "prompt": "An instruction sequence starts with `lw` at `0x684` (4 Byte), `mv` at `0x688` (2 Byte), and another `lw` at `0x68A` (4 Byte). Which address does the PC point to after fetching and incrementing for all three instructions?",
+          "options": [
+            {
+              "id": "a",
+              "text": "0x68A"
+            },
+            {
+              "id": "b",
+              "text": "0x68C"
+            },
+            {
+              "id": "c",
+              "text": "0x690"
+            },
+            {
+              "id": "d",
+              "text": "0x68E"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "The increments are 4, 2, and 4 Byte: `0x684 → 0x688 → 0x68A → 0x68E`.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO10.md",
+            "heading": "Folienbeispiel: Ein      Schritt für Schritt"
+          },
+          "difficulty": 5,
+          "concepts": [
+            "Instruction length",
+            "PC/BZ and IR"
+          ]
+        },
+        {
+          "id": "era-10-l4-q04",
+          "type": "single",
+          "prompt": "A computer has shared main memory for programs and data, but separate caches for instructions and data. How should this organization be classified?",
+          "options": [
+            {
+              "id": "a",
+              "text": "As the described hybrid form with shared main memory"
+            },
+            {
+              "id": "b",
+              "text": "As a pure Harvard organization with separate main memories"
+            },
+            {
+              "id": "c",
+              "text": "As an organization without main memory"
+            },
+            {
+              "id": "d",
+              "text": "As self-modifying code"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "The hybrid form described retains shared main memory and separates only the instruction and data caches. This is not the same as separate main memories.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO10.md",
+            "heading": "Gemeinsamer oder getrennter Speicher?"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Memory organization"
+          ]
+        },
+        {
+          "id": "era-10-l4-q05",
+          "type": "multi",
+          "prompt": "Before the prologue, `sp = 0x8000`. The routine reserves 48 Byte, sets `s0` to the original `sp` value, and saves `ra` at `40(sp)`. The running sum is at `-24(s0)`, and the counter at `-20(s0)`. Select all correct addresses.",
+          "options": [
+            {
+              "id": "a",
+              "text": "The new `sp` is `0x7FD0`."
+            },
+            {
+              "id": "b",
+              "text": "The running sum is at `0x7FE8`."
+            },
+            {
+              "id": "c",
+              "text": "The save of `ra` is at `0x7FF8`."
+            },
+            {
+              "id": "d",
+              "text": "The counter is at `0x7FE0`."
+            }
+          ],
+          "correct": [
+            "a",
+            "b",
+            "c"
+          ],
+          "explanation": "The new stack pointer is `0x8000 - 48 = 0x7FD0`. The `ra` save is at `0x7FD0 + 40 = 0x7FF8`; relative to `s0 = 0x8000`, the sum is at `0x7FE8` and the counter at `0x7FEC`.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO10.md",
+            "heading": "Prolog und lokale Daten"
+          },
+          "difficulty": 5,
+          "concepts": [
+            "Stack frames",
+            "Prologues and epilogues",
+            "Loop execution"
+          ]
+        },
+        {
+          "id": "era-10-l4-q06",
+          "type": "single",
+          "prompt": "A compiled program contains a library call whose target is resolved during linking. Is this resolution itself self-modifying code?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Yes. Every linker call changes the instruction currently being executed at runtime."
+            },
+            {
+              "id": "b",
+              "text": "No. Linking combines program components and resolves references; self-modifying code changes its own program code."
+            },
+            {
+              "id": "c",
+              "text": "No. Linking means only loading data from RAM."
+            },
+            {
+              "id": "d",
+              "text": "Yes. Resolving a reference is a conditional jump."
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "Linking combines compiled program components and resolves references. Self-modification, in contrast, means changing the contents of one's own program code.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO10.md",
+            "heading": "Programme im Speicher verändern"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Linking",
+            "Self-modifying code"
+          ]
+        },
+        {
+          "id": "era-10-l4-q07",
+          "type": "single",
+          "prompt": "A general-purpose computer is meant to perform different tasks using the same basic structure. Which statement describes the role of the program?",
+          "options": [
+            {
+              "id": "a",
+              "text": "The computer's structure must be rebuilt from scratch for every task."
+            },
+            {
+              "id": "b",
+              "text": "The program directs the computer for the task at hand."
+            },
+            {
+              "id": "c",
+              "text": "The program replaces main memory, the control unit, and the arithmetic unit."
+            },
+            {
+              "id": "d",
+              "text": "The program specifies that input/output is not possible."
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "The Von Neumann concept separates the computer's structure from the specific problem: the program for each task directs the general-purpose computer.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO7.md",
+            "heading": null
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Von Neumann concept",
+            "Four units"
+          ]
+        },
+        {
+          "id": "era-10-l4-q08",
+          "type": "single",
+          "prompt": "A register `s0` contains `0x3000`. For `lw a5,-24(s0)`: which statement correctly describes the load?",
+          "options": [
+            {
+              "id": "a",
+              "text": "The instruction reads the word value at address `0x2FE8` into `a5`."
+            },
+            {
+              "id": "b",
+              "text": "The instruction loads the address `0x2FE8` itself into `a5`."
+            },
+            {
+              "id": "c",
+              "text": "The instruction reads the word value at address `0x3018` into `a5`."
+            },
+            {
+              "id": "d",
+              "text": "The instruction stores `a5` at address `0x2FE8`."
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "For a load, the effective address is calculated from the base register plus the signed offset: `0x3000 - 24 = 0x2FE8`. `lw` loads the word value stored there into the destination register.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO8.md",
+            "heading": null
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Instruction and data access",
+            "Encoded instructions and data"
+          ]
+        },
+        {
+          "id": "era-10-l4-q09",
+          "type": "code_output",
+          "prompt": "What value does the loop produce at the end in `t0`?",
+          "context": {
+            "type": "code",
+            "content": "addi t0,x0,0\naddi t1,x0,0\nloop:\n  add t0,t0,t1\n  addi t1,t1,1\n  addi t2,x0,9\n  bge t2,t1,loop",
+            "language": "riscv",
+            "caption": "Adding 0 through 9 with a branch condition"
+          },
+          "options": [
+            {
+              "id": "a",
+              "text": "10"
+            },
+            {
+              "id": "b",
+              "text": "36"
+            },
+            {
+              "id": "c",
+              "text": "54"
+            },
+            {
+              "id": "d",
+              "text": "45"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "The loop body adds `t1` for values 0 through 9. After the value is incremented to 10, `9 ≥ 10` is false, so the loop ends with a sum of 45.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO10.md",
+            "heading": "Schleifenkörper und Bedingung"
+          },
+          "difficulty": 5,
+          "concepts": [
+            "Loop execution",
+            "Instruction cycle"
+          ]
+        },
+        {
+          "id": "era-10-l4-q10",
+          "type": "multi",
+          "prompt": "Select all correct statements about the simple execution model and ways real execution can differ from it.",
+          "options": [
+            {
+              "id": "a",
+              "text": "A jump can affect the address from which the next instruction is fetched."
+            },
+            {
+              "id": "b",
+              "text": "The PC/BZ contains the instruction address."
+            },
+            {
+              "id": "c",
+              "text": "In the simple model, only one instruction is executed at a time."
+            },
+            {
+              "id": "d",
+              "text": "Optimized internal execution may arbitrarily change the program's externally observable behavior."
+            }
+          ],
+          "correct": [
+            "a",
+            "b",
+            "c"
+          ],
+          "explanation": "The simple model considers one instruction at a time and uses the PC/BZ for its address. Jumps change what happens next; internally optimized execution must still preserve the required observable behavior.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO10.md",
+            "heading": "Wie wird ein Programm schrittweise abgearbeitet?"
+          },
+          "difficulty": 5,
+          "concepts": [
+            "Instruction cycle",
+            "PC/BZ and IR",
+            "Compiler optimization"
+          ]
+        },
+        {
+          "id": "era-10-l4-q11",
+          "type": "single",
+          "prompt": "A routine modifies the callee-saved register `s1`. What must it do before returning, according to the calling convention?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Use `s1` as the return address."
+            },
+            {
+              "id": "b",
+              "text": "Restore the original value of `s1`."
+            },
+            {
+              "id": "c",
+              "text": "Set `s1` to zero."
+            },
+            {
+              "id": "d",
+              "text": "Copy `s1` into the PC."
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "If a callee-saved register is modified, the called routine must restore it. `s1` is one of the callee-saved registers.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO6.md",
+            "heading": null
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Calling convention",
+            "Prologues and epilogues"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "era-10-l5",
+      "index": 5,
+      "kind": "bonus",
+      "title": "In Practice: What Happens Inside a Computer",
+      "questions": [
+        {
+          "id": "era-10-l5-q01",
+          "type": "single",
+          "prompt": "A recursive Sudoku solver has several active calls. Each must keep its own candidate index; values required by the calling convention are saved during a call. What purpose does a separate stack frame serve here?",
+          "options": [
+            {
+              "id": "a",
+              "text": "It separates memory for instructions from memory for data."
+            },
+            {
+              "id": "b",
+              "text": "It ensures that all processor registers remain unchanged on every call."
+            },
+            {
+              "id": "c",
+              "text": "It gives each active call its own storage locations for local values and required saves."
+            },
+            {
+              "id": "d",
+              "text": "It links the Sudoku routine with an external program library."
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Each active call needs its own state so that candidate indices do not overwrite one another. Stack frames provide storage for this; the calling convention determines which values must be saved.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO10.md",
+            "heading": "Prolog und Epilog"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Stack frames",
+            "Calling convention"
+          ]
+        },
+        {
+          "id": "era-10-l5-q02",
+          "type": "single",
+          "prompt": "You compile the same C code once without optimization and once with `-O2`. In the debugger, you see different registers and a different instruction sequence. What is the most likely explanation?",
+          "options": [
+            {
+              "id": "a",
+              "text": "`-O2` automatically changes the meaning of the C program."
+            },
+            {
+              "id": "b",
+              "text": "The program was already linked with its library during compilation, so the machine code must be identical."
+            },
+            {
+              "id": "c",
+              "text": "The calling convention requires all registers to have the same allocation in both versions."
+            },
+            {
+              "id": "d",
+              "text": "The optimizing compiler may change register allocation and instruction order."
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Optimization can change how a program is implemented, for example by assigning registers differently or reordering instructions. The program's observable behavior should still be preserved.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO10.md",
+            "heading": "Compileroptimierung"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Compiler optimization",
+            "Calling convention"
+          ]
+        },
+        {
+          "id": "era-10-l5-q03",
+          "type": "estimate",
+          "prompt": "A routine allocates space for 12 local integers of 4 Byte each and saves two registers of 8 Byte each. Ignore padding and any other values. How many Byte do these items occupy altogether?",
+          "options": [],
+          "correct": [],
+          "slider": {
+            "min": 24,
+            "max": 96,
+            "step": 4,
+            "answer": 64,
+            "tolerance": 0,
+            "unit": "Byte",
+            "scale": "linear"
+          },
+          "explanation": "The local values require `12 × 4 = 48` Byte, and the registers require `2 × 8 = 16` Byte. Together, they occupy `48 + 16 = 64` Byte in the stack frame.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO10.md",
+            "heading": "Prolog und lokale Daten"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Stack frames",
+            "Memory organization"
+          ]
+        },
+        {
+          "id": "era-10-l5-q04",
+          "type": "single",
+          "prompt": "You are modeling a simple computer: the CPU fetches program instructions from the same main memory that stores the app's data. Which concept describes this?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Harvard architecture: program and data memories are separate."
+            },
+            {
+              "id": "b",
+              "text": "Stack frame: each call gets its own local storage locations."
+            },
+            {
+              "id": "c",
+              "text": "Von Neumann concept: programs and data are stored in the same main memory."
+            },
+            {
+              "id": "d",
+              "text": "Linking: references between program components are resolved."
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Storing program instructions and data together in main memory is a central feature of the Von Neumann concept.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO10.md",
+            "heading": "Gemeinsamer oder getrennter Speicher?"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Von Neumann concept",
+            "Memory organization"
+          ]
+        },
+        {
+          "id": "era-10-l5-q05",
+          "type": "single",
+          "prompt": "An app and its data are stored in the same main memory. The operating system protects the program section from writes while leaving the data area writable. What follows from this?",
+          "options": [
+            {
+              "id": "a",
+              "text": "The linker must relink the program section on every write."
+            },
+            {
+              "id": "b",
+              "text": "Write protection and separating program and data memories are different properties."
+            },
+            {
+              "id": "c",
+              "text": "The program thereby automatically changes its own code."
+            },
+            {
+              "id": "d",
+              "text": "The computer must have a Harvard architecture with separate main memories."
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "Shared main memory can contain both protected and writable areas. Write protection alone does not mean that programs and data are stored in separate memories.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO10.md",
+            "heading": "Gemeinsamer oder getrennter Speicher?"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Memory organization",
+            "Von Neumann concept"
+          ]
+        },
+        {
+          "id": "era-10-l5-q06",
+          "type": "estimate",
+          "prompt": "You initialize `i` to 0. A loop executes its body while `i ≤ 9` holds and increments `i` exactly once per iteration. How many times does the body run?",
+          "options": [],
+          "correct": [],
+          "slider": {
+            "min": 3,
+            "max": 15,
+            "step": 1,
+            "answer": 10,
+            "tolerance": 0,
+            "unit": "Iterations",
+            "scale": "linear"
+          },
+          "explanation": "The body runs for `i = 0, 1, …, 9`, which gives ten values. Once `i = 10`, the loop ends.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO10.md",
+            "heading": "Schleifenkörper und Bedingung"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Loop execution"
+          ]
+        },
+        {
+          "id": "era-10-l5-q07",
+          "type": "single",
+          "prompt": "Your program calls `printf`, but the function is in a separately compiled library. When building the executable, the unresolved reference must be resolved and suitable address information added. Which step typically does this?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Setting up a stack frame"
+            },
+            {
+              "id": "b",
+              "text": "Decoding an instruction"
+            },
+            {
+              "id": "c",
+              "text": "Modifying the code itself"
+            },
+            {
+              "id": "d",
+              "text": "Linking"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "The linker combines compiled program components and libraries and resolves references between them. It may also adjust address information.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO10.md",
+            "heading": "Was bedeutet Linken?"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Linking",
+            "Memory organization"
+          ]
+        },
+        {
+          "id": "era-10-l5-q08",
+          "type": "estimate",
+          "prompt": "A routine sets `summe = 0` and then, for each integer `i` from 0 through 9, adds the value `i` to `summe`. What final value does the routine display?",
+          "options": [],
+          "correct": [],
+          "slider": {
+            "min": 10,
+            "max": 70,
+            "step": 1,
+            "answer": 45,
+            "tolerance": 0,
+            "unit": "Numeric value",
+            "scale": "linear"
+          },
+          "explanation": "The routine computes `0 + 1 + 2 + … + 9`. The sum of these ten values is 45.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO10.md",
+            "heading": "Schleifenkörper und Bedingung"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Loop execution",
+            "Instruction cycle"
+          ]
+        },
+        {
+          "id": "era-10-l5-q09",
+          "type": "single",
+          "prompt": "A rare specialized routine writes new instruction bytes at runtime to memory locations from which it immediately fetches further instructions itself. What is this behavior called?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Sequential execution"
+            },
+            {
+              "id": "b",
+              "text": "Linking"
+            },
+            {
+              "id": "c",
+              "text": "Self-modifying code"
+            },
+            {
+              "id": "d",
+              "text": "An ordinary conditional jump"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Here, the program changes its own instructions in memory. This is self-modifying code.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO10.md",
+            "heading": "Selbstmodifizierender Code"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Self-modifying code",
+            "Encoded instructions and data"
+          ]
+        },
+        {
+          "id": "era-10-l5-q10",
+          "type": "single",
+          "prompt": "In the simplified sequence, `lw a5, offset(s0)` reads data from `s0 + offset`; a 4-byte instruction advances the PC by 4 bytes after fetching. At `PC = 0x684`, you see the instruction `lw a5,-24(s0)` with `s0 = 0x1000`. Which statement is correct?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Instruction address 0xFE8; data address 0x684; next PC 0x688."
+            },
+            {
+              "id": "b",
+              "text": "Instruction address 0x684; data address 0xFE8; next PC 0x685."
+            },
+            {
+              "id": "c",
+              "text": "Instruction address 0x684; data address 0xFE8; next PC 0x688."
+            },
+            {
+              "id": "d",
+              "text": "Instruction address 0x684; data address 0x1024; next PC 0x688."
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "The instruction is fetched at `0x684`. The data address is `0x1000 - 24 = 0xFE8`; because the instruction is 4 Byte long, the PC then points to `0x688`.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO10.md",
+            "heading": "Instruktionszyklus"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Instruction cycle",
+            "PC/BZ and IR",
+            "Instruction and data access"
+          ]
+        }
+      ]
+    }
+  ]
+}

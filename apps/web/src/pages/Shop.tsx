@@ -1,3 +1,6 @@
+import { usePageT } from '../i18n/pages.ts';
+import { translateGameText } from '../i18n/catalog.ts';
+import { useLocale } from '../i18n/index.tsx';
 import { useState } from 'react';
 import { ECONOMY, PETS, THEMES, type MeResponse, type ShopCategory, type ShopItem } from '@lernquest/shared';
 import { PetImage } from '../components/Pet.tsx';
@@ -39,6 +42,8 @@ function ItemVisual({ item }: { item: ShopItem }) {
 }
 
 export default function Shop() {
+  const t = usePageT();
+  const { locale } = useLocale();
   const { data: me } = useMe();
   const { data: shop } = useShop();
   const [pick, setPick] = useState<ShopItem | null>(null);
@@ -65,18 +70,18 @@ export default function Shop() {
       <div className="flex items-center gap-3 rounded-3xl bg-gradient-to-br from-[#ffd34d] to-[#f5a300] p-4 text-[#4a3300] shadow-card">
         <img src={assetUrl('item-chest')} alt="" className="h-16 w-16" />
         <div>
-          <p className="text-sm font-black uppercase tracking-wider opacity-75">Dein Guthaben</p>
+          <p className="text-sm font-black uppercase tracking-wider opacity-75">{t("Dein Guthaben")}</p>
           <p className="flex items-center gap-1.5 text-3xl font-black">
             <img src={assetUrl('item-coin')} alt="" className="h-8 w-8" />
             {me.stats.coins}
           </p>
-          <p className="text-xs font-bold opacity-80">Coins gibt’s für Level, Perfekt-Runden, Bosse und dein Tagesziel.</p>
+          <p className="text-xs font-bold opacity-80">{t("Coins gibt’s für Level, Perfekt-Runden, Bosse und dein Tagesziel.")}</p>
         </div>
       </div>
 
       {SECTIONS.map((s) => (
         <section key={s.cat}>
-          <SectionTitle>{s.title}</SectionTitle>
+          <SectionTitle>{translateGameText(s.title, locale)}</SectionTitle>
           <div className="grid grid-cols-2 gap-3">
             {shop.items
               .filter((i) => i.category === s.cat)
@@ -86,10 +91,10 @@ export default function Shop() {
                 return (
                   <button key={i.id} onClick={() => setPick(i)} className="flex flex-col items-center rounded-3xl border-2 border-line bg-surface p-3 text-center shadow-[0_4px_0_var(--c-border)] active:translate-y-1 active:shadow-none">
                     <ItemVisual item={i} />
-                    <p className="mt-2 font-black leading-tight">{i.name}</p>
-                    {isFreeze && <p className="text-xs font-bold text-muted">Besitzt du: {me.stats.streakFreezes}/{ECONOMY.maxStreakFreezes}</p>}
+                    <p className="mt-2 font-black leading-tight">{translateGameText(i.name, locale)}</p>
+                    {isFreeze && <p className="text-xs font-bold text-muted">{t("Besitzt du: {count}/{max}", {count: me.stats.streakFreezes, max: ECONOMY.maxStreakFreezes})}</p>}
                     <span className={`mt-2 flex items-center gap-1 rounded-xl px-2.5 py-1 text-sm font-black ${has ? 'bg-success-soft text-success-dark dark:text-success' : 'bg-gold/15 text-gold-dark'}`}>
-                      {has ? (isFreeze ? 'Voll' : 'Besitzt du') : (
+                      {has ? (isFreeze ? t("Voll") : t("Besitzt du")) : (
                         <>
                           <img src={assetUrl('item-coin')} alt="" className="h-4 w-4" />
                           {i.price}
@@ -105,28 +110,28 @@ export default function Shop() {
                   <div className="h-7 w-12 rounded-lg bg-white/90" />
                 </div>
                 <p className="mt-2 font-black">LernQuest</p>
-                <span className="mt-2 rounded-xl bg-surface-2 px-2.5 py-1 text-sm font-black text-muted">{me.settings.theme === 'default' ? 'Aktiv' : 'Standard'}</span>
+                <span className="mt-2 rounded-xl bg-surface-2 px-2.5 py-1 text-sm font-black text-muted">{me.settings.theme === 'default' ? t("Aktiv") : t("Standard")}</span>
               </button>
             )}
           </div>
         </section>
       ))}
 
-      <Modal open={!!pick} onClose={() => setPick(null)} title={pick?.name}>
+      <Modal open={!!pick} onClose={() => setPick(null)} title={pick ? translateGameText(pick.name, locale) : undefined}>
         {pick && (
           <div className="text-center">
             <div className="flex justify-center">
               <ItemVisual item={pick} />
             </div>
-            <p className="mt-3 font-semibold text-muted">{pick.description}</p>
-            {pick.category === 'pet' && <p className="mt-1 text-sm font-bold text-muted">Entwickelt sich zu {PETS.find((p) => p.id === pick.id.slice(4))?.stageNames.slice(1).join(' und ')}.</p>}
+            <p className="mt-3 font-semibold text-muted">{translateGameText(pick.description, locale)}</p>
+            {pick.category === 'pet' && <p className="mt-1 text-sm font-bold text-muted">{t("Entwickelt sich zu {names}.", {names: PETS.find((p) => p.id === pick.id.slice(4))?.stageNames.slice(1).map((name) => translateGameText(name, locale)).join(t(' und ')) ?? ''})}</p>}
             {owned(pick) ? (
               pick.category === 'theme' ? (
                 <Button full className="mt-5" onClick={() => theme.mutate(pick.id.slice(6), { onSuccess: () => setPick(null) })}>
-                  {me.settings.theme === pick.id.slice(6) ? 'Aktiv' : 'Aktivieren'}
+                  {me.settings.theme === pick.id.slice(6) ? t("Aktiv") : t("Aktivieren")}
                 </Button>
               ) : (
-                <p className="mt-5 font-black text-success">Schon in deinem Besitz</p>
+                <p className="mt-5 font-black text-success">{t("Schon in deinem Besitz")}</p>
               )
             ) : (
               <Button
@@ -140,7 +145,7 @@ export default function Shop() {
                     onSuccess: () => {
                       sfx.claim();
                       fx.coins(at);
-                      flash(`${pick.name} gekauft!`, 'success');
+                      flash(t("{name} gekauft!", {name: translateGameText(pick.name, locale)}), 'success');
                       setPick(null);
                     },
                     onError: (err) => flash((err as Error).message, 'error'),
@@ -148,7 +153,7 @@ export default function Shop() {
                 }}
               >
                 <img src={assetUrl('item-coin')} alt="" className="h-5 w-5" />
-                {me.stats.coins < pick.price ? `Noch ${pick.price - me.stats.coins} Coins` : `Für ${pick.price} kaufen`}
+                {me.stats.coins < pick.price ? t("Noch {coins} Coins", {coins: pick.price - me.stats.coins}) : t("Für {coins} kaufen", {coins: pick.price})}
               </Button>
             )}
           </div>

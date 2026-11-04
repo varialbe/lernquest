@@ -1,0 +1,501 @@
+{
+  "schemaVersion": 1,
+  "unitId": "era-02",
+  "module": "ERA",
+  "unitNumber": 2,
+  "unitTitle": "Number Representation, Arithmetic, and Storage Sizes",
+  "sourceSha": "c47ad417cb9e0d1a62672896f8547f847774f176fde298b53d0b07225338da7e",
+  "overview": "This unit covers place-value notation (Stellenwertdarstellung) in different bases; conversions among the decimal (Dezimalsystem), binary (Binärsystem), octal (Oktalsystem), and hexadecimal (Hexadezimalsystem) systems; and methods for addition (Addition), subtraction (Subtraktion), multiplication (Multiplikation), and division (Division). With a fixed word width (Wortbreite), carries (Überträge), two's complement (Zweierkomplement), and overflow (Überlauf) must be distinguished from signed and unsigned interpretation (signed/unsigned-Interpretation). Storage sizes use SI prefixes (SI-Präfixe), based on powers of ten, or IEC binary prefixes (IEC-Binärpräfixe), based on powers of two.",
+  "entries": [
+    {
+      "id": "era-02-k01",
+      "term": "Numbers as a universal data format (Zahlen als universelles Datenformat)",
+      "kind": "concept",
+      "short": "Computers process numerical values, which can also represent other information, such as characters.",
+      "explanation": "Each ASCII character is assigned a numerical value from 0 to 127. Larger character repertoires use additional character sets or encodings, such as Unicode with UTF-8. Words and sentences are represented as sequences of correspondingly encoded numerical values.",
+      "example": "A character encoding assigns a numerical value to the character `A`.",
+      "pitfalls": [
+        "An encoded numerical value is not automatically an arithmetic quantity; its meaning depends on the agreed interpretation."
+      ],
+      "related": [
+        "ASCII and UTF-16"
+      ],
+      "heading": "1. Zahlen als universelles Datenformat"
+    },
+    {
+      "id": "era-02-k02",
+      "term": "Base-b representation (b-adische Darstellung)",
+      "kind": "definition",
+      "short": "A nonnegative integer is represented as the sum of its digits multiplied by powers of its base.",
+      "explanation": "For a base b with b ≥ 2 and digits aᵢ from {0, 1, …, b−1}, n = ∑ᵢ₌₀ᵏ aᵢbⁱ. The base determines which digits are allowed and which powers correspond to the positions. Positions are numbered from right to left, starting at 0.",
+      "example": "$347_{10}=3\\cdot10^2+4\\cdot10^1+7\\cdot10^0$.",
+      "pitfalls": [
+        "Every digit must be less than the base.",
+        "Without a known base, a sequence of digits does not determine a unique numerical value."
+      ],
+      "related": [
+        "Place value (Stellenwert)",
+        "Positional numeral systems (Stellenwertsysteme)"
+      ],
+      "heading": "2. Generische Zahlendarstellung: b-adische Darstellung"
+    },
+    {
+      "id": "era-02-k03",
+      "term": "Place value (Stellenwert)",
+      "kind": "definition",
+      "short": "The place value of position i in base b is the power bⁱ.",
+      "explanation": "The contribution of a digit aᵢ to the total value is aᵢ · bⁱ. The rightmost position has place value b⁰ = 1; moving left, place values increase by a factor of b at each position. A digit's value therefore depends on its position and the base.",
+      "example": "In $01001_2$, the 1 at position 3 contributes $1\\cdot2^3=8$.",
+      "pitfalls": [
+        "A digit does not have the same numerical value regardless of its position and base."
+      ],
+      "related": [
+        "Base-b representation",
+        "Positional numeral systems"
+      ],
+      "heading": "2. Generische Zahlendarstellung: b-adische Darstellung"
+    },
+    {
+      "id": "era-02-k04",
+      "term": "Decimal system",
+      "kind": "definition",
+      "short": "The decimal system is the positional numeral system with base 10 and digits 0 through 9.",
+      "explanation": "The place values are powers of 10. A decimal number is therefore composed of multiples of powers of ten. The rightmost digit represents the ones place.",
+      "example": "$2026_{10}=2\\cdot10^3+0\\cdot10^2+2\\cdot10^1+6\\cdot10^0$.",
+      "pitfalls": [],
+      "related": [
+        "Place value",
+        "Base-b representation"
+      ],
+      "heading": "Die Zahlensysteme im Überblick"
+    },
+    {
+      "id": "era-02-k05",
+      "term": "Binary system",
+      "kind": "definition",
+      "short": "The binary system is the positional numeral system with base 2 and digits 0 and 1.",
+      "explanation": "The place values are powers of 2. Each binary digit corresponds to one bit (Bit). Binary numbers can therefore be written directly as sequences of bits.",
+      "example": "$1011_2=1\\cdot2^3+0\\cdot2^2+1\\cdot2^1+1\\cdot2^0=11_{10}$.",
+      "pitfalls": [
+        "The digits 2 through 9 are not allowed in the binary system."
+      ],
+      "related": [
+        "Bit",
+        "Binary and hexadecimal representation"
+      ],
+      "heading": "Die Zahlensysteme im Überblick"
+    },
+    {
+      "id": "era-02-k06",
+      "term": "Bit",
+      "kind": "definition",
+      "short": "A bit is a binary digit with one of two possible values: 0 or 1.",
+      "explanation": "A binary digit corresponds to one bit. A sequence of bits can encode a numerical value or other information. A unique number representation requires, among other things, a word width and an interpretation convention.",
+      "example": "The pattern `101` consists of three bits.",
+      "pitfalls": [
+        "A bit pattern alone does not always determine which number it represents."
+      ],
+      "related": [
+        "Binary system",
+        "Word width and bit-pattern interpretation"
+      ],
+      "heading": "4. Binärdarstellung im Computer"
+    },
+    {
+      "id": "era-02-k07",
+      "term": "Hexadecimal system",
+      "kind": "definition",
+      "short": "The hexadecimal system is the positional numeral system with base 16 and digits 0 through 9 and A through F.",
+      "explanation": "The letters A through F represent the values 10 through 15. One hexadecimal digit corresponds to four bits, or one nibble. This makes it possible to write longer bit patterns compactly.",
+      "example": "$\\mathrm{7EA}_{16}=7\\cdot16^2+14\\cdot16+10=2026_{10}$.",
+      "pitfalls": [
+        "The digit A represents the value 10."
+      ],
+      "related": [
+        "Nibble",
+        "Binary and hexadecimal representation"
+      ],
+      "heading": "Die Zahlensysteme im Überblick"
+    },
+    {
+      "id": "era-02-k08",
+      "term": "Nibble",
+      "kind": "definition",
+      "short": "A nibble is a group of four bits.",
+      "explanation": "Four bits can form 16 different patterns, corresponding exactly to one hexadecimal digit. To convert from binary to hexadecimal, divide the bits into groups of four.",
+      "example": "The bit group `1110` corresponds to the hexadecimal digit `E`.",
+      "pitfalls": [
+        "A nibble contains four bits, not eight."
+      ],
+      "related": [
+        "Bit",
+        "Hexadecimal system"
+      ],
+      "heading": "Die Zahlensysteme im Überblick"
+    },
+    {
+      "id": "era-02-k09",
+      "term": "Octal system",
+      "kind": "definition",
+      "short": "The octal system is the positional numeral system with base 8 and digits 0 through 7.",
+      "explanation": "The place values are powers of 8. One octal digit corresponds to three bits because 2³ = 8. A binary number can therefore be converted to octal by grouping its bits in threes.",
+      "example": "$11_8=1\\cdot8+1=9_{10}$.",
+      "pitfalls": [
+        "The digits 8 and 9 are not allowed in the octal system."
+      ],
+      "related": [
+        "Triad (Triade)",
+        "Place value"
+      ],
+      "heading": "Die Zahlensysteme im Überblick"
+    },
+    {
+      "id": "era-02-k10",
+      "term": "Triad (Triade)",
+      "kind": "definition",
+      "short": "A triad is a group of three bits.",
+      "explanation": "Three bits can form eight different patterns, corresponding exactly to one octal digit. To convert from binary to octal, divide the bits into groups of three.",
+      "example": "The bit group `101` corresponds to the octal digit `5`.",
+      "pitfalls": [
+        "A triad contains three bits, not four."
+      ],
+      "related": [
+        "Bit",
+        "Octal system"
+      ],
+      "heading": "Die Zahlensysteme im Überblick"
+    },
+    {
+      "id": "era-02-k11",
+      "term": "Base subscript and number-system notation (Basisindex und Kennzeichnung von Zahlensystemen)",
+      "kind": "notation",
+      "short": "A base subscript indicates which number system a sequence of digits is written in.",
+      "explanation": "A subscript, as in $2026_{10}$, gives the base and is read as “2026 in base 10.” The prefix `0x` is commonly used for hexadecimal numbers and `0o` for octal numbers. Depending on the context, a leading zero can also indicate octal notation.",
+      "example": "`0x7EA` and $\\mathrm{7EA}_{16}$ denote the same number.",
+      "pitfalls": [
+        "Without an agreed context, a leading zero does not unambiguously indicate the base."
+      ],
+      "related": [
+        "Base-b representation",
+        "Hexadecimal system",
+        "Octal system"
+      ],
+      "heading": "3. Beispiel: 2026 in verschiedenen Basen"
+    },
+    {
+      "id": "era-02-k12",
+      "term": "Conversion between binary, octal, and hexadecimal representations",
+      "kind": "method",
+      "short": "To convert binary numbers to octal or hexadecimal, group the bits from right to left in threes or fours, respectively.",
+      "explanation": "Each group of three corresponds to one octal digit, and each group of four to one hexadecimal digit. Group the binary digits from right to left in the appropriate sizes. Add leading zeros on the left if needed, then replace each group with the corresponding digit. Evaluating the place values can be used to check the result.",
+      "example": "$11111101010_2=0111\\;1110\\;1010_2=\\mathrm{7EA}_{16}$.",
+      "pitfalls": [
+        "Form the groups from the right to preserve the place values.",
+        "Adding leading zeros on the left does not change the numerical value."
+      ],
+      "related": [
+        "Binary system",
+        "Octal system",
+        "Hexadecimal system",
+        "Nibble",
+        "Triad"
+      ],
+      "heading": "3. Beispiel: 2026 in verschiedenen Basen"
+    },
+    {
+      "id": "era-02-k13",
+      "term": "2026 in different bases (2026 in verschiedenen Basen)",
+      "kind": "example",
+      "short": "The numerical value 2026 is written as $2026_{10}$, $11111101010_2$, $3752_8$, and $\\mathrm{7EA}_{16}$.",
+      "explanation": "The four representations follow from the place values of their respective bases and denote the same nonnegative integer. For example, $\\mathrm{7EA}_{16}=7\\cdot16^2+14\\cdot16+10=2026_{10}$. Changing the base changes the notation, not the numerical value.",
+      "example": "$2026_{10}=11111101010_2=3752_8=\\mathrm{7EA}_{16}$.",
+      "pitfalls": [
+        "Compare numerical values only after identifying the base of each representation."
+      ],
+      "related": [
+        "Base-b representation",
+        "Place value",
+        "Conversion between binary, octal, and hexadecimal representations"
+      ],
+      "heading": "3. Beispiel: 2026 in verschiedenen Basen"
+    },
+    {
+      "id": "era-02-k14",
+      "term": "Binary representation in a computer (Binärdarstellung im Computer)",
+      "kind": "concept",
+      "short": "In the digital representation considered here, a computer processes information as bit patterns made up of 0s and 1s.",
+      "explanation": "In the simplified signal mapping, 1 represents a present or on signal, and 0 a missing or off signal. An active-low circuit can reverse the mapping between the logical value and the signal state. Computational operations can be implemented by connecting signals and logic gates.",
+      "example": "With the simple mapping `1 = ein` and `0 = aus`, the pattern `10` is the sequence “on, off.”",
+      "pitfalls": [
+        "The mapping `1 = ein` and `0 = aus` does not apply universally to every circuit.",
+        "A bit pattern needs an agreed interpretation to be understood as a number."
+      ],
+      "related": [
+        "Bit",
+        "Active-low circuit",
+        "Word width and bit-pattern interpretation"
+      ],
+      "heading": "4. Binärdarstellung im Computer"
+    },
+    {
+      "id": "era-02-k15",
+      "term": "Active-low circuit (Active-Low-Schaltung)",
+      "kind": "concept",
+      "short": "In an active-low circuit, a signal is active when it is low rather than high.",
+      "explanation": "The simple mapping “1 = signal present” and “0 = signal absent” is not valid for all circuits. In an active-low circuit, the active signal state can correspond to a low level. The mapping between signal state and logical meaning must therefore be known in the given context.",
+      "example": "An active-low control signal can be considered asserted when its level is low.",
+      "pitfalls": [
+        "A low signal level does not automatically mean a logical value of 0."
+      ],
+      "related": [
+        "Binary representation in a computer"
+      ],
+      "heading": "4. Binärdarstellung im Computer"
+    },
+    {
+      "id": "era-02-k16",
+      "term": "Addition in a number system",
+      "kind": "method",
+      "short": "For addition, add the positions from right to left and pass any necessary carries to the next position.",
+      "explanation": "In base b, at each position, add the digits and any incoming carry. Write the resulting digit in the current position and pass any carry to the next higher position. Align the addends by place value and repeat until all positions and carries have been processed.",
+      "example": "$09_{10}+07_{10}=16_{10}$, $01001_2+00111_2=10000_2$, $11_8+07_8=20_8$ and $09_{16}+07_{16}=10_{16}$; all four calculations give 16.",
+      "pitfalls": [
+        "A carry to the next digit position is not automatically an overflow beyond a fixed word width."
+      ],
+      "related": [
+        "Carry",
+        "Base-b representation",
+        "Overflow and underflow"
+      ],
+      "heading": "6. Addition in verschiedenen Zahlensystemen"
+    },
+    {
+      "id": "era-02-k17",
+      "term": "Carry",
+      "kind": "definition",
+      "short": "A carry is the part of a column sum passed to the next higher position.",
+      "explanation": "If a digit sum in base b is at least b, write the corresponding result digit in the current position and carry the remaining value to the left. In binary addition, a value of 2 in a position means writing 0 there and carrying 1.",
+      "example": "For $1_2+1_2$, the current position contains 0 with a carry of 1, giving $10_2$.",
+      "pitfalls": [
+        "A carry between digit positions must be distinguished from overflow in a fixed-width number format."
+      ],
+      "related": [
+        "Addition in a number system",
+        "Overflow and underflow"
+      ],
+      "heading": "6. Addition in verschiedenen Zahlensystemen"
+    },
+    {
+      "id": "era-02-k18",
+      "term": "Binary subtraction (binäre Subtraktion)",
+      "kind": "method",
+      "short": "For binary subtraction, subtract the positions from right to left, borrowing from higher positions when needed.",
+      "explanation": "If a binary position does not have enough value for the subtraction, borrow from a higher-valued position. One unit at the next higher power of two is equivalent to two units at the current position. Align the minuend and subtrahend by their bit positions and proceed from right to left until all positions have been processed.",
+      "example": "$01001_2-00111_2=00010_2$, so $9_{10}-7_{10}=2_{10}$.",
+      "pitfalls": [
+        "Borrowing within a column calculation is not an overflow beyond the representable number range.",
+        "A negative result requires an agreed representation for negative numbers."
+      ],
+      "related": [
+        "Borrowing (Borgen)",
+        "Two's complement",
+        "Overflow and underflow"
+      ],
+      "heading": "7. Binäre Subtraktion"
+    },
+    {
+      "id": "era-02-k19",
+      "term": "Borrowing (Ausleihen (Borgen))",
+      "kind": "definition",
+      "short": "Borrowing takes value from a higher position so that the current subtraction can be performed.",
+      "explanation": "In base b, one unit from the next higher position becomes b units in the current position. In binary subtraction, one unit from the next higher position therefore provides two units in the current position. If borrowing must pass across zeros, the intervening positions are adjusted accordingly.",
+      "example": "For $0-1$ in a binary position, borrow so that $2-1=1$ can be calculated in that position.",
+      "pitfalls": [
+        "Borrowing is the column rule for subtraction and is not the same as a carry in addition."
+      ],
+      "related": [
+        "Binary subtraction",
+        "Carry"
+      ],
+      "heading": "7. Binäre Subtraktion"
+    },
+    {
+      "id": "era-02-k20",
+      "term": "One's complement (Einerkomplement)",
+      "kind": "method",
+      "short": "The one's complement of a bit pattern is obtained by inverting all its bits.",
+      "explanation": "When bits are inverted, every 0 becomes 1 and every 1 becomes 0. The one's complement is the first step in forming the two's complement. The word width must be fixed to determine which bits are inverted.",
+      "example": "Inverting `00111` gives `11000`.",
+      "pitfalls": [
+        "The one's complement alone is not the two's complement; add 1 to it to obtain the two's complement."
+      ],
+      "related": [
+        "Two's complement",
+        "Word width and bit-pattern interpretation"
+      ],
+      "heading": "8. Subtraktion mit Zweierkomplement"
+    },
+    {
+      "id": "era-02-k21",
+      "term": "Two's complement",
+      "kind": "method",
+      "short": "For a fixed width, the two's complement of a bit pattern is formed by inverting all its bits and then adding 1.",
+      "explanation": "Two's complement is used to represent negative numbers and enables subtraction by addition. With n bits, the signed range is from −2ⁿ⁻¹ to 2ⁿ⁻¹−1. To compute a − b, form the two's complement of b at a fixed width, add it to a, and retain the lower n bits.",
+      "example": "With five bits, inverting `00111` gives `11000`, and adding 1 gives `11001`; `01001 + 11001` gives `00010` after discarding the outer carry, so $9-7=2$.",
+      "pitfalls": [
+        "The word width must be fixed when inverting and adding 1.",
+        "An outer carry when adding does not automatically indicate signed overflow."
+      ],
+      "related": [
+        "Word width and bit-pattern interpretation",
+        "Signed and unsigned interpretation",
+        "Fixed word lengths",
+        "Binary subtraction",
+        "One's complement"
+      ],
+      "heading": "8. Subtraktion mit Zweierkomplement"
+    },
+    {
+      "id": "era-02-k22",
+      "term": "Word width and bit-pattern interpretation (Wortbreite und Bitmusterinterpretation)",
+      "kind": "concept",
+      "short": "Word width and the interpretation convention determine which number a bit pattern represents.",
+      "explanation": "Word width is the specified number of bits in a value. For n bits, the unsigned range is 0 to 2ⁿ−1, while the two's-complement range is −2ⁿ⁻¹ to 2ⁿ⁻¹−1. Without the word width and the signed or unsigned convention, a bit pattern cannot be interpreted unambiguously as a number.",
+      "example": "The five-bit pattern `11110` represents 30 as unsigned, but $-2$ in two's complement.",
+      "pitfalls": [
+        "Leading zeros do not change the value of a nonnegative positional number, but they can be part of a bit pattern's specified word width."
+      ],
+      "related": [
+        "Signed and unsigned interpretation",
+        "Two's complement",
+        "Fixed word lengths"
+      ],
+      "heading": "8. Subtraktion mit Zweierkomplement"
+    },
+    {
+      "id": "era-02-k23",
+      "term": "Signed and unsigned interpretation",
+      "kind": "concept",
+      "short": "Signed and unsigned are different rules for interpreting a bit pattern as a signed or unsigned number.",
+      "explanation": "Under unsigned interpretation, all bits represent a nonnegative value. Under signed two's-complement interpretation, the entire bit sequence together with its word width determines the signed value. The word width and interpretation convention must therefore be known before a bit pattern can be interpreted as a number.",
+      "example": "The five-bit pattern `11110` means unsigned 30, but signed two's complement $-2$.",
+      "pitfalls": [
+        "The same bit pattern can represent different numerical values under different interpretations.",
+        "A bit sequence alone does not reveal whether it is signed or unsigned."
+      ],
+      "related": [
+        "Word width and bit-pattern interpretation",
+        "Two's complement",
+        "C data types and bit patterns"
+      ],
+      "heading": "13. C-Datentypen, Interpretation und offene Fragmente"
+    },
+    {
+      "id": "era-02-k24",
+      "term": "Overflow and underflow (Überlauf und Unterlauf)",
+      "kind": "definition",
+      "short": "Overflow or underflow occurs when a calculation result exceeds or falls below the representable range.",
+      "explanation": "With a fixed word width, a mathematical result can lie outside the range and therefore cannot be represented correctly as a value in that format. Four-bit two's complement has a range from −8 to 7. The calculation $0111_2+0001_2$ produces the pattern `1000`, which is read as −8 when signed, although the mathematical result is 8.",
+      "example": "$0111_2+0001_2=1000_2$ with four bits in two's complement; the mathematical result 8 is outside the range −8 to 7.",
+      "pitfalls": [
+        "Carry and overflow are different concepts.",
+        "The discarded most significant carry bit alone does not determine whether signed overflow occurred."
+      ],
+      "related": [
+        "Word width and bit-pattern interpretation",
+        "Addition in a number system",
+        "Two's complement"
+      ],
+      "heading": "9. Überlauf und Unterlauf"
+    },
+    {
+      "id": "era-02-k25",
+      "term": "Binary multiplication (binäre Multiplikation)",
+      "kind": "method",
+      "short": "Long binary multiplication forms partial products, shifts them according to place value, and adds them.",
+      "explanation": "Each bit of the multiplier determines whether the partial product contains the multiplicand or 0. Shift the partial product left according to the position of the multiplier bit. Then add all the partial products; the result may require more bits than either factor.",
+      "example": "$0111_2\\cdot0101_2=000111_2+011100_2=100011_2=35_{10}$.",
+      "pitfalls": [
+        "The result may require more bits than either factor."
+      ],
+      "related": [
+        "Addition in a number system",
+        "Place value",
+        "Binary system"
+      ],
+      "heading": "10. Binäre Multiplikation"
+    },
+    {
+      "id": "era-02-k26",
+      "term": "Binary division (binäre Division)",
+      "kind": "method",
+      "short": "Long binary division forms the quotient by examining partial values, subtracting the divisor, and bringing down further bits.",
+      "explanation": "At each step, check whether the value being considered is at least as large as the divisor. If so, subtract the divisor and write 1 as the quotient bit; otherwise, write 0. Then bring down the next bit of the dividend to the remainder and repeat. The value left over is the remainder.",
+      "example": "$10101_2:11_2=111_2$ with remainder 0, since $111_2\\cdot11_2=10101_2$.",
+      "pitfalls": [
+        "A division can have a remainder; the quotient and remainder together form the result of division with remainder.",
+        "The bit calculation shown assumes the numbers are interpreted as unsigned."
+      ],
+      "related": [
+        "Binary system",
+        "Binary subtraction",
+        "Binary multiplication"
+      ],
+      "heading": "11. Division"
+    },
+    {
+      "id": "era-02-k27",
+      "term": "SI prefixes and IEC binary prefixes",
+      "kind": "definition",
+      "short": "SI prefixes denote powers of ten, while IEC binary prefixes denote powers of two.",
+      "explanation": "Kilo, mega, giga, and tera represent 10³, 10⁶, 10⁹, and 10¹². Kibi, mebi, gibi, and tebi represent 2¹⁰, 2²⁰, 2³⁰, and 2⁴⁰; their abbreviations are Ki, Mi, Gi, and Ti. The “bi” in the name and the “i” in the abbreviation identify the binary prefixes.",
+      "example": "$1\\ \\mathrm{kB}=1000\\ \\mathrm{Byte}$, but $1\\ \\mathrm{KiB}=1024\\ \\mathrm{Byte}$.",
+      "pitfalls": [
+        "KB and KiB denote different numbers of bytes.",
+        "The SI symbol for kilo is `k`; `Ki` is the IEC abbreviation for kibi."
+      ],
+      "related": [
+        "Storage sizes and prefix conversion"
+      ],
+      "heading": "12. Speichergrößen: SI- und Binärpräfixe"
+    },
+    {
+      "id": "era-02-k28",
+      "term": "Storage sizes and prefix conversion (Speichergrößen und Präfixumrechnung)",
+      "kind": "method",
+      "short": "To compare storage quantities, convert the units to the same unit using their prefix factors.",
+      "explanation": "One GB contains 10⁹ bytes, while one GiB contains 2³⁰ bytes. To express a decimal storage quantity in GiB, divide the number of bytes by 2³⁰. The result can be rounded if needed.",
+      "example": "$16\\ \\mathrm{GB}=16\\cdot10^9\\ \\mathrm{Byte}\\approx14{,}90\\ \\mathrm{GiB}$.",
+      "pitfalls": [
+        "The same number before GB and GiB does not mean the same number of bytes."
+      ],
+      "related": [
+        "SI prefixes and IEC binary prefixes"
+      ],
+      "heading": "12. Speichergrößen: SI- und Binärpräfixe"
+    },
+    {
+      "id": "era-02-k29",
+      "term": "C data types and bit patterns (C-Datentypen und Bitmuster)",
+      "kind": "concept",
+      "short": "For a C integer value, the specific data type and its signed or unsigned property determine how the value is interpreted.",
+      "explanation": "A bit sequence alone is not enough to interpret a C value unambiguously; the specific type and its interpretation must be known. The lecture notes do not establish universally applicable bit widths for the C data types introduced. Nor should `char` be assumed to be unsigned in every case.",
+      "example": "Without specifying the type, word width, and signedness, the bit pattern `1111` does not determine a unique number.",
+      "pitfalls": [
+        "Do not infer a bit width that is not specified here from a type name alone.",
+        "The incomplete note about `char` is not a general rule."
+      ],
+      "related": [
+        "Signed and unsigned interpretation",
+        "Word width and bit-pattern interpretation"
+      ],
+      "heading": "13. C-Datentypen, Interpretation und offene Fragmente"
+    }
+  ],
+  "generator": {
+    "model": "gpt-6-luna",
+    "effort": "xhigh",
+    "promptVersion": "k1",
+    "generatedAt": "2026-11-02T12:27:40.763Z"
+  }
+}

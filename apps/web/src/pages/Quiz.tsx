@@ -1,3 +1,5 @@
+import { useCommonT, type CommonKey } from '../i18n/common.ts';
+import { useLocale } from '../i18n/index.tsx';
 import { AnimatePresence, motion } from 'motion/react';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
@@ -17,7 +19,7 @@ import { isMuted, setMuted, sfx } from '../lib/sound.ts';
 import { ExamResult } from './ExamResult.tsx';
 import { Reward } from './Reward.tsx';
 
-const TYPE_LABEL: Record<Question['type'], string> = {
+const TYPE_LABEL: Record<Question['type'], CommonKey> = {
   single: 'Wähle die richtige Antwort',
   multi: 'Wähle alle richtigen Antworten',
   truefalse: 'Wahr oder falsch?',
@@ -29,7 +31,7 @@ const TYPE_LABEL: Record<Question['type'], string> = {
 };
 /** Ab diesen Combos gibt es einen Extra-Moment */
 const COMBO_MILESTONES = new Set([3, 5, 10, 15, 20]);
-const PRAISE = ['Super!', 'Richtig!', 'Stark!', 'Genau so!', 'Klasse!', 'Volltreffer!'];
+const PRAISE: CommonKey[] = ['Super!', 'Richtig!', 'Stark!', 'Genau so!', 'Klasse!', 'Volltreffer!'];
 
 type Phase = 'answering' | 'correct' | 'wrong';
 /** Vom Server zusammengestellte Runde (Schwächen, Klausur-Check, Duell) */
@@ -38,6 +40,8 @@ export type RunSpec = { key: string; url: string; body?: unknown; back: string }
 const fmtClock = (s: number) => `${Math.floor(Math.max(0, s) / 60)}:${String(Math.max(0, s) % 60).padStart(2, '0')}`;
 
 function SourceLink({ q }: { q: Question }) {
+  const { locale } = useLocale();
+  const ct = useCommonT();
   const { data: cfg } = useConfig();
   const file = q.source.file.split('/').pop()!.replace(/\.md$/, '');
   const short = file.replace(/^(Diskrete Strukturen|Einführung in die Rechnerarchitektur|EIP)\s*/i, '') || file;
@@ -46,14 +50,14 @@ function SourceLink({ q }: { q: Question }) {
     <a href={href} target="_blank" rel="noreferrer" className="inline-flex max-w-full items-center gap-1.5 truncate rounded-xl bg-black/5 px-2.5 py-1 text-xs font-extrabold hover:underline dark:bg-white/10">
       <Icon name="link" size={14} />
       <span className="truncate">
-        {short}
-        {q.source.heading ? ` › ${q.source.heading}` : ''}
+        {locale === 'en' ? ct('Originalmitschrift (Deutsch)') : `${short}${q.source.heading ? ` › ${q.source.heading}` : ''}`}
       </span>
     </a>
   );
 }
 
 function ReportDialog({ q, open, onClose }: { q: Question; open: boolean; onClose: (sent: boolean) => void }) {
+  const ct = useCommonT();
   const [reason, setReason] = useState<'wrong_answer' | 'unclear' | 'typo' | 'other'>('wrong_answer');
   const [comment, setComment] = useState('');
   const [busy, setBusy] = useState(false);
@@ -75,25 +79,23 @@ function ReportDialog({ q, open, onClose }: { q: Question; open: boolean; onClos
     ['other', 'Etwas anderes'],
   ] as const;
   return (
-    <Modal open={open} onClose={() => onClose(false)} title="Frage melden">
+    <Modal open={open} onClose={() => onClose(false)} title={ct("Frage melden")}>
       <div className="space-y-2">
         {reasons.map(([v, label]) => (
           <label key={v} className={`flex cursor-pointer items-center gap-3 rounded-2xl border-2 p-3 font-bold ${reason === v ? 'border-primary bg-primary-soft' : 'border-line'}`}>
             <input type="radio" name="reason" className="accent-[var(--c-primary)]" checked={reason === v} onChange={() => setReason(v)} />
-            {label}
+            {ct(label)}
           </label>
         ))}
         <textarea
           value={comment}
           onChange={(e) => setComment(e.target.value)}
           maxLength={1000}
-          placeholder="Optional: Was genau stimmt nicht?"
+          placeholder={ct("Optional: Was genau stimmt nicht?")}
           className="mt-1 h-24 w-full resize-none rounded-2xl border-2 border-line bg-surface-2 p-3 font-semibold outline-none focus:border-primary"
         />
       </div>
-      <Button full className="mt-4" onClick={send} disabled={busy}>
-        Melden
-      </Button>
+      <Button full className="mt-4" onClick={send} disabled={busy}>{ct("Melden")}</Button>
     </Modal>
   );
 }
@@ -152,6 +154,7 @@ function TrueFalse({ q, selected, phase, onPick }: { q: Question; selected: stri
 }
 
 export function Quiz({ levelId, practice, run: spec }: { levelId?: string; practice?: boolean; run?: RunSpec }) {
+  const ct = useCommonT();
   const [, navigate] = useLocation();
   const qc = useQueryClient();
   const { data, isLoading, error } = useQuery({
@@ -181,7 +184,7 @@ export function Quiz({ levelId, practice, run: spec }: { levelId?: string; pract
   const [selected, setSelected] = useState<string[]>([]);
   const [phase, setPhase] = useState<Phase>('answering');
   const [combo, setCombo] = useState(0);
-  const [praise, setPraise] = useState(PRAISE[0]!);
+  const [praise, setPraise] = useState(ct(PRAISE[0]!));
   const [shake, setShake] = useState(0);
   const [quit, setQuit] = useState(false);
   const [report, setReport] = useState(false);
@@ -259,7 +262,7 @@ export function Quiz({ levelId, practice, run: spec }: { levelId?: string; pract
       const nextCombo = combo + 1;
       setPhase('correct');
       setCombo(nextCombo);
-      setPraise(COMBO_MILESTONES.has(nextCombo) ? `${nextCombo}er-Combo!` : PRAISE[Math.floor(Math.random() * PRAISE.length)]!);
+      setPraise(COMBO_MILESTONES.has(nextCombo) ? ct("{p0}er-Combo!", { p0: nextCombo }) : ct(PRAISE[Math.floor(Math.random() * PRAISE.length)]!));
       setSolved((s) => new Set(s).add(q.id));
       sfx.correct(nextCombo);
       fx.correct(nextCombo);
@@ -275,7 +278,7 @@ export function Quiz({ levelId, practice, run: spec }: { levelId?: string; pract
       setShake((n) => n + 1);
       sfx.wrong();
     }
-  }, [q, selected, phase, firstTry, exam, queue, finish, combo]);
+  }, [q, selected, phase, firstTry, exam, queue, finish, combo, ct]);
 
   const next = useCallback(() => {
     if (!q) return;
@@ -350,13 +353,13 @@ export function Quiz({ levelId, practice, run: spec }: { levelId?: string; pract
     );
   }, [q, selected]);
 
-  if (isLoading) return <Spinner label="Level wird geladen …" />;
+  if (isLoading) return <Spinner label={ct("Level wird geladen …")} />;
   if (error) {
     return (
       <div className="flex min-h-dvh flex-col items-center justify-center gap-4 p-6 text-center">
         <Mascot pose="sad" size={140} />
         <p className="font-bold text-muted">{(error as Error).message}</p>
-        <Button onClick={() => navigate(back)}>Zurück</Button>
+        <Button onClick={() => navigate(back)}>{ct("Zurück")}</Button>
       </div>
     );
   }
@@ -364,11 +367,9 @@ export function Quiz({ levelId, practice, run: spec }: { levelId?: string; pract
     return (
       <div className="flex min-h-dvh flex-col items-center justify-center gap-3 p-6 text-center">
         <Mascot pose="cheer" size={170} />
-        <h1 className="text-2xl font-black">Keine Fehler zum Üben!</h1>
-        <p className="max-w-xs font-semibold text-muted">Falsch beantwortete Fragen tauchen hier in steigenden Abständen wieder auf, bis du sie sicher kannst.</p>
-        <Button className="mt-4" onClick={() => navigate('/')}>
-          Zum Lernpfad
-        </Button>
+        <h1 className="text-2xl font-black">{ct("Keine Fehler zum Üben!")}</h1>
+        <p className="max-w-xs font-semibold text-muted">{ct("Falsch beantwortete Fragen tauchen hier in steigenden Abständen wieder auf, bis du sie sicher kannst.")}</p>
+        <Button className="mt-4" onClick={() => navigate('/')}>{ct("Zum Lernpfad")}</Button>
       </div>
     );
   }
@@ -380,8 +381,8 @@ export function Quiz({ levelId, practice, run: spec }: { levelId?: string; pract
       <Reward
         result={result}
         practice={!!practice || !!run}
-        heading={runResult?.kind === 'duel' ? 'Runde gespielt!' : runResult ? 'Schwächen trainiert!' : undefined}
-        note={runResult && !runResult.rewarded ? 'Tageskontingent erreicht – die Runde zählt für Wiederholung und Statistik, aber ohne XP und Coins.' : undefined}
+        heading={runResult?.kind === 'duel' ? ct("Runde gespielt!") : runResult ? ct("Schwächen trainiert!") : undefined}
+        note={runResult && !runResult.rewarded ? ct("Tageskontingent erreicht – die Runde zählt für Wiederholung und Statistik, aber ohne XP und Coins.") : undefined}
         duel={runResult?.duel ?? null}
         petName={petName}
         onContinue={(to) => navigate(run ? back : to === '/' && data?.level?.kind === 'bonus' ? '/praxis' : to)}
@@ -395,10 +396,10 @@ export function Quiz({ levelId, practice, run: spec }: { levelId?: string; pract
           <>
             <Mascot pose="sad" size={140} />
             <p className="font-bold text-error">{submitError}</p>
-            <Button onClick={() => finish(firstTry)}>Erneut senden</Button>
+            <Button onClick={() => finish(firstTry)}>{ct("Erneut senden")}</Button>
           </>
         ) : (
-          <Spinner label="Wird ausgewertet …" />
+          <Spinner label={ct("Wird ausgewertet …")} />
         )}
       </div>
     );
@@ -409,12 +410,12 @@ export function Quiz({ levelId, practice, run: spec }: { levelId?: string; pract
     <div className="flex min-h-dvh flex-col">
       <header className="safe-top sticky top-0 z-20 bg-bg/95 backdrop-blur">
         <div className="mx-auto flex h-16 max-w-xl items-center gap-3 px-4">
-          <button onClick={() => setQuit(true)} aria-label="Beenden" className="-ml-1 rounded-xl p-1.5 text-muted hover:bg-surface-2">
+          <button onClick={() => setQuit(true)} aria-label={ct("Beenden")} className="-ml-1 rounded-xl p-1.5 text-muted hover:bg-surface-2">
             <Icon name="x" size={26} weight={2.8} />
           </button>
           <ProgressBar value={exam ? (questions.length - queue.length) / questions.length : progress} />
           {exam && left !== null && (
-            <span className={`shrink-0 rounded-xl px-2 py-0.5 font-black tabular-nums ${left <= 60 ? 'bg-error-soft text-error' : 'bg-surface-2 text-muted'}`} aria-label="Restzeit">
+            <span className={`shrink-0 rounded-xl px-2 py-0.5 font-black tabular-nums ${left <= 60 ? 'bg-error-soft text-error' : 'bg-surface-2 text-muted'}`} aria-label={ct("Restzeit")}>
               {fmtClock(left)}
             </span>
           )}
@@ -428,7 +429,7 @@ export function Quiz({ levelId, practice, run: spec }: { levelId?: string; pract
                 transition={{ duration: COMBO_MILESTONES.has(combo) ? 0.55 : 0.2 }}
                 exit={{ scale: 0.4, opacity: 0 }}
                 className="flex shrink-0 items-center gap-0.5 font-black text-flame"
-                aria-label={`${combo}er-Combo`}
+                aria-label={ct("{p0}er-Combo", { p0: combo })}
               >
                 <img src={assetUrl('item-flame')} alt="" className="h-6 w-6" />×{combo}
               </motion.span>
@@ -439,7 +440,7 @@ export function Quiz({ levelId, practice, run: spec }: { levelId?: string; pract
               setMuted(!muted);
               setMutedState(!muted);
             }}
-            aria-label={muted ? 'Ton an' : 'Ton aus'}
+            aria-label={muted ? ct("Ton an") : ct("Ton aus")}
             className="rounded-xl p-1.5 text-muted hover:bg-surface-2"
           >
             <Icon name={muted ? 'mute' : 'sound'} />
@@ -447,18 +448,18 @@ export function Quiz({ levelId, practice, run: spec }: { levelId?: string; pract
         </div>
       </header>
 
-      <main className="mx-auto w-full max-w-xl flex-1 px-4 pb-64 pt-2">
+      <main className="mx-auto w-full max-w-xl flex-1 overflow-x-clip px-4 pb-64 pt-2">
         <AnimatePresence mode="wait">
           <motion.div key={`${q.id}-${queue.length}`} initial={{ x: 40, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: -40, opacity: 0 }} transition={{ duration: 0.22 }}>
             <div className="mb-2 flex items-center gap-2">
-              {retry && <span className="rounded-lg bg-error-soft px-2 py-0.5 text-xs font-black uppercase text-error">Noch mal</span>}
-              {data?.level?.kind === 'bonus' && <span className="rounded-lg bg-gold/20 px-2 py-0.5 text-xs font-black uppercase text-gold-dark">Praxis</span>}
+              {retry && <span className="rounded-lg bg-error-soft px-2 py-0.5 text-xs font-black uppercase text-error">{ct("Noch mal")}</span>}
+              {data?.level?.kind === 'bonus' && <span className="rounded-lg bg-gold/20 px-2 py-0.5 text-xs font-black uppercase text-gold-dark">{ct("Praxis")}</span>}
               {run && (
                 <span className="rounded-lg bg-primary-soft px-2 py-0.5 text-xs font-black uppercase text-primary">
-                  {exam ? `Frage ${questions.length - queue.length + 1}/${questions.length}` : run.kind === 'duel' ? 'Duell' : 'Schwächen'}
+                  {exam ? ct("Frage {p0}/{p1}", { p0: questions.length - queue.length + 1, p1: questions.length }) : run.kind === 'duel' ? ct("Duell") : ct("Schwächen")}
                 </span>
               )}
-              <h1 className="text-sm font-black uppercase tracking-wider text-primary">{TYPE_LABEL[q.type]}</h1>
+              <h1 className="text-sm font-black uppercase tracking-wider text-primary">{ct(TYPE_LABEL[q.type])}</h1>
             </div>
             {q.context && <QuestionContext context={q.context} />}
             <div key={shake} className={phase === 'wrong' ? 'animate-shake' : ''}>
@@ -492,7 +493,7 @@ export function Quiz({ levelId, practice, run: spec }: { levelId?: string; pract
             <motion.div key="check" className="safe-bottom border-t-2 border-line bg-bg" initial={{ y: 30, opacity: 0 }} animate={{ y: 0, opacity: 1 }} exit={{ opacity: 0 }}>
               <div className="mx-auto max-w-xl px-4 py-4">
                 <Button full variant={exam ? 'primary' : 'success'} disabled={!selected.length} onClick={check}>
-                  {exam ? (queue.length > 1 ? 'Weiter' : 'Abgeben') : 'Prüfen'}
+                  {exam ? (queue.length > 1 ? ct("Weiter") : ct("Abgeben")) : ct("Prüfen")}
                 </Button>
               </div>
             </motion.div>
@@ -511,11 +512,11 @@ export function Quiz({ levelId, practice, run: spec }: { levelId?: string; pract
                   <span className={`flex h-10 w-10 items-center justify-center rounded-full text-white ${phase === 'correct' ? 'bg-success' : 'bg-error'}`}>
                     <Icon name={phase === 'correct' ? 'check' : 'x'} size={24} weight={3.4} />
                   </span>
-                  <h2 className="flex-1 text-2xl font-black">{phase === 'correct' ? praise : 'Nicht ganz …'}</h2>
+                  <h2 className="flex-1 text-2xl font-black">{phase === 'correct' ? praise : ct("Nicht ganz …")}</h2>
                   <button
                     onClick={() => setReport(true)}
                     disabled={reported.has(q.id)}
-                    aria-label="Frage melden"
+                    aria-label={ct("Frage melden")}
                     className="rounded-xl p-2 opacity-70 hover:bg-black/5 hover:opacity-100 disabled:opacity-30"
                   >
                     <Icon name="flag" />
@@ -523,11 +524,11 @@ export function Quiz({ levelId, practice, run: spec }: { levelId?: string; pract
                 </div>
                 {phase === 'wrong' && (
                   <div className="mt-3 text-error-dark dark:text-error">
-                    <p className="text-sm font-black uppercase">Richtig wäre:</p>
+                    <p className="text-sm font-black uppercase">{ct("Richtig wäre:")}</p>
                     {q.slider && (
                       <p className="text-lg font-black">
                         {fmtNum(q.slider.answer)} {q.slider.unit ?? ''}
-                        {q.slider.tolerance > 0 && <span className="text-sm font-extrabold opacity-80"> (± {fmtNum(q.slider.tolerance)} zählt als richtig)</span>}
+                        {q.slider.tolerance > 0 && <span className="text-sm font-extrabold opacity-80"> (± {fmtNum(q.slider.tolerance)} {ct("zählt als richtig)")}</span>}
                       </p>
                     )}
                     {q.options
@@ -541,28 +542,22 @@ export function Quiz({ levelId, practice, run: spec }: { levelId?: string; pract
                 <div className="mt-3">
                   <SourceLink q={q} />
                 </div>
-                <Button full variant={phase === 'correct' ? 'success' : 'error'} className="mt-4" onClick={next}>
-                  Weiter
-                </Button>
+                <Button full variant={phase === 'correct' ? 'success' : 'error'} className="mt-4" onClick={next}>{ct("Weiter")}</Button>
               </div>
             </motion.div>
           )}
         </AnimatePresence>
       </div>
 
-      <Modal open={quit} onClose={() => setQuit(false)} title="Wirklich aufhören?">
+      <Modal open={quit} onClose={() => setQuit(false)} title={ct("Wirklich aufhören?")}>
         <div className="flex items-center gap-3">
           <Mascot pose="sad" size={90} />
           <p className="font-semibold text-muted">
-            {run?.kind === 'duel' ? 'Du kannst das Duell später neu beginnen – mit denselben Fragen.' : exam ? 'Dieser Klausur-Check wird dann nicht gewertet.' : 'Dein Fortschritt in diesem Level geht verloren.'}
+            {run?.kind === 'duel' ? ct("Du kannst das Duell später neu beginnen – mit denselben Fragen.") : exam ? ct("Dieser Klausur-Check wird dann nicht gewertet.") : ct("Dein Fortschritt in diesem Level geht verloren.")}
           </p>
         </div>
-        <Button full className="mt-5" onClick={() => setQuit(false)}>
-          Weiterlernen
-        </Button>
-        <Button full variant="ghost" className="mt-2 text-error!" onClick={() => navigate(back)}>
-          Beenden
-        </Button>
+        <Button full className="mt-5" onClick={() => setQuit(false)}>{ct("Weiterlernen")}</Button>
+        <Button full variant="ghost" className="mt-2 text-error!" onClick={() => navigate(back)}>{ct("Beenden")}</Button>
       </Modal>
       <ReportDialog
         q={q}

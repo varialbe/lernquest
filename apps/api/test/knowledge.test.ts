@@ -47,7 +47,7 @@ beforeAll(async () => {
     requires: { 'ds-01-k02': [{ id: 'ds-01-k01', why: 'Die Mengenbasis wird bei Teilmengen verwendet.' }] },
   }));
   app = await buildApp(testDb());
-  const res = await app.inject({ method: 'POST', url: '/api/auth/register', payload: { inviteCode: 'LQ-TEST-CODE', username: 'wissen', email: 'w@test.local', displayName: 'W', password: 'geheim1234', acceptPrivacy: true } });
+  const res = await app.inject({ method: 'POST', url: '/api/auth/register', headers: { 'accept-language': 'de' }, payload: { inviteCode: 'LQ-TEST-CODE', username: 'wissen', email: 'w@test.local', displayName: 'W', password: 'geheim1234', acceptPrivacy: true } });
   token = res.json().token;
 });
 

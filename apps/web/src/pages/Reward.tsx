@@ -1,3 +1,6 @@
+import { usePageT } from '../i18n/pages.ts';
+import { translateGameText } from '../i18n/catalog.ts';
+import { useLocale } from '../i18n/index.tsx';
 import { animate, motion, useMotionValue, useTransform } from 'motion/react';
 import { useEffect } from 'react';
 import { ACHIEVEMENTS, DUEL, type DuelSummary, type PetDef, type RewardResponse } from '@lernquest/shared';
@@ -34,10 +37,11 @@ function Tile({ label, color, icon, children, delay }: { label: string; color: s
 
 /** Duell-Stand nach der eigenen Runde: Ergebnis gegen den Gegner oder „wartet noch“. */
 function DuelBox({ d }: { d: DuelSummary }) {
-  const verdict = d.winner === 'me' ? `Gewonnen! +${DUEL.winCoins} Coins` : d.winner === 'them' ? 'Knapp verloren' : d.winner === 'draw' ? 'Unentschieden' : `${d.opponent.displayName} ist noch dran`;
+  const t = usePageT();
+  const verdict = d.winner === 'me' ? t("Gewonnen! +{coins} Coins", {coins: DUEL.winCoins}) : d.winner === 'them' ? t("Knapp verloren") : d.winner === 'draw' ? t("Unentschieden") : t("{name} ist noch dran", {name: d.opponent.displayName});
   return (
     <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.8 }} className="mt-5 w-full rounded-2xl border-2 border-line bg-surface p-4">
-      <p className="text-sm font-black uppercase tracking-wider text-muted">Duell gegen {d.opponent.displayName}</p>
+      <p className="text-sm font-black uppercase tracking-wider text-muted">{t("Duell gegen {name}", {name: d.opponent.displayName})}</p>
       <p className="mt-1 text-4xl font-black tabular-nums">
         <span className="text-primary">{d.me.correct ?? '–'}</span>
         <span className="mx-2 text-muted">:</span>
@@ -65,6 +69,8 @@ export function Reward({
   note?: string;
   duel?: DuelSummary | null;
 }) {
+  const t = usePageT();
+  const { locale } = useLocale();
   // Ton und Effekte im Takt der Einblend-Animationen unten
   useEffect(() => {
     if (result === 'offline') return;
@@ -97,10 +103,10 @@ export function Reward({
     return (
       <div className="flex min-h-dvh flex-col items-center justify-center gap-3 p-6 text-center">
         <Mascot pose="think" size={160} />
-        <h1 className="text-2xl font-black">Offline gespeichert</h1>
-        <p className="max-w-xs font-semibold text-muted">Sobald du wieder online bist, wird dein Ergebnis übertragen und XP, Coins und Streak werden gutgeschrieben.</p>
+        <h1 className="text-2xl font-black">{t("Offline gespeichert")}</h1>
+        <p className="max-w-xs font-semibold text-muted">{t("Sobald du wieder online bist, wird dein Ergebnis übertragen und XP, Coins und Streak werden gutgeschrieben.")}</p>
         <Button className="mt-4" onClick={() => onContinue('/')}>
-          Weiter
+          {t("Weiter")}
         </Button>
       </div>
     );
@@ -115,10 +121,10 @@ export function Reward({
         <motion.div initial={{ scale: 0.4, rotate: -10, opacity: 0 }} animate={{ scale: 1, rotate: 0, opacity: 1 }} transition={{ type: 'spring', stiffness: 220, damping: 14 }}>
           <Mascot pose="cheer" size={150} />
         </motion.div>
-        <h1 className="mt-2 text-3xl font-black text-primary">{heading ?? (practice ? 'Übung geschafft!' : r.stars === 3 ? 'Perfekt!' : 'Level geschafft!')}</h1>
+        <h1 className="mt-2 text-3xl font-black text-primary">{heading ?? (practice ? t("Übung geschafft!") : r.stars === 3 ? t("Perfekt!") : t("Level geschafft!"))}</h1>
 
         {!practice && (
-          <div className="mt-3 flex gap-2" aria-label={`${r.stars} von 3 Sternen`}>
+          <div className="mt-3 flex gap-2" aria-label={t("{stars} von 3 Sternen", {stars: r.stars})}>
             {[1, 2, 3].map((s) => (
               <motion.span key={s} initial={{ scale: 0, rotate: -90 }} animate={{ scale: 1, rotate: 0 }} transition={{ delay: 0.25 + s * 0.18, type: 'spring', stiffness: 300, damping: 12 }}>
                 <Icon name="star" size={44} weight={1.5} className={s <= r.stars ? 'text-gold' : 'text-locked'} fill="currentColor" />
@@ -134,7 +140,7 @@ export function Reward({
           <Tile label="Coins" color="#e0a100" icon="item-coin" delay={0.45}>
             <CountUp to={r.coins} delay={0.55} />
           </Tile>
-          <Tile label="Genau" color="#22c55e" icon="badge-perfect" delay={0.6}>
+          <Tile label={t("Genau")} color="#22c55e" icon="badge-perfect" delay={0.6}>
             <CountUp to={Math.round(r.accuracy * 100)} delay={0.7} />%
           </Tile>
         </div>
@@ -146,15 +152,15 @@ export function Reward({
           <motion.div initial={{ scale: 0.6, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ delay: 0.9, type: 'spring' }} className="mt-5 flex w-full items-center gap-3 rounded-2xl border-2 border-flame/40 bg-surface p-3">
             <motion.img src={assetUrl('item-flame')} alt="" className="h-14 w-14" animate={{ scale: [1, 1.18, 1], rotate: [0, -6, 6, 0] }} transition={{ delay: 1.1, duration: 0.9 }} />
             <div className="text-left">
-              <p className="text-xl font-black text-flame">{r.streak} {r.streak === 1 ? 'Tag' : 'Tage'} Streak!</p>
-              <p className="text-sm font-bold text-muted">Komm morgen wieder, um ihn zu verlängern.</p>
+              <p className="text-xl font-black text-flame">{t(r.streak === 1 ? '{days} Tag Streak!' : '{days} Tage Streak!', { days: r.streak })}</p>
+              <p className="text-sm font-bold text-muted">{t("Komm morgen wieder, um ihn zu verlängern.")}</p>
             </div>
           </motion.div>
         )}
 
         {r.dailyGoalReached && (
           <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 1.1 }} className="mt-3 rounded-2xl bg-success-soft px-4 py-2 font-black text-success-dark dark:text-success">
-            🎯 Tagesziel erreicht – +5 Bonus-Coins
+            {t("🎯 Tagesziel erreicht – +5 Bonus-Coins")}
           </motion.p>
         )}
 
@@ -164,23 +170,23 @@ export function Reward({
               <PetImage petId={r.pet.petId} stage={r.pet.stage} accessory={r.pet.accessory} size={72} />
             </motion.div>
             <div className="text-left">
-              <p className="font-black">{r.pet.evolved ? `✨ ${pet.name} hat sich entwickelt!` : `${pet.stageNames[r.pet.stage - 1]} freut sich!`}</p>
-              <p className="text-sm font-bold text-muted">{r.pet.evolved ? `Jetzt: ${pet.stageNames[r.pet.stage - 1]}` : `+${r.xp} Pet-XP`}</p>
+              <p className="font-black">{r.pet.evolved ? t("✨ {name} hat sich entwickelt!", {name: translateGameText(pet.name, locale)}) : t("{name} freut sich!", {name: translateGameText(pet.stageNames[r.pet.stage - 1]!, locale)})}</p>
+              <p className="text-sm font-bold text-muted">{r.pet.evolved ? t("Jetzt: {name}", {name: translateGameText(pet.stageNames[r.pet.stage - 1]!, locale)}) : `+${r.xp} Pet-XP`}</p>
             </div>
           </motion.div>
         )}
 
         {r.newAchievements.length > 0 && (
           <div className="mt-5 w-full">
-            <p className="mb-2 text-sm font-black uppercase tracking-wider text-muted">Neues Abzeichen</p>
+            <p className="mb-2 text-sm font-black uppercase tracking-wider text-muted">{t("Neues Abzeichen")}</p>
             {r.newAchievements.map((id) => {
               const a = ACHIEVEMENTS.find((x) => x.id === id);
               return a ? (
                 <motion.div key={id} data-fx="badge" initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: [0.8, 1.06, 1], opacity: 1 }} transition={{ delay: 1.6, duration: 0.45 }} className="mb-2 flex items-center gap-3 rounded-2xl border-2 border-gold/50 bg-surface p-2.5 text-left">
                   <img src={assetUrl(a.icon)} alt="" className="h-12 w-12" />
                   <div>
-                    <p className="font-black">{a.name}</p>
-                    <p className="text-sm font-semibold text-muted">{a.description}</p>
+                    <p className="font-black">{translateGameText(a.name, locale)}</p>
+                    <p className="text-sm font-semibold text-muted">{translateGameText(a.description, locale)}</p>
                   </div>
                 </motion.div>
               ) : null;
@@ -193,15 +199,15 @@ export function Reward({
           {nextLevel && !practice ? (
             <>
               <Button full onClick={() => onContinue(`/level/${nextLevel}`)}>
-                Nächstes Level
+                {t("Nächstes Level")}
               </Button>
               <Button full variant="ghost" onClick={() => onContinue('/')}>
-                Zum Lernpfad
+                {t("Zum Lernpfad")}
               </Button>
             </>
           ) : (
             <Button full onClick={() => onContinue('/')}>
-              Weiter
+              {t("Weiter")}
             </Button>
           )}
         </div>

@@ -1,3 +1,5 @@
+import { useCommonT, commonText } from '../i18n/common.ts';
+import { useLocale } from '../i18n/index.tsx';
 import type { ReactNode } from 'react';
 import { Link, useLocation } from 'wouter';
 import { petStage } from '@lernquest/shared';
@@ -18,6 +20,7 @@ function Stat({ img, value, label, color, to }: { img: string; value: ReactNode;
 
 /** Kopfzeile: Streak, Coins, Tagesziel-Ring, Avatar. */
 export function TopBar({ left }: { left?: ReactNode }) {
+  const ct = useCommonT();
   const { data: me } = useMe();
   const s = me?.stats;
   const goal = s ? Math.min(1, s.todayXp / s.dailyGoal) : 0;
@@ -27,9 +30,9 @@ export function TopBar({ left }: { left?: ReactNode }) {
       <div className="mx-auto flex h-14 max-w-xl items-center justify-between gap-2 px-3">
         <div className="min-w-0 flex-1">{left}</div>
         <div className="flex items-center gap-0.5">
-          <Stat img="item-flame" value={s?.streak ?? '–'} label={`${s?.streak ?? 0} Tage Streak`} color={s?.streakActiveToday ? 'var(--c-flame)' : 'var(--c-muted)'} to="/profile" />
+          <Stat img="item-flame" value={s?.streak ?? '–'} label={ct("{p0} Tage Streak", { p0: s?.streak ?? 0 })} color={s?.streakActiveToday ? 'var(--c-flame)' : 'var(--c-muted)'} to="/profile" />
           <Stat img="item-coin" value={s?.coins ?? '–'} label="Coins" color="var(--c-gold-dark)" to="/shop" />
-          <Link href="/profile" aria-label="Profil" className="relative ml-1">
+          <Link href="/profile" aria-label={ct("Profil")} className="relative ml-1">
             <svg width="44" height="44" viewBox="0 0 44 44" className="absolute -inset-[2px] -rotate-90" aria-hidden>
               <circle cx="22" cy="22" r="20" fill="none" stroke="var(--c-border)" strokeWidth="3" />
               <circle cx="22" cy="22" r="20" fill="none" stroke="var(--c-success)" strokeWidth="3" strokeLinecap="round" strokeDasharray={`${goal * 125.7} 125.7`} />
@@ -52,10 +55,12 @@ const NAV: { to: string; label: string; icon: IconName; match: (p: string) => bo
 ];
 
 export function BottomNav() {
+  const { locale } = useLocale();
+  const ct = useCommonT();
   const [path] = useLocation();
   const { data: me } = useMe();
   return (
-    <nav className="safe-bottom fixed inset-x-0 bottom-0 z-30 border-t-2 border-line bg-surface/95 backdrop-blur-md" aria-label="Navigation">
+    <nav className="safe-bottom fixed inset-x-0 bottom-0 z-30 border-t-2 border-line bg-surface/95 backdrop-blur-md" aria-label={ct("Navigation")}>
       <div className="mx-auto grid h-16 max-w-xl grid-cols-6">
         {NAV.map((n) => {
           const active = n.match(path);
@@ -66,7 +71,7 @@ export function BottomNav() {
                 <Icon name={n.icon} size={22} />
                 {badge > 0 && <span className="absolute -right-1.5 -top-1.5 flex h-5 min-w-5 items-center justify-center rounded-full bg-error px-1 text-[11px] font-black text-white">{badge > 99 ? '99+' : badge}</span>}
               </span>
-              <span className={`text-[11px] font-extrabold ${active ? 'text-primary' : 'text-muted'}`}>{n.label}</span>
+              <span className={`text-[11px] font-extrabold ${active ? 'text-primary' : 'text-muted'}`}>{commonText(n.label, locale)}</span>
             </Link>
           );
         })}

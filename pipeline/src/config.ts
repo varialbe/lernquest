@@ -19,6 +19,7 @@ export const config = {
   schemaFile: resolve(ROOT, 'pipeline/schemas/unit-output.schema.json'),
   bonusSchemaFile: resolve(ROOT, 'pipeline/schemas/bonus-output.schema.json'),
   knowledgeSchemaFile: resolve(ROOT, 'pipeline/schemas/knowledge-output.schema.json'),
+  translationFieldsSchemaFile: resolve(ROOT, 'pipeline/schemas/translation-fields.schema.json'),
   prereqSchemaFile: resolve(ROOT, 'pipeline/schemas/prereq-output.schema.json'),
   /** Wissenssammlung: wissen/<modul>/<unit-id>.json */
   knowledgeDir: resolve(ROOT, 'wissen'),
@@ -50,6 +51,8 @@ export const config = {
   generateKnowledge: env('GENERATE_KNOWLEDGE', 'true') === 'true',
   /** fehlende Wissenssammlungen, die ein normaler Lauf nebenbei nachholt */
   knowledgeCatchUp: Number(env('KNOWLEDGE_CATCH_UP', '3')),
+  generateTranslations: env('GENERATE_TRANSLATIONS', 'true') === 'true',
+  translateCatchUp: Number(env('TRANSLATE_CATCH_UP', env('KNOWLEDGE_CATCH_UP', '3'))),
   maxAttempts: 3,
 };
 

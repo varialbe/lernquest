@@ -101,7 +101,7 @@ describe('newsletter double opt-in', () => {
     expect((await app.inject({ method: 'GET', url: '/api/me', headers: authed(t) })).json().settings.newsletter).toBe('pending');
     expect(confirmedSubscribers(db)).toHaveLength(0);
     const optIn = sentMails.find((m) => m.from === 'news' && m.to === 'olga@example.org')!;
-    expect(optIn.subject).toMatch(/bestätige/i);
+    expect(optIn.subject).toMatch(/confirm/i); // empty Accept-Language falls back to English
     const token = /newsletter\/confirm\?token=([\w-]+)/.exec(optIn.text)![1]!;
     expect((await app.inject({ method: 'GET', url: `/api/newsletter/confirm?token=${token}` })).statusCode).toBe(200);
     expect((await app.inject({ method: 'GET', url: '/api/me', headers: authed(t) })).json().settings.newsletter).toBe('confirmed');
@@ -114,7 +114,8 @@ describe('newsletter double opt-in', () => {
     const mail = sentMails[0]!;
     expect(mail.from).toBe('news');
     expect(mail.html).toContain('<strong>Level</strong>');
-    expect(mail.html).toContain('Newsletter abbestellen');
+    expect(mail.html).toContain('Unsubscribe');
+    expect(mail.html).toContain('<html lang="en">');
     expect(mail.headers?.['List-Unsubscribe-Post']).toBe('List-Unsubscribe=One-Click');
     const unsub = /<(.+)>/.exec(mail.headers!['List-Unsubscribe']!)![1]!;
     const path = unsub.replace('https://lern.example.org', '');
@@ -180,5 +181,17 @@ describe('google', () => {
     expect((await app.inject({ method: 'POST', url: '/api/auth/google/start', payload: { mode: 'link' } })).statusCode).toBe(401);
     delete process.env.GOOGLE_CLIENT_ID;
     delete process.env.GOOGLE_CLIENT_SECRET;
+  });
+});
+
+
+describe('localized account emails', () => {
+  it.each([['de-AT', 'Bestätige', 'E-Mail bestätigt'], ['en-US', 'Verify', 'Email verified']])('uses %s for verification mail and landing page', async (language, subject, title) => {
+    await app.inject({ method: 'POST', url: '/api/auth/register', headers: { 'accept-language': language }, payload: { username: 'email_locale', email: 'localized@example.org', displayName: 'Localized', password: 'geheim1234', acceptPrivacy: true } });
+    const mail = sentMails.find((item) => item.to === 'localized@example.org')!;
+    expect(mail.subject).toContain(subject);
+    const token = /auth\/verify\?token=([\w-]+)/.exec(mail.text)![1]!;
+    const page = await app.inject({ url: `/api/auth/verify?token=${token}` });
+    expect(page.body).toContain(title);
   });
 });

@@ -1,3 +1,4 @@
+import { useCommonT } from '../i18n/common.ts';
 import Panzoom, { type PanzoomObject } from '@panzoom/panzoom';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
@@ -47,6 +48,7 @@ function highlight(svg: SVGSVGElement, target: Element | null) {
 }
 
 function Stage({ frame, onReady }: { frame: DiagramFrame; onReady: (el: HTMLDivElement | null) => void }) {
+  const ct = useCommonT();
   const { svg, error } = useMermaidSvg(frame.content);
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
@@ -62,13 +64,14 @@ function Stage({ frame, onReady }: { frame: DiagramFrame; onReady: (el: HTMLDivE
     }
     onReady(ref.current);
   }, [svg, onReady]);
-  if (error) return <p className="p-6 text-center font-bold text-error">Diagramm konnte nicht gezeichnet werden.</p>;
+  if (error) return <p className="p-6 text-center font-bold text-error">{ct("Diagramm konnte nicht gezeichnet werden.")}</p>;
   if (!svg) return <div className="h-60 w-full animate-pulse rounded-3xl bg-surface-2" />;
   return <div ref={ref} className="lq-diagram w-full max-w-[min(100vw,900px)] px-3" dangerouslySetInnerHTML={{ __html: svg }} />;
 }
 
 /** Vollbild: Pinch-Zoom, Pan, Doppeltipp = zurücksetzen, Schritte blättern, Knoten antippen = hervorheben. */
 export default function DiagramExplorer({ frames, onClose }: { frames: DiagramFrame[]; onClose: () => void }) {
+  const ct = useCommonT();
   const [i, setI] = useState(0);
   const area = useRef<HTMLDivElement>(null);
   const pz = useRef<PanzoomObject | null>(null);
@@ -164,21 +167,21 @@ export default function DiagramExplorer({ frames, onClose }: { frames: DiagramFr
   };
 
   return createPortal(
-    <div className="fixed inset-0 z-[60] flex flex-col bg-bg" role="dialog" aria-modal aria-label="Diagramm erkunden">
+    <div className="fixed inset-0 z-[60] flex flex-col bg-bg" role="dialog" aria-modal aria-label={ct("Diagramm erkunden")}>
       <div className="safe-top flex items-center gap-2 px-3 pb-2 pt-2">
-        <button onClick={onClose} aria-label="Schließen" className="rounded-xl p-2 text-muted hover:bg-surface-2">
+        <button onClick={onClose} aria-label={ct("Schließen")} className="rounded-xl p-2 text-muted hover:bg-surface-2">
           <Icon name="x" size={26} weight={2.8} />
         </button>
         <p className="min-w-0 flex-1 truncate text-sm font-black text-muted">
-          {frames.length > 1 ? `Schritt ${i + 1} von ${frames.length}` : 'Diagramm'}
+          {frames.length > 1 ? ct("Schritt {p0} von {p1}", { p0: i + 1, p1: frames.length }) : ct("Diagramm")}
         </p>
-        <button onClick={() => pz.current?.zoomOut()} aria-label="Verkleinern" className="h-10 w-10 rounded-xl border-2 border-line text-xl font-black">
+        <button onClick={() => pz.current?.zoomOut()} aria-label={ct("Verkleinern")} className="h-10 w-10 rounded-xl border-2 border-line text-xl font-black">
           −
         </button>
-        <button onClick={() => pz.current?.zoomIn()} aria-label="Vergrößern" className="h-10 w-10 rounded-xl border-2 border-line text-xl font-black">
+        <button onClick={() => pz.current?.zoomIn()} aria-label={ct("Vergrößern")} className="h-10 w-10 rounded-xl border-2 border-line text-xl font-black">
           +
         </button>
-        <button onClick={() => pz.current?.reset()} aria-label="Ansicht zurücksetzen" className="h-10 w-10 rounded-xl border-2 border-line">
+        <button onClick={() => pz.current?.reset()} aria-label={ct("Ansicht zurücksetzen")} className="h-10 w-10 rounded-xl border-2 border-line">
           <Icon name="expand" size={20} className="mx-auto" />
         </button>
       </div>
@@ -187,7 +190,7 @@ export default function DiagramExplorer({ frames, onClose }: { frames: DiagramFr
         <div className="flex h-full w-full items-center justify-center">
           <Stage key={i} frame={frame} onReady={onReady} />
         </div>
-        <p className="pointer-events-none absolute inset-x-3 bottom-2 mx-auto w-fit rounded-xl bg-bg/85 px-3 py-1 text-center text-xs font-bold text-muted backdrop-blur">Zwei Finger: zoomen · Doppeltipp: zurücksetzen · Knoten antippen: hervorheben</p>
+        <p className="pointer-events-none absolute inset-x-3 bottom-2 mx-auto w-fit rounded-xl bg-bg/85 px-3 py-1 text-center text-xs font-bold text-muted backdrop-blur">{ct("Zwei Finger: zoomen · Doppeltipp: zurücksetzen · Knoten antippen: hervorheben")}</p>
       </div>
 
       {(frame.caption || frames.length > 1) && (
@@ -195,15 +198,15 @@ export default function DiagramExplorer({ frames, onClose }: { frames: DiagramFr
           {frame.caption && <p className="mb-3 text-center font-extrabold">{frame.caption}</p>}
           {frames.length > 1 && (
             <div className="flex items-center gap-3">
-              <button onClick={() => go(-1)} disabled={i === 0} aria-label="Vorheriger Schritt" className="flex h-12 w-14 items-center justify-center rounded-2xl border-2 border-line disabled:opacity-30">
+              <button onClick={() => go(-1)} disabled={i === 0} aria-label={ct("Vorheriger Schritt")} className="flex h-12 w-14 items-center justify-center rounded-2xl border-2 border-line disabled:opacity-30">
                 <Icon name="chevronLeft" size={26} weight={3} />
               </button>
               <div className="flex flex-1 justify-center gap-1.5">
                 {frames.map((_, k) => (
-                  <button key={k} onClick={() => go(k - i)} aria-label={`Schritt ${k + 1}`} className={`h-2.5 rounded-full transition-all ${k === i ? 'w-6 bg-primary' : 'w-2.5 bg-line-strong'}`} />
+                  <button key={k} onClick={() => go(k - i)} aria-label={ct("Schritt {p0}", { p0: k + 1 })} className={`h-2.5 rounded-full transition-all ${k === i ? 'w-6 bg-primary' : 'w-2.5 bg-line-strong'}`} />
                 ))}
               </div>
-              <button onClick={() => go(1)} disabled={i === frames.length - 1} aria-label="Nächster Schritt" className="flex h-12 w-14 items-center justify-center rounded-2xl bg-primary text-white shadow-[0_4px_0_var(--c-primary-dark)] disabled:opacity-30">
+              <button onClick={() => go(1)} disabled={i === frames.length - 1} aria-label={ct("Nächster Schritt")} className="flex h-12 w-14 items-center justify-center rounded-2xl bg-primary text-white shadow-[0_4px_0_var(--c-primary-dark)] disabled:opacity-30">
                 <Icon name="chevronRight" size={26} weight={3} />
               </button>
             </div>

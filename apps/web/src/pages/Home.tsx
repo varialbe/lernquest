@@ -1,3 +1,6 @@
+import { useLocale } from '../i18n/index.tsx';
+import { translateGameText, moduleName } from '../i18n/catalog.ts';
+import { useCommonT } from '../i18n/common.ts';
 import { motion } from 'motion/react';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useLocation } from 'wouter';
@@ -16,6 +19,7 @@ const OFFSETS = [0, 56, 84, 56, 0, -56, -84, -56];
 const KIND_ICON = { basics: 'star', apply: 'dumbbell', deepen: 'book' } as const;
 
 function LevelButton({ level, color, current, onOpen }: { level: LevelNode; color: string; current: boolean; onOpen: () => void }) {
+  const ct = useCommonT();
   const locked = level.status === 'locked';
   const gold = level.status === 'gold';
   const done = level.status === 'done' || gold;
@@ -31,14 +35,12 @@ function LevelButton({ level, color, current, onOpen }: { level: LevelNode; colo
           style={{ color }}
           animate={{ y: [0, -5, 0] }}
           transition={{ repeat: Infinity, duration: 1.6, ease: 'easeInOut' }}
-        >
-          Start
-          <span className="absolute -bottom-[7px] left-1/2 h-3 w-3 -translate-x-1/2 rotate-45 border-b-2 border-r-2 border-line bg-surface" />
+        >{ct("Start")}<span className="absolute -bottom-[7px] left-1/2 h-3 w-3 -translate-x-1/2 rotate-45 border-b-2 border-r-2 border-line bg-surface" />
         </motion.div>
       )}
       <button
         onClick={onOpen}
-        aria-label={`${level.title}${locked ? ' (gesperrt)' : done ? ' (abgeschlossen)' : ''}`}
+        aria-label={`${level.title}${locked ? ct(" (gesperrt)") : done ? ct(" (abgeschlossen)") : ''}`}
         className={`relative flex items-center justify-center rounded-full transition-transform active:translate-y-[6px] ${current ? 'animate-ring' : ''}`}
         style={{ width: size, height: size - 6, background: bg, boxShadow: `0 6px 0 ${shadow}` }}
       >
@@ -54,7 +56,7 @@ function LevelButton({ level, color, current, onOpen }: { level: LevelNode; colo
         )}
       </button>
       {done && (
-        <div className="mt-2 flex gap-0.5" aria-label={`${level.stars} von 3 Sternen`}>
+        <div className="mt-2 flex gap-0.5" aria-label={ct("{p0} von 3 Sternen", { p0: level.stars })}>
           {[1, 2, 3].map((s) => (
             <Icon key={s} name="star" size={14} weight={1.5} className={s <= level.stars ? 'text-gold' : 'text-locked-dark'} fill="currentColor" />
           ))}
@@ -65,6 +67,7 @@ function LevelButton({ level, color, current, onOpen }: { level: LevelNode; colo
 }
 
 function UnitSection({ unit, color, currentId, onOpen, index }: { unit: UnitNode; color: string; currentId: string | null; onOpen: (u: UnitNode, l: LevelNode) => void; index: number }) {
+  const ct = useCommonT();
   const [info, setInfo] = useState(false);
   const allLocked = unit.levels.every((l) => l.status === 'locked');
   return (
@@ -76,11 +79,11 @@ function UnitSection({ unit, color, currentId, onOpen, index }: { unit: UnitNode
           <div className="min-w-0">
             <div className="flex items-center gap-2 text-xs font-black uppercase tracking-wider text-white/80">
               Unit {unit.number}
-              {unit.isNew && <Pill className="bg-white text-[11px]" ><span style={{ color }}>Neu</span></Pill>}
+              {unit.isNew && <Pill className="bg-white text-[11px]" ><span style={{ color }}>{ct("Neu")}</span></Pill>}
             </div>
             <h2 className="mt-0.5 text-xl font-black leading-tight"><MathText text={unit.title} /></h2>
           </div>
-          <button onClick={() => setInfo(true)} className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border-2 border-white/30 bg-white/15" aria-label="Worum geht's?">
+          <button onClick={() => setInfo(true)} className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border-2 border-white/30 bg-white/15" aria-label={ct("Worum geht's?")}>
             <Icon name="book" size={22} />
           </button>
         </div>
@@ -103,15 +106,15 @@ function UnitSection({ unit, color, currentId, onOpen, index }: { unit: UnitNode
             </span>
           ))}
         </div>
-        <Button full className="mt-6" onClick={() => setInfo(false)}>
-          Verstanden
-        </Button>
+        <Button full className="mt-6" onClick={() => setInfo(false)}>{ct("Verstanden")}</Button>
       </Modal>
     </section>
   );
 }
 
 function DailyCard() {
+  const { locale } = useLocale();
+  const ct = useCommonT();
   const { data: me } = useMe();
   if (!me) return null;
   const pet = me.pets.find((p) => p.petId === me.settings.activePet);
@@ -125,13 +128,13 @@ function DailyCard() {
       </Link>
       <div className="min-w-0 flex-1">
         <p className="text-sm font-extrabold text-muted">
-          {done ? `${def?.name ?? 'Dein Pet'} ist stolz auf dich!` : `Hallo ${me.user.displayName}!`}
+          {done ? ct("{p0} ist stolz auf dich!", { p0: (def ? translateGameText(def.name, locale) : ct("Dein Pet")) }) : ct("Hallo {p0}!", { p0: me.user.displayName })}
         </p>
-        <p className="font-black">{done ? 'Tagesziel geschafft 🎉' : `Tagesziel: ${s.todayXp} / ${s.dailyGoal} XP`}</p>
+        <p className="font-black">{done ? ct("Tagesziel geschafft 🎉") : ct("Tagesziel: {p0} / {p1} XP", { p0: s.todayXp, p1: s.dailyGoal })}</p>
         <ProgressBar value={s.todayXp / s.dailyGoal} className="mt-2" height={12} color={done ? 'var(--c-gold)' : 'var(--c-success)'} />
       </div>
       {s.dueReviews > 0 && (
-        <Link href="/practice" className="flex shrink-0 flex-col items-center rounded-2xl border-2 border-line px-2 py-1.5 text-center" aria-label={`${s.dueReviews} Fehler üben`}>
+        <Link href="/practice" className="flex shrink-0 flex-col items-center rounded-2xl border-2 border-line px-2 py-1.5 text-center" aria-label={ct("{p0} Fehler üben", { p0: s.dueReviews })}>
           <Icon name="dumbbell" className="text-error" />
           <span className="text-xs font-black text-error">{s.dueReviews}</span>
         </Link>
@@ -141,6 +144,8 @@ function DailyCard() {
 }
 
 export function Home() {
+  const { locale } = useLocale();
+  const ct = useCommonT();
   const { data, isLoading } = usePath();
   const [, navigate] = useLocation();
   const [mod, setMod] = useState<ModuleId>(() => (localStorage.getItem('lq.module') as ModuleId) || 'DS');
@@ -169,14 +174,14 @@ export function Home() {
         />
         {module && <span className="shrink-0 text-sm font-black text-muted">{Math.round(module.progress * 100)} %</span>}
       </div>
-      <p className="mb-4 mt-1 px-1 text-sm font-bold text-muted">{MODULE_INFO[mod].name}</p>
+      <p className="mb-4 mt-1 px-1 text-sm font-bold text-muted">{moduleName(mod, locale)}</p>
 
       {isLoading && <Spinner />}
       {module && module.units.length === 0 && (
         <div className="flex flex-col items-center py-10 text-center">
           <Mascot pose="sleep" size={160} />
-          <p className="mt-3 text-lg font-black">Noch keine Vorlesungen</p>
-          <p className="max-w-xs font-semibold text-muted">Sobald eine neue Mitschrift im Studium-Repo landet, entsteht hier über Nacht eine neue Unit.</p>
+          <p className="mt-3 text-lg font-black">{ct("Noch keine Vorlesungen")}</p>
+          <p className="max-w-xs font-semibold text-muted">{ct("Sobald eine neue Mitschrift im Studium-Repo landet, entsteht hier über Nacht eine neue Unit.")}</p>
         </div>
       )}
       {module?.units.map((u, i) => (
@@ -187,7 +192,7 @@ export function Home() {
       {module && module.units.length > 0 && (
         <div className="flex flex-col items-center pb-4 pt-2 text-center">
           <Mascot pose="think" size={110} />
-          <p className="max-w-[16rem] text-sm font-bold text-muted">Die nächste Unit erscheint, sobald die nächste Vorlesung mitgeschrieben ist.</p>
+          <p className="max-w-[16rem] text-sm font-bold text-muted">{ct("Die nächste Unit erscheint, sobald die nächste Vorlesung mitgeschrieben ist.")}</p>
         </div>
       )}
 
@@ -199,21 +204,20 @@ export function Home() {
             </p>
             <div className="mt-4 grid grid-cols-2 gap-3">
               <div className="rounded-2xl bg-surface-2 p-3">
-                <p className="text-xs font-extrabold uppercase text-muted">Fragen</p>
+                <p className="text-xs font-extrabold uppercase text-muted">{ct("Fragen")}</p>
                 <p className="text-2xl font-black">{sel.level.questionCount}</p>
               </div>
               <div className="rounded-2xl bg-surface-2 p-3">
-                <p className="text-xs font-extrabold uppercase text-muted">Bestwert</p>
+                <p className="text-xs font-extrabold uppercase text-muted">{ct("Bestwert")}</p>
                 <p className="text-2xl font-black">{sel.level.bestAccuracy != null ? `${Math.round(sel.level.bestAccuracy * 100)} %` : '–'}</p>
               </div>
             </div>
             {sel.level.status === 'locked' ? (
               <p className="mt-5 flex items-center gap-2 rounded-2xl bg-surface-2 p-3 font-bold text-muted">
-                <Icon name="lock" /> Schließe zuerst das vorherige Level ab.
-              </p>
+                <Icon name="lock" />{ct("Schließe zuerst das vorherige Level ab.")}</p>
             ) : (
               <Button full className="mt-5" style={{ background: color, boxShadow: `0 4px 0 color-mix(in oklab, ${color} 70%, black)` }} onClick={() => navigate(`/level/${sel.level.id}`)}>
-                {sel.level.status === 'open' ? 'Starten' : 'Wiederholen'}
+                {sel.level.status === 'open' ? ct("Starten") : ct("Wiederholen")}
               </Button>
             )}
           </div>

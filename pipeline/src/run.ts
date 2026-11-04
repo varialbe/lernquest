@@ -15,6 +15,7 @@ import { generateUnit } from './generate.ts';
 import { allContentUnits, generateKnowledge, knowledgeStale, readKnowledge, writeKnowledge } from './knowledge.ts';
 import { generatePrereqs, moduleKnowledge, prereqsStale } from './prereqs.ts';
 import { qualityGate, type GateReport } from './quality.ts';
+import { findContentFile, translateUnit, translationStatus } from './translate.ts';
 import { notify, runMessage } from './notify.ts';
 import * as git from './git.ts';
 
@@ -300,6 +301,39 @@ async function runKnowledge(db: DB, list: Unit[], vault: Vault, runId: string, f
 }
 
 // ---------- Ausführung ----------
+/** Generate bounded English overlays after source/knowledge updates in every non-dry mode. */
+async function catchUpTranslations(runId: string, files: FileReport[], warnings: string[], log: (message: string) => void, rateLimited: boolean) {
+  let committed = false;
+  let limited = false;
+  if (config.generateTranslations && !process.env.VITEST && !rateLimited && config.translateCatchUp > 0) {
+    const changedIds = new Set(files.filter((file) => file.status === 'done').map((file) => file.unitId));
+    const candidates = allContentUnits().flatMap((unit) => {
+      const knowledge = readKnowledge(unit.id);
+      const file = findContentFile(unit);
+      const state = translationStatus(unit, knowledge, file);
+      return knowledge && file && !state.current ? [{ unit, knowledge, file }] : [];
+    }).sort((a, b) => Number(changedIds.has(b.unit.id)) - Number(changedIds.has(a.unit.id))).slice(0, config.translateCatchUp);
+    if (candidates.length) log(`English translations to catch up: ${candidates.length} unit(s), limit ${config.translateCatchUp}`);
+    for (const candidate of candidates) {
+      const workDir = join(config.dataDir, 'work', runId, `translate-${candidate.unit.id}-${process.pid}`);
+      try {
+        const result = await translateUnit(candidate.unit, candidate.knowledge, candidate.file, workDir, log);
+        const changed = git.commitContent(
+          [result.unitFile, result.knowledgeFile, result.metaFile, ...(result.prereqFile ? [result.prereqFile] : [])].map((file) => relative(config.lernquestRepo, file)),
+          `translate: ${candidate.unit.module} lecture ${candidate.unit.number} to English`,
+        );
+        committed ||= changed;
+        log(`  ✓ ${candidate.unit.id} translation saved (${result.tokens.toLocaleString('en-US')} tokens)`);
+      } catch (error) {
+        warnings.push(`English translation ${candidate.unit.id} failed: ${(error as Error).message.slice(0, 180)}`);
+        log(`  ⚠ ${candidate.unit.id} translation failed: ${(error as Error).message.slice(0, 300)}`);
+        if (error instanceof RateLimitError) { limited = true; break; }
+      }
+    }
+  }
+  return { committed, rateLimited: limited };
+}
+
 export async function execute(mode: Mode, opts: { runId?: string; file?: string; quiet?: boolean; notify?: boolean } = {}): Promise<Report> {
   const runId = opts.runId ?? newRunId();
   const started = Date.now();
@@ -341,7 +375,9 @@ export async function execute(mode: Mode, opts: { runId?: string; file?: string;
       // gezielt angeforderte Unit (pnpm pipeline knowledge ds-03): Wissenssammlung komplett neu
       const r = await runKnowledge(db, list, { root: config.studiumRepo, files: git.listAllFiles() }, runId, files, warnings, log, list.length, false, !!opts.file);
       rateLimited = r.rateLimited;
-      if (r.committed) {
+      const translations = await catchUpTranslations(runId, files, warnings, log, rateLimited);
+      rateLimited ||= translations.rateLimited;
+      if (r.committed || translations.committed) {
         const pushErr = git.pushContent();
         if (pushErr) warnings.push(`Push fehlgeschlagen: ${pushErr}`);
         else log('Wissen gepusht.');
@@ -524,6 +560,9 @@ export async function execute(mode: Mode, opts: { runId?: string; file?: string;
           rateLimited ||= r.rateLimited;
         }
       }
+      const translations = await catchUpTranslations(runId, files, warnings, log, rateLimited);
+      committed ||= translations.committed;
+      rateLimited ||= translations.rateLimited;
       if (committed) {
         const pushErr = git.pushContent();
         if (pushErr) {

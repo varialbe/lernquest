@@ -1,0 +1,2035 @@
+{
+  "schemaVersion": 1,
+  "id": "eip-04",
+  "module": "EIP",
+  "number": 4,
+  "slug": "control-flow-graphs-strings-und-arrays",
+  "title": "Control-Flow Graphs, Strings, and Arrays",
+  "summary": "This unit covers control-flow graphs (Kontrollflussgraphen) as a representation of program executions and the reducibility (Reduzierbarkeit) of control flow. It also covers variable initialization (Variableninitialisierung), string concatenation (String-Konkatenation) and comparison, one- and two-dimensional arrays, and for-loops (For-Schleifen) and their equivalence to while-loops.",
+  "concepts": [
+    "Control-flow graph (CFG)",
+    "Path and operational semantics",
+    "Condition and join",
+    "Reducibility",
+    "Variable declaration and initialization",
+    "String concatenation",
+    "String comparison with equals",
+    "Arrays and indices",
+    "Array references",
+    "Two-dimensional arrays",
+    "For-loop",
+    "Loop invariant",
+    "Euclidean algorithm",
+    "Runtime",
+    "Syntax and semantics"
+  ],
+  "keyFacts": [
+    "A path from Start to Stop corresponds to an execution; together with the state carried along it, it describes the operational semantics.",
+    "A condition node has exactly one yes edge and one no edge.",
+    "For an if statement, the body edge leads to the next statement; for a while loop, it leads back to the condition.",
+    "Every MiniJava program has a CFG; conversely, a CFG can be converted into a structured program if and only if it is reducible.",
+    "A reducible graph has exactly one entry point for each loop.",
+    "Local variables have no default value; reading one before its first assignment is a compiler error.",
+    "In string concatenation with +, the other operand is converted to text, and evaluation proceeds from left to right.",
+    "s1.equals(s2) compares string contents; == does not compare the text.",
+    "An array has a fixed length and contains values of the same type; for length n, the valid indices are 0 through n-1.",
+    "The elements of a newly created int array are initialized to 0; a length of 0 is allowed.",
+    "An array variable stores a reference; an assignment such as b = a does not create a new array.",
+    "A two-dimensional array is an array of arrays; its rows may have different lengths.",
+    "In a for loop, the update runs after the body and before the next condition check.",
+    "The for loop for(init; cond; upd) is equivalent to init followed by a while loop whose body first executes the original body and then the update."
+  ],
+  "tags": [
+    "tum",
+    "info1",
+    "CIT123001",
+    "lecture"
+  ],
+  "links": [],
+  "source": {
+    "file": "EIP/01_Vorlesungen/EIP VO4.md",
+    "sha256": "a4c92693bee8c0d4fee1b6766a2248667edb26f0feca796a923d5c7fd4f246bd",
+    "commit": "c01f10e1818d61e8fd05d663cf852d7a59f2e1e4"
+  },
+  "generator": {
+    "model": "gpt-5.6-luna",
+    "effort": "xhigh",
+    "reviewEffort": "high",
+    "promptVersion": "v2",
+    "generatedAt": "2026-10-31T00:50:29.284Z",
+    "review": {
+      "checked": 44,
+      "fixed": 2,
+      "removed": 0,
+      "notes": "Alle 44 Fragen geprüft. Korrigiert wurden ein For-Schleifen-Distraktor samt Erklärung sowie die missverständlich formulierte Grammatik-Frage; deren Quelle wurde passend auf die For-Schleife gesetzt. Keine Frage musste entfernt oder ersetzt werden."
+    }
+  },
+  "levels": [
+    {
+      "id": "eip-04-l1",
+      "index": 1,
+      "kind": "basics",
+      "title": "Fundamentals",
+      "questions": [
+        {
+          "id": "eip-04-l1-q01",
+          "type": "single",
+          "prompt": "In a control-flow graph (CFG), what does a path from Start to Stop correspond to?",
+          "options": [
+            {
+              "id": "a",
+              "text": "A single variable declaration"
+            },
+            {
+              "id": "b",
+              "text": "Only the loop body"
+            },
+            {
+              "id": "c",
+              "text": "A possible execution of the program"
+            },
+            {
+              "id": "d",
+              "text": "A compiler error"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "A Start-to-Stop path describes a possible execution. The specific edges taken at branches depend on the current variable values.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO4.md",
+            "heading": "1. Control-Flow Graphs (CFG)"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Control-flow graph (CFG)",
+            "Path and operational semantics"
+          ]
+        },
+        {
+          "id": "eip-04-l1-q02",
+          "type": "multi",
+          "prompt": "Select all correct statements about nodes and edges in a CFG. More than one answer may be correct.",
+          "options": [
+            {
+              "id": "a",
+              "text": "A condition node has exactly one no edge."
+            },
+            {
+              "id": "b",
+              "text": "The Start node must have an incoming edge."
+            },
+            {
+              "id": "c",
+              "text": "A condition node has exactly one yes edge."
+            },
+            {
+              "id": "d",
+              "text": "Every node except Stop has exactly two outgoing edges."
+            },
+            {
+              "id": "e",
+              "text": "Every node except Start has incoming edges."
+            }
+          ],
+          "correct": [
+            "a",
+            "c",
+            "e"
+          ],
+          "explanation": "Conditions branch into exactly yes and no. In addition, every node except Start has an incoming edge; Start therefore needs no incoming edge.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO4.md",
+            "heading": "1. Control-Flow Graphs (CFG)"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Control-flow graph (CFG)",
+            "Condition and join"
+          ]
+        },
+        {
+          "id": "eip-04-l1-q03",
+          "type": "truefalse",
+          "prompt": "In a `while` loop, the edge after the loop body leads back to the condition.",
+          "options": [
+            {
+              "id": "true",
+              "text": "True"
+            },
+            {
+              "id": "false",
+              "text": "False"
+            }
+          ],
+          "correct": [
+            "true"
+          ],
+          "explanation": "This is the key control-flow difference from an `if`: after the body, the condition is checked again in a `while` loop.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO4.md",
+            "heading": "vs."
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Control-flow graph (CFG)"
+          ]
+        },
+        {
+          "id": "eip-04-l1-q04",
+          "type": "cloze",
+          "prompt": "Local variables have no default value. Reading one before assigning it results in a ___.",
+          "options": [
+            {
+              "id": "a",
+              "text": "empty string"
+            },
+            {
+              "id": "b",
+              "text": "new array"
+            },
+            {
+              "id": "c",
+              "text": "automatic value of 0"
+            },
+            {
+              "id": "d",
+              "text": "compiler error"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "A local variable must be defined before it is used. Otherwise, the compiler reports `variable n might not have been initialized`.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO4.md",
+            "heading": "2. Variablen: Deklaration & Initialisierung"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Variable declaration and initialization"
+          ]
+        },
+        {
+          "id": "eip-04-l1-q05",
+          "type": "single",
+          "prompt": "Which statement correctly describes a string literal such as `\"Hello\"`?",
+          "options": [
+            {
+              "id": "a",
+              "text": "A string literal is always empty."
+            },
+            {
+              "id": "b",
+              "text": "The quotation marks delimit the text but are not part of it."
+            },
+            {
+              "id": "c",
+              "text": "The quotation marks are part of the stored text."
+            },
+            {
+              "id": "d",
+              "text": "A string literal may contain only digits."
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "The quotation marks delimit the string in the program. The stored text is just `Hello`.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO4.md",
+            "heading": "3. Strings"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "String concatenation"
+          ]
+        },
+        {
+          "id": "eip-04-l1-q06",
+          "type": "single",
+          "prompt": "Which method compares the contents of strings?",
+          "options": [
+            {
+              "id": "a",
+              "text": "`s1.compareText(s2)`"
+            },
+            {
+              "id": "b",
+              "text": "`s1.length(s2)`"
+            },
+            {
+              "id": "c",
+              "text": "`s1.equals(s2)`"
+            },
+            {
+              "id": "d",
+              "text": "`s1 == s2`"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "`equals` compares string contents. In this lecture, `==` is explicitly not the way to compare text.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO4.md",
+            "heading": "3. Strings"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "String comparison with equals"
+          ]
+        },
+        {
+          "id": "eip-04-l1-q07",
+          "type": "single",
+          "prompt": "Which statement about an array is correct?",
+          "options": [
+            {
+              "id": "a",
+              "text": "It can be created only at compile time."
+            },
+            {
+              "id": "b",
+              "text": "It has only index 1."
+            },
+            {
+              "id": "c",
+              "text": "It contains a fixed number of values of the same type."
+            },
+            {
+              "id": "d",
+              "text": "It contains values of arbitrary types and has a variable length."
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "An array has a fixed length and stores values of the same type. Its length can be determined at runtime, but remains fixed afterward.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO4.md",
+            "heading": "4. Arrays"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Arrays and indices"
+          ]
+        },
+        {
+          "id": "eip-04-l1-q08",
+          "type": "cloze",
+          "prompt": "For an array of length $n$, the valid indices are ___.",
+          "options": [
+            {
+              "id": "a",
+              "text": "`0` through `n`"
+            },
+            {
+              "id": "b",
+              "text": "only `n-1`"
+            },
+            {
+              "id": "c",
+              "text": "`1` through `n`"
+            },
+            {
+              "id": "d",
+              "text": "`0` through `n-1`"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Arrays start at index 0 and end at `n-1`. Accessing `a[n]` is already outside the array.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO4.md",
+            "heading": "4. Arrays"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Arrays and indices"
+          ]
+        },
+        {
+          "id": "eip-04-l1-q09",
+          "type": "truefalse",
+          "prompt": "For `int[][] grid`, `grid[1]` is itself an array.",
+          "options": [
+            {
+              "id": "true",
+              "text": "True"
+            },
+            {
+              "id": "false",
+              "text": "False"
+            }
+          ],
+          "correct": [
+            "true"
+          ],
+          "explanation": "A two-dimensional array is an array of arrays. Therefore, `grid[1]` refers to a row, while `grid[1][2]` refers to a single `int`.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO4.md",
+            "heading": "2D-Arrays = Array von Arrays"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Two-dimensional arrays"
+          ]
+        },
+        {
+          "id": "eip-04-l1-q10",
+          "type": "single",
+          "prompt": "What does a for loop group together inside its parentheses?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Initialization, condition, and update"
+            },
+            {
+              "id": "b",
+              "text": "Only two conditions"
+            },
+            {
+              "id": "c",
+              "text": "Declaration, string comparison, and array copy"
+            },
+            {
+              "id": "d",
+              "text": "Only the output"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "The for loop combines `init`, `cond`, and `upd` into a readable index-based loop.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO4.md",
+            "heading": "5. For-Schleife"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "For-loop"
+          ]
+        },
+        {
+          "id": "eip-04-l1-q11",
+          "type": "diagram",
+          "prompt": "Which description matches this control-flow diagram?\n\n```mermaid\nflowchart TD\n    I[\"init\"] --> C{\"cond\"}\n    C -- yes --> B[\"body\"] --> U[\"update\"] --> C\n    C -- no --> N[\"next statement\"]\n```",
+          "options": [
+            {
+              "id": "a",
+              "text": "Execution of a variable declaration without a loop"
+            },
+            {
+              "id": "b",
+              "text": "Only a string concatenation"
+            },
+            {
+              "id": "c",
+              "text": "Unconditional jump to the start of the program"
+            },
+            {
+              "id": "d",
+              "text": "Execution of a for loop"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "The diagram shows initialization, test, body, update, and the transition to the next statement. This is exactly the order of a for loop.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO4.md",
+            "heading": "5. For-Schleife"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "For-loop",
+            "Control-flow graph (CFG)"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "eip-04-l2",
+      "index": 2,
+      "kind": "apply",
+      "title": "Apply",
+      "questions": [
+        {
+          "id": "eip-04-l2-q01",
+          "type": "code_output",
+          "prompt": "What does this code output?\n\n```java\nint x = 30, y = 20;\nwhile (x != y)\n    if (x < y) y = y - x;\n    else x = x - y;\nwrite(x);\n```",
+          "options": [
+            {
+              "id": "a",
+              "text": "`10`"
+            },
+            {
+              "id": "b",
+              "text": "`30`"
+            },
+            {
+              "id": "c",
+              "text": "`20`"
+            },
+            {
+              "id": "d",
+              "text": "`0`"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "First, because `30 < 20` is false, `x` becomes 10. Then, because `10 < 20`, `y` becomes 10; the loop now ends and `x` is 10.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO4.md",
+            "heading": "Beispiel: Euklid (Subtraktion)"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Control-flow graph (CFG)",
+            "Path and operational semantics"
+          ]
+        },
+        {
+          "id": "eip-04-l2-q02",
+          "type": "diagram",
+          "prompt": "Which node is reached again after either of the two possible assignments?\n\n```mermaid\nflowchart TD\n    S([Start]) --> R1[\"x = readInt();\"] --> R2[\"y = readInt();\"] --> C1{\"x != y\"}\n    C1 -- yes --> C2{\"x < y\"}\n    C2 -- yes --> A1[\"y = y - x;\"] --> C1\n    C2 -- no --> A2[\"x = x - y;\"] --> C1\n    C1 -- no --> W[\"write(x);\"] --> E([Stop])\n```",
+          "options": [
+            {
+              "id": "a",
+              "text": "`W`"
+            },
+            {
+              "id": "b",
+              "text": "`A1`"
+            },
+            {
+              "id": "c",
+              "text": "`C2`"
+            },
+            {
+              "id": "d",
+              "text": "`C1`"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Both assignments make up the loop body and then lead back to the test `x != y`, that is, to node `C1`.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO4.md",
+            "heading": "Beispiel: Euklid (Subtraktion)"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Control-flow graph (CFG)"
+          ]
+        },
+        {
+          "id": "eip-04-l2-q03",
+          "type": "code_output",
+          "prompt": "What does this code output?\n\n```java\nwrite(\"sum: \" + 2 + 3);\n```",
+          "options": [
+            {
+              "id": "a",
+              "text": "`sum: 5`"
+            },
+            {
+              "id": "b",
+              "text": "`5sum: `"
+            },
+            {
+              "id": "c",
+              "text": "`sum: 23`"
+            },
+            {
+              "id": "d",
+              "text": "`sum: 2 + 3`"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Once the left operand is a string, the next operand is converted to text. Evaluating from left to right first produces `sum: 2`, and then `sum: 23`.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO4.md",
+            "heading": "3. Strings"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "String concatenation"
+          ]
+        },
+        {
+          "id": "eip-04-l2-q04",
+          "type": "code_output",
+          "prompt": "What does this code output?\n\n```java\nwrite(\"sum: \" + (2 + 3));\n```",
+          "options": [
+            {
+              "id": "a",
+              "text": "`sum: 23`"
+            },
+            {
+              "id": "b",
+              "text": "`sum: `"
+            },
+            {
+              "id": "c",
+              "text": "`5sum: `"
+            },
+            {
+              "id": "d",
+              "text": "`sum: 5`"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "The parentheses force the numeric addition `2 + 3 = 5` to happen first. Only then is the result concatenated with the string.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO4.md",
+            "heading": "3. Strings"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "String concatenation"
+          ]
+        },
+        {
+          "id": "eip-04-l2-q05",
+          "type": "code_output",
+          "prompt": "What does this code output?\n\n```java\nint[] a = new int[3];\na[1] = 7;\nwrite(a[1]);\n```",
+          "options": [
+            {
+              "id": "a",
+              "text": "`1`"
+            },
+            {
+              "id": "b",
+              "text": "`3`"
+            },
+            {
+              "id": "c",
+              "text": "`7`"
+            },
+            {
+              "id": "d",
+              "text": "`0`"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Initially, the array contains 0 at every index. The assignment changes `a[1]` to 7, and that is the element that is output.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO4.md",
+            "heading": "4. Arrays"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Arrays and indices"
+          ]
+        },
+        {
+          "id": "eip-04-l2-q06",
+          "type": "code_output",
+          "prompt": "What happens when this code runs?\n\n```java\nint[] a = new int[3];\nwrite(a[3]);\n```",
+          "options": [
+            {
+              "id": "a",
+              "text": "An `ArrayIndexOutOfBoundsException` is thrown."
+            },
+            {
+              "id": "b",
+              "text": "`0` is output."
+            },
+            {
+              "id": "c",
+              "text": "`3` is output."
+            },
+            {
+              "id": "d",
+              "text": "The array is extended automatically."
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "For a length of 3, only indices 0, 1, and 2 are valid. The runtime check detects `a[3]` as invalid.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO4.md",
+            "heading": "4. Arrays"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Arrays and indices"
+          ]
+        },
+        {
+          "id": "eip-04-l2-q07",
+          "type": "code_output",
+          "prompt": "What does this code output?\n\n```java\nint[] a = new int[3];\nint[] b = a;\nb[1] = 7;\nwrite(a[1]);\n```",
+          "options": [
+            {
+              "id": "a",
+              "text": "`0`"
+            },
+            {
+              "id": "b",
+              "text": "`1`"
+            },
+            {
+              "id": "c",
+              "text": "`3`"
+            },
+            {
+              "id": "d",
+              "text": "`7`"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "`b = a` copies only the reference. Both variables point to the same array, so the change made through `b` is also visible through `a`.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO4.md",
+            "heading": "Referenzen ⚠"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Array references"
+          ]
+        },
+        {
+          "id": "eip-04-l2-q08",
+          "type": "code_output",
+          "prompt": "What does this code output?\n\n```java\nint[][] grid = new int[3][4];\ngrid[1][2] = 7;\nwrite(grid[1][2]);\n```",
+          "options": [
+            {
+              "id": "a",
+              "text": "`7`"
+            },
+            {
+              "id": "b",
+              "text": "`2`"
+            },
+            {
+              "id": "c",
+              "text": "`4`"
+            },
+            {
+              "id": "d",
+              "text": "`1`"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "`grid[1][2]` refers to row 1 and column 2 within that row. The value 7 is stored there and then read.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO4.md",
+            "heading": "2D-Arrays = Array von Arrays"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Two-dimensional arrays"
+          ]
+        },
+        {
+          "id": "eip-04-l2-q09",
+          "type": "code_output",
+          "prompt": "Which values are output, and in what order?\n\n```java\nint[] a = new int[3];\na[0] = 4;\na[1] = 1;\na[2] = 6;\nfor (int i = 0; i < a.length; ++i) write(a[i]);\n```",
+          "options": [
+            {
+              "id": "a",
+              "text": "`4, 1, 6`"
+            },
+            {
+              "id": "b",
+              "text": "`1, 4, 6`"
+            },
+            {
+              "id": "c",
+              "text": "`6, 1, 4`"
+            },
+            {
+              "id": "d",
+              "text": "`4, 1`"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "`i` takes the values 0, 1, and 2. The elements are therefore accessed in array order: 4, then 1, then 6.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO4.md",
+            "heading": "5. For-Schleife"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "For-loop",
+            "Arrays and indices"
+          ]
+        },
+        {
+          "id": "eip-04-l2-q10-r1",
+          "type": "cloze",
+          "prompt": "An array `a` of length 4 is read from left to right using the loop shown. Before each test of `i < a.length`, the first ___ elements have already been read.",
+          "context": {
+            "type": "code",
+            "content": "int[] a = new int[4];\nint i = 0;\nwhile (i < a.length) {\n    a[i] = readInt();\n    i = i + 1;\n}",
+            "language": "java",
+            "caption": "Each call to `readInt()` returns an integer. The loop reads the array starting at index 0."
+          },
+          "options": [
+            {
+              "id": "a",
+              "text": "a.length + i"
+            },
+            {
+              "id": "b",
+              "text": "a.length - i"
+            },
+            {
+              "id": "c",
+              "text": "i - 1"
+            },
+            {
+              "id": "d",
+              "text": "i"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "The loop starts with `i = 0`. Before each test, the positions from 0 through `i - 1` have been read, which is exactly `i` elements. After each read, `i` is incremented by 1.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO4.md",
+            "heading": "Array einlesen"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Reading an array",
+            "Loop invariant",
+            "Indices"
+          ]
+        },
+        {
+          "id": "eip-04-l2-q11",
+          "type": "single",
+          "prompt": "Which for loop visits every element of `a` exactly once?",
+          "options": [
+            {
+              "id": "a",
+              "text": "`for (int i = 0; i <= a.length; ++i) write(a[i]);`"
+            },
+            {
+              "id": "b",
+              "text": "`for (int i = 1; i < a.length; ++i) write(a[i]);`"
+            },
+            {
+              "id": "c",
+              "text": "`for (int i = a.length - 1; i > 0; --i) write(a[i]);`"
+            },
+            {
+              "id": "d",
+              "text": "`for (int i = 0; i < a.length; ++i) write(a[i]);`"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "The indices 0 through `a.length - 1` are exactly the valid array positions. Option b skips 0, c accesses `a[a.length]` at the end, and d omits index 0.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO4.md",
+            "heading": "5. For-Schleife"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "For-loop",
+            "Arrays and indices"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "eip-04-l3",
+      "index": 3,
+      "kind": "deepen",
+      "title": "Explore Further",
+      "questions": [
+        {
+          "id": "eip-04-l3-q01",
+          "type": "multi",
+          "prompt": "Select all correct statements about reducibility. More than one answer may be correct.",
+          "options": [
+            {
+              "id": "a",
+              "text": "Every CFG can always be translated into a structured program."
+            },
+            {
+              "id": "b",
+              "text": "Every MiniJava program has a CFG."
+            },
+            {
+              "id": "c",
+              "text": "A reducible loop has exactly one entry point."
+            },
+            {
+              "id": "d",
+              "text": "Conversion into a structured program is possible if and only if the CFG is reducible."
+            },
+            {
+              "id": "e",
+              "text": "A jump into the middle of a loop is compatible with reducibility."
+            }
+          ],
+          "correct": [
+            "b",
+            "c",
+            "d"
+          ],
+          "explanation": "Every MiniJava program has a CFG. The converse holds only for reducible graphs; multiple entry points or jumps into the middle violate this condition.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO4.md",
+            "heading": "Reduzierbarkeit"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Reducibility",
+            "Control-flow graph (CFG)"
+          ]
+        },
+        {
+          "id": "eip-04-l3-q02",
+          "type": "single",
+          "prompt": "Why is the edge after the body different for an `if` and a `while`?",
+          "options": [
+            {
+              "id": "a",
+              "text": "For an `if`, it always goes to Start; for a `while`, it goes to Stop."
+            },
+            {
+              "id": "b",
+              "text": "An `if` has no condition, while a `while` has two."
+            },
+            {
+              "id": "c",
+              "text": "For an `if`, it goes to the next statement; for a `while`, it goes back to the condition."
+            },
+            {
+              "id": "d",
+              "text": "For an `if`, it goes back to the body; for a `while`, it goes to the next statement."
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Both constructs have a test and a branch. Only the edge after the body differs: it determines whether there is a one-time choice or a repeated test.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO4.md",
+            "heading": "vs."
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Control-flow graph (CFG)"
+          ]
+        },
+        {
+          "id": "eip-04-l3-q03",
+          "type": "truefalse",
+          "prompt": "A CFG path alone completely determines the execution, even if the variable values at a branch node are unknown.",
+          "options": [
+            {
+              "id": "true",
+              "text": "True"
+            },
+            {
+              "id": "false",
+              "text": "False"
+            }
+          ],
+          "correct": [
+            "false"
+          ],
+          "explanation": "At a branch node, the current variable state determines which edge is taken. That is why the state carried along is part of the operational semantics.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO4.md",
+            "heading": "1. Control-Flow Graphs (CFG)"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Path and operational semantics"
+          ]
+        },
+        {
+          "id": "eip-04-l3-q04",
+          "type": "code_output",
+          "prompt": "What output is produced?\n\n```java\nint[] a = new int[4];\nfor (int i = 0; i < a.length; ++i) {\n    a[i] = i + 2;\n}\nwrite(a[3]);\n```",
+          "options": [
+            {
+              "id": "a",
+              "text": "`2`"
+            },
+            {
+              "id": "b",
+              "text": "`3`"
+            },
+            {
+              "id": "c",
+              "text": "`4`"
+            },
+            {
+              "id": "d",
+              "text": "`5`"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "The loop sets the values to 2, 3, 4, and 5 at indices 0 through 3. Therefore, `a[3]` is 5.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO4.md",
+            "heading": "5. For-Schleife"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "For-loop",
+            "Arrays and indices"
+          ]
+        },
+        {
+          "id": "eip-04-l3-q05",
+          "type": "single",
+          "prompt": "Which while loop is equivalent to the following for loop?\n\n```java\nfor (int i = 0; i < a.length; ++i) write(a[i]);\n```",
+          "options": [
+            {
+              "id": "a",
+              "text": "`{ int i = 0; while (i <= a.length) { write(a[i]); i = i + 1; } }`"
+            },
+            {
+              "id": "b",
+              "text": "`{ int i = 1; while (i <= a.length) { write(a[i]); i = i + 1; } }`"
+            },
+            {
+              "id": "c",
+              "text": "`{ int i = 0; while (i < a.length) { write(a[i]); i = i + 1; } }`"
+            },
+            {
+              "id": "d",
+              "text": "`{ int i = 0; while (i < a.length) { i = i + 1; write(a[i]); } }`"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "The initialization comes before the loop, the body comes before the update, and then the next test takes place. The other options move the update or use an incorrect bound.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO4.md",
+            "heading": "5. For-Schleife"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "For-loop"
+          ]
+        },
+        {
+          "id": "eip-04-l3-q06",
+          "type": "multi",
+          "prompt": "Select all correct statements about creating arrays. More than one answer may be correct.",
+          "options": [
+            {
+              "id": "a",
+              "text": "The elements of a new `int` array are initially 0."
+            },
+            {
+              "id": "b",
+              "text": "A new `int` array is initially filled with 1."
+            },
+            {
+              "id": "c",
+              "text": "If the variable holding the length changes later, the array grows with it."
+            },
+            {
+              "id": "d",
+              "text": "`new int[3]` creates an array of length 3."
+            },
+            {
+              "id": "e",
+              "text": "An array's length remains fixed after creation."
+            }
+          ],
+          "correct": [
+            "a",
+            "d",
+            "e"
+          ],
+          "explanation": "The length can be determined at runtime, but is immutable afterward. New `int` elements start at 0.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO4.md",
+            "heading": "4. Arrays"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Arrays and indices"
+          ]
+        },
+        {
+          "id": "eip-04-l3-q07",
+          "type": "code_output",
+          "prompt": "What does this code output?\n\n```java\nString s = \"ab\";\nwrite(s.equals(\"ab\"));\n```",
+          "options": [
+            {
+              "id": "a",
+              "text": "`true`"
+            },
+            {
+              "id": "b",
+              "text": "`ab`"
+            },
+            {
+              "id": "c",
+              "text": "An array error"
+            },
+            {
+              "id": "d",
+              "text": "`false`"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "`equals` compares contents. Both strings contain the same characters, so the result is `true`.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO4.md",
+            "heading": "3. Strings"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "String comparison with equals"
+          ]
+        },
+        {
+          "id": "eip-04-l3-q08",
+          "type": "code_output",
+          "prompt": "What output is produced?\n\n```java\nint[] a = new int[3];\nfor (int i = 0; i < a.length; ++i) a[i] = i;\nint result = a[0];\nfor (int i = 1; i < a.length; ++i)\n    if (a[i] < result) result = a[i];\nwrite(result);\n```",
+          "options": [
+            {
+              "id": "a",
+              "text": "`3`"
+            },
+            {
+              "id": "b",
+              "text": "`0`"
+            },
+            {
+              "id": "c",
+              "text": "`1`"
+            },
+            {
+              "id": "d",
+              "text": "`2`"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "The array contains 0, 1, and 2. The minimum-finding loop starts with `a[0]` and finds no smaller value, so `result` remains 0.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO4.md",
+            "heading": "Minimum (Voraussetzung               )"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Loop invariant",
+            "Arrays and indices"
+          ]
+        },
+        {
+          "id": "eip-04-l3-q09",
+          "type": "multi",
+          "prompt": "Select all correct statements about references. More than one answer may be correct.",
+          "options": [
+            {
+              "id": "a",
+              "text": "`b = a` automatically creates a second array of the same size."
+            },
+            {
+              "id": "b",
+              "text": "The variable directly stores all the array elements instead of a reference."
+            },
+            {
+              "id": "c",
+              "text": "`int[] b = a` copies the reference."
+            },
+            {
+              "id": "d",
+              "text": "After `b = a`, `a` and `b` point to the same array."
+            },
+            {
+              "id": "e",
+              "text": "A change made through `b` may be visible through `a`."
+            }
+          ],
+          "correct": [
+            "c",
+            "d",
+            "e"
+          ],
+          "explanation": "The assignment copies only the reference. Therefore, both variables share the same array; no new array is created.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO4.md",
+            "heading": "Referenzen ⚠"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Array references"
+          ]
+        },
+        {
+          "id": "eip-04-l3-q10",
+          "type": "single",
+          "prompt": "Which statement about a two-dimensional array follows from `int[][] grid = new int[3][4]`?",
+          "options": [
+            {
+              "id": "a",
+              "text": "There are 3 rows with 4 columns each."
+            },
+            {
+              "id": "b",
+              "text": "Every row must retain the same length as every other row."
+            },
+            {
+              "id": "c",
+              "text": "`grid[1]` is a single `int`."
+            },
+            {
+              "id": "d",
+              "text": "There are 4 rows with 3 columns each."
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "The outer length 3 represents the rows, and the inner length 4 represents the columns. `grid[1]` is itself a row, and therefore an array.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO4.md",
+            "heading": "2D-Arrays = Array von Arrays"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Two-dimensional arrays"
+          ]
+        },
+        {
+          "id": "eip-04-l3-q11",
+          "type": "diagram",
+          "prompt": "Which edge in the diagram shows a loop's return edge?\n\n```mermaid\nflowchart TD\n    I[\"init\"] --> C{\"cond\"}\n    C -- yes --> B[\"body\"] --> U[\"update\"] --> C\n    C -- no --> N[\"next statement\"]\n```",
+          "options": [
+            {
+              "id": "a",
+              "text": "`B --> U`"
+            },
+            {
+              "id": "b",
+              "text": "`C -- yes --> B`"
+            },
+            {
+              "id": "c",
+              "text": "`I --> C`"
+            },
+            {
+              "id": "d",
+              "text": "`U --> C`"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "After the body, the update step leads back to the condition test. This allows the loop to run again.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO4.md",
+            "heading": "5. For-Schleife"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "For-loop",
+            "Control-flow graph (CFG)"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "eip-04-l4",
+      "index": 4,
+      "kind": "boss",
+      "title": "Boss",
+      "questions": [
+        {
+          "id": "eip-04-l4-q01",
+          "type": "code_output",
+          "prompt": "An array contains `30` and `20`. What output does the following code produce?\n\n```java\nint[] a = new int[2];\na[0] = 30;\na[1] = 20;\nint x = a[0], y = a[1];\nwhile (x != y)\n    if (x < y) y = y - x;\n    else x = x - y;\nwrite(x);\n```",
+          "options": [
+            {
+              "id": "a",
+              "text": "`10`"
+            },
+            {
+              "id": "b",
+              "text": "`30`"
+            },
+            {
+              "id": "c",
+              "text": "`20`"
+            },
+            {
+              "id": "d",
+              "text": "`0`"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "The execution first gives `x = 10`, then `y = 10`. The loop then ends, and `x = 10` is output.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO2.md",
+            "heading": null
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Euclidean algorithm",
+            "Control-flow graph (CFG)"
+          ]
+        },
+        {
+          "id": "eip-04-l4-q02-r1",
+          "type": "multi",
+          "prompt": "An array `a` of length 3 is read using the loop shown. Each call to `readInt()` returns an integer. Select all statements that apply to this loop.",
+          "context": {
+            "type": "code",
+            "content": "int[] a = new int[3];\nint i = 0;\nwhile (i < a.length) {\n    a[i] = readInt();\n    i = i + 1;\n}",
+            "language": "java",
+            "caption": "The array length is 3. Each call to `readInt()` returns an integer."
+          },
+          "options": [
+            {
+              "id": "a",
+              "text": "The loop reads the same elements again indefinitely."
+            },
+            {
+              "id": "b",
+              "text": "Before each test of the loop condition, exactly `i` elements have been read."
+            },
+            {
+              "id": "c",
+              "text": "The procedure starts with `i = 1` so that index 0 is skipped."
+            },
+            {
+              "id": "d",
+              "text": "Each loop iteration reads one element and increments `i` by 1."
+            },
+            {
+              "id": "e",
+              "text": "The condition `i < a.length` prevents the loop from reading `a[a.length]`."
+            }
+          ],
+          "correct": [
+            "b",
+            "d",
+            "e"
+          ],
+          "explanation": "`i` starts at 0 and increases by 1 after each element is read. Thus, every valid index is read once. When `i == a.length`, the condition is false and the loop body no longer executes. Before each test, exactly `i` elements have been read.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO4.md",
+            "heading": "Array einlesen"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Reading an array",
+            "Loop invariant",
+            "Loop condition"
+          ]
+        },
+        {
+          "id": "eip-04-l4-q03",
+          "type": "single",
+          "prompt": "Which transformation preserves the order of execution of the following for loop?\n\n```java\nfor (int i = 1; i < a.length; ++i)\n    if (a[i] < result) result = a[i];\n```",
+          "options": [
+            {
+              "id": "a",
+              "text": "`int i = 0; while (i <= a.length) { if (a[i] < result) result = a[i]; i = i + 1; }`"
+            },
+            {
+              "id": "b",
+              "text": "`int i = 1; while (i <= a.length) { if (a[i] < result) result = a[i]; i = i + 1; }`"
+            },
+            {
+              "id": "c",
+              "text": "`int i = 1; while (i < a.length) { i = i + 1; if (a[i] < result) result = a[i]; }`"
+            },
+            {
+              "id": "d",
+              "text": "`int i = 1; while (i < a.length) { if (a[i] < result) result = a[i]; i = i + 1; }`"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "The for loop starts at 1, tests `i < a.length` before the body, and increments only after the body. Option a does exactly that.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO4.md",
+            "heading": "5. For-Schleife"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "For-loop",
+            "Loop invariant"
+          ]
+        },
+        {
+          "id": "eip-04-l4-q04-r1",
+          "type": "code_output",
+          "prompt": "Which two values does the code output? `write(wert)` outputs the value on its own line. For `+`, as soon as one operand is a string, the other operand is converted to text; evaluation proceeds from left to right.",
+          "context": {
+            "type": "code",
+            "content": "String s = \"x\";\nwrite(s + 1 + 2);\nwrite(s + (1 + 2));",
+            "language": "java",
+            "caption": "The code makes two calls to `write`."
+          },
+          "options": [
+            {
+              "id": "a",
+              "text": "`x3` twice"
+            },
+            {
+              "id": "b",
+              "text": "`x12` twice"
+            },
+            {
+              "id": "c",
+              "text": "First `x12`, then `x3`"
+            },
+            {
+              "id": "d",
+              "text": "First `x3`, then `x12`"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "In the first expression, concatenation proceeds from left to right: `s + 1` gives `x1`, then `x1 + 2` gives the text `x12`. In the second line, the parentheses are evaluated first: `1 + 2` gives 3, so `x3` is output.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO4.md",
+            "heading": "3. Strings"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "String concatenation",
+            "Evaluation order",
+            "Parentheses"
+          ]
+        },
+        {
+          "id": "eip-04-l4-q05-r1",
+          "type": "single",
+          "prompt": "The following minimum-finding algorithm first sets `result` to `a[0]` and starts the loop at `i = 1`. The array has at least one element. What role does this initialization play in the algorithm?",
+          "context": {
+            "type": "code",
+            "content": "int[] a = {7, 2, 5};\nint result = a[0];\nfor (int i = 1; i < a.length; ++i)\n    if (a[i] < result) result = a[i];\nwrite(result);",
+            "language": "java",
+            "caption": "The algorithm outputs the minimum of the nonempty array."
+          },
+          "options": [
+            {
+              "id": "a",
+              "text": "Before the first loop test, it provides a value that is the minimum of the elements considered so far."
+            },
+            {
+              "id": "b",
+              "text": "It ensures that index 0 is deliberately never considered."
+            },
+            {
+              "id": "c",
+              "text": "It ensures that the loop starts at `i = 0` and reads `a[-1]`."
+            },
+            {
+              "id": "d",
+              "text": "It ensures that the array length remains variable."
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "Before the first loop test, only `a[0]` has been considered. With `result = a[0]`, `result` is already the minimum of the range considered so far. The loop then checks the elements starting at index 1.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO4.md",
+            "heading": "Minimum (Voraussetzung               )"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Minimum in an array",
+            "Loop invariant",
+            "Array indices"
+          ]
+        },
+        {
+          "id": "eip-04-l4-q06",
+          "type": "diagram",
+          "prompt": "Which property distinguishes the two subgraphs?\n\n```mermaid\nflowchart LR\n    subgraph reduzierbar\n    S1([Start]) --> L1((loop)) --> X1(( )) --> L1\n    X1 --> E1([Stop])\n    end\n    subgraph nicht_reduzierbar\n    S2([Start]) --> L2((loop)) --> X2(( )) --> L2\n    S2 --> X2\n    X2 --> E2([Stop])\n    end\n```",
+          "options": [
+            {
+              "id": "a",
+              "text": "The loop on the left has two independent entry points."
+            },
+            {
+              "id": "b",
+              "text": "The loop on the right has no Stop node."
+            },
+            {
+              "id": "c",
+              "text": "The loop on the right has an additional entry into its middle."
+            },
+            {
+              "id": "d",
+              "text": "The loop on the left has no return edge at all."
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "In the non-reducible subgraph, in addition to the edge from `L2`, there is a path directly from `S2` to `X2`. The loop therefore has more than one entry point.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO4.md",
+            "heading": "Reduzierbarkeit"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Reducibility",
+            "Control-flow graph (CFG)"
+          ]
+        },
+        {
+          "id": "eip-04-l4-q07",
+          "type": "code_output",
+          "prompt": "What output is produced?\n\n```java\nint[][] grid = new int[2][3];\ngrid[0][1] = 4;\ngrid[1] = new int[1];\nwrite(grid[0][1]);\nwrite(grid[1].length);\n```",
+          "options": [
+            {
+              "id": "a",
+              "text": "An exception when assigning to `grid[1]`"
+            },
+            {
+              "id": "b",
+              "text": "`0` and then `1`"
+            },
+            {
+              "id": "c",
+              "text": "`4` and then `1`"
+            },
+            {
+              "id": "d",
+              "text": "`4` and then `3`"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "`grid[0]` remains the original row with value 4 at index 1. `grid[1]` can be made to refer to a new row, which then has length 1.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO4.md",
+            "heading": "2D-Arrays = Array von Arrays"
+          },
+          "difficulty": 5,
+          "concepts": [
+            "Two-dimensional arrays",
+            "Array references"
+          ]
+        },
+        {
+          "id": "eip-04-l4-q08",
+          "type": "code_output",
+          "prompt": "What output is produced if the array in the code is filled with the values 5, 2, and 7?\n\n```java\nint[] a = new int[3];\na[0] = 5;\na[1] = 2;\na[2] = 7;\nint result = a[0];\nfor (int i = 1; i < a.length; ++i)\n    if (a[i] < result) result = a[i];\nwrite(result);\n```",
+          "options": [
+            {
+              "id": "a",
+              "text": "`5`"
+            },
+            {
+              "id": "b",
+              "text": "`2`"
+            },
+            {
+              "id": "c",
+              "text": "`7`"
+            },
+            {
+              "id": "d",
+              "text": "`0`"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "`result` starts at 5, is replaced when compared with 2, and remains unchanged when compared with 7. The minimum is therefore 2.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO4.md",
+            "heading": "Minimum (Voraussetzung               )"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Loop invariant",
+            "For-loop"
+          ]
+        },
+        {
+          "id": "eip-04-l4-q09",
+          "type": "multi",
+          "prompt": "Select all correct statements about for loops and their execution order. More than one answer may be correct.",
+          "options": [
+            {
+              "id": "a",
+              "text": "The execution order is still init, test, body, update, next test."
+            },
+            {
+              "id": "b",
+              "text": "Transforming a for loop into a while loop can make the structure of the individual steps visible."
+            },
+            {
+              "id": "c",
+              "text": "The body runs even if the first test evaluates to false."
+            },
+            {
+              "id": "d",
+              "text": "In the source code, `init`, `cond`, and `upd` are grouped together inside the for-loop parentheses."
+            },
+            {
+              "id": "e",
+              "text": "The update expression runs before the first test."
+            }
+          ],
+          "correct": [
+            "a",
+            "b",
+            "d"
+          ],
+          "explanation": "The for syntax groups the three parts, but semantically the first test comes before the body and update. If it is false, the body is skipped; the while-loop transformation makes this order explicit.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO4.md",
+            "heading": "5. For-Schleife"
+          },
+          "difficulty": 5,
+          "concepts": [
+            "For-loop",
+            "Syntax and semantics"
+          ]
+        },
+        {
+          "id": "eip-04-l4-q10",
+          "type": "single",
+          "prompt": "A single pass through an array with $n$ elements checks each element exactly once. Which runtime class applies?",
+          "options": [
+            {
+              "id": "a",
+              "text": "$\\Theta(2^n)$"
+            },
+            {
+              "id": "b",
+              "text": "$\\Theta(n^2)$"
+            },
+            {
+              "id": "c",
+              "text": "$\\Theta(n)$"
+            },
+            {
+              "id": "d",
+              "text": "$\\Theta(1)$"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "The number of checks grows in proportion to the number of elements. This corresponds to $\\Theta(n)$, as in a single pass through a sorted list.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO1.md",
+            "heading": null
+          },
+          "difficulty": 5,
+          "concepts": [
+            "Runtime",
+            "For-loop",
+            "Arrays and indices"
+          ]
+        },
+        {
+          "id": "eip-04-l4-q11",
+          "type": "code_output",
+          "prompt": "Which condition terminates this process for positive inputs, and why?\n\n```java\nint x = readInt(), y = readInt();\nwhile (x != y)\n    if (x < y) y = y - x;\n    else x = x - y;\nwrite(x);\n```",
+          "options": [
+            {
+              "id": "a",
+              "text": "`x < y`; it outputs immediately afterward every time."
+            },
+            {
+              "id": "b",
+              "text": "`x == 0`; the variables are subtracted down to 0."
+            },
+            {
+              "id": "c",
+              "text": "`x > y`; this test terminates the loop."
+            },
+            {
+              "id": "d",
+              "text": "`x == y`; for positive values, the subtractions eventually lead to this."
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "The loop test is `x != y`, so the loop ends when the values are equal. With positive inputs, the values remain positive, and the Euclidean algorithm eventually reaches the case `x = y`.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO2.md",
+            "heading": null
+          },
+          "difficulty": 5,
+          "concepts": [
+            "Euclidean algorithm",
+            "Control-flow graph (CFG)",
+            "Path and operational semantics"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "eip-04-l5",
+      "index": 5,
+      "kind": "bonus",
+      "title": "Practice: Code Meets Everyday Life",
+      "questions": [
+        {
+          "id": "eip-04-l5-q01",
+          "type": "single",
+          "prompt": "Your navigation app calculates a route. The program has a branch depending on the GPS signal and repeats while the destination has not been reached. Which representation models the control flow so that possible executions can be described as paths?",
+          "options": [
+            {
+              "id": "a",
+              "text": "A two-dimensional array for map tiles"
+            },
+            {
+              "id": "b",
+              "text": "A control-flow graph (CFG)"
+            },
+            {
+              "id": "c",
+              "text": "An array reference"
+            },
+            {
+              "id": "d",
+              "text": "String concatenation"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "A CFG models a program's control flow using nodes and edges. Each possible execution corresponds to a path through the graph.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO4.md",
+            "heading": "1. Control-Flow Graphs (CFG)"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Control-flow graph (CFG)",
+            "Path and operational semantics"
+          ]
+        },
+        {
+          "id": "eip-04-l5-q02",
+          "type": "single",
+          "prompt": "In a ticketing app, you build the display `\"Platz: \" + platznummer`. Which concept are you using?",
+          "options": [
+            {
+              "id": "a",
+              "text": "String comparison with equals"
+            },
+            {
+              "id": "b",
+              "text": "String concatenation"
+            },
+            {
+              "id": "c",
+              "text": "A for loop"
+            },
+            {
+              "id": "d",
+              "text": "An array index"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "The `+` operator concatenates a string with the value of `platznummer`. If one operand is a string, the other value is represented as text for the concatenation.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO4.md",
+            "heading": "3. Strings"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "String concatenation",
+            "Syntax and semantics"
+          ]
+        },
+        {
+          "id": "eip-04-l5-q03",
+          "type": "estimate",
+          "prompt": "You create `int[] werte = new int[37]`. How many distinct index values are valid?",
+          "options": [],
+          "correct": [],
+          "slider": {
+            "min": 10,
+            "max": 80,
+            "step": 1,
+            "answer": 37,
+            "tolerance": 0,
+            "unit": "Indices",
+            "scale": "linear"
+          },
+          "explanation": "For a length $n$, the valid indices range from $0$ to $n-1$. For $n=37$, that is $0$ through $36$, or $37$ indices in total.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO4.md",
+            "heading": "4. Arrays"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Arrays and indices"
+          ]
+        },
+        {
+          "id": "eip-04-l5-q04",
+          "type": "single",
+          "prompt": "A messaging app should respond only when the entered text exactly matches `\"STOP\"`. Which Java check is semantically correct?",
+          "options": [
+            {
+              "id": "a",
+              "text": "`eingabe == \"STOP\"`"
+            },
+            {
+              "id": "b",
+              "text": "`\"STOP\".equals(eingabe)`"
+            },
+            {
+              "id": "c",
+              "text": "`eingabe.startsWith(\"S\")`"
+            },
+            {
+              "id": "d",
+              "text": "`eingabe.length() == 4`"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "`equals` compares string contents; calling it on the constant string is also safe if `eingabe` has the value `null`. `==` compares references; length or prefix alone is not enough for exact equality.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO4.md",
+            "heading": "3. Strings"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "String comparison with equals",
+            "Syntax and semantics"
+          ]
+        },
+        {
+          "id": "eip-04-l5-q05",
+          "type": "single",
+          "prompt": "A Sudoku app stores a board with 9 rows and 9 columns and should access cells directly using `feld[zeile][spalte]`. Which concept fits?",
+          "options": [
+            {
+              "id": "a",
+              "text": "`int feld` as a single number"
+            },
+            {
+              "id": "b",
+              "text": "`int[] feld` with two indices"
+            },
+            {
+              "id": "c",
+              "text": "`String feld` without conversion"
+            },
+            {
+              "id": "d",
+              "text": "`int[][] feld = new int[9][9]`"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "A two-dimensional array is an array of arrays: `feld[zeile]` selects a row, and `[spalte]` selects an element within it. This lets you address each Sudoku cell directly.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO4.md",
+            "heading": "2D-Arrays = Array von Arrays"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Two-dimensional arrays",
+            "Arrays and indices"
+          ]
+        },
+        {
+          "id": "eip-04-l5-q06",
+          "type": "estimate",
+          "prompt": "You observe the loop body: `for (int i = 3; i < 100; i += 7) { ... }`. How many times does it run?",
+          "options": [],
+          "correct": [],
+          "slider": {
+            "min": 4,
+            "max": 30,
+            "step": 1,
+            "answer": 14,
+            "tolerance": 0,
+            "unit": "Iterations",
+            "scale": "linear"
+          },
+          "explanation": "The values of `i` are $3,10,17,\\ldots,94$—these are $14$ values. The update runs after each body and before the next condition test.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO4.md",
+            "heading": "5. For-Schleife"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "For-loop",
+            "Runtime"
+          ]
+        },
+        {
+          "id": "eip-04-l5-q07",
+          "type": "single",
+          "prompt": "In an image editor, you write `int[] original = new int[3]; int[] preview = original;`. Then you change `preview[1]`, and `original[1]` changes too. What explains this?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Both variables store a reference to the same array."
+            },
+            {
+              "id": "b",
+              "text": "Java automatically creates a deep copy on every assignment."
+            },
+            {
+              "id": "c",
+              "text": "String comparison with `equals` links the arrays."
+            },
+            {
+              "id": "d",
+              "text": "Local variables are automatically initialized when read."
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "An array variable contains a reference. `preview = original` does not create a new array, so both variables refer to the same object and see the same change.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO4.md",
+            "heading": "Referenzen ⚠"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Array references",
+            "Arrays and indices"
+          ]
+        },
+        {
+          "id": "eip-04-l5-q08",
+          "type": "estimate",
+          "prompt": "A scheduling app stores five weekdays as rows containing $3$, $7$, $4$, $0$, and $6$ entries, respectively. How many values are there in total in the two-dimensional array?",
+          "options": [],
+          "correct": [],
+          "slider": {
+            "min": 5,
+            "max": 40,
+            "step": 1,
+            "answer": 20,
+            "tolerance": 0,
+            "unit": "Values",
+            "scale": "linear"
+          },
+          "explanation": "Add the row lengths: $3+7+4+0+6=20$. A two-dimensional array is an array of arrays, so its rows may have different lengths—a length of $0$ is also possible.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO4.md",
+            "heading": "2D-Arrays = Array von Arrays"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Two-dimensional arrays",
+            "Arrays and indices"
+          ]
+        },
+        {
+          "id": "eip-04-l5-q09",
+          "type": "truefalse",
+          "prompt": "Is this correct: The compiler can reject `int tickets; System.out.println(tickets);` even though `tickets` might later contain `0`, because local variables have no default value.",
+          "options": [
+            {
+              "id": "true",
+              "text": "True"
+            },
+            {
+              "id": "false",
+              "text": "False"
+            }
+          ],
+          "correct": [
+            "true"
+          ],
+          "explanation": "Local variables are not initialized automatically. Java therefore requires an assignment before the variable is first read.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO4.md",
+            "heading": "2. Variablen: Deklaration & Initialisierung"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Variable declaration and initialization",
+            "Syntax and semantics"
+          ]
+        },
+        {
+          "id": "eip-04-l5-q10",
+          "type": "multi",
+          "prompt": "You want to pave a rectangular garden measuring $84\\,m \\times 60\\,m$ with the largest possible square slabs and no waste. Which cases typically use the same core of the Euclidean algorithm?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Reducing a fraction using the greatest common divisor of its numerator and denominator."
+            },
+            {
+              "id": "b",
+              "text": "Checking whether two chat messages have the same content."
+            },
+            {
+              "id": "c",
+              "text": "Finding the largest possible square slab size for the rectangle."
+            },
+            {
+              "id": "d",
+              "text": "Storing a table with rows of different lengths."
+            }
+          ],
+          "correct": [
+            "a",
+            "c"
+          ],
+          "explanation": "The Euclidean algorithm computes the greatest common divisor, for example to find the square slab size or to reduce a fraction. String contents are compared with `equals`, while rows of different lengths are a property of two-dimensional arrays.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO4.md",
+            "heading": "Beispiel: Euklid (Subtraktion)"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Euclidean algorithm",
+            "Runtime"
+          ]
+        }
+      ]
+    }
+  ]
+}

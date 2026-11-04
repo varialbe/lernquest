@@ -1,3 +1,6 @@
+import { usePageT } from '../i18n/pages.ts';
+import { translateGameText } from '../i18n/catalog.ts';
+import { useLocale } from '../i18n/index.tsx';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { AnimatePresence, motion, useMotionValue, useTransform, type PanInfo } from 'motion/react';
 import { useEffect, useMemo, useState } from 'react';
@@ -22,6 +25,8 @@ const BOX_LABEL = ['Neu', 'Box 1', 'Box 2', 'Box 3', 'Box 4', 'Box 5', 'Gemeiste
 
 /** Eine Karte: vorne Begriff, hinten Kurzfassung + Erklärung. Nach dem Umdrehen wischen: rechts = gewusst, links = nochmal. */
 function FlashCard({ card, color, flipped, onFlip, onAnswer }: { card: Card; color: string; flipped: boolean; onFlip: () => void; onAnswer: (known: boolean) => void }) {
+  const t = usePageT();
+  const { locale } = useLocale();
   const x = useMotionValue(0);
   const rotate = useTransform(x, [-200, 200], [-10, 10]);
   const knownOpacity = useTransform(x, [30, 120], [0, 1]);
@@ -48,21 +53,21 @@ function FlashCard({ card, color, flipped, onFlip, onAnswer }: { card: Card; col
       <div
         role="button"
         tabIndex={0}
-        aria-label={flipped ? 'Karte' : 'Karte umdrehen'}
+        aria-label={flipped ? t("Karte") : t("Karte umdrehen")}
         onClick={() => !flipped && onFlip()}
         onKeyDown={(ev) => (ev.key === ' ' || ev.key === 'Enter') && !flipped && onFlip()}
         className={`relative min-h-[22rem] overflow-hidden rounded-3xl border-2 bg-surface p-5 shadow-card ${flipped ? '' : 'cursor-pointer active:scale-[0.99]'} transition-transform`}
         style={{ borderColor: color }}
       >
         <motion.span style={{ opacity: knownOpacity }} className="pointer-events-none absolute right-4 top-4 rotate-6 rounded-xl border-2 border-success px-2 py-0.5 text-sm font-black uppercase text-success">
-          Gewusst
+          {t("Gewusst")}
         </motion.span>
         <motion.span style={{ opacity: againOpacity }} className="pointer-events-none absolute left-4 top-4 -rotate-6 rounded-xl border-2 border-error px-2 py-0.5 text-sm font-black uppercase text-error">
-          Nochmal
+          {t("Nochmal")}
         </motion.span>
         <div className="flex flex-wrap items-center gap-1.5">
-          <Pill className="bg-surface-2 text-muted">{KNOWLEDGE_KIND_LABEL[e.kind]}</Pill>
-          <Pill className="bg-surface-2 text-muted">{BOX_LABEL[card.box ?? 0]}</Pill>
+          <Pill className="bg-surface-2 text-muted">{translateGameText(KNOWLEDGE_KIND_LABEL[e.kind], locale)}</Pill>
+          <Pill className="bg-surface-2 text-muted">{translateGameText(BOX_LABEL[card.box ?? 0]!, locale)}</Pill>
           <span className="ml-auto truncate text-xs font-black uppercase tracking-wider" style={{ color }}>
             Unit {card.unitNumber}
           </span>
@@ -70,7 +75,7 @@ function FlashCard({ card, color, flipped, onFlip, onAnswer }: { card: Card; col
         {!flipped ? (
           <div className="flex min-h-[17rem] flex-col items-center justify-center text-center">
             <p className="text-3xl font-black leading-tight"><MathText text={e.term} /></p>
-            <p className="mt-4 text-sm font-bold text-muted">Was bedeutet das? Erst überlegen, dann antippen.</p>
+            <p className="mt-4 text-sm font-bold text-muted">{t("Was bedeutet das? Erst überlegen, dann antippen.")}</p>
           </div>
         ) : (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="mt-3">
@@ -81,12 +86,12 @@ function FlashCard({ card, color, flipped, onFlip, onAnswer }: { card: Card; col
             </div>
             {e.example && (
               <div className="mt-3 rounded-xl bg-surface-2 p-3 text-sm">
-                <p className="mb-1 text-xs font-black uppercase tracking-wider text-muted">Beispiel</p>
+                <p className="mb-1 text-xs font-black uppercase tracking-wider text-muted">{t("Beispiel")}</p>
                 <Markdown text={e.example} />
               </div>
             )}
             <Link href={knowledgeHref(e.term, card.unitId.split('-')[0])} className="mt-3 inline-flex items-center gap-1 text-sm font-extrabold text-primary">
-              <Icon name="book" size={16} /> Im Wissen nachschlagen
+              <Icon name="book" size={16} /> {t("Im Wissen nachschlagen")}
             </Link>
           </motion.div>
         )}
@@ -97,6 +102,7 @@ function FlashCard({ card, color, flipped, onFlip, onAnswer }: { card: Card; col
 
 /** Karteikarten aus der Wissenssammlung (Üben → Wissen → Karteikarten). */
 export default function Cards() {
+  const t = usePageT();
   const params = new URLSearchParams(useSearch());
   const initialMod = params.get('m')?.toUpperCase();
   const [mod, setMod] = useState<ModuleId>(() => (MODULES.includes(initialMod as ModuleId) ? (initialMod as ModuleId) : savedModule()));
@@ -157,7 +163,7 @@ export default function Cards() {
       topLeft={
         <Link href="/train" className="flex items-center gap-1 text-xl font-black">
           <Icon name="chevronLeft" />
-          Karteikarten
+          {t("Karteikarten")}
         </Link>
       }
     >
@@ -176,7 +182,7 @@ export default function Cards() {
       />
       {units.length > 0 && (
         <div className="no-scrollbar mt-2 flex gap-1.5 overflow-x-auto pb-1" role="tablist" aria-label="Unit">
-          {[{ unitId: null, label: 'Alle' }, ...units.map((u) => ({ unitId: u.unitId, label: `Unit ${u.unitNumber}` }))].map((o) => (
+          {[{ unitId: null, label: t("Alle") }, ...units.map((u) => ({ unitId: u.unitId, label: `Unit ${u.unitNumber}` }))].map((o) => (
             <button
               key={o.label}
               role="tab"
@@ -197,10 +203,10 @@ export default function Cards() {
       {session && total === 0 && (
         <div className="flex flex-col items-center py-10 text-center">
           <Mascot pose="happy" size={140} />
-          <p className="mt-2 font-black">Alles erledigt!</p>
-          <p className="max-w-xs text-sm font-semibold text-muted">Heute ist in {unit ? 'dieser Unit' : MODULE_INFO[mod].short} keine Karte fällig und es gibt keine neuen mehr.</p>
+          <p className="mt-2 font-black">{t("Alles erledigt!")}</p>
+          <p className="max-w-xs text-sm font-semibold text-muted">{t("Heute ist in {scope} keine Karte fällig und es gibt keine neuen mehr.", {scope: unit ? t('dieser Unit') : MODULE_INFO[mod].short})}</p>
           <Button className="mt-4" variant="secondary" onClick={() => navigate(`/wissen?m=${mod}`)}>
-            Wissen durchstöbern
+            {t("Wissen durchstöbern")}
           </Button>
         </div>
       )}
@@ -218,21 +224,21 @@ export default function Cards() {
               <FlashCard key={`${card.entry.id}-${queue.length}`} card={card} color={color} flipped={flipped} onFlip={() => (sfx.tap(), setFlipped(true))} onAnswer={answer} />
             </AnimatePresence>
           </div>
-          {flipped && <p className="mt-2 text-center text-xs font-bold text-muted">Tipp: nach rechts wischen = gewusst, nach links = nochmal</p>}
+          {flipped && <p className="mt-2 text-center text-xs font-bold text-muted">{t("Tipp: nach rechts wischen = gewusst, nach links = nochmal")}</p>}
           {/* eigene Leiste direkt über der Navigation: deckt den Kartentext ab statt darüber zu schweben */}
           <div className="sticky bottom-[calc(4rem+2px+env(safe-area-inset-bottom))] z-20 -mx-4 mt-3 grid grid-cols-2 gap-3 border-t-2 border-line bg-bg/95 px-4 pb-3 pt-3 backdrop-blur-md">
             {flipped ? (
               <>
                 <Button variant="danger-outline" onClick={() => answer(false)}>
-                  <Icon name="refresh" size={18} /> Nochmal
+                  <Icon name="refresh" size={18} /> {t("Nochmal")}
                 </Button>
                 <Button variant="success" onClick={() => answer(true)}>
-                  <Icon name="check" size={18} /> Gewusst
+                  <Icon name="check" size={18} /> {t("Gewusst")}
                 </Button>
               </>
             ) : (
               <Button full className="col-span-2" onClick={() => (sfx.tap(), setFlipped(true))}>
-                Umdrehen
+                {t("Umdrehen")}
               </Button>
             )}
           </div>
@@ -242,22 +248,22 @@ export default function Cards() {
       {done && (
         <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="flex flex-col items-center py-8 text-center">
           <Mascot pose="cheer" size={150} />
-          <p className="mt-2 text-2xl font-black">Runde geschafft!</p>
+          <p className="mt-2 text-2xl font-black">{t("Runde geschafft!")}</p>
           <p className="mt-1 font-bold text-muted">
-            {firstKnown} von {total} auf Anhieb gewusst
+            {t("{known} von {total} auf Anhieb gewusst", {known: firstKnown, total})}
           </p>
-          <p className="mt-1 max-w-xs text-sm font-semibold text-muted">Gewusste Karten kommen in wachsenden Abständen wieder, der Rest schon morgen.</p>
+          <p className="mt-1 max-w-xs text-sm font-semibold text-muted">{t("Gewusste Karten kommen in wachsenden Abständen wieder, der Rest schon morgen.")}</p>
           <div className="mt-5 flex w-full max-w-xs flex-col gap-2">
             {session && session.dueLeft > 0 && (
               <Button full onClick={() => setRound((r) => r + 1)}>
-                Weiter ({session.dueLeft} fällig)
+                {t("Weiter ({count} fällig)", {count: session.dueLeft})}
               </Button>
             )}
             <Button full variant={session && session.dueLeft > 0 ? 'secondary' : 'primary'} onClick={() => setRound((r) => r + 1)}>
-              Neue Runde
+              {t("Neue Runde")}
             </Button>
             <Button full variant="secondary" onClick={() => navigate('/train')}>
-              Zurück zu Üben
+              {t("Zurück zu Üben")}
             </Button>
           </div>
         </motion.div>

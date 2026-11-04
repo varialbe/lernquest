@@ -2,11 +2,14 @@
 
 > Neue Session? Lies `PLAN.md` und diese Datei. **Quelle der Wahrheit ist das Git-Repo `~/lernquest` auf dem VPS** (gepusht nach `varialbe/lernquest`). Dort laufen git, Builds, Tests und Dienste. Die lokale Kopie unter `C:\Users\Ali Massad\lernquest` ist nur ein Spiegel (`git archive`-Stand), kein Repo. `.env`, `data/` und `CREDENTIALS.local.md` existieren nur auf dem VPS.
 
-## Nachtarbeit 04.11.2026 (im Worktree vorbereitet)
-- Voraussetzungsgraph v2 mit `essential`/`background`/`related`, v1-Lesekompatibilität, Alias-IDs, deterministischer Validierung und manuellen `locked`-Kanten.
-- Lernpfad mit essentieller Hülle, optionalem Hintergrund, topologischer Reihenfolge und eingeklappten gemeisterten Karten; „Kenne ich“ bleibt im Komponenten-State.
-- Pipeline-Kommandos `prereqs-migrate` (gespeicherter Dry-Run, Apply, Resume, Rollback) und `prereqs-eval` mit Gold-Set. Wissenssammlungen und bestehende Graphdateien werden beim Entwickeln nicht verändert.
-- Host-Verifikation: 125 Tests inklusive Git-/Python-Integration grün; Typechecks grün. Review korrigiert optionale Pfadtiefe und kanonische Alias-Zyklen. Aliasbereinigte und rohe ID-Precision/Recall werden getrennt ausgewiesen. Semantische Datenmigration und Deploy werden separat geprüft.
+## Nachtarbeit 04.11.2026
+
+- **Lernblöcke und semantische Voraussetzungen sind live.** Graph v2 mit `essential`/`background`/`related`, stabilen Alias-IDs und manuellen `locked`-Kanten; Kernpfad plus optionaler Hintergrund. Evaluation: Precision 52 → 68 %, Recall 43 → 67 %, Kernpfad Ø 11 → 5,9, erweiterte Tiefe 10,7; Stackframe ERA 6: 21 → 5 im Kern. Deutsche Wissenssammlungen und Lernfortschritt bleiben beim Englisch-Update unverändert.
+- **Englisch:** durchgängige Oberfläche einschließlich Lernblöcken, Wissen/Lernpfaden und Karten; Profilwahl Automatisch / Deutsch / English. Die erste Gerätesprache `de*` wählt Deutsch, sonst Englisch. Kontoweite Wahl, Datums-/Zahlenformate, Pushes, Rückblicke und Account-Mails folgen der Sprache. Rechtstexte bleiben verbindlich deutsch mit englischer Kurzfassung; redaktionelle Newsletter-Inhalte bleiben in der verfassten Sprache, Rahmen und Abmeldetexte werden übersetzt.
+- **Inhalte:** 23 englische Units (DS 7, EIP 6, ERA 10) mit 1.242 Fragen, 593 Wissenseinträgen und 1.156 Voraussetzungsbegründungen. Ablage in `content/<modul>/en/` und `wissen/<modul>/en/`, Gründe in `<unit-id>.prereqs.json`. IDs, Antworten, Formeln und Code werden deterministisch gegen die deutschen Quellen geprüft; Quellhashes erkennen veraltete Übersetzungen. Keine Karten werden zurückgesetzt.
+- **Pipeline:** `pnpm pipeline translate --all`, `translate <unit-id>` und `translate-check --strict`; nächtliche Läufe holen Übersetzungen begrenzt nach (`TRANSLATE_CATCH_UP`, Standard wie `KNOWLEDGE_CATCH_UP`). Die API liefert nur gültige aktuelle Übersetzungen aus und fällt sonst auf Deutsch zurück. Migration `0007_fixed_the_anarchist` nach `0006_lazy_manta` ergänzt ausschließlich Sprachwahl und Gerätesprache.
+- **Verifikation:** 170 Tests und vier Playwright-Tests grün, alle Typechecks, Web-Build, Wissens- und strenger Übersetzungscheck; echte Playwright-Prüfungen mit isolierter DB-Kopie und deaktiviertem Versand. Mobile Screenshots für Profil, Quiz, Wissen, beide Lernpfade, Karten und Lernblöcke ohne horizontalen Overflow. Offline-Cache trennt Sprachen und Sitzungen; Browser-Service-Worker verwendet die tatsächliche Plattform-Erkennung.
+- Web und iOS-Live-Update werden zusammen deployt; kein neues IPA erforderlich. Der tatsächliche Update-Abruf auf einem iPhone bleibt mangels Gerät vor Ort ungeprüft. Screenshots liegen nach dem Deploy unter `screenshots/english/` (nicht versioniert), Prüfprotokolle unter `data/reports/english-20261104/`.
 
 ## 👉 Was du tun musst
 1. ~~Telegram-Chat-ID~~ ✔ erledigt am 31.10. (Chat „Ray“, `pnpm pipeline telegram-setup`, Dienst neu gestartet).

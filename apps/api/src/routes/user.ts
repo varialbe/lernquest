@@ -48,6 +48,9 @@ import { knowledgeForModule } from '../lib/knowledge.ts';
 import { cardSession, cardsOverview, reviewCard } from '../lib/cards.ts';
 import { weeklyRecap } from '../lib/recap.ts';
 import { addStarterPet, equip, purchase, validateSettings } from '../lib/shop.ts';
+import { deviceLocaleFromHeaders, preferenceFromHeaders } from '../lib/locale.ts';
+import { localeForUser } from '../lib/locale.ts';
+import { englishModuleName, localizeDiscover, localizeLevel, localizePath, localizedConcept, localizedQuestion, localizedUnitTitle } from '../lib/content-locale.ts';
 
 export function userRoutes(app: FastifyInstance, db: DB) {
   const auth = { preHandler: requireAuth(db) };
@@ -106,6 +109,8 @@ export function userRoutes(app: FastifyInstance, db: DB) {
           passwordHash,
           invitedWith: code ?? null,
           ...mail,
+          locale: preferenceFromHeaders(req.headers),
+          deviceLocale: deviceLocaleFromHeaders(req.headers),
           privacyAcceptedAt: now,
         })
         .returning()
@@ -133,7 +138,10 @@ export function userRoutes(app: FastifyInstance, db: DB) {
     }
     if (!(await verifyPassword(u.passwordHash, body.password))) throw new HttpError(401, 'invalid_credentials', 'Benutzername/E-Mail oder Passwort falsch.');
     if (u.disabled) throw new HttpError(403, 'disabled', 'Dein Account ist gesperrt.');
-    return { token: createSession(db, u.id, req.headers['user-agent']), user: toPublicUser(u) };
+    const deviceLocale = deviceLocaleFromHeaders(req.headers);
+    const locale = u.locale ?? preferenceFromHeaders(req.headers);
+    if (deviceLocale !== u.deviceLocale || locale !== u.locale) db.update(users).set({ deviceLocale, locale }).where(eq(users.id, u.id)).run();
+    return { token: createSession(db, u.id, req.headers['user-agent']), user: toPublicUser({ ...u, locale, deviceLocale }) };
   });
 
   app.post('/api/auth/logout', auth, async (req) => {
@@ -166,6 +174,7 @@ export function userRoutes(app: FastifyInstance, db: DB) {
     if (s.activePet !== undefined) patch.activePet = s.activePet;
     if (s.soundOn !== undefined) patch.soundOn = s.soundOn;
     if (s.weeklyRecap !== undefined) patch.weeklyRecap = s.weeklyRecap;
+    if (s.locale !== undefined) patch.locale = s.locale;
     const app = appUrl(req.headers.origin);
     let emailChanged = false;
     if (s.email !== undefined && s.email !== emailOf(req.user)) {
@@ -184,20 +193,31 @@ export function userRoutes(app: FastifyInstance, db: DB) {
   });
 
   // ---------- Lernen ----------
-  app.get('/api/path', auth, async (req) => buildPath(db, req.user));
-  app.get('/api/discover', auth, async (req) => buildDiscover(db, req.user));
-  app.get<{ Params: { id: string } }>('/api/levels/:id', auth, async (req) => getLevel(db, req.user, req.params.id));
+  app.get('/api/path', auth, async (req) => localizePath(buildPath(db, req.user), localeForUser(req.user)));
+  app.get('/api/discover', auth, async (req) => localizeDiscover(buildDiscover(db, req.user), localeForUser(req.user)));
+  app.get<{ Params: { id: string } }>('/api/levels/:id', auth, async (req) => localizeLevel(getLevel(db, req.user, req.params.id), localeForUser(req.user)));
   app.post<{ Params: { id: string } }>('/api/levels/:id/complete', auth, async (req) => {
     const body = CompleteLevelReq.parse(req.body);
     return completeLevel(db, req.user, req.params.id, body.answers);
   });
-  app.get('/api/practice', auth, async (req) => ({ questions: practiceSet(db, req.user) }));
+  app.get('/api/practice', auth, async (req) => ({ questions: practiceSet(db, req.user).map((question) => localizedQuestion(question, localeForUser(req.user))) }));
   app.post('/api/practice/complete', auth, async (req) => completePractice(db, req.user, PracticeSubmitReq.parse(req.body).answers));
 
   // ---------- Schwächen, Klausur-Check, Duelle ----------
-  app.get('/api/mastery', auth, async (req) => mastery(db, req.user));
+  app.get('/api/mastery', auth, async (req) => {
+    const locale = localeForUser(req.user);
+    const response = mastery(db, req.user);
+    return locale === 'de' ? response : {
+      ...response,
+      modules: response.modules.map((mod) => ({
+        ...mod,
+        name: englishModuleName(mod.id),
+        concepts: mod.concepts.map((concept) => ({ ...concept, concept: localizedConcept(concept.unitId, concept.concept, locale), unitTitle: localizedUnitTitle(concept.unitId, concept.unitTitle, locale) })),
+      })),
+    };
+  });
   // Wissenssammlung (Nachschlagewerk) je Modul
-  app.get<{ Params: { module: string } }>('/api/knowledge/:module', auth, async (req) => knowledgeForModule(db, ModuleId.parse(req.params.module.toUpperCase()), req.user.id));
+  app.get<{ Params: { module: string } }>('/api/knowledge/:module', auth, async (req) => knowledgeForModule(db, ModuleId.parse(req.params.module.toUpperCase()), req.user.id, localeForUser(req.user)));
   // Karteikarten aus der Wissenssammlung (Leitner)
   app.get('/api/cards', auth, async (req) => cardsOverview(db, req.user));
   app.get<{ Params: { module: string }; Querystring: { unit?: string } }>('/api/cards/:module', auth, async (req) =>
@@ -209,8 +229,14 @@ export function userRoutes(app: FastifyInstance, db: DB) {
   });
   // Wochenrückblick (iOS-App plant ihn lokal, Web-App bekommt ihn per Push)
   app.get('/api/recap', auth, async (req) => weeklyRecap(db, req.user));
-  app.post('/api/runs/weak', auth, async (req) => startWeak(db, req.user, StartWeakReq.parse(req.body ?? {}).module));
-  app.post('/api/runs/exam', auth, async (req) => startExam(db, req.user, StartExamReq.parse(req.body).module));
+  app.post('/api/runs/weak', auth, async (req) => {
+    const run = startWeak(db, req.user, StartWeakReq.parse(req.body ?? {}).module);
+    return localeForUser(req.user) === 'de' ? run : { ...run, title: 'Practise weak areas', questions: run.questions.map((question) => localizedQuestion(question, 'en')) };
+  });
+  app.post('/api/runs/exam', auth, async (req) => {
+    const run = startExam(db, req.user, StartExamReq.parse(req.body).module);
+    return localeForUser(req.user) === 'de' ? run : { ...run, title: `Exam check ${run.module}`, questions: run.questions.map((question) => localizedQuestion(question, 'en')) };
+  });
   app.post<{ Params: { id: string } }>('/api/runs/:id/complete', auth, async (req) => {
     const body = RunSubmitReq.parse(req.body);
     return completeRun(db, req.user, req.params.id, body.answers, body.durationSec, { afterDuelRun: (duelId) => resolveDuel(db, duelId, req.user.id) });
@@ -220,7 +246,10 @@ export function userRoutes(app: FastifyInstance, db: DB) {
     const body = CreateDuelReq.parse(req.body);
     return createDuel(db, req.user, body.opponent, body.module);
   });
-  app.post<{ Params: { id: string } }>('/api/duels/:id/play', auth, async (req) => playDuel(db, req.user, req.params.id));
+  app.post<{ Params: { id: string } }>('/api/duels/:id/play', auth, async (req) => {
+    const run = playDuel(db, req.user, req.params.id);
+    return localeForUser(req.user) === 'de' ? run : { ...run, title: run.title.replace(/^Duell gegen /, 'Duel against '), questions: run.questions.map((question) => localizedQuestion(question, 'en')) };
+  });
   app.post<{ Params: { id: string } }>('/api/duels/:id/decline', auth, async (req) => {
     declineDuel(db, req.user, req.params.id);
     return { ok: true };

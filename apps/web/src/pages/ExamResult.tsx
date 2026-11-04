@@ -1,3 +1,5 @@
+import { usePageT } from '../i18n/pages.ts';
+import { useLocale } from '../i18n/index.tsx';
 import confetti from 'canvas-confetti';
 import { motion } from 'motion/react';
 import { useEffect, useState } from 'react';
@@ -21,6 +23,7 @@ function answerText(q: Question, ids: string[]) {
 }
 
 function ReviewItem({ q, selected }: { q: Question; selected: string[] }) {
+  const t = usePageT();
   const [open, setOpen] = useState(false);
   const right = q.type === 'estimate' && q.slider ? [String(q.slider.answer)] : q.correct;
   return (
@@ -36,10 +39,10 @@ function ReviewItem({ q, selected }: { q: Question; selected: string[] }) {
         <div className="mt-2 space-y-1.5 pl-8 text-sm">
           {q.context && <QuestionContext context={q.context} />}
           <p className="font-bold text-error">
-            Deine Antwort: <Markdown text={selected.length ? answerText(q, selected) : 'keine (Zeit abgelaufen)'} className="inline [&_p]:inline" />
+            {t("Deine Antwort:")} <Markdown text={selected.length ? answerText(q, selected) : t("keine (Zeit abgelaufen)")} className="inline [&_p]:inline" />
           </p>
           <p className="font-bold text-success-dark dark:text-success">
-            Richtig: <Markdown text={answerText(q, right)} className="inline [&_p]:inline" />
+            {t("Richtig:")} <Markdown text={answerText(q, right)} className="inline [&_p]:inline" />
           </p>
           <Markdown text={q.explanation} className="font-semibold text-muted" />
         </div>
@@ -49,6 +52,8 @@ function ReviewItem({ q, selected }: { q: Question; selected: string[] }) {
 }
 
 export function ExamResult({ result: r, questions, onDone }: { result: RunResult; questions: Question[]; onDone: (to?: string) => void }) {
+  const t = usePageT();
+  const { locale } = useLocale();
   const passed = r.accuracy >= EXAM.passAt;
   const grade = r.grade ?? 5;
   const byId = new Map(questions.map((q) => [q.id, q]));
@@ -62,13 +67,13 @@ export function ExamResult({ result: r, questions, onDone }: { result: RunResult
     <div className="safe-top min-h-dvh bg-[radial-gradient(110%_55%_at_50%_0%,var(--c-primary-soft),transparent_70%)]">
       <main className="mx-auto w-full max-w-md px-5 pb-40 pt-8 text-center">
         <Mascot pose={passed ? 'cheer' : 'think'} size={120} className="mx-auto" />
-        <p className="mt-2 text-sm font-black uppercase tracking-wider text-muted">Klausur-Check</p>
+        <p className="mt-2 text-sm font-black uppercase tracking-wider text-muted">{t("Klausur-Check")}</p>
         <motion.p initial={{ scale: 0.5, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ type: 'spring', stiffness: 260, damping: 14 }} className="text-7xl font-black tabular-nums" style={{ color: gradeColor(grade) }}>
-          {grade.toFixed(1).replace('.', ',')}
+          {grade.toLocaleString(locale === 'de' ? 'de-DE' : 'en-US', { minimumFractionDigits: 1, maximumFractionDigits: 1 })}
         </motion.p>
-        <p className="text-lg font-black">{passed ? 'Bestanden' : 'Noch nicht bestanden'}</p>
+        <p className="text-lg font-black">{passed ? t("Bestanden") : t("Noch nicht bestanden")}</p>
         <p className="font-bold text-muted">
-          {r.correctFirstTry} von {r.total} richtig · {Math.round(r.accuracy * 100)} %
+          {t("{correct} von {total} richtig · {accuracy} %", {correct: r.correctFirstTry, total: r.total, accuracy: Math.round(r.accuracy * 100)})}
         </p>
 
         <div className="mt-5 flex justify-center gap-3">
@@ -82,27 +87,27 @@ export function ExamResult({ result: r, questions, onDone }: { result: RunResult
             </span>
           ))}
         </div>
-        {!r.rewarded && <p className="mt-3 text-sm font-bold text-muted">Heute gab es schon {EXAM.rewardedPerDay} gewertete Klausur-Checks – dieser zählt ohne XP und Coins.</p>}
+        {!r.rewarded && <p className="mt-3 text-sm font-bold text-muted">{t("Heute gab es schon {count} gewertete Klausur-Checks – dieser zählt ohne XP und Coins.", {count: EXAM.rewardedPerDay})}</p>}
 
         {wrong.length > 0 ? (
           <>
-            <h2 className="mt-8 text-left text-lg font-black">Daran solltest du arbeiten ({wrong.length})</h2>
-            <p className="mb-3 text-left text-sm font-semibold text-muted">Tippe eine Frage an für Lösung und Erklärung. Alle sind jetzt in deiner Wiederholung.</p>
+            <h2 className="mt-8 text-left text-lg font-black">{t("Daran solltest du arbeiten ({count})", {count: wrong.length})}</h2>
+            <p className="mb-3 text-left text-sm font-semibold text-muted">{t("Tippe eine Frage an für Lösung und Erklärung. Alle sind jetzt in deiner Wiederholung.")}</p>
             <ul className="space-y-2">{wrong.map((x) => (byId.has(x.questionId) ? <ReviewItem key={x.questionId} q={byId.get(x.questionId)!} selected={x.selected} /> : null))}</ul>
           </>
         ) : (
-          <p className="mt-8 rounded-2xl bg-success-soft px-4 py-3 font-black text-success-dark dark:text-success">Alles richtig – du bist bereit! 🎓</p>
+          <p className="mt-8 rounded-2xl bg-success-soft px-4 py-3 font-black text-success-dark dark:text-success">{t("Alles richtig – du bist bereit! 🎓")}</p>
         )}
       </main>
       <div className="safe-bottom fixed inset-x-0 bottom-0 border-t-2 border-line bg-bg">
         <div className="mx-auto flex max-w-md flex-col gap-2 px-5 py-4">
           {wrong.length > 0 && (
             <Button full onClick={() => onDone('/practice')}>
-              Fehler jetzt wiederholen
+              {t("Fehler jetzt wiederholen")}
             </Button>
           )}
           <Button full variant={wrong.length ? 'ghost' : 'primary'} onClick={() => onDone()}>
-            Fertig
+            {t("Fertig")}
           </Button>
         </div>
       </div>

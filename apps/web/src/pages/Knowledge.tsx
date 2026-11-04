@@ -1,3 +1,6 @@
+import { useLocale } from '../i18n/index.tsx';
+import { knowledgeKindLabel } from '../i18n/catalog.ts';
+import { useCommonT, currentText, currentLocale, commonText } from '../i18n/common.ts';
 import { useQuery } from '@tanstack/react-query';
 import { AnimatePresence, motion } from 'motion/react';
 import { createContext, useContext, useEffect, useMemo, useState } from 'react';
@@ -34,9 +37,9 @@ const VIEWS: { value: View; label: string }[] = [
 ];
 const KIND_ORDER = Object.keys(KNOWLEDGE_KIND_LABEL) as KnowledgeEntry['kind'][];
 /** Eine Unit = eine Vorlesung (Mitschrift „… VO<n>.md“) */
-const lectureLabel = (u: UnitK) => `Vorlesung ${u.unitNumber} · ${plainMath(u.unitTitle)}`;
+const lectureLabel = (u: UnitK) => currentText("Vorlesung {p0} · {p1}", { p0: u.unitNumber, p1: plainMath(u.unitTitle) });
 const sortKey = (term: string) => plainMath(term).replace(/^[^\p{L}\p{N}]+/u, '');
-const byTerm = (a: { e: KnowledgeEntry }, b: { e: KnowledgeEntry }) => sortKey(a.e.term).localeCompare(sortKey(b.e.term), 'de', { sensitivity: 'base', numeric: true });
+const byTerm = (a: { e: KnowledgeEntry }, b: { e: KnowledgeEntry }) => sortKey(a.e.term).localeCompare(sortKey(b.e.term), currentLocale(), { sensitivity: 'base', numeric: true });
 /** Anfangsbuchstabe für die A–Z-Überschriften (Umlaute unter dem Grundbuchstaben, Zahlen/Symbole unter „#“) */
 const letterOf = (term: string) => {
   const c = norm(sortKey(term)).charAt(0).toUpperCase();
@@ -72,6 +75,8 @@ type Graph = {
 const GraphCtx = createContext<Graph | null>(null);
 
 function PathView({ target, onClose }: { target: string; onClose: () => void }) {
+  const { locale } = useLocale();
+  const ct = useCommonT();
   const g = useContext(GraphCtx)!;
   const req = (id: string) => g.byId.get(id)?.e.requires ?? [];
   const [extended, setExtended] = useState(false);
@@ -91,11 +96,14 @@ function PathView({ target, onClose }: { target: string; onClose: () => void }) 
   const t = g.byId.get(target);
   if (!t) return null;
   const canonicalTarget = canonicalEntryId(target, g.aliases);
-  const title = <span>Von Grund auf: <MathText text={t.e.term} /></span>;
+  const coreCount = path.core.ids.length - 1;
+  const backgroundCount = path.extended.backgroundIds.length;
+  const depthLabel = (depth: number) => ct(depth === 1 ? "Tiefe {depth} Ebene" : "Tiefe {depth} Ebenen", { depth });
+  const title = <span>{ct("Von Grund auf:")} <MathText text={t.e.term} /></span>;
   return (
-    <Modal open onClose={onClose} title={title} titleText={`Von Grund auf: ${plainMath(t.e.term)}`}>
+    <Modal open onClose={onClose} title={title} titleText={ct("Von Grund auf: {p0}", { p0: plainMath(t.e.term) })}>
       <div className="-mt-1 mb-3 space-y-2 text-sm font-semibold text-muted">
-        <p>{path.core.ids.length - 1} Kern-Grundlagen · Tiefe {path.core.depth} Ebenen</p>
+        <p>{ct(coreCount === 1 ? "{count} Kern-Grundlage" : "{count} Kern-Grundlagen", { count: coreCount })} · {depthLabel(path.core.depth)}</p>
         <button
           type="button"
           role="switch"
@@ -103,10 +111,10 @@ function PathView({ target, onClose }: { target: string; onClose: () => void }) 
           onClick={() => setExtended((value) => !value)}
           className={`flex w-full items-center justify-between rounded-xl border-2 px-3 py-2 text-left ${extended ? 'border-primary bg-primary/10 text-primary' : 'border-line bg-surface'}`}
         >
-          <span>Erweiterte Tiefe · +{path.extended.backgroundIds.length} Hintergrund · Tiefe {path.extended.depth} Ebenen</span>
-          <span className="font-black">{extended ? 'An' : 'Aus'}</span>
+          <span>{ct(backgroundCount === 1 ? "Erweiterte Tiefe · +{count} Hintergrundeintrag" : "Erweiterte Tiefe · +{count} Hintergrundeinträge", { count: backgroundCount })} · {depthLabel(path.extended.depth)}</span>
+          <span className="font-black">{extended ? ct("An") : ct("Aus")}</span>
         </button>
-        <p>Tippe einen Schritt an, um die Erklärung zu sehen.</p>
+        <p>{ct("Tippe einen Schritt an, um die Erklärung zu sehen.")}</p>
       </div>
       <ol className="relative space-y-2 border-l-2 border-dashed border-line pl-4">
         {steps.map((id, i) => {
@@ -132,16 +140,15 @@ function PathView({ target, onClose }: { target: string; onClose: () => void }) 
                 <button className="w-full p-3 text-left" onClick={() => setOpen(expanded ? null : id)} aria-expanded={expanded}>
                   <div className="flex flex-wrap items-center gap-1.5">
                     <span className="font-black"><MathText text={x.e.term} /></span>
-                    <Pill className="bg-surface-2 text-muted">{KNOWLEDGE_KIND_LABEL[x.e.kind]}</Pill>
-                    {isBackground && <Pill className="bg-surface-2 text-muted">Hintergrund</Pill>}
-                    {alreadyKnown && <Pill className="bg-success/10 text-success">Kannst du schon</Pill>}
-                    <span className="ml-auto text-xs font-bold text-muted">VO {x.unit.unitNumber}</span>
+                    <Pill className="bg-surface-2 text-muted">{knowledgeKindLabel(x.e.kind, locale)}</Pill>
+                    {isBackground && <Pill className="bg-surface-2 text-muted">{ct("Hintergrund")}</Pill>}
+                    {alreadyKnown && <Pill className="bg-success/10 text-success">{ct("Kannst du schon")}</Pill>}
+                    <span className="ml-auto text-xs font-bold text-muted">{ct("VO")} {x.unit.unitNumber}</span>
                   </div>
                   {!alreadyKnown && <Markdown inline text={x.e.short} className="mt-1 block text-sm font-semibold text-muted" />}
-                  {alreadyKnown && <span className="mt-1 block text-xs font-bold text-muted">Diese Grundlage ist eingeklappt.</span>}
+                  {alreadyKnown && <span className="mt-1 block text-xs font-bold text-muted">{ct("Diese Grundlage ist eingeklappt.")}</span>}
                   {forSteps.length > 0 && (
-                    <p className="mt-1 text-xs font-bold text-primary">
-                      → nötig für {plainMath(forSteps.map((f) => f.term).join(', '))}
+                    <p className="mt-1 text-xs font-bold text-primary">{ct("→ verwendet bei")} {plainMath(forSteps.map((f) => f.term).join(', '))}
                       {forSteps[0]!.why && <span className="font-semibold text-muted">: {plainMath(forSteps[0]!.why)}</span>}
                     </p>
                   )}
@@ -151,7 +158,7 @@ function PathView({ target, onClose }: { target: string; onClose: () => void }) 
                     <Markdown text={x.e.explanation} />
                     {x.e.example && (
                       <div className="mt-2 rounded-xl bg-surface-2 p-2.5">
-                        <p className="mb-1 text-xs font-black uppercase tracking-wider text-muted">Beispiel</p>
+                        <p className="mb-1 text-xs font-black uppercase tracking-wider text-muted">{ct("Beispiel")}</p>
                         <Markdown text={x.e.example} />
                       </div>
                     )}
@@ -167,7 +174,7 @@ function PathView({ target, onClose }: { target: string; onClose: () => void }) 
                     })}
                     className="text-xs font-extrabold text-primary underline underline-offset-2"
                   >
-                    {alreadyKnown ? 'Wieder einblenden' : 'Kenne ich'}
+                    {alreadyKnown ? ct("Wieder einblenden") : ct("Kenne ich")}
                   </button>
                 </div>
               </div>
@@ -175,14 +182,13 @@ function PathView({ target, onClose }: { target: string; onClose: () => void }) 
           );
         })}
       </ol>
-      <Button full variant="secondary" className="mt-4" onClick={() => g.jump(target)}>
-        Zum Eintrag
-      </Button>
+      <Button full variant="secondary" className="mt-4" onClick={() => g.jump(target)}>{ct("Zum Eintrag")}</Button>
     </Modal>
   );
 }
 
 function Prereqs({ e }: { e: KnowledgeEntry }) {
+  const ct = useCommonT();
   const g = useContext(GraphCtx);
   if (!g) return null;
   const req = e.requires.filter((r) => r.type === 'essential' && g.byId.has(r.id));
@@ -207,18 +213,16 @@ function Prereqs({ e }: { e: KnowledgeEntry }) {
   );
   return (
     <div className="mt-3 rounded-xl bg-surface-2 p-3">
-      {links('Dafür brauchst du', req)}
+      {links(ct("Dafür brauchst du"), req)}
       {(req.length > 0 || background.length > 0) && (
         <Button full variant="secondary" className="mt-3" onClick={() => g.explain(e.id)}>
-          <Icon name="sparkle" size={18} />
-          Von Grund auf erklären
-        </Button>
+          <Icon name="sparkle" size={18} />{ct("Von Grund auf erklären")}</Button>
       )}
-      {links('Hilfreicher Hintergrund', background, true)}
-      {links('Verwandt', related, true)}
+      {links(ct("Hilfreicher Hintergrund"), background, true)}
+      {links(ct("Verwandt"), related, true)}
       {used.length > 0 && (
         <div className={`flex flex-wrap items-center gap-1.5 ${req.length ? 'mt-3' : ''}`}>
-          <span className="text-xs font-black uppercase tracking-wider text-muted">Baut darauf auf</span>
+          <span className="text-xs font-black uppercase tracking-wider text-muted">{ct("Baut darauf auf")}</span>
           {used.slice(0, 8).map((id) => (
             <button key={id} onClick={() => g.jump(id)} className="rounded-full border-2 border-line bg-surface px-2 py-0.5 text-xs font-extrabold text-primary active:scale-95">
               <MathText text={g.byId.get(id)!.e.term} />
@@ -231,13 +235,15 @@ function Prereqs({ e }: { e: KnowledgeEntry }) {
 }
 
 function EntryCard({ e, color, unitLabel, open, onToggle, onRelated }: { e: KnowledgeEntry; color: string; unitLabel?: string; open: boolean; onToggle: () => void; onRelated: (t: string) => void }) {
+  const { locale } = useLocale();
+  const ct = useCommonT();
   return (
     <div id={e.id} className={`scroll-mt-24 rounded-2xl border-2 bg-surface transition-colors ${open ? 'border-[color:var(--acc)]' : 'border-line'}`} style={{ ['--acc' as string]: color }}>
       <button onClick={onToggle} aria-expanded={open} className="flex w-full items-start gap-2 p-3 text-left">
         <div className="min-w-0 flex-1">
           <div className="flex flex-wrap items-center gap-1.5">
             <span className="font-black leading-tight"><MathText text={e.term} /></span>
-            <Pill className="bg-surface-2 text-muted">{KNOWLEDGE_KIND_LABEL[e.kind]}</Pill>
+            <Pill className="bg-surface-2 text-muted">{knowledgeKindLabel(e.kind, locale)}</Pill>
           </div>
           {unitLabel && <p className="mt-0.5 text-xs font-black uppercase tracking-wider" style={{ color }}>{unitLabel}</p>}
           <Markdown inline text={e.short} className={`mt-1 block text-sm font-semibold text-muted ${open ? '' : 'line-clamp-2'}`} />
@@ -251,13 +257,13 @@ function EntryCard({ e, color, unitLabel, open, onToggle, onRelated }: { e: Know
               <Markdown text={e.explanation} />
               {e.example && (
                 <div className="mt-3 rounded-xl bg-surface-2 p-3">
-                  <p className="mb-1 text-xs font-black uppercase tracking-wider text-muted">Beispiel</p>
+                  <p className="mb-1 text-xs font-black uppercase tracking-wider text-muted">{ct("Beispiel")}</p>
                   <Markdown text={e.example} />
                 </div>
               )}
               {e.pitfalls.length > 0 && (
                 <div className="mt-3 rounded-xl border-2 border-dashed border-line p-3">
-                  <p className="mb-1 text-xs font-black uppercase tracking-wider text-error">Achtung</p>
+                  <p className="mb-1 text-xs font-black uppercase tracking-wider text-error">{ct("Achtung")}</p>
                   <ul className="list-disc space-y-1 pl-5 text-sm font-semibold">
                     {e.pitfalls.map((p) => (
                       <li key={p}>
@@ -270,7 +276,7 @@ function EntryCard({ e, color, unitLabel, open, onToggle, onRelated }: { e: Know
               <Prereqs e={e} />
               {e.related.length > 0 && (
                 <div className="mt-3 flex flex-wrap gap-1.5">
-                  <span className="text-xs font-black uppercase tracking-wider text-muted">Siehe auch</span>
+                  <span className="text-xs font-black uppercase tracking-wider text-muted">{ct("Siehe auch")}</span>
                   {e.related.map((r) => (
                     <button key={r} onClick={() => onRelated(r)} className="rounded-full border-2 border-line px-2 py-0.5 text-xs font-extrabold text-primary active:scale-95">
                       {r}
@@ -288,6 +294,8 @@ function EntryCard({ e, color, unitLabel, open, onToggle, onRelated }: { e: Know
 
 /** Wissenssammlung: alle Begriffe/Konzepte jeder Unit zum Nachschlagen (Üben → Wissen). */
 export default function Knowledge() {
+  const { locale } = useLocale();
+  const ct = useCommonT();
   const params = new URLSearchParams(useSearch());
   const initialMod = params.get('m')?.toUpperCase();
   const [mod, setMod] = useState<ModuleId>(() => (MODULES.includes(initialMod as ModuleId) ? (initialMod as ModuleId) : savedModule()));
@@ -321,9 +329,9 @@ export default function Knowledge() {
       return out;
     }
     if (view === 'kind')
-      return KIND_ORDER.map((k) => ({ key: k, title: KNOWLEDGE_KIND_LABEL[k], items: flat.filter((it) => it.e.kind === k) })).filter((g) => g.items.length);
+      return KIND_ORDER.map((k) => ({ key: k, title: knowledgeKindLabel(k, locale), items: flat.filter((it) => it.e.kind === k) })).filter((g) => g.items.length);
     return [];
-  }, [flat, view]);
+  }, [flat, view, locale]);
   // gewählte Vorlesung zurücksetzen, wenn es sie (nach Modulwechsel) nicht gibt
   useEffect(() => {
     if (lecture && !units.some((u) => u.unitId === lecture)) setLecture(null);
@@ -370,9 +378,7 @@ export default function Knowledge() {
     <Page
       topLeft={
         <Link href="/train" className="flex items-center gap-1 text-xl font-black">
-          <Icon name="chevronLeft" />
-          Wissen
-        </Link>
+          <Icon name="chevronLeft" />{ct("Wissen")}</Link>
       }
     >
       <Segmented
@@ -400,12 +406,12 @@ export default function Knowledge() {
             setQ(e.target.value);
             setOpenEntry(null);
           }}
-          placeholder={total ? `${total} Begriffe in ${MODULE_INFO[mod].short} durchsuchen …` : 'Begriff suchen …'}
+          placeholder={total ? ct("{p0} Begriffe in {p1} durchsuchen …", { p0: total, p1: MODULE_INFO[mod].short }) : ct("Begriff suchen …")}
           className="w-full rounded-2xl border-2 border-line bg-surface py-2.5 pl-11 pr-10 font-bold outline-none focus:border-primary"
-          aria-label="Begriff suchen"
+          aria-label={ct("Begriff suchen")}
         />
         {q && (
-          <button onClick={() => setQ('')} aria-label="Suche leeren" className="absolute right-3 top-1/2 -translate-y-1/2 text-muted">
+          <button onClick={() => setQ('')} aria-label={ct("Suche leeren")} className="absolute right-3 top-1/2 -translate-y-1/2 text-muted">
             <Icon name="x" size={18} />
           </button>
         )}
@@ -415,8 +421,8 @@ export default function Knowledge() {
       {total > 0 && (
         <div className="mt-3 space-y-2">
           <div className="flex items-center gap-2">
-            <span className="shrink-0 text-xs font-black uppercase tracking-wider text-muted">Sortieren</span>
-            <div className="flex flex-1 rounded-2xl border-2 border-line bg-surface p-0.5" role="radiogroup" aria-label="Sortieren nach">
+            <span className="shrink-0 text-xs font-black uppercase tracking-wider text-muted">{ct("Sortieren")}</span>
+            <div className="flex flex-1 rounded-2xl border-2 border-line bg-surface p-0.5" role="radiogroup" aria-label={ct("Sortieren nach")}>
               {VIEWS.map((v) => {
                 const active = view === v.value;
                 return (
@@ -431,7 +437,7 @@ export default function Knowledge() {
                     className={`flex-1 rounded-xl px-2 py-1 text-sm font-extrabold transition-colors ${active ? 'text-white' : 'text-muted'}`}
                     style={active ? { background: color } : undefined}
                   >
-                    {v.label}
+                    {commonText(v.label, locale)}
                   </button>
                 );
               })}
@@ -446,11 +452,11 @@ export default function Knowledge() {
                 setOpenEntry(null);
                 setOpenUnit(id);
               }}
-              aria-label="Vorlesung auswählen"
+              aria-label={ct("Vorlesung auswählen")}
               className="min-w-0 flex-1 truncate rounded-2xl border-2 border-line bg-surface px-3 py-1.5 text-sm font-bold outline-none focus:border-primary"
               style={lecture ? { borderColor: color } : undefined}
             >
-              <option value="">Alle Vorlesungen ({lectures.length})</option>
+              <option value="">{ct("Alle Vorlesungen (")}{lectures.length})</option>
               {lectures.map((u) => (
                 <option key={u.unitId} value={u.unitId}>
                   {lectureLabel(u)} ({u.entries.length})
@@ -460,10 +466,10 @@ export default function Knowledge() {
             {view === 'lecture' && !lecture && !q.trim() && (
               <button
                 onClick={() => setNewestFirst(!newestFirst)}
-                aria-label={newestFirst ? 'Älteste Vorlesung zuerst' : 'Neueste Vorlesung zuerst'}
+                aria-label={newestFirst ? ct("Älteste Vorlesung zuerst") : ct("Neueste Vorlesung zuerst")}
                 className="shrink-0 rounded-2xl border-2 border-line bg-surface px-3 py-1.5 text-sm font-extrabold text-muted active:scale-95"
               >
-                {newestFirst ? 'Neueste ↓' : 'Älteste ↓'}
+                {newestFirst ? ct("Neueste ↓") : ct("Älteste ↓")}
               </button>
             )}
           </div>
@@ -471,20 +477,20 @@ export default function Knowledge() {
       )}
 
       {isLoading && <Spinner />}
-      {error && !data && <p className="mt-6 text-center font-bold text-muted">Die Wissenssammlung konnte nicht geladen werden.</p>}
+      {error && !data && <p className="mt-6 text-center font-bold text-muted">{ct("Die Wissenssammlung konnte nicht geladen werden.")}</p>}
 
       {data && !total && (
         <div className="flex flex-col items-center py-10 text-center">
           <Mascot pose="book" size={140} />
-          <p className="mt-2 font-black">Noch keine Einträge</p>
-          <p className="max-w-xs text-sm font-semibold text-muted">Die Wissenssammlung für {MODULE_INFO[mod].short} entsteht gerade – zu jeder Vorlesung automatisch.</p>
+          <p className="mt-2 font-black">{ct("Noch keine Einträge")}</p>
+          <p className="max-w-xs text-sm font-semibold text-muted">{ct("Die Wissenssammlung für")} {MODULE_INFO[mod].short} {ct("entsteht gerade – zu jeder Vorlesung automatisch.")}</p>
         </div>
       )}
 
       {/* Suchergebnisse */}
       {q.trim() && data && total > 0 && (
         <div className="mt-4 space-y-2">
-          <p className="px-1 text-sm font-bold text-muted">{hits.length ? `${hits.length} Treffer` : `Nichts gefunden für „${q}“.`}</p>
+          <p className="px-1 text-sm font-bold text-muted">{hits.length ? ct("{p0} Treffer", { p0: hits.length }) : ct("Nichts gefunden für „{p0}“.", { p0: q })}</p>
           {hits.map(({ e, unit }) => (
             <EntryCard key={e.id} e={e} color={color} unitLabel={lectureLabel(unit)} open={openEntry === e.id} onToggle={() => setOpenEntry(openEntry === e.id ? null : e.id)} onRelated={related} />
           ))}
@@ -523,11 +529,11 @@ export default function Knowledge() {
                       {u.unitNumber}
                     </div>
                     <div className="min-w-0 flex-1">
-                      <p className="text-xs font-black uppercase tracking-wider" style={{ color }}>Vorlesung {u.unitNumber}</p>
+                      <p className="text-xs font-black uppercase tracking-wider" style={{ color }}>{ct("Vorlesung")} {u.unitNumber}</p>
                       <p className="font-black leading-tight">
                         <MathText text={u.unitTitle} />
                       </p>
-                      <p className="text-sm font-semibold text-muted">{u.entries.length ? `${u.entries.length} Begriffe & Konzepte` : 'kommt bald'}</p>
+                      <p className="text-sm font-semibold text-muted">{u.entries.length ? ct("{p0} Begriffe & Konzepte", { p0: u.entries.length }) : ct("kommt bald")}</p>
                     </div>
                     <Icon name="chevronRight" className={`shrink-0 text-muted transition-transform ${open ? 'rotate-90' : ''}`} />
                   </button>

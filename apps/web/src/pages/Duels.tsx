@@ -1,3 +1,4 @@
+import { usePageT } from '../i18n/pages.ts';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import { motion } from 'motion/react';
 import { useState } from 'react';
@@ -14,26 +15,27 @@ import { moduleColor } from '../lib/theme.ts';
 const hoursLeft = (iso: string) => Math.max(0, Math.round((new Date(iso).getTime() - Date.now()) / 3600_000));
 
 function DuelRow({ d, onDecline }: { d: DuelSummary; onDecline: (id: string) => void }) {
+  const t = usePageT();
   const [, navigate] = useLocation();
   const open = d.status === 'open';
   const myTurn = open && !d.me.played;
   const score = d.me.played ? `${d.me.correct ?? 0} : ${d.them.played ? (d.them.correct ?? '?') : '?'}` : null;
   const status =
     d.status === 'declined'
-      ? 'abgelehnt'
+      ? t("abgelehnt")
       : d.status === 'expired'
-        ? 'abgelaufen'
+        ? t("abgelaufen")
         : d.winner === 'me'
-          ? `gewonnen · +${DUEL.winCoins} Coins`
+          ? t("gewonnen · +{coins} Coins", {coins: DUEL.winCoins})
           : d.winner === 'them'
-            ? 'verloren'
+            ? t("verloren")
             : d.winner === 'draw'
-              ? 'unentschieden'
+              ? t("unentschieden")
               : myTurn
                 ? d.them.played
-                  ? `${d.opponent.displayName} hat vorgelegt · noch ${hoursLeft(d.expiresAt)} Std`
-                  : `noch ${hoursLeft(d.expiresAt)} Std`
-                : `wartet auf ${d.opponent.displayName}`;
+                  ? t("{name} hat vorgelegt · noch {hours} Std", {name: d.opponent.displayName, hours: hoursLeft(d.expiresAt)})
+                  : t("noch {hours} Std", {hours: hoursLeft(d.expiresAt)})
+                : t("wartet auf {name}", {name: d.opponent.displayName});
   return (
     <motion.div layout className={`flex items-center gap-3 rounded-3xl border-2 bg-surface p-3 ${myTurn ? 'border-primary' : 'border-line'}`}>
       <Avatar pet={d.opponent.pet} petStage={d.opponent.petStage} frame={d.opponent.frame} size={48} name={d.opponent.displayName} />
@@ -50,11 +52,11 @@ function DuelRow({ d, onDecline }: { d: DuelSummary; onDecline: (id: string) => 
       {myTurn && (
         <div className="flex shrink-0 flex-col gap-1">
           <Button className="min-h-10! px-3!" onClick={() => navigate(`/duel/${d.id}`)}>
-            Spielen
+            {t("Spielen")}
           </Button>
           {!d.challengedByMe && !d.them.played && (
             <button className="text-xs font-black text-muted hover:text-error" onClick={() => onDecline(d.id)}>
-              Ablehnen
+              {t("Ablehnen")}
             </button>
           )}
         </div>
@@ -64,6 +66,7 @@ function DuelRow({ d, onDecline }: { d: DuelSummary; onDecline: (id: string) => 
 }
 
 export default function Duels() {
+  const t = usePageT();
   const { data, isLoading } = useDuels();
   const qc = useQueryClient();
   const [, navigate] = useLocation();
@@ -101,7 +104,7 @@ export default function Duels() {
       topLeft={
         <Link href="/train" className="flex items-center gap-1 text-xl font-black">
           <Icon name="chevronLeft" />
-          Duelle
+          {t("Duelle")}
         </Link>
       }
     >
@@ -110,24 +113,24 @@ export default function Duels() {
         <div className="relative flex items-center gap-3">
           <Mascot pose="cheer" size={80} />
           <div className="min-w-0">
-            <p className="text-lg font-black leading-tight">Fordere jemanden heraus!</p>
+            <p className="text-lg font-black leading-tight">{t("Fordere jemanden heraus!")}</p>
             <p className="mt-1 text-sm font-bold text-white/90">
-              {DUEL.questions} gleiche Fragen, {DUEL.expiresHours} Std Zeit. Mehr Richtige gewinnt, bei Gleichstand die schnellere Zeit.
+              {t("{questions} gleiche Fragen, {hours} Std Zeit. Mehr Richtige gewinnt, bei Gleichstand die schnellere Zeit.", {questions: DUEL.questions, hours: DUEL.expiresHours})}
             </p>
           </div>
         </div>
         <Button full variant="secondary" className="relative mt-4" onClick={() => setPicking(true)} disabled={!data?.opponents.length}>
-          Neues Duell
+          {t("Neues Duell")}
         </Button>
       </div>
 
       {isLoading && <Spinner />}
-      {data && !list.length && <p className="mt-8 text-center font-semibold text-muted">Noch keine Duelle. Fang einfach an!</p>}
+      {data && !list.length && <p className="mt-8 text-center font-semibold text-muted">{t("Noch keine Duelle. Fang einfach an!")}</p>}
 
       {myTurn.length > 0 && (
         <>
           <SectionTitle>
-            Du bist dran <Pill className="ml-1 bg-error text-white">{myTurn.length}</Pill>
+            {t("Du bist dran")} <Pill className="ml-1 bg-error text-white">{myTurn.length}</Pill>
           </SectionTitle>
           <div className="space-y-2">
             {myTurn.map((d) => (
@@ -138,7 +141,7 @@ export default function Duels() {
       )}
       {waiting.length > 0 && (
         <>
-          <SectionTitle>Warten auf Gegner</SectionTitle>
+          <SectionTitle>{t("Warten auf Gegner")}</SectionTitle>
           <div className="space-y-2">
             {waiting.map((d) => (
               <DuelRow key={d.id} d={d} onDecline={() => {}} />
@@ -148,7 +151,7 @@ export default function Duels() {
       )}
       {finished.length > 0 && (
         <>
-          <SectionTitle>Letzte 14 Tage</SectionTitle>
+          <SectionTitle>{t("Letzte 14 Tage")}</SectionTitle>
           <div className="space-y-2">
             {finished.map((d) => (
               <DuelRow key={d.id} d={d} onDecline={() => {}} />
@@ -157,8 +160,8 @@ export default function Duels() {
         </>
       )}
 
-      <Modal open={picking} onClose={() => setPicking(false)} title="Neues Duell">
-        <p className="mb-2 text-sm font-black uppercase tracking-wider text-muted">Gegen</p>
+      <Modal open={picking} onClose={() => setPicking(false)} title={t("Neues Duell")}>
+        <p className="mb-2 text-sm font-black uppercase tracking-wider text-muted">{t("Gegen")}</p>
         <div className="grid max-h-56 grid-cols-3 gap-2 overflow-y-auto p-0.5">
           {data?.opponents.map((o) => (
             <button
@@ -172,10 +175,10 @@ export default function Duels() {
             </button>
           ))}
         </div>
-        <p className="mb-2 mt-4 text-sm font-black uppercase tracking-wider text-muted">Modul</p>
+        <p className="mb-2 mt-4 text-sm font-black uppercase tracking-wider text-muted">{t("Modul")}</p>
         <Segmented value={mod} onChange={setMod} options={(['DS', 'EIP', 'ERA'] as const).map((m) => ({ value: m, label: MODULE_INFO[m].short, color: moduleColor(m) }))} />
         <Button full className="mt-5" disabled={!opponent || create.isPending} onClick={() => create.mutate()}>
-          Herausfordern & vorlegen
+          {t("Herausfordern & vorlegen")}
         </Button>
       </Modal>
       <Toast message={toast} kind="error" />

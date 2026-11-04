@@ -1,0 +1,448 @@
+{
+  "schemaVersion": 1,
+  "unitId": "eip-01",
+  "module": "EIP",
+  "unitNumber": 1,
+  "unitTitle": "From Requirements to an Algorithm",
+  "sourceSha": "f308f409c8ffffb1b770b9f97d5d35a5834e1e450116e8b2ba7329d6cf767acf",
+  "overview": "An everyday-language task is translated into route data (Routendaten), a precise requirement (präzise Anforderung), and an algorithm (Algorithmus). The goal is to find the fastest route without stairs. If two routes take the same time, the first in the given order remains selected; if no route is suitable, the result is “No suitable route.” The algorithm keeps track of the best route found so far and checks each new route once. With constant work per route, this takes Θ(n) work; scanning all previously seen routes again after each new route takes Θ(n²). Requirements, tests, and correctness must also be checked when using AI and implementing the solution in Java.",
+  "entries": [
+    {
+      "id": "eip-01-k01",
+      "term": "Route Data (Routendaten)",
+      "kind": "concept",
+      "short": "A route is described by its identifier, duration, and whether it contains stairs.",
+      "explanation": "A program can compare routes only by using their stored properties. To select the fastest route without stairs, it needs an identifier, a duration, and an indicator for stairs.",
+      "example": "Route C can be described as “C, 9 minutes, no stairs.”",
+      "pitfalls": [
+        "The route with the shortest duration is not necessarily suitable if it contains stairs."
+      ],
+      "related": [
+        "Precise Requirement",
+        "Route Suitability"
+      ],
+      "heading": "Ein Ort wird zu Daten"
+    },
+    {
+      "id": "eip-01-k02",
+      "term": "Ordered Route List (Geordnete Routenliste)",
+      "kind": "definition",
+      "short": "An ordered route list contains routes in a fixed order, which the algorithm follows when checking them.",
+      "explanation": "The input is a list of routes, each with an identifier, duration, and stairs indicator. The order matters because, when durations are equal, the first suitable route is selected.",
+      "example": "In the list A, B, C, A comes before B, and B comes before C.",
+      "pitfalls": [
+        "Changing the order before selecting a route can change which route is selected in a tie."
+      ],
+      "related": [
+        "Precise Requirement",
+        "Tie-Breaking Rule"
+      ],
+      "heading": "Präzise Anforderung"
+    },
+    {
+      "id": "eip-01-k03",
+      "term": "Precise Requirement (Präzise Anforderung)",
+      "kind": "definition",
+      "short": "A precise requirement describes the input, the desired selection, how ties are handled, and what to return if no route is suitable.",
+      "explanation": "The input is an ordered list of routes with an identifier, duration, and stairs indicator. Select the fastest route without stairs; if durations are equal, keep the first route in the given order. If no route is suitable, report “No suitable route.” This specifies unambiguously what the program is expected to do.",
+      "example": "For A (12 minutes, no stairs), B (7 minutes, with stairs), and C (9 minutes, no stairs), the desired selection is C.",
+      "pitfalls": [
+        "“Find the best route” is imprecise until “best” is defined.",
+        "A route with stairs must not be selected if the requirement excludes stairs."
+      ],
+      "related": [
+        "Ordered Route List",
+        "Route Suitability",
+        "Tie-Breaking Rule",
+        "No Suitable Route"
+      ],
+      "heading": "Präzise Anforderung"
+    },
+    {
+      "id": "eip-01-k04",
+      "term": "Route Suitability (Eignung einer Route)",
+      "kind": "definition",
+      "short": "A route is suitable for this task if it contains no stairs.",
+      "explanation": "Suitability is determined by the requirement and checked separately from duration. Only the suitable routes are then considered when finding the fastest one.",
+      "example": "A route that takes 7 minutes and contains stairs is unsuitable, even if it is faster than a route without stairs.",
+      "pitfalls": [
+        "The shortest duration alone does not determine suitability."
+      ],
+      "related": [
+        "Stairs Filter",
+        "Precise Requirement"
+      ],
+      "heading": "Übung: Regeln für beliebige Routenlisten formulieren"
+    },
+    {
+      "id": "eip-01-k05",
+      "term": "Stairs Filter (Treppenfilter)",
+      "kind": "method",
+      "short": "The stairs filter ignores all routes with stairs so that only suitable routes are compared.",
+      "explanation": "The filter implements the requirement “no stairs.” After filtering, compare only suitable routes by duration. Check the stairs indicator for each route, ignore routes with stairs, and consider routes without stairs for selection.",
+      "example": "For A (12 minutes, no stairs), B (7 minutes, with stairs), and C (9 minutes, no stairs), B is ignored.",
+      "pitfalls": [
+        "The filter does not allow choosing a route with stairs as a fallback if no suitable route exists."
+      ],
+      "related": [
+        "Route Suitability",
+        "Fallback Rule",
+        "Algorithm with a Best-So-Far Route"
+      ],
+      "heading": "Übung: Regeln für beliebige Routenlisten formulieren"
+    },
+    {
+      "id": "eip-01-k06",
+      "term": "No Suitable Route (Keine geeignete Route)",
+      "kind": "definition",
+      "short": "“No suitable route” is the result when no route satisfies the condition “no stairs.”",
+      "explanation": "The algorithm must handle this case explicitly; otherwise, it cannot return a route. This is a valid result when the requirement remains unchanged.",
+      "example": "If A, B, and C all contain stairs, the result is “No suitable route.”",
+      "pitfalls": [
+        "If the requirement is unchanged, do not simply return the fastest route with stairs."
+      ],
+      "related": [
+        "Route Suitability",
+        "Fallback Rule",
+        "Precise Requirement"
+      ],
+      "heading": "Sonderfall: Alle Routen enthalten Treppen"
+    },
+    {
+      "id": "eip-01-k07",
+      "term": "Fallback Rule (Rückfallregel)",
+      "kind": "concept",
+      "short": "A fallback rule that selects a route with stairs when no suitable route exists changes the requirement.",
+      "explanation": "One possible additional rule would be to select the fastest route with stairs if all routes have stairs. This conflicts with the original condition “no stairs” and is appropriate only if the requirement is explicitly changed accordingly. Without that change, the result is “No suitable route.”",
+      "example": "For three routes with stairs, a fallback rule would select the fastest, whereas the unchanged requirement calls for the message “No suitable route.”",
+      "pitfalls": [
+        "An additional program rule must not silently change the desired behavior."
+      ],
+      "related": [
+        "Precise Requirement",
+        "No Suitable Route",
+        "Stairs Filter"
+      ],
+      "heading": "Sonderfall: Alle Routen enthalten Treppen"
+    },
+    {
+      "id": "eip-01-k08",
+      "term": "Tie (Gleichstand)",
+      "kind": "definition",
+      "short": "A tie occurs when at least two suitable routes have the same duration.",
+      "explanation": "When durations are equal, duration alone does not determine a unique selection. The requirement must therefore specify which of the equally fast routes to return.",
+      "example": "A and C are both suitable and each takes 9 minutes.",
+      "pitfalls": [
+        "Without an additional rule, the selection is ambiguous when durations are equal."
+      ],
+      "related": [
+        "Tie-Breaking Rule",
+        "Ordered Route List"
+      ],
+      "heading": "Sonderfall: Gleichstand"
+    },
+    {
+      "id": "eip-01-k09",
+      "term": "Tie-Breaking Rule (Gleichstandsregel)",
+      "kind": "concept",
+      "short": "When durations are equal, the first suitable route in the given order remains selected.",
+      "explanation": "The algorithm replaces its current selection only when it finds a suitable route with a strictly shorter duration. If the duration is equal, it keeps the current route. This makes the result unambiguous and means it depends in a predictable way on the input order.",
+      "example": "If A and C are both suitable and take 9 minutes, A is selected when it appears before C in the list.",
+      "pitfalls": [
+        "Selecting an equally fast route would violate the rule if it comes after the route already selected."
+      ],
+      "related": [
+        "Tie",
+        "Ordered Route List",
+        "Algorithm with a Best-So-Far Route"
+      ],
+      "heading": "Sonderfall: Gleichstand"
+    },
+    {
+      "id": "eip-01-k10",
+      "term": "Algorithm (Algorithmus)",
+      "kind": "definition",
+      "short": "An algorithm is a precise sequence of instructions that solves a task for the intended inputs.",
+      "explanation": "For the route task, the procedure must check every route according to the same rules and return a result. Its instructions must cover special cases such as ties and the absence of suitable routes.",
+      "example": "The route procedure checks the list in order, ignores routes with stairs, and keeps track of the fastest suitable route.",
+      "pitfalls": [
+        "“Choose the best route” is not yet a precise algorithm until “best” is defined."
+      ],
+      "related": [
+        "Precise Requirement",
+        "Algorithm with a Best-So-Far Route",
+        "Correctness"
+      ],
+      "heading": "Algorithmus mit einer bisher besten Route"
+    },
+    {
+      "id": "eip-01-k11",
+      "term": "best = none",
+      "kind": "notation",
+      "short": "The notation `best = none` means that no route has been selected yet at the start.",
+      "explanation": "`best` denotes the storage location for the best suitable route found so far. `none` is a pseudocode value meaning “no route”; it is not the name of a route. If `best` is still `none` at the end, no suitable route exists.",
+      "example": "Before checking the first route, `best = none`.",
+      "pitfalls": [
+        "Do not interpret the value `none` as an actual route identifier.",
+        "The initial marker must remain distinguishable from every selected route."
+      ],
+      "related": [
+        "Best Route So Far",
+        "Algorithm with a Best-So-Far Route",
+        "No Suitable Route"
+      ],
+      "heading": "Algorithmus mit einer bisher besten Route"
+    },
+    {
+      "id": "eip-01-k12",
+      "term": "Best Route So Far (Bisher beste Route)",
+      "kind": "concept",
+      "short": "The best route so far is the fastest suitable route among those already checked.",
+      "explanation": "After each step, the stored selection is the fastest route without stairs among the routes seen so far. A faster suitable route replaces the current selection; otherwise, it is kept.",
+      "example": "After A (12 minutes, no stairs) and B (7 minutes, with stairs), A remains the best route so far because B is unsuitable.",
+      "pitfalls": [
+        "The best route so far refers only to routes already checked, not to entries that have not yet been checked."
+      ],
+      "related": [
+        "best = none",
+        "Stairs Filter",
+        "Tie-Breaking Rule",
+        "Algorithm with a Best-So-Far Route"
+      ],
+      "heading": "Algorithmus mit einer bisher besten Route"
+    },
+    {
+      "id": "eip-01-k13",
+      "term": "Algorithm with a Best-So-Far Route (Algorithmus mit einer bisher besten Route)",
+      "kind": "method",
+      "short": "The procedure checks each route once and updates its stored selection only when it finds a suitable, faster route.",
+      "explanation": "The procedure finds the fastest route without stairs and handles ties and the case where no suitable route exists unambiguously. Start with `best = none`, check each route in the given order, and ignore routes with stairs. Store a suitable route if `best = none`; otherwise, replace the selection only with a strictly faster suitable route. At the end, output `best` or report „Keine geeignete Route“, if `best = none` remains.",
+      "example": "For A (12 minutes, no stairs), B (7 minutes, with stairs), and C (9 minutes, no stairs), A is stored first, B is ignored, and C is stored last.",
+      "pitfalls": [
+        "Routes with equal durations do not replace the current selection.",
+        "A route with stairs must not replace the stored selection."
+      ],
+      "related": [
+        "Best Route So Far",
+        "Stairs Filter",
+        "Tie-Breaking Rule",
+        "No Suitable Route"
+      ],
+      "heading": "Algorithmus mit einer bisher besten Route"
+    },
+    {
+      "id": "eip-01-k14",
+      "term": "Trace for A, Then B, Then C (Ablauf für A, dann B, dann C)",
+      "kind": "example",
+      "short": "The trace shows how the best route so far changes while checking the three input routes.",
+      "explanation": "First, A, which takes 12 minutes and has no stairs, is stored as the first suitable route. B, which takes 7 minutes, is ignored because it has stairs. C is suitable and takes 9 minutes, so it is faster than A; therefore, C is stored and returned.",
+      "example": "After A, `best = A`; after B, `best = A` remains; after C, `best = C`.",
+      "pitfalls": [
+        "B is not selected despite its shorter duration because it contains stairs."
+      ],
+      "related": [
+        "Algorithm with a Best-So-Far Route",
+        "Best Route So Far",
+        "Stairs Filter"
+      ],
+      "heading": "Ablauf für A, dann B, dann C"
+    },
+    {
+      "id": "eip-01-k15",
+      "term": "Single Pass (Einmaliges Durchgehen)",
+      "kind": "method",
+      "short": "For a single selection at the end, it is enough to check the entire route list once, in order.",
+      "explanation": "With this approach, each route is considered exactly once, and the best suitable route found so far is updated as the list is processed. At the end, `best` contains the desired selection or indicates that no suitable route was found.",
+      "example": "With four routes, the procedure checks each of the four once and then returns the result.",
+      "pitfalls": [
+        "Returning a result after each newly received route is a different requirement from making a single selection at the end."
+      ],
+      "related": [
+        "Algorithm with a Best-So-Far Route",
+        "Running Time Θ(n)",
+        "Repeatedly Scanning the Routes Seen So Far"
+      ],
+      "heading": "Was spart das Merken der besten Route?"
+    },
+    {
+      "id": "eip-01-k16",
+      "term": "Per-Route Runtime Assumption (Laufzeitannahme pro Route)",
+      "kind": "concept",
+      "short": "The runtime analysis assumes that checking and updating each route takes a constant amount of work.",
+      "explanation": "The analysis counts how many routes are checked and treats the work on an individual route as independent of the list size. This makes it possible to compare how the total work grows with the number `n` of routes.",
+      "example": "If each route is checked once and each check takes the same amount of work, the number of checks is proportional to `n`.",
+      "pitfalls": [
+        "The runtime claims assume that checking and updating each route continue to take a constant amount of work."
+      ],
+      "related": [
+        "Running Time Θ(n)",
+        "Running Time Θ(n²)",
+        "Single Pass"
+      ],
+      "heading": "Was spart das Merken der besten Route?"
+    },
+    {
+      "id": "eip-01-k17",
+      "term": "Keeping Track of the Best Route So Far (Merken der bisher besten Route)",
+      "kind": "method",
+      "short": "If a result is needed after each new route arrives, the stored selection only needs to be updated with that new route.",
+      "explanation": "The previous selection is carried forward from the preceding step. For each newly received route, one check is enough, so across `n` routes, `n` routes are checked in total.",
+      "example": "After route 1, one route has been checked; after route 2, two in total; and after route 3, three.",
+      "pitfalls": [
+        "This concerns repeated queries as routes arrive and assumes that the previous selection is stored."
+      ],
+      "related": [
+        "Best Route So Far",
+        "Running Time Θ(n)",
+        "Repeatedly Scanning the Routes Seen So Far"
+      ],
+      "heading": "Was spart das Merken der besten Route?"
+    },
+    {
+      "id": "eip-01-k18",
+      "term": "Running Time Θ(n) (Laufzeit Θ(n))",
+      "kind": "notation",
+      "short": "With constant work per route, Θ(n) describes an amount of work that grows in proportion to the number `n` of routes.",
+      "explanation": "Θ(n) means asymptotically linear running time. When keeping track of the best route, each of the `n` routes is checked once, so under the runtime assumption the total work is proportional to `n`.",
+      "example": "With 100 routes, 100 routes are checked; if the number of routes doubles, the number of checks also doubles.",
+      "pitfalls": [
+        "Θ(n) describes how the amount of work grows, not a specific number of seconds."
+      ],
+      "related": [
+        "Per-Route Runtime Assumption",
+        "Keeping Track of the Best Route So Far",
+        "Running Time Θ(n²)"
+      ],
+      "heading": "Was spart das Merken der besten Route?"
+    },
+    {
+      "id": "eip-01-k19",
+      "term": "Repeatedly Scanning the Routes Seen So Far (Erneutes Durchgehen der bisherigen Routen)",
+      "kind": "method",
+      "short": "With repeated scanning, the entire list received so far is checked again after each new route arrives.",
+      "explanation": "One route is checked after the first route arrives, two after the second, and so on, up to `n` checks after the last route arrives. The total number of checks is therefore `1 + 2 + … + n`, or `\\(\\sum_{k=1}^{n} k = \\frac{n(n+1)}{2}\\)`. This approach requires more work than continually keeping track of the best route so far.",
+      "example": "For four routes received, a total of `1 + 2 + 3 + 4 = 10` checks are needed.",
+      "pitfalls": [
+        "Repeated checking occurs when the entire list received so far is processed again after each new route arrives."
+      ],
+      "related": [
+        "Keeping Track of the Best Route So Far",
+        "Running Time Θ(n²)",
+        "Per-Route Runtime Assumption"
+      ],
+      "heading": "Was spart das Merken der besten Route?"
+    },
+    {
+      "id": "eip-01-k20",
+      "term": "Running Time Θ(n²) (Laufzeit Θ(n²))",
+      "kind": "notation",
+      "short": "With constant work per route, Θ(n²) describes an amount of work that grows in proportion to the square of the number of routes.",
+      "explanation": "Θ(n²) means asymptotically quadratic running time. When the list seen so far is checked repeatedly, the total number of checks is `\\(\\sum_{k=1}^{n} k = \\frac{n(n+1)}{2}\\)`, which grows asymptotically like `n²`. This classification applies when the entire list received so far is checked again after each new route arrives.",
+      "example": "With 4 routes, there are 10 checks; with 100 routes, there are 5050.",
+      "pitfalls": [
+        "Here, Θ(n²) applies to repeated checking after each new route arrives, not to a single selection at the end."
+      ],
+      "related": [
+        "Repeatedly Scanning the Routes Seen So Far",
+        "Running Time Θ(n)",
+        "Per-Route Runtime Assumption"
+      ],
+      "heading": "Was spart das Merken der besten Route?"
+    },
+    {
+      "id": "eip-01-k21",
+      "term": "Requirements and AI (Anforderungen und KI)",
+      "kind": "concept",
+      "short": "AI can suggest a procedure, but it cannot decide what your own service should do.",
+      "explanation": "The route a service selects must be specified as a requirement. AI can write code, explain lines, and suggest tests; people must define and check decisions such as the tie-breaking rule and whether a fallback rule is allowed.",
+      "example": "The service must specify whether to choose the first or the last of two equally fast routes.",
+      "pitfalls": [
+        "A plausible-looking AI suggestion does not replace checking whether it meets the desired requirement."
+      ],
+      "related": [
+        "Precise Requirement",
+        "Tie-Breaking Rule",
+        "Testing",
+        "Correctness"
+      ],
+      "heading": "KI: Was bleibt wichtig zu lernen?"
+    },
+    {
+      "id": "eip-01-k22",
+      "term": "Testing (Testen)",
+      "kind": "method",
+      "short": "Testing runs the program on selected inputs and checks whether the results meet the requirements.",
+      "explanation": "Tests should cover typical inputs and important edge cases. For the route task, these include a tie and the case where no route without stairs exists. Tests show whether the program behaves as expected on the inputs tested.",
+      "example": "A test with A and C as equally fast routes without stairs checks whether the first route is selected.",
+      "pitfalls": [
+        "Testing only the typical case does not cover ties or the absence of suitable routes.",
+        "Existing tests do not automatically prove correctness for all possible inputs."
+      ],
+      "related": [
+        "Tie-Breaking Rule",
+        "No Suitable Route",
+        "Correctness",
+        "Requirements and AI"
+      ],
+      "heading": "KI: Was bleibt wichtig zu lernen?"
+    },
+    {
+      "id": "eip-01-k23",
+      "term": "Correctness (Korrektheit)",
+      "kind": "concept",
+      "short": "An algorithm is correct if it returns a result that meets the requirement for every valid input.",
+      "explanation": "For the route task, the algorithm must select the fastest route without stairs, keep the first route when durations are equal, and return the appropriate message when no suitable route exists. Tests check behavior on specific inputs; a correctness argument explains why the procedure returns the required result for all valid inputs.",
+      "example": "If all routes contain stairs, the message “No suitable route” is correct.",
+      "pitfalls": [
+        "A program can run without errors and still return an incorrect result."
+      ],
+      "related": [
+        "Precise Requirement",
+        "Testing",
+        "Algorithm"
+      ],
+      "heading": "KI: Was bleibt wichtig zu lernen?"
+    },
+    {
+      "id": "eip-01-k24",
+      "term": "Efficiency (Effizienz)",
+      "kind": "concept",
+      "short": "Efficiency describes how much work an algorithm requires for an input.",
+      "explanation": "For the route task, compare the work by counting the routes checked and assume constant checking work per route. When queries are repeated, keeping track of the best route requires Θ(n) work, whereas repeatedly scanning the entire list seen so far requires Θ(n²) work.",
+      "example": "For routes arriving one after another, storing the previous selection avoids repeated checks.",
+      "pitfalls": [
+        "A better running time does not make a procedure correct if it violates the requirement."
+      ],
+      "related": [
+        "Running Time Θ(n)",
+        "Running Time Θ(n²)",
+        "Correctness"
+      ],
+      "heading": "KI: Was bleibt wichtig zu lernen?"
+    },
+    {
+      "id": "eip-01-k25",
+      "term": "Implementation in Java (Umsetzung in Java)",
+      "kind": "concept",
+      "short": "In Java, concrete program instructions implement the input, storage, and execution of the route procedure.",
+      "explanation": "The abstract steps are made executable in Java: inputs are read, route values are stored, and the selection rule is implemented. The program can then be run, tested, explained, and repaired when errors occur.",
+      "example": "A Java program can read each route, check its stairs indicator, and store a suitable faster route as the current selection.",
+      "pitfalls": [
+        "A correct implementation must follow the same rules as the precise requirement."
+      ],
+      "related": [
+        "Precise Requirement",
+        "Algorithm with a Best-So-Far Route",
+        "Testing",
+        "Correctness"
+      ],
+      "heading": "Ausblick: Umsetzung in Java"
+    }
+  ],
+  "generator": {
+    "model": "gpt-6-luna",
+    "effort": "xhigh",
+    "promptVersion": "k1",
+    "generatedAt": "2026-11-02T12:22:53.654Z"
+  }
+}

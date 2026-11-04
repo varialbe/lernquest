@@ -1,0 +1,2038 @@
+{
+  "schemaVersion": 1,
+  "id": "eip-01",
+  "module": "EIP",
+  "number": 1,
+  "slug": "von-anforderungen-zum-algorithmus",
+  "title": "From Requirements (Anforderungen) to an Algorithm (Algorithmus)",
+  "summary": "An everyday-language task is translated into data, precise requirements, and an algorithm. Unsuitable routes are excluded, ties are handled unambiguously, and special cases are considered. Remembering the best route so far saves work when results are requested repeatedly; requirements, tests, and correctness still need attention.",
+  "concepts": [
+    "Routes as data",
+    "precise requirement",
+    "ordered list of routes",
+    "suitability and stairs filter",
+    "best route so far",
+    "tie-breaking rule",
+    "no suitable route",
+    "single pass",
+    "running time Θ(n)",
+    "repeated passes and running time Θ(n²)",
+    "requirements and AI",
+    "testing and correctness",
+    "implementation in Java"
+  ],
+  "keyFacts": [
+    "A route is described by its identifier, duration, and whether it includes stairs.",
+    "The selection rule is: choose the fastest route without stairs.",
+    "If durations are equal, the first route in the specified order remains selected.",
+    "If there is no suitable route, the result is “No suitable route”.",
+    "A fallback rule that selects a route with stairs changes the requirement.",
+    "The algorithm starts with best = none.",
+    "Each route is checked in the specified order.",
+    "Routes with stairs are ignored.",
+    "A suitable route is selected if no route has been chosen yet.",
+    "A current choice is replaced only by a faster suitable route.",
+    "In a tie, the current choice is kept.",
+    "A single pass through the list is sufficient when only one selection is needed at the end.",
+    "If a result is needed after each new route, remembering the best route means checking a total of n routes.",
+    "Under the stated assumptions, remembering the best route requires Θ(n) work.",
+    "When all previous routes are checked again each time, the work adds up to n(n+1)/2, which is in Θ(n²).",
+    "The running-time analysis assumes constant work to check and update each route.",
+    "AI cannot decide what your own service should do; you must specify the requirements yourself.",
+    "Tie-breaking rules, appropriate tests, and explanations must be checked.",
+    "Java makes the input, storage, and execution of the procedure concrete."
+  ],
+  "tags": [],
+  "links": [],
+  "source": {
+    "file": "EIP/01_Vorlesungen/EIP VO1.md",
+    "sha256": "f308f409c8ffffb1b770b9f97d5d35a5834e1e450116e8b2ba7329d6cf767acf",
+    "commit": "c01f10e1818d61e8fd05d663cf852d7a59f2e1e4"
+  },
+  "generator": {
+    "model": "gpt-6-luna",
+    "effort": "xhigh",
+    "reviewEffort": "high",
+    "promptVersion": "v3",
+    "generatedAt": "2026-10-31T15:11:32.674Z",
+    "review": {
+      "checked": 44,
+      "fixed": 2,
+      "removed": 0,
+      "notes": "44 Fragen geprüft. Die Ablaufgrafik zur Routenwahl enthielt die Begründung bereits im Diagramm; sie zeigt nun nur die Routendaten. Für die konkrete Daueraufgabe wurde ein berechnendes Prüfs script ergänzt."
+    }
+  },
+  "levels": [
+    {
+      "id": "eip-01-l1",
+      "index": 1,
+      "kind": "basics",
+      "title": "Fundamentals",
+      "questions": [
+        {
+          "id": "eip-01-l1-q01-r1",
+          "type": "single",
+          "prompt": "A route finder should select the fastest route without stairs from several routes. What information must it know for each route so it can distinguish routes, compare their durations, and exclude routes with stairs?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Duration, price, and number of stops"
+            },
+            {
+              "id": "b",
+              "text": "Identifier, starting point, and destination"
+            },
+            {
+              "id": "c",
+              "text": "Identifier, duration, and whether it includes stairs"
+            },
+            {
+              "id": "d",
+              "text": "Whether it includes stairs and its order, but not its duration"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "The identifier distinguishes routes, the duration makes comparison possible, and the stairs information shows whether a route meets the requirement.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO1.md",
+            "heading": "Ein Ort wird zu Daten"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "route data",
+            "requirements for route selection"
+          ]
+        },
+        {
+          "id": "eip-01-l1-q02-r1",
+          "type": "truefalse",
+          "prompt": "A route planner receives a list of routes. Each route has an identifier, a duration in minutes, and information about whether it includes stairs. It should select the fastest route without stairs. If durations are equal, the first suitable route in the list remains selected; if no route is suitable, it reports “No suitable route.” Statement: A route with stairs may be selected if it is faster than all routes without stairs.",
+          "options": [
+            {
+              "id": "true",
+              "text": "True"
+            },
+            {
+              "id": "false",
+              "text": "False"
+            }
+          ],
+          "correct": [
+            "false"
+          ],
+          "explanation": "The requirement allows only routes without stairs. A shorter duration does not make a route with stairs suitable.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO1.md",
+            "heading": "Präzise Anforderung"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "requirements",
+            "route selection",
+            "suitability"
+          ]
+        },
+        {
+          "id": "eip-01-l1-q03-r1",
+          "type": "cloze",
+          "prompt": "A route planner checks an ordered list of routes one by one. It considers only routes without stairs and replaces the current choice only with a route of shorter duration. Thus, if durations are equal, the ___ suitable route in the list remains selected.",
+          "options": [
+            {
+              "id": "a",
+              "text": "first"
+            },
+            {
+              "id": "b",
+              "text": "route with stairs"
+            },
+            {
+              "id": "c",
+              "text": "last"
+            },
+            {
+              "id": "d",
+              "text": "route with the longer identifier"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "When durations are equal, the current choice is not replaced. Therefore, the first suitable route checked remains selected.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO1.md",
+            "heading": "Sonderfall: Gleichstand"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "tie",
+            "order",
+            "route selection"
+          ]
+        },
+        {
+          "id": "eip-01-l1-q04",
+          "type": "multi",
+          "prompt": "Which statements are part of the precise selection rule? More than one answer may be correct.",
+          "options": [
+            {
+              "id": "a",
+              "text": "Select a route with stairs whenever it is the shortest."
+            },
+            {
+              "id": "b",
+              "text": "Select the fastest route without stairs."
+            },
+            {
+              "id": "c",
+              "text": "If durations are equal, keep the first route in the specified order."
+            },
+            {
+              "id": "d",
+              "text": "If no route is suitable, report “No suitable route”."
+            }
+          ],
+          "correct": [
+            "b",
+            "c",
+            "d"
+          ],
+          "explanation": "The rule specifies suitability, how to resolve ties, and the result when there is no suitable route. Option d contradicts the stairs filter.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO1.md",
+            "heading": "Präzise Anforderung"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "precise requirement",
+            "tie-breaking rule",
+            "no suitable route"
+          ]
+        },
+        {
+          "id": "eip-01-l1-q05-r1",
+          "type": "single",
+          "prompt": "A route planner may select only routes without stairs. It checks this ordered list and reports “No suitable route” if no route meets the condition:\n\n- R1: 4 minutes, with stairs\n- R2: 9 minutes, with stairs\n- R3: 6 minutes, with stairs\n\nWhat does the route planner output?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Route R3 (6 minutes)"
+            },
+            {
+              "id": "b",
+              "text": "No suitable route"
+            },
+            {
+              "id": "c",
+              "text": "Route R1 (4 minutes)"
+            },
+            {
+              "id": "d",
+              "text": "Route R2 (9 minutes)"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "All three routes include stairs. Therefore, none meets the selection condition, and the planner reports “No suitable route”.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO1.md",
+            "heading": "Sonderfall: Alle Routen enthalten Treppen"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "selecting routes",
+            "checking conditions",
+            "no suitable route"
+          ]
+        },
+        {
+          "id": "eip-01-l1-q06",
+          "type": "single",
+          "prompt": "What does the initial value `best = none` mean in the selection procedure?",
+          "options": [
+            {
+              "id": "a",
+              "text": "The first route has already been stored as the best."
+            },
+            {
+              "id": "b",
+              "text": "The list is sorted before it is checked."
+            },
+            {
+              "id": "c",
+              "text": "All routes in the list include stairs."
+            },
+            {
+              "id": "d",
+              "text": "No route has been selected yet."
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "`none` indicates that no route has been selected yet. This allows the first suitable route to become the initial choice.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO1.md",
+            "heading": "Algorithmus mit einer bisher besten Route"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "best route so far"
+          ]
+        },
+        {
+          "id": "eip-01-l1-q07-r1",
+          "type": "multi",
+          "prompt": "The goal is to find the fastest route without stairs. If durations are equal, the route that comes first in the specified order remains selected. One possible procedure scans the ordered list once. Which steps are part of this procedure? More than one answer may be correct.",
+          "options": [
+            {
+              "id": "a",
+              "text": "Sort the list by duration first."
+            },
+            {
+              "id": "b",
+              "text": "Check the routes in the specified order."
+            },
+            {
+              "id": "c",
+              "text": "Ignore routes with stairs."
+            },
+            {
+              "id": "d",
+              "text": "Remember a route without stairs only if no route has been selected yet or if it is faster than the current choice."
+            }
+          ],
+          "correct": [
+            "b",
+            "c",
+            "d"
+          ],
+          "explanation": "The procedure scans routes in the specified order, skips routes with stairs, and remembers a suitable route if none has been selected yet or if it is faster. If durations are equal, the current choice is kept. Sorting is not part of the procedure.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO1.md",
+            "heading": "Algorithmus mit einer bisher besten Route"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "selecting routes",
+            "best choice so far",
+            "tie"
+          ]
+        },
+        {
+          "id": "eip-01-l1-q08-r1",
+          "type": "truefalse",
+          "prompt": "A route list contains the routes shown below. The goal is to find the route with the shortest duration that does not include stairs. A procedure checks routes in the specified order, ignores routes with stairs, and remembers the fastest suitable route checked so far.\n\nClaim: This procedure must sort the routes by duration first in order to find the fastest suitable route. True or false?",
+          "context": {
+            "type": "table",
+            "content": "| Order | Route | Duration | Stairs |\n|---|---|---:|---|\n| 1 | A | 8 minutes | No |\n| 2 | B | 5 minutes | Yes |\n| 3 | C | 6 minutes | No |",
+            "caption": "Route list in the specified order"
+          },
+          "options": [
+            {
+              "id": "true",
+              "text": "True"
+            },
+            {
+              "id": "false",
+              "text": "False"
+            }
+          ],
+          "correct": [
+            "false"
+          ],
+          "explanation": "False. In a single pass, it is enough to store the fastest suitable route so far. A newly checked route replaces it only if it has no stairs and is faster. This finds the fastest suitable route at the end without sorting first.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO1.md",
+            "heading": "Algorithmus mit einer bisher besten Route"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "best route so far",
+            "single pass",
+            "sorting"
+          ]
+        },
+        {
+          "id": "eip-01-l1-q09-r1",
+          "type": "cloze",
+          "prompt": "Six routes arrive one after another. The best route so far must be known after each arrival. The procedure remembers the best route so far and checks each newly arrived route exactly once; earlier routes are not checked again. A total of ___ routes are checked.",
+          "options": [
+            {
+              "id": "a",
+              "text": "21"
+            },
+            {
+              "id": "b",
+              "text": "12"
+            },
+            {
+              "id": "c",
+              "text": "6"
+            },
+            {
+              "id": "d",
+              "text": "36"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Each of the six newly arriving routes is checked exactly once. That makes 6 checks in total.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO1.md",
+            "heading": "Was spart das Merken der besten Route?"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "counting route checks",
+            "stored choice"
+          ]
+        },
+        {
+          "id": "eip-01-l1-q10",
+          "type": "single",
+          "prompt": "What must be specified for a service before AI can reliably select the appropriate route?",
+          "options": [
+            {
+              "id": "a",
+              "text": "What the service should do in a tie and when routes are unsuitable"
+            },
+            {
+              "id": "b",
+              "text": "That every route is allowed regardless of stairs"
+            },
+            {
+              "id": "c",
+              "text": "That the longest route is always output"
+            },
+            {
+              "id": "d",
+              "text": "Which answer AI itself prefers"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "AI cannot specify the requirements of your service itself. These include, for example, how to handle ties and what to do when no route is suitable.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO1.md",
+            "heading": "KI: Was bleibt wichtig zu lernen?"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "requirements and AI"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "eip-01-l2",
+      "index": 2,
+      "kind": "apply",
+      "title": "Apply",
+      "questions": [
+        {
+          "id": "eip-01-l2-q01",
+          "type": "calc",
+          "prompt": "Choose the fastest route without stairs.\n\n| Route | Duration | Stairs |\n|---|---:|---|\n| A | 14 minutes | No |\n| B | 6 minutes | Yes |\n| C | 12 minutes | No |\n| D | 11 minutes | Yes |",
+          "options": [
+            {
+              "id": "a",
+              "text": "Route A"
+            },
+            {
+              "id": "b",
+              "text": "Route B"
+            },
+            {
+              "id": "c",
+              "text": "Route D"
+            },
+            {
+              "id": "d",
+              "text": "Route C"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "B and D are excluded because they have stairs. Of A and C, C is faster at 12 minutes.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO1.md",
+            "heading": "Ein Ort wird zu Daten"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "suitability and stairs filter",
+            "precise requirement"
+          ]
+        },
+        {
+          "id": "eip-01-l2-q02",
+          "type": "calc",
+          "prompt": "The routes appear in this order: C (8 minutes, no stairs), A (8 minutes, no stairs), B (7 minutes, with stairs). Which route is selected?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Route B"
+            },
+            {
+              "id": "b",
+              "text": "Route A"
+            },
+            {
+              "id": "c",
+              "text": "Route C"
+            },
+            {
+              "id": "d",
+              "text": "No suitable route"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "C is the first suitable route, at 8 minutes. A is just as fast and therefore does not replace C; B is ignored because it has stairs.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO1.md",
+            "heading": "Sonderfall: Gleichstand"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "tie-breaking rule",
+            "ordered list of routes"
+          ]
+        },
+        {
+          "id": "eip-01-l2-q03-r1",
+          "type": "code_output",
+          "prompt": "In the following procedure, a smaller number of minutes means a faster route. Routes with stairs are skipped; if durations are equal, the current choice is kept. Which identifier is output?",
+          "context": {
+            "type": "code",
+            "content": "routes = [\n    (\"X\", 15, False),\n    (\"Y\", 6, True),\n    (\"Z\", 9, False),\n]\n\nbest = None\nfor name, minutes, stairs in routes:\n    if not stairs:\n        if best is None or minutes < best[1]:\n            best = (name, minutes)\n\nprint(best[0] if best is not None else \"Keine geeignete Route\")",
+            "language": "python",
+            "caption": "Route list and selection procedure"
+          },
+          "options": [
+            {
+              "id": "a",
+              "text": "Z"
+            },
+            {
+              "id": "b",
+              "text": "Y"
+            },
+            {
+              "id": "c",
+              "text": "X"
+            },
+            {
+              "id": "d",
+              "text": "No suitable route"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "Y is ignored because it has stairs. X is remembered first; Z is also suitable and, at 9 minutes, is faster than X at 15 minutes.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO1.md",
+            "heading": "Algorithmus mit einer bisher besten Route"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "algorithm",
+            "route selection",
+            "step-by-step execution"
+          ]
+        },
+        {
+          "id": "eip-01-l2-q04",
+          "type": "calc",
+          "prompt": "Process the list in order. Which route is currently the best after checking D?\n\n| Route | Duration | Stairs |\n|---|---:|---|\n| A | 10 minutes | No |\n| B | 8 minutes | No |\n| C | 3 minutes | Yes |\n| D | 8 minutes | No |",
+          "options": [
+            {
+              "id": "a",
+              "text": "Route C"
+            },
+            {
+              "id": "b",
+              "text": "Route B"
+            },
+            {
+              "id": "c",
+              "text": "Route D"
+            },
+            {
+              "id": "d",
+              "text": "Route A"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "B replaces A because B is faster. C is ignored. D is just as fast as B, so it does not replace the current choice.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO1.md",
+            "heading": "Sonderfall: Gleichstand"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "best route so far",
+            "tie-breaking rule"
+          ]
+        },
+        {
+          "id": "eip-01-l2-q05",
+          "type": "diagram",
+          "prompt": "The rule is: choose the fastest route without stairs. Why is C remembered as the new best route?",
+          "context": {
+            "type": "mermaid",
+            "content": "flowchart TD\n    A[\"A: 12 Minuten, ohne Treppen\"] --> B[\"B: 7 Minuten, mit Treppen\"]\n    B --> C[\"C: 9 Minuten, ohne Treppen\"]",
+            "caption": "Routes in the specified order"
+          },
+          "options": [
+            {
+              "id": "a",
+              "text": "C is just as fast as A and comes later."
+            },
+            {
+              "id": "b",
+              "text": "C has no stairs and is faster than the current choice, A."
+            },
+            {
+              "id": "c",
+              "text": "C has stairs but is the last route."
+            },
+            {
+              "id": "d",
+              "text": "A is always discarded after B is checked."
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "A is initially the first suitable route. B is ignored; C is also suitable and is faster, at 9 rather than 12 minutes.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO1.md",
+            "heading": "Ablauf für A, dann B, dann C"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "best route so far",
+            "suitability and stairs filter"
+          ]
+        },
+        {
+          "id": "eip-01-l2-q06",
+          "type": "calc",
+          "prompt": "For $n=5$ routes, a result is needed after each new route. How many routes are checked in total if the best route so far is remembered?",
+          "options": [
+            {
+              "id": "a",
+              "text": "10"
+            },
+            {
+              "id": "b",
+              "text": "15"
+            },
+            {
+              "id": "c",
+              "text": "5"
+            },
+            {
+              "id": "d",
+              "text": "25"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Each new route is checked exactly once. With five routes, that makes five checks in total.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO1.md",
+            "heading": "Was spart das Merken der besten Route?"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "best route so far",
+            "running time Θ(n)"
+          ]
+        },
+        {
+          "id": "eip-01-l2-q07",
+          "type": "calc",
+          "prompt": "There are two routes: R1 (4 minutes, with stairs) and R2 (6 minutes, without stairs). Which route meets the selection rule?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Both routes"
+            },
+            {
+              "id": "b",
+              "text": "R1"
+            },
+            {
+              "id": "c",
+              "text": "R2"
+            },
+            {
+              "id": "d",
+              "text": "No suitable route"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "R1 is shorter, but it is unsuitable because it has stairs. R2 is the only suitable route.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO1.md",
+            "heading": "Ein Ort wird zu Daten"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "suitability and stairs filter",
+            "precise requirement"
+          ]
+        },
+        {
+          "id": "eip-01-l2-q08",
+          "type": "multi",
+          "prompt": "In which cases is `best` updated? More than one answer may be correct.",
+          "options": [
+            {
+              "id": "a",
+              "text": "The current route has no stairs and is faster than `best`."
+            },
+            {
+              "id": "b",
+              "text": "The current route is just as fast as `best`."
+            },
+            {
+              "id": "c",
+              "text": "The current route has stairs but is shorter than `best`."
+            },
+            {
+              "id": "d",
+              "text": "No route has been selected yet, and the current route has no stairs."
+            }
+          ],
+          "correct": [
+            "a",
+            "d"
+          ],
+          "explanation": "Only suitable routes can be remembered. A suitable route is chosen when the current choice is empty or its duration is shorter; stairs and a tie do not cause an update.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO1.md",
+            "heading": "Algorithmus mit einer bisher besten Route"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "best route so far",
+            "suitability and stairs filter",
+            "tie-breaking rule"
+          ]
+        },
+        {
+          "id": "eip-01-l2-q09",
+          "type": "cloze",
+          "prompt": "For a single selection at the end, it is sufficient to go through the list ___.",
+          "options": [
+            {
+              "id": "a",
+              "text": "not at all"
+            },
+            {
+              "id": "b",
+              "text": "$n$ times"
+            },
+            {
+              "id": "c",
+              "text": "until a route with stairs appears"
+            },
+            {
+              "id": "d",
+              "text": "once"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "If no intermediate result is needed after each new route, a single complete pass at the end is enough.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO1.md",
+            "heading": "Was spart das Merken der besten Route?"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "single pass"
+          ]
+        },
+        {
+          "id": "eip-01-l2-q10",
+          "type": "diagram",
+          "prompt": "Currently, A is the best suitable route at 8 minutes. The next route, C, is also 8 minutes and has no stairs. Which step follows in the diagram?",
+          "context": {
+            "type": "mermaid",
+            "content": "flowchart TD\n    S[\"Route prüfen\"] --> T{\"Treppen?\"}\n    T -- \"Ja\" --> N[\"Route ignorieren\"]\n    T -- \"Nein\" --> B{\"best ist none?\"}\n    B -- \"Ja\" --> M[\"Route merken\"]\n    B -- \"Nein\" --> F{\"schneller als best?\"}\n    F -- \"Ja\" --> U[\"best aktualisieren\"]\n    F -- \"Nein\" --> K[\"best behalten\"]",
+            "caption": "Decisions for a route being checked"
+          },
+          "options": [
+            {
+              "id": "a",
+              "text": "The procedure reports “No suitable route”."
+            },
+            {
+              "id": "b",
+              "text": "C is ignored because all routes without stairs are unsuitable."
+            },
+            {
+              "id": "c",
+              "text": "The current choice is kept because C is not faster."
+            },
+            {
+              "id": "d",
+              "text": "C is remembered because it is suitable."
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "C has no stairs, but its duration is not shorter than A's. In a tie, the current choice is kept.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO1.md",
+            "heading": "Algorithmus mit einer bisher besten Route"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "tie-breaking rule",
+            "best route so far"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "eip-01-l3",
+      "index": 3,
+      "kind": "deepen",
+      "title": "Explore further",
+      "questions": [
+        {
+          "id": "eip-01-l3-q01",
+          "type": "single",
+          "prompt": "A list contains only routes with stairs. Which output satisfies the stated requirement “without stairs”?",
+          "options": [
+            {
+              "id": "a",
+              "text": "The route with the shortest duration"
+            },
+            {
+              "id": "b",
+              "text": "The first route in the list"
+            },
+            {
+              "id": "c",
+              "text": "“No suitable route”"
+            },
+            {
+              "id": "d",
+              "text": "The route whose duration is closest to the average from above"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "None of the routes meets the suitability condition. Selecting the fastest route with stairs would change the requirement.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO1.md",
+            "heading": "Sonderfall: Alle Routen enthalten Treppen"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "no suitable route",
+            "precise requirement"
+          ]
+        },
+        {
+          "id": "eip-01-l3-q02-r1",
+          "type": "truefalse",
+          "prompt": "A route planner checks an ordered list. It selects the fastest route without stairs; if durations are equal, the first suitable route checked remains selected. If there is no route without stairs, it reports “No suitable route.” Statement: If two suitable routes are equally fast, this rule keeps the route checked first.",
+          "options": [
+            {
+              "id": "true",
+              "text": "True"
+            },
+            {
+              "id": "false",
+              "text": "False"
+            }
+          ],
+          "correct": [
+            "true"
+          ],
+          "explanation": "The current choice is replaced only by a faster suitable route. Therefore, if durations are equal, the first suitable route checked remains selected.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO1.md",
+            "heading": "Sonderfall: Gleichstand"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "tie",
+            "order",
+            "route selection"
+          ]
+        },
+        {
+          "id": "eip-01-l3-q03",
+          "type": "multi",
+          "prompt": "Which statements apply to the idea of choosing the fastest route with stairs as a fallback when all routes have stairs? More than one answer may be correct.",
+          "options": [
+            {
+              "id": "a",
+              "text": "It is compatible with the unchanged requirement “without stairs.”"
+            },
+            {
+              "id": "b",
+              "text": "It changes the requirement and needs a correspondingly changed rule."
+            },
+            {
+              "id": "c",
+              "text": "With the requirement unchanged, the result is “No suitable route.”"
+            },
+            {
+              "id": "d",
+              "text": "It is always required as soon as no route is suitable."
+            }
+          ],
+          "correct": [
+            "b",
+            "c"
+          ],
+          "explanation": "Using a route with stairs as a fallback conflicts with the unchanged suitability condition. Unless the requirement is changed, the result is instead reported as no suitable route.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO1.md",
+            "heading": "Sonderfall: Alle Routen enthalten Treppen"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "no suitable route",
+            "precise requirement"
+          ]
+        },
+        {
+          "id": "eip-01-l3-q04-r1",
+          "type": "single",
+          "prompt": "A total of $n$ routes arrive one after another. The best route so far must be known after each arrival. At each arrival, the procedure checks only the new route once and, if needed, compares it with the stored choice in constant time. Earlier routes are not checked again. How does the total number of route checks grow over all $n$ arrivals?",
+          "options": [
+            {
+              "id": "a",
+              "text": "In $\\Theta(1)$"
+            },
+            {
+              "id": "b",
+              "text": "In $\\Theta(\\log n)$"
+            },
+            {
+              "id": "c",
+              "text": "In $\\Theta(n^2)$"
+            },
+            {
+              "id": "d",
+              "text": "In $\\Theta(n)$"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Exactly one route is checked at each of the $n$ arrivals. The total is therefore $n$ and grows in $\\Theta(n)$.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO1.md",
+            "heading": "Was spart das Merken der besten Route?"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "asymptotic running time",
+            "counting route checks",
+            "stored choice"
+          ]
+        },
+        {
+          "id": "eip-01-l3-q05-r1",
+          "type": "calc",
+          "prompt": "Four routes arrive one after another. The result is needed after each arrival. Procedure M remembers the best route so far and checks only the new route once at each arrival. Procedure N starts over at each arrival and checks all routes received so far: 1 route at the first arrival, 2 at the second, and so on. How many route checks in total do M and N perform over all four arrivals?",
+          "options": [
+            {
+              "id": "a",
+              "text": "4 and 8"
+            },
+            {
+              "id": "b",
+              "text": "10 and 4"
+            },
+            {
+              "id": "c",
+              "text": "16 and 10"
+            },
+            {
+              "id": "d",
+              "text": "4 and 10"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Procedure M checks one new route at each of the four arrivals, for a total of 4. Procedure N checks a total of $1+2+3+4=10$ routes.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO1.md",
+            "heading": "Was spart das Merken der besten Route?"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "counting route checks",
+            "stored choice",
+            "repeated passes"
+          ]
+        },
+        {
+          "id": "eip-01-l3-q06",
+          "type": "truefalse",
+          "prompt": "Even when only one selection is needed at the end, the list must be traversed from the beginning again whenever a new route arrives.",
+          "options": [
+            {
+              "id": "true",
+              "text": "True"
+            },
+            {
+              "id": "false",
+              "text": "False"
+            }
+          ],
+          "correct": [
+            "false"
+          ],
+          "explanation": "Repeated passes are intended for cases where a result is needed after each new route. A single pass is enough for one final result.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO1.md",
+            "heading": "Was spart das Merken der besten Route?"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "single pass",
+            "repeated passes and running time Θ(n²)"
+          ]
+        },
+        {
+          "id": "eip-01-l3-q07",
+          "type": "multi",
+          "prompt": "Which assumptions or conditions are part of the running-time analysis? More than one answer may be correct.",
+          "options": [
+            {
+              "id": "a",
+              "text": "A route’s duration increases with each check."
+            },
+            {
+              "id": "b",
+              "text": "Updating the choice is assumed to take constant work."
+            },
+            {
+              "id": "c",
+              "text": "The comparison considers results after each newly received route."
+            },
+            {
+              "id": "d",
+              "text": "Checking one route is assumed to take constant work."
+            }
+          ],
+          "correct": [
+            "b",
+            "c",
+            "d"
+          ],
+          "explanation": "The table counts route checks and assumes constant work per check and update. The quadratic comparison applies when a result is needed after each new route arrives.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO1.md",
+            "heading": "Was spart das Merken der besten Route?"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "running time Θ(n)",
+            "repeated passes and running time Θ(n²)"
+          ]
+        },
+        {
+          "id": "eip-01-l3-q08",
+          "type": "code_output",
+          "prompt": "The input consists of X (5 minutes, with stairs) and Y (8 minutes, with stairs). What does the procedure report?\n\n```text\nbest = none\n\nfor each route in the supplied order:\n    if the route has no stairs:\n        if best is none:\n            best = route\n        else if the route is faster than best:\n            best = route\n\nreport best, or \"no suitable route\" if best is none\n```",
+          "options": [
+            {
+              "id": "a",
+              "text": "Y"
+            },
+            {
+              "id": "b",
+              "text": "X"
+            },
+            {
+              "id": "c",
+              "text": "No suitable route"
+            },
+            {
+              "id": "d",
+              "text": "X and Y"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Both routes have stairs and are therefore ignored. `best` remains `none`, so “No suitable route” is reported.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO1.md",
+            "heading": "Algorithmus mit einer bisher besten Route"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "suitability and stairs filter",
+            "no suitable route"
+          ]
+        },
+        {
+          "id": "eip-01-l3-q09-r1",
+          "type": "single",
+          "prompt": "A route planner should select the fastest route without stairs from an ordered list. If durations are equal, it should keep the first suitable route in the list. An implementation replaces `best` even when a newly checked suitable route is just as fast as `best`. Which specified rule does the implementation violate?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Reporting when no route is suitable"
+            },
+            {
+              "id": "b",
+              "text": "Ignoring routes with stairs"
+            },
+            {
+              "id": "c",
+              "text": "Storing duration as route data"
+            },
+            {
+              "id": "d",
+              "text": "Keeping the first route in the order in a tie"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "If `best` is replaced when durations are equal, the later route wins. The specified rule requires keeping the first suitable route.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO1.md",
+            "heading": "Präzise Anforderung"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "tie",
+            "requirements",
+            "algorithm"
+          ]
+        },
+        {
+          "id": "eip-01-l3-q10",
+          "type": "truefalse",
+          "prompt": "AI can infer from a route list alone which tie-breaking rule its own service should use.",
+          "options": [
+            {
+              "id": "true",
+              "text": "True"
+            },
+            {
+              "id": "false",
+              "text": "False"
+            }
+          ],
+          "correct": [
+            "false"
+          ],
+          "explanation": "How a tie should be handled is a requirement of the service. AI can ask for clarification or implement a rule, but the decision must be specified.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO1.md",
+            "heading": "KI: Was bleibt wichtig zu lernen?"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "requirements and AI"
+          ]
+        },
+        {
+          "id": "eip-01-l3-q11",
+          "type": "multi",
+          "prompt": "AI has programmed route selection. What should still be checked? More than one answer may be correct.",
+          "options": [
+            {
+              "id": "a",
+              "text": "Whether the tie-breaking rule covers the intended case."
+            },
+            {
+              "id": "b",
+              "text": "Whether AI itself specified the service’s requirements."
+            },
+            {
+              "id": "c",
+              "text": "Whether the explanation of the code is correct."
+            },
+            {
+              "id": "d",
+              "text": "Whether appropriate tests include the tie case."
+            }
+          ],
+          "correct": [
+            "a",
+            "c",
+            "d"
+          ],
+          "explanation": "Even with AI, the desired rule must be specified, and tests and explanations must be checked. AI cannot determine the requirements of your service for you.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO1.md",
+            "heading": "KI: Was bleibt wichtig zu lernen?"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "requirements and AI",
+            "testing and correctness"
+          ]
+        },
+        {
+          "id": "eip-01-l3-q12",
+          "type": "diagram",
+          "prompt": "There is no best route so far. The current route P has no stairs. Which step follows in the diagram?",
+          "context": {
+            "type": "mermaid",
+            "content": "flowchart TD\n    S[\"Route prüfen\"] --> T{\"Treppen?\"}\n    T -- \"Ja\" --> N[\"Route ignorieren\"]\n    T -- \"Nein\" --> B{\"best ist none?\"}\n    B -- \"Ja\" --> M[\"Route merken\"]\n    B -- \"Nein\" --> F{\"schneller als best?\"}\n    F -- \"Ja\" --> U[\"best aktualisieren\"]\n    F -- \"Nein\" --> K[\"best behalten\"]",
+            "caption": "Decisions for a route being checked"
+          },
+          "options": [
+            {
+              "id": "a",
+              "text": "The procedure immediately reports “No suitable route”."
+            },
+            {
+              "id": "b",
+              "text": "P is ignored."
+            },
+            {
+              "id": "c",
+              "text": "P is remembered as the best route so far."
+            },
+            {
+              "id": "d",
+              "text": "P is remembered only if it is faster than an already selected route."
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "P is suitable, and there is no current choice. Therefore, the procedure proceeds to remember the route.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO1.md",
+            "heading": "Algorithmus mit einer bisher besten Route"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "best route so far",
+            "suitability and stairs filter"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "eip-01-l4",
+      "index": 4,
+      "kind": "boss",
+      "title": "Boss",
+      "questions": [
+        {
+          "id": "eip-01-l4-q01",
+          "type": "calc",
+          "prompt": "A service should choose the fastest suitable route and keep the first one in a tie. Which route is selected from this ordered list?\n\n| Route | Duration | Stairs |\n|---|---:|---|\n| K | 9 minutes | No |\n| L | 6 minutes | Yes |\n| M | 7 minutes | No |\n| N | 7 minutes | No |",
+          "options": [
+            {
+              "id": "a",
+              "text": "L"
+            },
+            {
+              "id": "b",
+              "text": "K"
+            },
+            {
+              "id": "c",
+              "text": "M"
+            },
+            {
+              "id": "d",
+              "text": "N"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "L is excluded because it has stairs. M is faster than K at 7 minutes. N is just as fast as M, so it does not replace the earlier choice.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO1.md",
+            "heading": "Algorithmus mit einer bisher besten Route"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "suitability and stairs filter",
+            "tie-breaking rule",
+            "best route so far"
+          ]
+        },
+        {
+          "id": "eip-01-l4-q02-r1",
+          "type": "multi",
+          "prompt": "A route planner receives n routes one after another. After each arrival, the fastest route without stairs so far must be known. Checking one route and updating the stored choice each take constant work. Two procedures are compared: the first checks the entire list received so far again after each arrival. The second stores the current choice and checks only the newly received route. Which statements are correct? More than one answer is correct.",
+          "options": [
+            {
+              "id": "a",
+              "text": "With repeated passes over all previously received routes, a total of 1 + 2 + … + n checks are counted."
+            },
+            {
+              "id": "b",
+              "text": "Repeated passes through the list are necessary for a single selection at the end."
+            },
+            {
+              "id": "c",
+              "text": "With repeated passes, the total work grows in Θ(n²)."
+            },
+            {
+              "id": "d",
+              "text": "With a stored choice, a total of n routes are checked."
+            }
+          ],
+          "correct": [
+            "a",
+            "c",
+            "d"
+          ],
+          "explanation": "Repeated checking examines lists of lengths 1 through n, for a total of n(n+1)/2 routes. With a stored choice, each route is checked only once. One pass is enough when only a single result is needed at the end.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO1.md",
+            "heading": "Was spart das Merken der besten Route?"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "running time",
+            "Θ notation",
+            "incremental processing"
+          ]
+        },
+        {
+          "id": "eip-01-l4-q03-r2",
+          "type": "code_output",
+          "prompt": "`minutes` gives the duration in minutes; fewer minutes mean a faster route. `stairs` is `True` if a route includes stairs. The program considers only routes without stairs and replaces `best` only when a route has a shorter duration. If durations are equal, the route remembered first remains selected. Which identifier is output?",
+          "context": {
+            "type": "code",
+            "content": "routes = [\n    (\"P\", 18, False),\n    (\"Q\", 18, False),\n    (\"R\", 4, True),\n    (\"S\", 7, False),\n]\n\nbest = None\nfor name, minutes, stairs in routes:\n    if not stairs:\n        if best is None or minutes < best[1]:\n            best = (name, minutes)\n\nprint(best[0] if best is not None else \"no suitable route\")",
+            "language": "python",
+            "caption": "Program with route data"
+          },
+          "options": [
+            {
+              "id": "a",
+              "text": "Q"
+            },
+            {
+              "id": "b",
+              "text": "S"
+            },
+            {
+              "id": "c",
+              "text": "R"
+            },
+            {
+              "id": "d",
+              "text": "P"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "P is remembered first. Q is just as fast and does not replace P. R is ignored because it has stairs. S is suitable and, at 7 minutes, is faster than P at 18 minutes, so S is output.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO1.md",
+            "heading": "Algorithmus mit einer bisher besten Route"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "code execution",
+            "tie",
+            "route selection"
+          ]
+        },
+        {
+          "id": "eip-01-l4-q04",
+          "type": "single",
+          "prompt": "A list contains suitable routes with durations of 11, 8, and 8 minutes. The first route with a duration of 8 minutes comes before the second. What is the duration of the result?",
+          "options": [
+            {
+              "id": "a",
+              "text": "7 minutes"
+            },
+            {
+              "id": "b",
+              "text": "8 minutes"
+            },
+            {
+              "id": "c",
+              "text": "11 minutes"
+            },
+            {
+              "id": "d",
+              "text": "There is no suitable route."
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "The fastest duration is 8 minutes. The tie between the two routes with durations of 8 minutes does not change the result’s duration; the first of the two remains selected.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO1.md",
+            "heading": "Präzise Anforderung"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "precise requirement",
+            "tie-breaking rule"
+          ]
+        },
+        {
+          "id": "eip-01-l4-q05",
+          "type": "calc",
+          "prompt": "For $n=6$, a result is needed after each new route. How many checks are there in total with a stored choice and with a fresh pass each time?",
+          "options": [
+            {
+              "id": "a",
+              "text": "6 and 36"
+            },
+            {
+              "id": "b",
+              "text": "21 and 6"
+            },
+            {
+              "id": "c",
+              "text": "6 and 21"
+            },
+            {
+              "id": "d",
+              "text": "12 and 21"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "With a stored choice, each route is checked once: 6 checks. Starting over gives $1+2+3+4+5+6=21$ checks.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO1.md",
+            "heading": "Was spart das Merken der besten Route?"
+          },
+          "difficulty": 5,
+          "concepts": [
+            "running time Θ(n)",
+            "repeated passes and running time Θ(n²)"
+          ]
+        },
+        {
+          "id": "eip-01-l4-q06",
+          "type": "diagram",
+          "prompt": "There is no best route so far. The current route X has stairs. What happens according to the procedure?",
+          "context": {
+            "type": "mermaid",
+            "content": "flowchart TD\n    S[\"Route prüfen\"] --> T{\"Treppen?\"}\n    T -- \"Ja\" --> N[\"Route ignorieren\"]\n    T -- \"Nein\" --> B{\"best ist none?\"}\n    B -- \"Ja\" --> M[\"Route merken\"]\n    B -- \"Nein\" --> F{\"schneller als best?\"}\n    F -- \"Ja\" --> U[\"best aktualisieren\"]\n    F -- \"Nein\" --> K[\"best behalten\"]",
+            "caption": "Decisions for a route being checked"
+          },
+          "options": [
+            {
+              "id": "a",
+              "text": "The procedure reports that X is the first route."
+            },
+            {
+              "id": "b",
+              "text": "X is remembered only if its duration is under 5 minutes."
+            },
+            {
+              "id": "c",
+              "text": "X is remembered as the best route."
+            },
+            {
+              "id": "d",
+              "text": "X is ignored; the choice remains empty for now."
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "The first decision checks whether the route has stairs. If the answer is “Yes,” it is ignored before the state of `best` is considered.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO1.md",
+            "heading": "Algorithmus mit einer bisher besten Route"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "suitability and stairs filter",
+            "best route so far"
+          ]
+        },
+        {
+          "id": "eip-01-l4-q07-r1",
+          "type": "truefalse",
+          "prompt": "A route planner should select the fastest route without stairs from an ordered list. A smaller number of minutes means a faster route. The procedure stores the best route so far and replaces it only when a newly checked suitable route is faster. Statement: If durations are equal, the current choice is kept.",
+          "options": [
+            {
+              "id": "true",
+              "text": "True"
+            },
+            {
+              "id": "false",
+              "text": "False"
+            }
+          ],
+          "correct": [
+            "true"
+          ],
+          "explanation": "A route with the same duration is not faster than `best`. Therefore, it does not replace the current choice.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO1.md",
+            "heading": "Algorithmus mit einer bisher besten Route"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "algorithm",
+            "tie",
+            "route selection"
+          ]
+        },
+        {
+          "id": "eip-01-l4-q08",
+          "type": "single",
+          "prompt": "A team wants to select the later route in a tie. What must it do?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Allow all routes with stairs."
+            },
+            {
+              "id": "b",
+              "text": "Explicitly change the tie-breaking requirement."
+            },
+            {
+              "id": "c",
+              "text": "Omit the duration of all routes."
+            },
+            {
+              "id": "d",
+              "text": "Remove the “No suitable route” message."
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "The specified rule keeps the first route in a tie. If the later route should win instead, the desired requirement must be clearly specified and implemented.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO1.md",
+            "heading": "KI: Was bleibt wichtig zu lernen?"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "tie-breaking rule",
+            "requirements and AI"
+          ]
+        },
+        {
+          "id": "eip-01-l4-q09",
+          "type": "cloze",
+          "prompt": "When all routes received so far are checked again, the number of checks adds up to $1+2+\\dots+n=$ ___.",
+          "options": [
+            {
+              "id": "a",
+              "text": "$n^2$"
+            },
+            {
+              "id": "b",
+              "text": "$n$"
+            },
+            {
+              "id": "c",
+              "text": "$n(n+1)/2$"
+            },
+            {
+              "id": "d",
+              "text": "$2n+1$"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "The passes check 1, 2, up to n routes in sequence. Their sum is $n(n+1)/2$.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO1.md",
+            "heading": "Was spart das Merken der besten Route?"
+          },
+          "difficulty": 5,
+          "concepts": [
+            "repeated passes and running time Θ(n²)"
+          ]
+        },
+        {
+          "id": "eip-01-l4-q10",
+          "type": "single",
+          "prompt": "For an evaluation at the end, one pass through n routes is sufficient. Which order of growth describes the number of route checks?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Θ(n²)"
+            },
+            {
+              "id": "b",
+              "text": "Θ(n)"
+            },
+            {
+              "id": "c",
+              "text": "Θ(n(n+1)/2) per route"
+            },
+            {
+              "id": "d",
+              "text": "Θ(1)"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "One pass checks each of the n routes once. The number of checks therefore grows linearly with n.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO1.md",
+            "heading": "Was spart das Merken der besten Route?"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "single pass",
+            "running time Θ(n)"
+          ]
+        },
+        {
+          "id": "eip-01-l4-q11",
+          "type": "multi",
+          "prompt": "AI provides code for route selection. Which tasks remain for the team? More than one answer may be correct.",
+          "options": [
+            {
+              "id": "a",
+              "text": "Specify which route should win in a tie."
+            },
+            {
+              "id": "b",
+              "text": "Check that the explanation of the code is correct."
+            },
+            {
+              "id": "c",
+              "text": "Check whether the tests include the tie case."
+            },
+            {
+              "id": "d",
+              "text": "Assume that AI must know the requirements of your own service."
+            }
+          ],
+          "correct": [
+            "a",
+            "b",
+            "c"
+          ],
+          "explanation": "The team remains responsible for decisions about the desired behavior and for checking tests and explanations. AI cannot look up what your own service should do.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO1.md",
+            "heading": "KI: Was bleibt wichtig zu lernen?"
+          },
+          "difficulty": 5,
+          "concepts": [
+            "requirements and AI",
+            "testing and correctness"
+          ]
+        },
+        {
+          "id": "eip-01-l4-q12",
+          "type": "single",
+          "prompt": "Which activity is part of the preview of the implementation in Java?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Read inputs, store values, and execute the procedure"
+            },
+            {
+              "id": "b",
+              "text": "Remove the duration of all routes from the list"
+            },
+            {
+              "id": "c",
+              "text": "Always prefer routes with stairs"
+            },
+            {
+              "id": "d",
+              "text": "Let AI decide the tie-breaking rule"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "The Java implementation makes the procedure executable: inputs are read, values are stored, and the behavior can be tested, explained, and fixed.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO1.md",
+            "heading": "Ausblick: Umsetzung in Java"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "implementation in Java",
+            "testing and correctness"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "eip-01-l5",
+      "index": 5,
+      "kind": "bonus",
+      "title": "Practice: Algorithms in Everyday Life",
+      "questions": [
+        {
+          "id": "eip-01-l5-q01",
+          "type": "single",
+          "prompt": "An app should select the fastest route without stairs from a list. What information must it store for each route at minimum to apply this rule and identify the result?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Length, a photo, and number of stops"
+            },
+            {
+              "id": "b",
+              "text": "Identifier, duration, and whether stairs are present"
+            },
+            {
+              "id": "c",
+              "text": "Name of the person traveling, phone model, and battery level"
+            },
+            {
+              "id": "d",
+              "text": "Identifier, start time, and map color"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "The app needs an identifier to output the selected route, a duration for comparison, and information about stairs for filtering. This represents routes as data that matches the precise requirement.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO1.md",
+            "heading": "Ein Ort wird zu Daten"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "routes as data",
+            "precise requirement"
+          ]
+        },
+        {
+          "id": "eip-01-l5-q02",
+          "type": "single",
+          "prompt": "You ask AI to write a room finder for a university. Each room has an “accessible” attribute and a walking time. Which instruction specifies its behavior unambiguously?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Find a room that is as good as possible."
+            },
+            {
+              "id": "b",
+              "text": "Choose the room marked accessible with the shortest walking time; if there is a tie, choose the one listed first. If there is no such room, report that explicitly."
+            },
+            {
+              "id": "c",
+              "text": "Choose any nearby room."
+            },
+            {
+              "id": "d",
+              "text": "Always choose the nearest room and consider accessibility if it works out."
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "The instruction specifies the suitability attribute, selection criterion, tie-breaking rule, and result when there are no matches. AI can implement the rule, but the desired rule must be specified.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO1.md",
+            "heading": "KI: Was bleibt wichtig zu lernen?"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "precise requirement",
+            "tie-breaking rule",
+            "requirements and AI"
+          ]
+        },
+        {
+          "id": "eip-01-l5-q03",
+          "type": "estimate",
+          "prompt": "A running app receives 64 lap times one after another. Each new time is compared exactly once with the remembered best time. How many comparisons with a new lap time are made in total?",
+          "options": [],
+          "correct": [],
+          "slider": {
+            "min": 0,
+            "max": 100,
+            "step": 1,
+            "answer": 64,
+            "tolerance": 0,
+            "unit": "Comparisons",
+            "scale": "linear"
+          },
+          "explanation": "Each of the 64 new lap times is compared once. That gives 64 comparisons and illustrates the linear work of a single pass.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO1.md",
+            "heading": "Was spart das Merken der besten Route?"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "single pass",
+            "running time Θ(n)"
+          ]
+        },
+        {
+          "id": "eip-01-l5-q04",
+          "type": "single",
+          "prompt": "A route list contains only routes that include stairs. The app should select the fastest route without stairs. What should it return?",
+          "options": [
+            {
+              "id": "a",
+              "text": "A randomly selected route"
+            },
+            {
+              "id": "b",
+              "text": "The first route in the list, whether or not it is suitable"
+            },
+            {
+              "id": "c",
+              "text": "The fastest route with stairs, without pointing that out"
+            },
+            {
+              "id": "d",
+              "text": "A message that there is no suitable route"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "If no route meets the suitability rule, there is no suitable route. An unrequested fallback choice would change the requirement.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO1.md",
+            "heading": "Sonderfall: Alle Routen enthalten Treppen"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "suitability and stairs filter",
+            "no suitable route"
+          ]
+        },
+        {
+          "id": "eip-01-l5-q05",
+          "type": "single",
+          "prompt": "In an ordered route list, several suitable routes have the same shortest duration. The rule is to choose the route that appears first in the list in a tie. What does this additional rule do?",
+          "options": [
+            {
+              "id": "a",
+              "text": "It automatically makes the route list half as long."
+            },
+            {
+              "id": "b",
+              "text": "It specifies unambiguously which route is selected in a tie."
+            },
+            {
+              "id": "c",
+              "text": "It changes the duration of all later-listed routes."
+            },
+            {
+              "id": "d",
+              "text": "It makes tests for route selection unnecessary."
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "The list order resolves the tie. This specifies unambiguously which route is selected when durations are equal.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO1.md",
+            "heading": "Sonderfall: Gleichstand"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "tie-breaking rule",
+            "ordered list of routes"
+          ]
+        },
+        {
+          "id": "eip-01-l5-q06",
+          "type": "estimate",
+          "prompt": "A service receives 16 routes one after another. After each arrival, it recalculates the best result and checks all routes received so far. How many route checks are performed in total?",
+          "options": [],
+          "correct": [],
+          "slider": {
+            "min": 0,
+            "max": 200,
+            "step": 1,
+            "answer": 136,
+            "tolerance": 0,
+            "unit": "Checks",
+            "scale": "linear"
+          },
+          "explanation": "The passes check 1, 2, …, 16 routes in sequence. The sum is 16 × 17 ÷ 2 = 136 checks. This repeated work grows quadratically.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO1.md",
+            "heading": "Was spart das Merken der besten Route?"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "repeated passes",
+            "running time Θ(n²)"
+          ]
+        },
+        {
+          "id": "eip-01-l5-q07",
+          "type": "single",
+          "prompt": "A running app displays the fastest lap so far after each new lap arrives. How can you avoid comparing all earlier laps again at every update?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Display only the latest lap and delete all earlier ones"
+            },
+            {
+              "id": "b",
+              "text": "Sort all laps again at every update"
+            },
+            {
+              "id": "c",
+              "text": "Remember the fastest time so far and compare only with the new lap"
+            },
+            {
+              "id": "d",
+              "text": "Calculate the fastest time only at the end, even though it is needed after every lap"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "If you remember the best time, each new lap needs to be compared only once. With constant work per comparison, the work grows linearly with the number of laps.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO1.md",
+            "heading": "Was spart das Merken der besten Route?"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "best route so far",
+            "single pass",
+            "running time Θ(n)"
+          ]
+        },
+        {
+          "id": "eip-01-l5-q08",
+          "type": "estimate",
+          "prompt": "A service receives 40 routes one after another. After each arrival, it checks all routes received so far again. How many route checks are performed in total?",
+          "options": [],
+          "correct": [],
+          "slider": {
+            "min": 0,
+            "max": 1200,
+            "step": 5,
+            "answer": 820,
+            "tolerance": 0,
+            "unit": "Checks",
+            "scale": "linear"
+          },
+          "explanation": "The number of checks is 1 + 2 + … + 40 = 40 × 41 ÷ 2 = 820. Rechecking all previous entries leads to quadratic work.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO1.md",
+            "heading": "Was spart das Merken der besten Route?"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "repeated passes",
+            "running time Θ(n²)"
+          ]
+        },
+        {
+          "id": "eip-01-l5-q09",
+          "type": "single",
+          "prompt": "A delivery service chooses the fastest pickup station without stairs. In a tie, the list order applies; if no station is suitable, the app should report that. Which set of tests best checks the rule and its special cases?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Generate many random lists without specifying the expected results"
+            },
+            {
+              "id": "b",
+              "text": "Test only one list with several suitable stations and different times"
+            },
+            {
+              "id": "c",
+              "text": "Test a normal selection, a faster station with stairs, a tie between suitable stations, and a list where all stations have stairs"
+            },
+            {
+              "id": "d",
+              "text": "Check only whether the app starts on a smartphone"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "The test cases check a normal selection as well as the stairs filter, a tie, and the case where no station is suitable. For each case, the expected result can be compared with the specified requirement.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO1.md",
+            "heading": null
+          },
+          "difficulty": 3,
+          "concepts": [
+            "testing and correctness",
+            "tie-breaking rule",
+            "no suitable route"
+          ]
+        },
+        {
+          "id": "eip-01-l5-q10",
+          "type": "single",
+          "prompt": "You are implementing the search for a suitable pickup station in Java. What can Java do concretely?",
+          "options": [
+            {
+              "id": "a",
+              "text": "It replaces testing with an error message at startup."
+            },
+            {
+              "id": "b",
+              "text": "It can read and store station data and execute the specified selection procedure."
+            },
+            {
+              "id": "c",
+              "text": "It determines for itself what “fastest suitable station” means."
+            },
+            {
+              "id": "d",
+              "text": "It automatically proves at compile time that all requirements are met."
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "Java makes it possible to process data and execute the selection procedure. The desired rule still needs to be specified, and the implementation must be checked to see whether it meets that rule.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO1.md",
+            "heading": "Ausblick: Umsetzung in Java"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "implementation in Java",
+            "precise requirement"
+          ]
+        }
+      ]
+    }
+  ]
+}

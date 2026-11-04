@@ -23,23 +23,26 @@ import { maskEmail, verifySig } from '../lib/crypto.ts';
 import { badRequest, conflict, HttpError } from '../lib/http.ts';
 import { appUrl, layout, resetMail, sendMail } from '../lib/mail.ts';
 import { addStarterPet } from '../lib/shop.ts';
+import { localeForUser, type Locale } from '../lib/locale.ts';
+import { deviceLocaleFromHeaders, preferenceFromHeaders } from '../lib/locale.ts';
 
 const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
 /** Kleine Ergebnis-Seite (für Links aus Mails, die im Browser geöffnet werden) */
-function page(reply: FastifyReply, title: string, text: string, app: string, cta = 'LernQuest öffnen') {
+function page(reply: FastifyReply, title: string, text: string, app: string, cta?: string, locale: Locale = 'de') {
   reply.header('content-type', 'text/html; charset=utf-8').header('cache-control', 'no-store');
   return reply.send(
     layout({
       title,
       app,
-      body: `<h1 style="margin:0 0 12px;font-size:22px;font-weight:900">${esc(title)}</h1><p style="margin:0 0 18px">${esc(text)}</p><a href="${esc(app)}" style="display:inline-block;padding:12px 22px;border-radius:14px;background:#7c5cff;color:#fff;font-weight:800;text-decoration:none">${esc(cta)}</a>`,
+      locale,
+      body: `<h1 style="margin:0 0 12px;font-size:22px;font-weight:900">${esc(title)}</h1><p style="margin:0 0 18px">${esc(text)}</p><a href="${esc(app)}" style="display:inline-block;padding:12px 22px;border-radius:14px;background:#7c5cff;color:#fff;font-weight:800;text-decoration:none">${esc(cta ?? (locale === 'en' ? 'Open LernQuest' : 'LernQuest öffnen'))}</a>`,
     }),
   );
 }
 
 // ---------- Google (OAuth 2.0 / OpenID Connect, Authorization Code + PKCE) ----------
-type OAuthState = { mode: 'login' | 'link'; userId?: number; app: string; redirectUri: string; verifier: string; appNonce?: string; expires: number };
+type OAuthState = { mode: 'login' | 'link'; userId?: number; app: string; redirectUri: string; verifier: string; appNonce?: string; locale: Locale; expires: number };
 type Outcome = { status: 'code'; code: string } | { status: 'pending'; pendingId: string } | { status: 'linked' } | { status: 'error'; message: string };
 type Pending = { sub: string; email: string; name: string; expires: number };
 
@@ -81,9 +84,11 @@ export function accountRoutes(app: FastifyInstance, db: DB) {
     try {
       const { user, app: target } = consumeToken(db, 'verify', token);
       db.update(users).set({ emailVerifiedAt: Date.now() }).where(eq(users.id, user.id)).run();
-      return page(reply, 'E-Mail bestätigt ✅', `Danke, ${user.displayName}! Deine Adresse ist jetzt bestätigt.`, target ?? appUrl());
+      const locale = localeForUser(user);
+      return page(reply, locale === 'en' ? 'Email verified ✅' : 'E-Mail bestätigt ✅', locale === 'en' ? `Thank you, ${user.displayName}! Your email address is now verified.` : `Danke, ${user.displayName}! Deine Adresse ist jetzt bestätigt.`, target ?? appUrl(), undefined, locale);
     } catch (e) {
-      return page(reply.code(400), 'Link ungültig', (e as Error).message, appUrl());
+      const locale = deviceLocaleFromHeaders(req.headers);
+      return page(reply.code(400), locale === 'en' ? 'Invalid link' : 'Link ungültig', locale === 'en' ? 'This link is invalid or has expired. Please request a new one in the app.' : (e as Error).message, appUrl(), undefined, locale);
     }
   });
 
@@ -103,7 +108,7 @@ export function accountRoutes(app: FastifyInstance, db: DB) {
     if (u && to && !u.disabled) {
       const target = appUrl(req.headers.origin);
       const token = issueToken(db, u.id, 'reset', 3_600_000, target);
-      await sendMail(resetMail({ to, name: u.displayName, username: u.username, link: `${target}/reset?token=${token}`, app: target })).catch((e) => req.log.error(e, 'Reset-Mail fehlgeschlagen'));
+      await sendMail(resetMail({ to, name: u.displayName, username: u.username, link: `${target}/reset?token=${token}`, app: target, locale: localeForUser(u) })).catch((e) => req.log.error(e, 'Reset-Mail fehlgeschlagen'));
     }
     return { ok: true };
   });
@@ -128,23 +133,28 @@ export function accountRoutes(app: FastifyInstance, db: DB) {
       const { user, app: target } = consumeToken(db, 'newsletter', token);
       const now = Date.now();
       db.update(users).set({ newsletter: true, newsletterAt: now, newsletterRequestedAt: null, emailVerifiedAt: user.emailVerifiedAt ?? now }).where(eq(users.id, user.id)).run();
-      return page(reply, 'Newsletter bestätigt 📬', 'Danke! Du bekommst ab jetzt den LernQuest-Newsletter. Abbestellen kannst du jederzeit per Link in jeder Mail oder im Profil.', target ?? appUrl());
+      const locale = localeForUser(user);
+      return page(reply, locale === 'en' ? 'Newsletter confirmed 📬' : 'Newsletter bestätigt 📬', locale === 'en' ? 'Thank you! You are now subscribed to the LernQuest newsletter. Unsubscribe at any time using the link in each email or in your profile.' : 'Danke! Du bekommst ab jetzt den LernQuest-Newsletter. Abbestellen kannst du jederzeit per Link in jeder Mail oder im Profil.', target ?? appUrl(), undefined, locale);
     } catch (e) {
-      return page(reply.code(400), 'Link ungültig', (e as Error).message, appUrl());
+      const locale = deviceLocaleFromHeaders(req.headers);
+      return page(reply.code(400), locale === 'en' ? 'Invalid link' : 'Link ungültig', locale === 'en' ? 'This link is invalid or has expired. Please request a new one in the app.' : (e as Error).message, appUrl(), undefined, locale);
     }
   });
 
   const unsubscribe = (req: FastifyRequest) => {
     const q = z.object({ u: z.coerce.number().int().positive(), s: z.string().max(64) }).parse(req.query);
     if (!verifySig(`unsub:${q.u}`, q.s)) throw badRequest('bad_link', 'Ungültiger Abmeldelink.');
+    const user = db.select().from(users).where(eq(users.id, q.u)).get();
     stopNewsletter(db, q.u);
+    return user ? localeForUser(user) : deviceLocaleFromHeaders(req.headers);
   };
   app.get('/api/newsletter/unsubscribe', async (req, reply) => {
     try {
-      unsubscribe(req);
-      return page(reply, 'Abgemeldet', 'Du bekommst keinen LernQuest-Newsletter mehr. Schade – aber du kannst ihn im Profil jederzeit wieder abonnieren.', appUrl());
+      const locale = unsubscribe(req);
+      return page(reply, locale === 'en' ? 'Unsubscribed' : 'Abgemeldet', locale === 'en' ? 'You will no longer receive the LernQuest newsletter. You can subscribe again at any time in your profile.' : 'Du bekommst keinen LernQuest-Newsletter mehr. Schade – aber du kannst ihn im Profil jederzeit wieder abonnieren.', appUrl(), undefined, locale);
     } catch (e) {
-      return page(reply.code(400), 'Link ungültig', (e as Error).message, appUrl());
+      const locale = deviceLocaleFromHeaders(req.headers);
+      return page(reply.code(400), locale === 'en' ? 'Invalid link' : 'Link ungültig', locale === 'en' ? 'This link is invalid or has expired. Please request a new one in the app.' : (e as Error).message, appUrl(), undefined, locale);
     }
   });
   // One-Click-Abmeldung (RFC 8058, „List-Unsubscribe-Post“)
@@ -170,7 +180,7 @@ export function accountRoutes(app: FastifyInstance, db: DB) {
     const verifier = rnd() + rnd();
     const appNonce = body.native ? rnd() : undefined;
     const expires = Date.now() + 10 * 60_000;
-    states.set(state, { mode: body.mode, userId, app: target, redirectUri, verifier, appNonce, expires });
+    states.set(state, { mode: body.mode, userId, app: target, redirectUri, verifier, appNonce, locale: preferenceFromHeaders(req.headers) ?? deviceLocaleFromHeaders(req.headers), expires });
     if (appNonce) appResults.set(appNonce, { expires });
     const url = new URL('https://accounts.google.com/o/oauth2/v2/auth');
     url.search = new URLSearchParams({
@@ -190,7 +200,7 @@ export function accountRoutes(app: FastifyInstance, db: DB) {
     const q = z.object({ code: z.string().optional(), state: z.string().optional(), error: z.string().optional() }).parse(req.query);
     const st = q.state ? states.get(q.state) : undefined;
     if (q.state) states.delete(q.state);
-    if (!st || st.expires < Date.now()) return page(reply.code(400), 'Anmeldung abgelaufen', 'Bitte starte die Google-Anmeldung noch einmal.', appUrl());
+    if (!st || st.expires < Date.now()) return page(reply.code(400), deviceLocaleFromHeaders(req.headers) === 'en' ? 'Sign-in expired' : 'Anmeldung abgelaufen', deviceLocaleFromHeaders(req.headers) === 'en' ? 'Please start Google sign-in again.' : 'Bitte starte die Google-Anmeldung noch einmal.', appUrl(), undefined, deviceLocaleFromHeaders(req.headers));
 
     let outcome: Outcome;
     try {
@@ -214,8 +224,8 @@ export function accountRoutes(app: FastifyInstance, db: DB) {
       // iOS-App: Ergebnis abholen lassen (die App fragt per /poll nach)
       appResults.set(st.appNonce, { outcome, expires: Date.now() + 10 * 60_000 });
       return outcome.status === 'error'
-        ? page(reply, 'Das hat nicht geklappt', outcome.message, st.app, 'Zurück')
-        : page(reply, 'Fertig ✅', 'Du kannst dieses Fenster schließen und zur LernQuest-App zurückkehren.', st.app, 'Zur App');
+        ? page(reply, st.locale === 'en' ? 'Sign-in failed' : 'Das hat nicht geklappt', st.locale === 'en' ? 'Please return to the app and try again.' : outcome.message, st.app, st.locale === 'en' ? 'Back' : 'Zurück', st.locale)
+        : page(reply, st.locale === 'en' ? 'Done ✅' : 'Fertig ✅', st.locale === 'en' ? 'You can close this window and return to the LernQuest app.' : 'Du kannst dieses Fenster schließen und zur LernQuest-App zurückkehren.', st.app, st.locale === 'en' ? 'Open app' : 'Zur App', st.locale);
     }
     const to =
       outcome.status === 'code'
@@ -269,7 +279,10 @@ export function accountRoutes(app: FastifyInstance, db: DB) {
     loginCodes.delete(code);
     if (!c || c.expires < Date.now()) throw new HttpError(401, 'oauth_expired', 'Anmeldung abgelaufen – bitte nochmal versuchen.');
     const u = db.select().from(users).where(eq(users.id, c.userId)).get()!;
-    return { token: createSession(db, u.id, req.headers['user-agent']), user: toPublicUser(u) };
+    const deviceLocale = deviceLocaleFromHeaders(req.headers);
+    const locale = u.locale ?? preferenceFromHeaders(req.headers);
+    db.update(users).set({ deviceLocale, locale }).where(eq(users.id, u.id)).run();
+    return { token: createSession(db, u.id, req.headers['user-agent']), user: toPublicUser({ ...u, locale, deviceLocale }) };
   });
 
   app.post('/api/auth/google/poll', async (req) => {
@@ -306,7 +319,7 @@ export function accountRoutes(app: FastifyInstance, db: DB) {
       if (tx.select().from(users).where(eq(users.googleSub, p.sub)).get()) throw conflict('google_taken', 'Dieses Google-Konto ist schon verknüpft.');
       return tx
         .insert(users)
-        .values({ username, displayName: body.displayName, passwordHash, hasPassword: false, googleSub: p.sub, invitedWith: code ?? null, ...mail, privacyAcceptedAt: now })
+        .values({ username, displayName: body.displayName, passwordHash, hasPassword: false, googleSub: p.sub, invitedWith: code ?? null, ...mail, locale: preferenceFromHeaders(req.headers), deviceLocale: deviceLocaleFromHeaders(req.headers), privacyAcceptedAt: now })
         .returning()
         .get();
     });

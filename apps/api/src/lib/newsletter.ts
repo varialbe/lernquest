@@ -2,6 +2,7 @@ import { eq } from 'drizzle-orm';
 import { marked } from 'marked';
 import type { DB } from '../db/index.ts';
 import { newsletterIssues } from '../db/schema.ts';
+import { localeForUser } from './locale.ts';
 import { confirmedSubscribers, unsubscribeUrl } from './account.ts';
 import { decrypt } from './crypto.ts';
 import { appUrl, issueMail, layout, sendMail } from './mail.ts';
@@ -90,7 +91,7 @@ export async function sendIssue(db: DB, issue: Issue, onProgress?: (done: number
     const to = decrypt(s.emailEnc);
     try {
       if (!to) throw new Error('keine Adresse');
-      await sendMail(issueMail({ to, subject: issue.subject, contentHtml: html, contentText: text, unsubscribe: unsubscribeUrl(s.id), app: appUrl() }));
+      await sendMail(issueMail({ to, subject: issue.subject, contentHtml: html, contentText: text, unsubscribe: unsubscribeUrl(s.id), app: appUrl(), locale: localeForUser(s) }));
     } catch {
       failed++;
     }

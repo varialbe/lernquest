@@ -1,0 +1,2042 @@
+{
+  "schemaVersion": 1,
+  "id": "era-09",
+  "module": "ERA",
+  "number": 9,
+  "slug": "isas-betriebssysteme-und-virtueller-speicher",
+  "title": "ISAs, Operating Systems (Betriebssysteme), and Virtual Memory (virtueller Speicher)",
+  "summary": "This unit compares x86, RISC-V, and ARM in terms of registers (Register), calling conventions (Aufrufkonventionen), addressing modes (Adressierungsarten), and instruction formats (Befehlsformen). It then covers multiuser systems (Mehrbenutzersysteme), interrupts (Interrupts), and virtual-address translation using page tables (Seitentabellen), the TLB, and paging (Paging).",
+  "concepts": [
+    "IA-32 and x86",
+    "Registers and subregisters",
+    "Calling conventions",
+    "Addressing modes",
+    "Instruction formats",
+    "ARM",
+    "Multiuser systems and modes",
+    "Interrupts, Exceptions, and Traps",
+    "Virtual memory and the MMU",
+    "Page tables and permissions",
+    "Sv32 and multilevel page tables",
+    "TLB",
+    "Paging and lazy allocation",
+    "Little-endian byte order"
+  ],
+  "keyFacts": [
+    "x86 is a CISC ISA with many complex instructions, variable instruction lengths, and support for legacy execution modes.",
+    "IA-32 refers to the 32-bit variant; x86_64, or Intel 64, is a later 64-bit extension that originally came from AMD.",
+    "The same x86 registers can be accessed as RAX (64 bits), EAX (32 bits), AX (16 bits), or AH/AL (8 bits each).",
+    "In the x86_64 calling convention presented, the first six parameters are passed in rdi, rsi, rdx, rcx, r8, and r9; additional parameters are passed on the stack. The return value is in rax.",
+    "In IA-32, call places the return address on the stack; in RISC-V, jal typically stores the return address in ra.",
+    "With base-relative addressing, the effective address is the register contents plus the offset; with scaled indexing, it is the base plus the index multiplied by the operand size.",
+    "In the two-address form, the destination is also a source. In the three-address register-register form, the two sources and the destination are separate.",
+    "ARMv8 (AArch64) is ARM's first 64-bit ISA. The similarities with RISC-V described here include RISC, 4-byte instructions, and Load/Store.",
+    "Time sharing saves the state of an interrupted program, lets the scheduler select the next one, and loads its state.",
+    "Interrupts are asynchronous and triggered by external events; exceptions are synchronous and associated with an executed instruction.",
+    "The MMU translates virtual addresses into physical addresses during memory accesses; virtual pages can be mapped to noncontiguous physical frames.",
+    "With 4-KiB pages, the offset is 12 bits and remains unchanged during translation.",
+    "An Sv32 page-table entry contains, among other fields, V, R/W/X, U, G, A, and D. Invalid entries or unauthorized accesses cause an exception.",
+    "The X/W/R bit patterns 001, 011, 100, 101, and 111 represent read, read/write, execute, read/execute, and read/write/execute, respectively; 010 and 110 are reserved.",
+    "Multilevel page tables avoid having to reserve entries in a large single-level table for unused areas of the virtual address space.",
+    "A TLB caches recently used address translations; without a TLB, Sv39 requires three page-table accesses before the actual data access.",
+    "With lazy allocation, a virtual page receives a physical frame only after an access triggers an exception.",
+    "With paging, a selected page is marked as absent and swapped out; a later access triggers it to be loaded back. Pinned pages are not swapped out."
+  ],
+  "tags": [],
+  "links": [],
+  "source": {
+    "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO9.md",
+    "sha256": "8d81f6a4c75f79659c1b63d7be915f2f32c6cfd8f9557707a14a91872deb795d",
+    "commit": "7323156457fc7de1e05720d4d6409f86fb0b437b"
+  },
+  "generator": {
+    "model": "gpt-6-luna",
+    "effort": "xhigh",
+    "reviewEffort": "high",
+    "promptVersion": "v3",
+    "generatedAt": "2026-11-02T12:51:28.818Z",
+    "review": {
+      "checked": 45,
+      "fixed": 4,
+      "removed": 0,
+      "notes": "45 Fragen geprüft. Präzisiert: die Sv39-Frage zum TLB-Miss, die Bedeutung von U und X/W/R sowie die Byte-Reihenfolge bei Little Endian. Alle Rechenprüfungen und Antwortmengen stimmen; jedes Level hat mindestens 8 Fragen."
+    }
+  },
+  "levels": [
+    {
+      "id": "era-09-l1",
+      "index": 1,
+      "kind": "basics",
+      "title": "Fundamentals",
+      "questions": [
+        {
+          "id": "era-09-l1-q01",
+          "type": "single",
+          "prompt": "Which description applies to x86?",
+          "options": [
+            {
+              "id": "a",
+              "text": "A CISC ISA with complex instructions and variable instruction lengths"
+            },
+            {
+              "id": "b",
+              "text": "An ISA containing only floating-point instructions"
+            },
+            {
+              "id": "c",
+              "text": "A RISC ISA with instructions that are all 4 bytes long"
+            },
+            {
+              "id": "d",
+              "text": "An ISA with only one execution mode and no legacy modes"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "x86 is described as a CISC ISA with many complex instructions, variable lengths, and support for legacy modes.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO9.md",
+            "heading": "IA-32 und die x86-Familie"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "IA-32 and x86"
+          ]
+        },
+        {
+          "id": "era-09-l1-q02",
+          "type": "single",
+          "prompt": "What is the word size of x86_64, or Intel 64?",
+          "options": [
+            {
+              "id": "a",
+              "text": "128 bits"
+            },
+            {
+              "id": "b",
+              "text": "32 bits"
+            },
+            {
+              "id": "c",
+              "text": "16 bits"
+            },
+            {
+              "id": "d",
+              "text": "64 bits"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "x86_64, or Intel 64, is the 64-bit extension of the x86 family.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO9.md",
+            "heading": "IA-32 und die x86-Familie"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "IA-32 and x86"
+          ]
+        },
+        {
+          "id": "era-09-l1-q03",
+          "type": "multi",
+          "prompt": "Which mappings of the x86 extensions are correct? Select all correct statements.",
+          "options": [
+            {
+              "id": "a",
+              "text": "Transactional Memory is associated with speculative execution and atomic accesses."
+            },
+            {
+              "id": "b",
+              "text": "F16C converts half-precision floating-point values."
+            },
+            {
+              "id": "c",
+              "text": "F16C is the extension for additional stack registers."
+            },
+            {
+              "id": "d",
+              "text": "VMX supports virtual machines."
+            },
+            {
+              "id": "e",
+              "text": "VMX performs virtual-to-physical address translation in the MMU."
+            }
+          ],
+          "correct": [
+            "a",
+            "b",
+            "d"
+          ],
+          "explanation": "VMX, F16C, and Transactional Memory are listed for the purposes stated in a, b, and c, respectively. The other descriptions are not associated with these extensions.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO9.md",
+            "heading": "Genannte Erweiterungen von IA-32 / x86"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "IA-32 and x86"
+          ]
+        },
+        {
+          "id": "era-09-l1-q04",
+          "type": "cloze",
+          "prompt": "The 64-bit view of an x86 register is called `RAX`, the 32-bit view `EAX`, the 16-bit view `AX`, and the 8-bit subregisters are called `AH` and `___`.",
+          "options": [
+            {
+              "id": "a",
+              "text": "AL"
+            },
+            {
+              "id": "b",
+              "text": "EAX"
+            },
+            {
+              "id": "c",
+              "text": "R8"
+            },
+            {
+              "id": "d",
+              "text": "BL"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "AH and AL are the two 8-bit subregisters of AX.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO9.md",
+            "heading": "Register und Teilsichten"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Registers and subregisters"
+          ]
+        },
+        {
+          "id": "era-09-l1-q05",
+          "type": "single",
+          "prompt": "Where does `call` place the return address under the IA-32 calling convention described?",
+          "options": [
+            {
+              "id": "a",
+              "text": "In the `ra` register"
+            },
+            {
+              "id": "b",
+              "text": "On the stack"
+            },
+            {
+              "id": "c",
+              "text": "In the `eax` register"
+            },
+            {
+              "id": "d",
+              "text": "In a TLB entry"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "In the IA-32 call shown, `call` places the return address on the stack. `ra` is the RISC-V convention used for comparison here.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO9.md",
+            "heading": "Aufrufkonventionen"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Calling conventions"
+          ]
+        },
+        {
+          "id": "era-09-l1-q06-r1",
+          "type": "multi",
+          "prompt": "For this question, consider only the following x86_64 calling convention: the first six parameters are passed, in order, in `rdi`, `rsi`, `rdx`, `rcx`, `r8`, and `r9`; additional parameters are passed on the stack. The return value is in `rax`. Which statements are correct? Select all correct statements.",
+          "options": [
+            {
+              "id": "a",
+              "text": "The return value is in `rax`."
+            },
+            {
+              "id": "b",
+              "text": "The first six parameters are in `rdi`, `rsi`, `rdx`, `rcx`, `r8`, and `r9`."
+            },
+            {
+              "id": "c",
+              "text": "The seventh and every subsequent parameter is passed on the stack."
+            },
+            {
+              "id": "d",
+              "text": "All parameters must be passed on the stack."
+            },
+            {
+              "id": "e",
+              "text": "The return value is in `eax`, even in x86_64."
+            }
+          ],
+          "correct": [
+            "a",
+            "b",
+            "c"
+          ],
+          "explanation": "Under the convention specified in the question, the first six parameters are passed in the listed registers and additional parameters are passed on the stack. The return value is in `rax`.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO9.md",
+            "heading": "Aufrufkonventionen"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "x86_64 calling convention",
+            "Parameter passing",
+            "Return value"
+          ]
+        },
+        {
+          "id": "era-09-l1-q07",
+          "type": "cloze",
+          "prompt": "With base-relative addressing: effective address = register contents + ___.",
+          "options": [
+            {
+              "id": "a",
+              "text": "Operand size"
+            },
+            {
+              "id": "b",
+              "text": "Offset"
+            },
+            {
+              "id": "c",
+              "text": "Page number"
+            },
+            {
+              "id": "d",
+              "text": "Return address"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "The base-register address is shifted by the offset to obtain the effective address.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO9.md",
+            "heading": "Adressierungsarten – Folien 15–23"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Addressing modes"
+          ]
+        },
+        {
+          "id": "era-09-l1-q08",
+          "type": "truefalse",
+          "prompt": "RISC-V supports direct addressing, in which the memory address itself appears in the instruction.",
+          "options": [
+            {
+              "id": "true",
+              "text": "True"
+            },
+            {
+              "id": "false",
+              "text": "False"
+            }
+          ],
+          "correct": [
+            "false"
+          ],
+          "explanation": "Direct addressing is marked “no” for RISC-V in the table; register-indirect and displacement addressing are supported.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO9.md",
+            "heading": "Adressierungsarten – Folien 15–23"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Addressing modes"
+          ]
+        },
+        {
+          "id": "era-09-l1-q09",
+          "type": "single",
+          "prompt": "What does `add edx, eax` do in the x86 two-address form described?",
+          "options": [
+            {
+              "id": "a",
+              "text": "`eax = edx + eax`"
+            },
+            {
+              "id": "b",
+              "text": "The value in `edx` is written to memory."
+            },
+            {
+              "id": "c",
+              "text": "`edx = edx + eax`"
+            },
+            {
+              "id": "d",
+              "text": "`edx = eax`"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "In this two-address form, the first operand is both the destination and a source; the result overwrites `edx`.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO9.md",
+            "heading": "Unterschiede im Assemblercode"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Instruction formats"
+          ]
+        },
+        {
+          "id": "era-09-l1-q10",
+          "type": "diagram",
+          "prompt": "After which step does Program B resume execution?",
+          "context": {
+            "type": "mermaid",
+            "content": "flowchart LR\n  A[\"Programm A unterbrechen\"] --> S[\"Zustand sichern\"]\n  S --> P[\"Scheduler wählt Programm\"]\n  P --> L[\"Zustand von B laden\"]\n  L --> B[\"Programm B fortsetzen\"]",
+            "caption": "Simplified sequence for time sharing"
+          },
+          "options": [
+            {
+              "id": "a",
+              "text": "Only after Program A has finished"
+            },
+            {
+              "id": "b",
+              "text": "Immediately after Program A is interrupted, without a change of state"
+            },
+            {
+              "id": "c",
+              "text": "After the scheduler has selected Program B and loaded its state"
+            },
+            {
+              "id": "d",
+              "text": "Before Program A's state is saved"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "The sequence first saves A's state, then selects B and loads B's state before B resumes.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO9.md",
+            "heading": "Mehrbenutzersysteme – Folien 39–47"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Multiuser systems and modes"
+          ]
+        },
+        {
+          "id": "era-09-l1-q11",
+          "type": "single",
+          "prompt": "What role does the MMU play in the virtual memory system described?",
+          "options": [
+            {
+              "id": "a",
+              "text": "It determines the instruction order for a compiler."
+            },
+            {
+              "id": "b",
+              "text": "It stores all return addresses for a process."
+            },
+            {
+              "id": "c",
+              "text": "It translates virtual addresses into physical addresses."
+            },
+            {
+              "id": "d",
+              "text": "It selects the next program for the scheduler."
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "The MMU performs address translation in hardware during memory accesses; the operating system controls the mapping.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO9.md",
+            "heading": "Virtueller Speicher – Folien 59–74"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Virtual memory and the MMU"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "era-09-l2",
+      "index": 2,
+      "kind": "apply",
+      "title": "Apply",
+      "questions": [
+        {
+          "id": "era-09-l2-q01",
+          "type": "calc",
+          "prompt": "An instruction uses base-relative addressing `EA = Registerinhalt + Offset`. With register contents `0x1000` and offset `0x18`, what effective address results?",
+          "options": [
+            {
+              "id": "a",
+              "text": "0x1018"
+            },
+            {
+              "id": "b",
+              "text": "0x0FE8"
+            },
+            {
+              "id": "c",
+              "text": "0x1810"
+            },
+            {
+              "id": "d",
+              "text": "0x1008"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "`0x1000 + 0x18 = 0x1018`. The offset is added to the base.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO9.md",
+            "heading": "Adressierungsarten – Folien 15–23"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Addressing modes"
+          ]
+        },
+        {
+          "id": "era-09-l2-q02",
+          "type": "calc",
+          "prompt": "With scaled indexing, `EA = Basis + Index × Operandenlänge`. Given base `0x2000`, index `3`, and an operand size of `4` Byte, what effective address results?",
+          "options": [
+            {
+              "id": "a",
+              "text": "0x2007"
+            },
+            {
+              "id": "b",
+              "text": "0x2003"
+            },
+            {
+              "id": "c",
+              "text": "0x200C"
+            },
+            {
+              "id": "d",
+              "text": "0x2030"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "The index contribution is `3 × 4 = 12 = 0xC`; therefore, `EA = 0x2000 + 0xC = 0x200C`.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO9.md",
+            "heading": "Adressierungsarten – Folien 15–23"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Addressing modes"
+          ]
+        },
+        {
+          "id": "era-09-l2-q03",
+          "type": "single",
+          "prompt": "An IA-32 stack frame uses `ebp` as its reference point. According to the layout, what is at `[ebp+8]`?",
+          "options": [
+            {
+              "id": "a",
+              "text": "The return address"
+            },
+            {
+              "id": "b",
+              "text": "Parameter 2"
+            },
+            {
+              "id": "c",
+              "text": "Parameter 1"
+            },
+            {
+              "id": "d",
+              "text": "A local variable"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "In the layout shown, parameter 1 is at `[ebp+8]`, parameter 2 is at `[ebp+12]`, and the return address is at `[ebp+4]`.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO9.md",
+            "heading": "Aufrufkonventionen"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Calling conventions"
+          ]
+        },
+        {
+          "id": "era-09-l2-q04",
+          "type": "multi",
+          "prompt": "A program executes `c += i` and wants to update `c` in memory. Which statements about the ISA examples shown are correct? Select all correct statements.",
+          "options": [
+            {
+              "id": "a",
+              "text": "With `add edx, eax`, the result is stored in a new third register."
+            },
+            {
+              "id": "b",
+              "text": "x86 can operate directly on memory with `add DWORD PTR [ebp-0x10], eax`."
+            },
+            {
+              "id": "c",
+              "text": "RISC-V performs the same memory access directly with a single `add` instruction."
+            },
+            {
+              "id": "d",
+              "text": "RISC-V typically requires `lw`, `add`, and `sw` for this."
+            }
+          ],
+          "correct": [
+            "b",
+            "d"
+          ],
+          "explanation": "The x86 example allows addition directly at a memory location. RISC-V uses a load, a register operation, and a store for this; `add edx, eax` also overwrites the first operand.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO9.md",
+            "heading": "Unterschiede im Assemblercode"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Instruction formats",
+            "Addressing modes"
+          ]
+        },
+        {
+          "id": "era-09-l2-q05",
+          "type": "calc",
+          "prompt": "A loop starts with `i=0` and `c=0`. In each iteration, it adds `i` to `c`, increments `i` by 1, and continues as long as the new `i ≤ 9`. What is the final value of `c`?",
+          "options": [
+            {
+              "id": "a",
+              "text": "45"
+            },
+            {
+              "id": "b",
+              "text": "10"
+            },
+            {
+              "id": "c",
+              "text": "54"
+            },
+            {
+              "id": "d",
+              "text": "36"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "The loop adds the values from 0 through 9, inclusive. Their sum is 45; checking after the increment causes the loop to stop at `i=10`.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO9.md",
+            "heading": "Die gezeigten Beispiele mit -O0 und -O2"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "IA-32 and x86"
+          ]
+        },
+        {
+          "id": "era-09-l2-q06",
+          "type": "single",
+          "prompt": "What is the effect of `add [ebp-0x10], eax` in the x86 code shown?",
+          "options": [
+            {
+              "id": "a",
+              "text": "The memory contents are copied to `eax`, without addition."
+            },
+            {
+              "id": "b",
+              "text": "The instruction compares the memory contents with `eax` and sets flags."
+            },
+            {
+              "id": "c",
+              "text": "The value of `eax` is added to the memory contents at `[ebp-0x10]`; the result remains there."
+            },
+            {
+              "id": "d",
+              "text": "The value of `eax` is appended to the address `[ebp-0x10]`."
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "The instruction shown operates directly on memory: it adds `eax` to the value in memory and overwrites that value there.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO9.md",
+            "heading": "Unterschiede im Assemblercode"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Addressing modes",
+            "Instruction formats"
+          ]
+        },
+        {
+          "id": "era-09-l2-q07",
+          "type": "calc",
+          "prompt": "In RISC-V `Vectored` mode, the entry address for asynchronous interrupts is `Einsprungadresse = BASE + 4 × cause`. With `BASE = 0x1000` and `cause = 7`, what entry address results?",
+          "options": [
+            {
+              "id": "a",
+              "text": "0x1010"
+            },
+            {
+              "id": "b",
+              "text": "0x1007"
+            },
+            {
+              "id": "c",
+              "text": "0x101C"
+            },
+            {
+              "id": "d",
+              "text": "0x11C0"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "`4 × 7 = 28 = 0x1C`; added to `0x1000`, this gives `0x101C`.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO9.md",
+            "heading": "Traps, Interrupts und Exceptions – Folien 48–58"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Interrupts, Exceptions, and Traps"
+          ]
+        },
+        {
+          "id": "era-09-l2-q08",
+          "type": "cloze",
+          "prompt": "In X/W/R order, the pattern `101` means read and ___.",
+          "options": [
+            {
+              "id": "a",
+              "text": "A pointer to the next table level"
+            },
+            {
+              "id": "b",
+              "text": "write only"
+            },
+            {
+              "id": "c",
+              "text": "execute"
+            },
+            {
+              "id": "d",
+              "text": "write"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "`101` sets X and R: the page is executable and readable, but not writable.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO9.md",
+            "heading": "X/W/R-Kodierung"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Page tables and permissions"
+          ]
+        },
+        {
+          "id": "era-09-l2-q09",
+          "type": "calc",
+          "prompt": "A virtual page is mapped to physical page number `0x12345`. With 4-KiB pages, the offset `0xABC` remains unchanged. What physical address results?",
+          "options": [
+            {
+              "id": "a",
+              "text": "0x12345ABC"
+            },
+            {
+              "id": "b",
+              "text": "0x12345"
+            },
+            {
+              "id": "c",
+              "text": "0x12344ABC"
+            },
+            {
+              "id": "d",
+              "text": "0xABC12345"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "The physical page base is `0x12345 × 0x1000 = 0x12345000`. Adding the unchanged offset `0xABC` gives `0x12345ABC`.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO9.md",
+            "heading": "Übersetzungsvorgang – Folie 72"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Virtual memory and the MMU",
+            "Sv32 and multilevel page tables"
+          ]
+        },
+        {
+          "id": "era-09-l2-q10",
+          "type": "diagram",
+          "prompt": "In the translation shown, no entry is found in the TLB. Which step follows in the diagram?",
+          "context": {
+            "type": "mermaid",
+            "content": "flowchart TD\n  VA[\"Virtuelle Adresse\"] --> T{\"Übersetzung im TLB?\"}\n  T -->|Ja| C{\"Eintrag und Zugriff gültig?\"}\n  T -->|Nein| W[\"Seitentabellen auslesen\"]\n  W --> C\n  C -->|Ja| PA[\"Physische Adresse\"]\n  C -->|Nein| E[\"Exception\"]\n  PA --> M[\"Speicherzugriff\"]",
+            "caption": "Schematic sequence for a TLB hit or access fault"
+          },
+          "options": [
+            {
+              "id": "a",
+              "text": "The offset is replaced by the physical page number."
+            },
+            {
+              "id": "b",
+              "text": "The page tables are read."
+            },
+            {
+              "id": "c",
+              "text": "The data access happens immediately without translation."
+            },
+            {
+              "id": "d",
+              "text": "The scheduler selects another process."
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "On a TLB miss, the page tables are read; the entry and access are then checked.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO9.md",
+            "heading": "TLB – Translation Look-Aside Buffer"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "TLB",
+            "Page tables and permissions"
+          ]
+        },
+        {
+          "id": "era-09-l2-q11-r1",
+          "type": "single",
+          "prompt": "For this question, use the following RISC-V system call convention: for a system call using `ecall`, the system call number is in `a7`, and the parameters are passed in `a0` through `a6`. Where are the number and parameters?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Number in `a0`, parameters in `a1` through `a7`"
+            },
+            {
+              "id": "b",
+              "text": "Number in `sp`, parameters in `t0` through `t6`"
+            },
+            {
+              "id": "c",
+              "text": "Number on the stack, parameters in `ra`"
+            },
+            {
+              "id": "d",
+              "text": "Number in `a7`, parameters in `a0` through `a6`"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "The convention specified in the question places the number in `a7` and the parameters in `a0` through `a6`.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO9.md",
+            "heading": "Traps, Interrupts und Exceptions – Folien 48–58"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "RISC-V",
+            "System call",
+            "ecall"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "era-09-l3",
+      "index": 3,
+      "kind": "deepen",
+      "title": "Explore",
+      "questions": [
+        {
+          "id": "era-09-l3-q01",
+          "type": "calc",
+          "prompt": "A single-level Sv32 page table contains `2^20` entries of 4 Byte each. How much memory does it require per process?",
+          "options": [
+            {
+              "id": "a",
+              "text": "4 KiB"
+            },
+            {
+              "id": "b",
+              "text": "1 MiB"
+            },
+            {
+              "id": "c",
+              "text": "4 MiB"
+            },
+            {
+              "id": "d",
+              "text": "4 GiB"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "`2^20 × 4 Byte = 2^22 Byte`, or 4 MiB.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO9.md",
+            "heading": "Warum mehrere Stufen?"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Sv32 and multilevel page tables"
+          ]
+        },
+        {
+          "id": "era-09-l3-q02",
+          "type": "calc",
+          "prompt": "In Sv32, `VA = 0x00403ABC` is split into two 10-bit VPN fields and a 12-bit offset. What is the value of `VPN[1]`?",
+          "options": [
+            {
+              "id": "a",
+              "text": "0xABC"
+            },
+            {
+              "id": "b",
+              "text": "3"
+            },
+            {
+              "id": "c",
+              "text": "4"
+            },
+            {
+              "id": "d",
+              "text": "1"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "The upper 10 bits of the virtual page number give `VPN[1]=1`; the middle VPN field is 3 and the offset is `0xABC`.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO9.md",
+            "heading": "Rechenbeispiel Sv32"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Sv32 and multilevel page tables"
+          ]
+        },
+        {
+          "id": "era-09-l3-q03",
+          "type": "calc",
+          "prompt": "For `VA = 0x00403ABC`, the page tables provide physical page number `0x12345`. With 4-KiB pages, the offset remains unchanged. What physical address results?",
+          "options": [
+            {
+              "id": "a",
+              "text": "0x12344ABC"
+            },
+            {
+              "id": "b",
+              "text": "0x12345000"
+            },
+            {
+              "id": "c",
+              "text": "0x00403ABC"
+            },
+            {
+              "id": "d",
+              "text": "0x12345ABC"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "The page number gives the physical base `0x12345000`; the virtual offset `0xABC` is preserved. Together, these give `0x12345ABC`.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO9.md",
+            "heading": "Rechenbeispiel Sv32"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Sv32 and multilevel page tables",
+            "Virtual memory and the MMU"
+          ]
+        },
+        {
+          "id": "era-09-l3-q04-r1",
+          "type": "multi",
+          "prompt": "The access bits are ordered X, W, R (execute, write, read). A pattern labeled “reserved” is not a valid access permission and must not be interpreted as a combination of its set individual bits. Which statements about the table are correct? Select all correct statements.",
+          "context": {
+            "type": "table",
+            "content": "| X/W/R | Meaning |\n|---|---|\n| `000` | Pointer to the next table level |\n| `001` | Read only |\n| `011` | Read and write |\n| `100` | Execute only |\n| `101` | Read and execute |\n| `111` | Read, write, and execute |\n| `010` / `110` | Reserved: not a valid access permission |",
+            "caption": "Meaning of the X/W/R patterns"
+          },
+          "options": [
+            {
+              "id": "a",
+              "text": "`100` allows execute only."
+            },
+            {
+              "id": "b",
+              "text": "`011` allows read and write."
+            },
+            {
+              "id": "c",
+              "text": "`000` is a pointer to the next table level."
+            },
+            {
+              "id": "d",
+              "text": "`110` allows read and write."
+            },
+            {
+              "id": "e",
+              "text": "`010` means write only."
+            }
+          ],
+          "correct": [
+            "a",
+            "b",
+            "c"
+          ],
+          "explanation": "In X/W/R order, `011` means read and write, `100` means execute only, and `000` is a pointer to the next table level. `010` and `110` are reserved, so they are not valid access permissions.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO9.md",
+            "heading": "X/W/R-Kodierung"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Page-table entry",
+            "X/W/R encoding",
+            "Access permissions"
+          ]
+        },
+        {
+          "id": "era-09-l3-q05",
+          "type": "single",
+          "prompt": "A process is running in user mode. For this access, `U=1` allows access in user mode, while `U=0` marks a privileged page. The page-table entry is valid, but `U=0`. What happens when the page is accessed?",
+          "options": [
+            {
+              "id": "a",
+              "text": "The access is automatically switched to system mode."
+            },
+            {
+              "id": "b",
+              "text": "The access proceeds if the TLB has a hit."
+            },
+            {
+              "id": "c",
+              "text": "An exception is raised."
+            },
+            {
+              "id": "d",
+              "text": "The MMU automatically sets `U` to 1."
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "A privileged page cannot be used in user mode. A valid entry or TLB hit does not bypass the access check.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO9.md",
+            "heading": "Übersetzungsvorgang – Folie 72"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Page tables and permissions",
+            "Virtual memory and the MMU"
+          ]
+        },
+        {
+          "id": "era-09-l3-q06",
+          "type": "single",
+          "prompt": "Sv39 has three page-table levels. Without a TLB, how many page-table accesses are needed for a translation before the actual data access?",
+          "options": [
+            {
+              "id": "a",
+              "text": "One"
+            },
+            {
+              "id": "b",
+              "text": "Two"
+            },
+            {
+              "id": "c",
+              "text": "Three"
+            },
+            {
+              "id": "d",
+              "text": "Four"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Sv39 uses three table levels. Without a TLB, three page-table accesses are therefore needed, in addition to the actual data access.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO9.md",
+            "heading": "TLB – Translation Look-Aside Buffer"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "TLB",
+            "Sv32 and multilevel page tables"
+          ]
+        },
+        {
+          "id": "era-09-l3-q07",
+          "type": "single",
+          "prompt": "A program requests new virtual memory, but no physical page is assigned initially. What happens on the first access?",
+          "options": [
+            {
+              "id": "a",
+              "text": "The access is permanently rejected because virtual pages cannot receive frames."
+            },
+            {
+              "id": "b",
+              "text": "An exception causes the operating system to find a frame and add the page-table entry."
+            },
+            {
+              "id": "c",
+              "text": "The scheduler automatically copies the page into the TLB."
+            },
+            {
+              "id": "d",
+              "text": "The virtual address is used unchanged as the physical address."
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "With lazy allocation, a physical page is assigned only on the first access. The resulting exception prompts the operating system to find a frame and update the table.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO9.md",
+            "heading": "Lazy Allocation"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Paging and lazy allocation",
+            "Virtual memory and the MMU"
+          ]
+        },
+        {
+          "id": "era-09-l3-q08",
+          "type": "multi",
+          "prompt": "Physical memory is full, and a new page needs to be loaded. Which steps match the paging sequence described? Select all correct statements.",
+          "options": [
+            {
+              "id": "a",
+              "text": "The operating system selects a page and marks it as absent."
+            },
+            {
+              "id": "b",
+              "text": "The selected page is written to disk; its frame can be used for the new page."
+            },
+            {
+              "id": "c",
+              "text": "A later access to the swapped-out page raises an exception so it can be loaded back."
+            },
+            {
+              "id": "d",
+              "text": "The TLB is used as the disk area for the swapped-out page."
+            },
+            {
+              "id": "e",
+              "text": "All operating-system pages must be swapped out first."
+            }
+          ],
+          "correct": [
+            "a",
+            "b",
+            "c"
+          ],
+          "explanation": "With paging, a selected page is swapped out and its frame is reassigned. A later access to the swapped-out page triggers an exception, after which it can be loaded back.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO9.md",
+            "heading": "Paging: Auslagern, wenn keine Kachel frei ist"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Paging and lazy allocation",
+            "TLB"
+          ]
+        },
+        {
+          "id": "era-09-l3-q09",
+          "type": "truefalse",
+          "prompt": "A valid Sv32 leaf entry at the first level can point directly to a large 4-MiB page.",
+          "options": [
+            {
+              "id": "true",
+              "text": "True"
+            },
+            {
+              "id": "false",
+              "text": "False"
+            }
+          ],
+          "correct": [
+            "true"
+          ],
+          "explanation": "In Sv32, a leaf entry at the first level points directly to a large 4-MiB page instead of to another table.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO9.md",
+            "heading": "Rechenbeispiel Sv32"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Sv32 and multilevel page tables"
+          ]
+        },
+        {
+          "id": "era-09-l3-q10",
+          "type": "multi",
+          "prompt": "Which statements correctly distinguish interrupts from exceptions? Select all correct statements.",
+          "options": [
+            {
+              "id": "a",
+              "text": "An exception can never be triggered by an explicit system call."
+            },
+            {
+              "id": "b",
+              "text": "Interrupts and exceptions are both always synchronous errors caused by an instruction."
+            },
+            {
+              "id": "c",
+              "text": "An interrupt is asynchronous and can be triggered by an external event."
+            },
+            {
+              "id": "d",
+              "text": "A timer event is an example of an interrupt."
+            },
+            {
+              "id": "e",
+              "text": "An exception is synchronous and associated with an executed instruction."
+            }
+          ],
+          "correct": [
+            "c",
+            "d",
+            "e"
+          ],
+          "explanation": "Interrupts arise asynchronously from external events such as timer or I/O events. Exceptions are synchronous; an explicit system call is given as a possible example.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO9.md",
+            "heading": "Traps, Interrupts und Exceptions – Folien 48–58"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Interrupts, Exceptions, and Traps"
+          ]
+        },
+        {
+          "id": "era-09-l3-q11",
+          "type": "single",
+          "prompt": "Why are page tables and certain areas of the operating system pinned during the paging process described?",
+          "options": [
+            {
+              "id": "a",
+              "text": "So they are not swapped out."
+            },
+            {
+              "id": "b",
+              "text": "So the scheduler deletes them at every context switch."
+            },
+            {
+              "id": "c",
+              "text": "So they automatically receive identical addresses in all virtual address spaces."
+            },
+            {
+              "id": "d",
+              "text": "So the TLB treats them as executable instructions."
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "Pinned pages remain in physical memory. Examples include page tables, parts of the operating system, and pages for devices without an MMU.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO9.md",
+            "heading": "Paging: Auslagern, wenn keine Kachel frei ist"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Paging and lazy allocation",
+            "Page tables and permissions"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "era-09-l4",
+      "index": 4,
+      "kind": "boss",
+      "title": "Boss",
+      "questions": [
+        {
+          "id": "era-09-l4-q01",
+          "type": "single",
+          "prompt": "A program calls a function, which in turn calls another function. In RISC-V, `jal ra, ...` stores the return address in `ra`; in IA-32, `call` places it on the stack. What must the RISC-V code account for when making the nested call?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Save the current return address in `ra` before the next `jal` overwrites it."
+            },
+            {
+              "id": "b",
+              "text": "Copy the return address to `eax` because IA-32 uses `ra`."
+            },
+            {
+              "id": "c",
+              "text": "Save `ra` because `call` places the address on the stack in RISC-V."
+            },
+            {
+              "id": "d",
+              "text": "Nothing: `jal` places each return address in its own register automatically."
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "Another `jal` overwrites `ra`, so any return address that is still needed must be saved beforehand. In IA-32, `call` instead places the return address on the stack.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO6.md",
+            "heading": null
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Calling conventions"
+          ]
+        },
+        {
+          "id": "era-09-l4-q02-r1",
+          "type": "calc",
+          "prompt": "A virtual address `0x00403ABC` is mapped to physical page number `0x12345` with a page size of 4 KiB. The offset is preserved during translation. Read four bytes starting at the resulting physical address, in ascending address order. Little-endian means here that the byte at the lowest address forms bits 7–0, the next byte forms bits 15–8, and so on. What 32-bit value do you get?",
+          "context": {
+            "type": "table",
+            "content": "| Physical address | Byte |\n|---|---|\n| `0x12345ABC` | `0x78` |\n| `0x12345ABD` | `0x56` |\n| `0x12345ABE` | `0x34` |\n| `0x12345ABF` | `0x12` |",
+            "caption": "Bytes in memory in ascending address order"
+          },
+          "options": [
+            {
+              "id": "a",
+              "text": "`0x78563412`"
+            },
+            {
+              "id": "b",
+              "text": "`0x12345678`"
+            },
+            {
+              "id": "c",
+              "text": "`0x56341278`"
+            },
+            {
+              "id": "d",
+              "text": "`0x12345ABC`"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "The offset of the virtual address is `0xABC`. The physical address is therefore `0x12345 × 0x1000 + 0xABC = 0x12345ABC`. The bytes at this address and the next three addresses are `78 56 34 12`. In little-endian order, this gives `0x12345678`.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO9.md",
+            "heading": "Übersetzungsvorgang – Folie 72"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Virtual memory",
+            "Page-table translation",
+            "Offset",
+            "Little-endian byte order"
+          ]
+        },
+        {
+          "id": "era-09-l4-q03",
+          "type": "calc",
+          "prompt": "An array of 4-byte elements starts at virtual address `0x00403000`. Element 2 is at `Basis + Index × Elementgröße`. The virtual page is mapped to physical page number `0x12345`; the offset is preserved. What is the physical address of element 2?",
+          "options": [
+            {
+              "id": "a",
+              "text": "0x12345008"
+            },
+            {
+              "id": "b",
+              "text": "0x1234500C"
+            },
+            {
+              "id": "c",
+              "text": "0x12345002"
+            },
+            {
+              "id": "d",
+              "text": "0x00403008"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "Element 2 is at `0x00403000 + 2 × 4 = 0x00403008`, so its offset is `0x008`. The physical page base is `0x12345000`; therefore, the physical address is `0x12345008`.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO8.md",
+            "heading": null
+          },
+          "difficulty": 5,
+          "concepts": [
+            "Addressing modes",
+            "Virtual memory and the MMU"
+          ]
+        },
+        {
+          "id": "era-09-l4-q04",
+          "type": "multi",
+          "prompt": "A timer interrupts Program A so that the operating system can run Program B. Which statements match the time-sharing process described? Select all correct statements.",
+          "options": [
+            {
+              "id": "a",
+              "text": "The scheduler selects which program runs next."
+            },
+            {
+              "id": "b",
+              "text": "B's state does not need to be loaded before B resumes."
+            },
+            {
+              "id": "c",
+              "text": "The operating system saves, among other things, A's registers, SP, and PC."
+            },
+            {
+              "id": "d",
+              "text": "Program A can switch directly to system mode by executing arbitrary privileged code."
+            },
+            {
+              "id": "e",
+              "text": "A timer event is an asynchronous interrupt."
+            }
+          ],
+          "correct": [
+            "a",
+            "c",
+            "e"
+          ],
+          "explanation": "Time sharing saves the state of the interrupted program, lets the scheduler select the next program, and loads its state. A timer is an external, asynchronous interrupt event; user code cannot arbitrarily assume privileged rights.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO9.md",
+            "heading": "Mehrbenutzersysteme – Folien 39–47"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Multiuser systems and modes",
+            "Interrupts, Exceptions, and Traps"
+          ]
+        },
+        {
+          "id": "era-09-l4-q05",
+          "type": "single",
+          "prompt": "A process uses only a small part of its virtual address space with Sv32. Why can multilevel page tables save memory in this case?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Each process automatically gets larger physical frames."
+            },
+            {
+              "id": "b",
+              "text": "The TLB permanently takes over the page table."
+            },
+            {
+              "id": "c",
+              "text": "Unused table areas do not need to be created."
+            },
+            {
+              "id": "d",
+              "text": "Virtual addresses are shortened to 12 bits."
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Multilevel tables make it possible to create tables only for areas that are actually used. A single-level Sv32 table would require 4 MiB per process.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO9.md",
+            "heading": "Warum mehrere Stufen?"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Sv32 and multilevel page tables",
+            "TLB"
+          ]
+        },
+        {
+          "id": "era-09-l4-q06",
+          "type": "single",
+          "prompt": "An instruction is fetched in user mode from a page. The entry is valid, and `U=1` allows access in user mode. The X/W/R bits are ordered as execute/write/read, so `101` means execute and read. Is access allowed?",
+          "options": [
+            {
+              "id": "a",
+              "text": "No, `101` allows write and execute only."
+            },
+            {
+              "id": "b",
+              "text": "Yes, the page is readable and executable in user mode."
+            },
+            {
+              "id": "c",
+              "text": "Yes, but only if the entry is invalid."
+            },
+            {
+              "id": "d",
+              "text": "No, `U=1` prohibits instruction accesses."
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "In X/W/R order, `101` means execute and read. With a valid entry and `U=1`, the instruction access is allowed in user mode.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO9.md",
+            "heading": "X/W/R-Kodierung"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Page tables and permissions",
+            "Virtual memory and the MMU"
+          ]
+        },
+        {
+          "id": "era-09-l4-q07",
+          "type": "single",
+          "prompt": "A TLB hit provides a valid translation, but the entry allows reading and prohibits writing. The process attempts a store. What happens?",
+          "options": [
+            {
+              "id": "a",
+              "text": "The offset is set to zero and the store is retried."
+            },
+            {
+              "id": "b",
+              "text": "The scheduler automatically sets the write bit."
+            },
+            {
+              "id": "c",
+              "text": "The store succeeds because the TLB had a hit."
+            },
+            {
+              "id": "d",
+              "text": "An exception is raised because the write access is not permitted."
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "A TLB hit provides the translation but does not bypass access protection. A write to a read-only page raises an exception.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO9.md",
+            "heading": "Übersetzungsvorgang – Folie 72"
+          },
+          "difficulty": 5,
+          "concepts": [
+            "TLB",
+            "Page tables and permissions"
+          ]
+        },
+        {
+          "id": "era-09-l4-q08",
+          "type": "multi",
+          "prompt": "Two accesses raise an exception: Access A targets a virtual page that has never been assigned physical memory; Access B targets a page that was previously swapped out. Which statements correctly distinguish the cases? Select all correct statements.",
+          "options": [
+            {
+              "id": "a",
+              "text": "Both exceptions can be part of page management."
+            },
+            {
+              "id": "b",
+              "text": "For A, lazy allocation can assign a frame for the first time."
+            },
+            {
+              "id": "c",
+              "text": "For B, the MMU is responsible for reading the page from disk by itself."
+            },
+            {
+              "id": "d",
+              "text": "For B, the operating system can load the swapped-out page back from disk."
+            },
+            {
+              "id": "e",
+              "text": "For A, a page must be loaded back from disk."
+            }
+          ],
+          "correct": [
+            "a",
+            "b",
+            "d"
+          ],
+          "explanation": "Lazy allocation assigns a previously unbacked virtual page on its first access. For an access to a swapped-out page, the operating system must retrieve the page; in both cases, the exception can initiate the management process.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO9.md",
+            "heading": "Lazy Allocation"
+          },
+          "difficulty": 5,
+          "concepts": [
+            "Paging and lazy allocation",
+            "Virtual memory and the MMU"
+          ]
+        },
+        {
+          "id": "era-09-l4-q09",
+          "type": "truefalse",
+          "prompt": "Access protection can be used deliberately to catch, for example, array overflows as exceptions during debugging.",
+          "options": [
+            {
+              "id": "true",
+              "text": "True"
+            },
+            {
+              "id": "false",
+              "text": "False"
+            }
+          ],
+          "correct": [
+            "true"
+          ],
+          "explanation": "The notes mention deliberately blocking accesses to detect array overflows and underflows during debugging.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO9.md",
+            "heading": "Zugriffsschutz gezielt nutzen"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Page tables and permissions"
+          ]
+        },
+        {
+          "id": "era-09-l4-q10",
+          "type": "single",
+          "prompt": "Which comparison of instruction formats is correct?",
+          "options": [
+            {
+              "id": "a",
+              "text": "In the three-address form, the destination necessarily overwrites one of the two sources."
+            },
+            {
+              "id": "b",
+              "text": "x86 is a three-address register-register ISA; RISC-V is a two-address memory ISA."
+            },
+            {
+              "id": "c",
+              "text": "x86 can use the destination as a source in the two-address form; RISC-V uses a three-address register-register form for `x = y + z`."
+            },
+            {
+              "id": "d",
+              "text": "Both forms must always store the result directly in memory."
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "The x86 register machine described uses the two-address form, in which the destination overlaps with a source. RISC-V uses the Load/Store register-register form, with separate source and destination operands.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO9.md",
+            "heading": "Adressformen – Folien 24–30"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Instruction formats",
+            "Addressing modes"
+          ]
+        },
+        {
+          "id": "era-09-l4-q11",
+          "type": "single",
+          "prompt": "A RISC-V process returns to user mode after an exception. Which statement correctly describes the controlled transition?",
+          "options": [
+            {
+              "id": "a",
+              "text": "The return can use a privileged instruction such as `mret` or `sret`."
+            },
+            {
+              "id": "b",
+              "text": "The return happens when the scheduler clears the TLB and loads `ra`."
+            },
+            {
+              "id": "c",
+              "text": "The transition is impossible because RISC-V has only one mode."
+            },
+            {
+              "id": "d",
+              "text": "Any user code can obtain arbitrary privileged rights by executing `mret`."
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "The transitions between system and user mode described are controlled; `mret` and `sret` are privileged return instructions.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO9.md",
+            "heading": "Mehrbenutzersysteme – Folien 39–47"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Multiuser systems and modes",
+            "Interrupts, Exceptions, and Traps"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "era-09-l5",
+      "index": 5,
+      "kind": "bonus",
+      "title": "Practice: When Addresses Become Part of Everyday Life",
+      "questions": [
+        {
+          "id": "era-09-l5-q01",
+          "type": "single",
+          "prompt": "You start an older 32-bit program on an x86_64 PC. Which ISA feature can enable compatibility?",
+          "options": [
+            {
+              "id": "a",
+              "text": "x86 instructions are always exactly 4 bytes long."
+            },
+            {
+              "id": "b",
+              "text": "x86 uses only instructions with three operands."
+            },
+            {
+              "id": "c",
+              "text": "x86_64 retains legacy execution modes."
+            },
+            {
+              "id": "d",
+              "text": "All x86 registers have the same width."
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "x86_64 supplements older word sizes with additional execution modes. Support for a suitable legacy mode can make it possible to run 32-bit programs.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO9.md",
+            "heading": "IA-32 und die x86-Familie"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "IA-32 and x86"
+          ]
+        },
+        {
+          "id": "era-09-l5-q02",
+          "type": "single",
+          "prompt": "A database frequently accesses the same memory pages. Which hardware aid can reduce unnecessary page-table accesses?",
+          "options": [
+            {
+              "id": "a",
+              "text": "The stack pointer points to the program stack."
+            },
+            {
+              "id": "b",
+              "text": "The scheduler selects the next process."
+            },
+            {
+              "id": "c",
+              "text": "The swap file stores inactive pages."
+            },
+            {
+              "id": "d",
+              "text": "The TLB caches recently used address translations."
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "The TLB (Translation Look-Aside Buffer) caches recently used translations from virtual to physical addresses. On a hit, the page-table lookup can be skipped.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO9.md",
+            "heading": "TLB – Translation Look-Aside Buffer"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "TLB",
+            "Virtual memory and the MMU"
+          ]
+        },
+        {
+          "id": "era-09-l5-q03",
+          "type": "estimate",
+          "prompt": "A memory page is 4 KiB in size. How many Byte is that? Use 1 KiB = 1024 Byte.",
+          "options": [],
+          "correct": [],
+          "slider": {
+            "min": 2048,
+            "max": 8192,
+            "step": 16,
+            "answer": 4096,
+            "tolerance": 0,
+            "unit": "Byte",
+            "scale": "linear"
+          },
+          "explanation": "One KiB is 1024 Byte. Therefore, a 4-KiB page contains 4 × 1024 = 4096 Byte. The page size also determines how many bits are needed for the offset.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO9.md",
+            "heading": "Virtueller Speicher – Folien 59–74"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Virtual memory and the MMU"
+          ]
+        },
+        {
+          "id": "era-09-l5-q04",
+          "type": "multi",
+          "prompt": "While you type on your smartphone, other programs keep running. Which two events are examples of interrupts arriving from outside?",
+          "options": [
+            {
+              "id": "a",
+              "text": "A hardware timer signals."
+            },
+            {
+              "id": "b",
+              "text": "The program's memory access violates a permission."
+            },
+            {
+              "id": "c",
+              "text": "The running program executes an invalid instruction."
+            },
+            {
+              "id": "d",
+              "text": "A network packet arrives."
+            }
+          ],
+          "correct": [
+            "a",
+            "d"
+          ],
+          "explanation": "Interrupts arise asynchronously from external events such as network or timer signals. An invalid instruction and an unauthorized memory access are associated with an executed instruction and raise exceptions.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO9.md",
+            "heading": "Traps, Interrupts und Exceptions – Folien 48–58"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Interrupts",
+            "Exceptions"
+          ]
+        },
+        {
+          "id": "era-09-l5-q05",
+          "type": "single",
+          "prompt": "You reserve a large virtual memory area for a simulation but initially use only a small part of it. How can the operating system avoid providing a physical frame for every page immediately?",
+          "options": [
+            {
+              "id": "a",
+              "text": "It uses lazy allocation and assigns a frame only on the first access."
+            },
+            {
+              "id": "b",
+              "text": "It stores every virtual address in the TLB permanently."
+            },
+            {
+              "id": "c",
+              "text": "It disables the MMU for the program."
+            },
+            {
+              "id": "d",
+              "text": "It immediately swaps all pages to disk."
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "With lazy allocation, a virtual page receives a physical frame only after its first access. An access to a page that has not yet been provided can raise an exception, which the operating system handles.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO9.md",
+            "heading": "Lazy Allocation"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Lazy allocation",
+            "Page tables and permissions"
+          ]
+        },
+        {
+          "id": "era-09-l5-q06",
+          "type": "estimate",
+          "prompt": "A page is 4 KiB in size. How many address bits are needed for the offset within the page? Use 1 KiB = 1024 Byte.",
+          "options": [],
+          "correct": [],
+          "slider": {
+            "min": 4,
+            "max": 21,
+            "step": 1,
+            "answer": 12,
+            "tolerance": 0,
+            "unit": "Bit",
+            "scale": "linear"
+          },
+          "explanation": "4 KiB is 4 × 1024 = 4096 = 2¹² Byte. Therefore, 12 offset bits are needed; these bits remain unchanged when translating a virtual address to a physical address.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO9.md",
+            "heading": "Virtueller Speicher – Folien 59–74"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Virtual memory and the MMU",
+            "Page tables and permissions"
+          ]
+        },
+        {
+          "id": "era-09-l5-q07",
+          "type": "single",
+          "prompt": "Physical memory is full. The operating system marks a long-unused page as absent and writes it to a storage device. Later, the program accesses it again. Which concept does this illustrate?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Register renaming: a register receives a new name."
+            },
+            {
+              "id": "b",
+              "text": "Paging: the page is loaded back when needed."
+            },
+            {
+              "id": "c",
+              "text": "Time sharing: the scheduler switches processes."
+            },
+            {
+              "id": "d",
+              "text": "Lazy allocation: the page receives memory for the first time."
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "With paging, a selected page can be swapped out and marked as absent. A later access raises an exception so the operating system can load the page back.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO9.md",
+            "heading": "Paging: Auslagern, wenn keine Kachel frei ist"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Paging",
+            "Exceptions"
+          ]
+        },
+        {
+          "id": "era-09-l5-q08",
+          "type": "estimate",
+          "prompt": "A hypothetical method translates a virtual address through three page-table levels without a TLB hit. A data value is then read from memory. How many memory accesses are needed in total? Count one access per table level and one for the data value.",
+          "options": [],
+          "correct": [],
+          "slider": {
+            "min": 1,
+            "max": 8,
+            "step": 1,
+            "answer": 4,
+            "tolerance": 0,
+            "unit": "Memory accesses",
+            "scale": "linear"
+          },
+          "explanation": "The three table levels require three memory accesses. The subsequent read of the data value brings the total to four accesses.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO9.md",
+            "heading": "TLB – Translation Look-Aside Buffer"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "TLB",
+            "Multilevel page tables"
+          ]
+        },
+        {
+          "id": "era-09-l5-q09",
+          "type": "single",
+          "prompt": "A smartphone app runs without privileged rights and wants to read a file. How does it request an operating-system service in a controlled way?",
+          "options": [
+            {
+              "id": "a",
+              "text": "By bypassing the TLB and changing the page table itself."
+            },
+            {
+              "id": "b",
+              "text": "By permanently switching the processor to system mode."
+            },
+            {
+              "id": "c",
+              "text": "Through a system call that the operating system can check."
+            },
+            {
+              "id": "d",
+              "text": "By executing privileged device instructions directly in user mode."
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "A system call enables a controlled transition from user mode to the operating system. The operating system can check parameters and permissions before providing the service.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO9.md",
+            "heading": "Mehrbenutzersysteme – Folien 39–47"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Multiuser systems and modes",
+            "Exceptions and Traps"
+          ]
+        },
+        {
+          "id": "era-09-l5-q10",
+          "type": "single",
+          "prompt": "You are reading x86 assembly. Before the instruction, `eax` contains 7 and `ebx` contains 5. What is true after `add eax, ebx`?",
+          "options": [
+            {
+              "id": "a",
+              "text": "eax contains 12 afterward."
+            },
+            {
+              "id": "b",
+              "text": "ebx contains 12 afterward."
+            },
+            {
+              "id": "c",
+              "text": "eax remains 7; the result is in a new register."
+            },
+            {
+              "id": "d",
+              "text": "The instruction writes 12 directly to memory."
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "In this x86 two-address form, the destination is also a source: the instruction adds `ebx` to `eax` and overwrites `eax` with 12. In a three-address register form, the sources and destination would be separate.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO9.md",
+            "heading": "Unterschiede im Assemblercode"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Instruction formats",
+            "IA-32 and x86"
+          ]
+        }
+      ]
+    }
+  ]
+}

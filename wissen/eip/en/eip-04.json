@@ -1,0 +1,441 @@
+{
+  "schemaVersion": 1,
+  "unitId": "eip-04",
+  "module": "EIP",
+  "unitNumber": 4,
+  "unitTitle": "Control-Flow Graphs, Strings, and Arrays",
+  "sourceSha": "a4c92693bee8c0d4fee1b6766a2248667edb26f0feca796a923d5c7fd4f246bd",
+  "overview": "This unit treats control-flow graphs (Kontrollflussgraphen) as models of possible program executions and explains paths, states, and reducibility (Reduzierbarkeit). It introduces variable declaration and initialization (Variablendeklaration und Initialisierung), string concatenation (String-Konkatenation) and comparison, arrays (Arrays) and references (Referenzen), loop invariants (Schleifeninvarianten), and for-loops and their equivalence to while-loops (For-Schleifen-Äquivalenz).",
+  "entries": [
+    {
+      "id": "eip-04-k01",
+      "term": "Syntax and semantics (Syntax und Semantik)",
+      "kind": "concept",
+      "short": "Syntax describes a program’s form; semantics describes its meaning when it runs.",
+      "explanation": "Syntax specifies which arrangements of characters and statements form valid programs. Semantics describes what a valid program does, such as the state changes caused by its statements. A program can be syntactically valid and still behave in an undesirable way.",
+      "example": "`x = x + 1;` is a syntactically valid statement; its semantics is to increase the value of `x` by one.",
+      "pitfalls": [
+        "Syntax errors and errors in program behavior are different kinds of errors."
+      ],
+      "related": [
+        "Syntax",
+        "Semantics",
+        "Control-flow graph (CFG)"
+      ],
+      "heading": "1. Control-Flow Graphs (CFG)"
+    },
+    {
+      "id": "eip-04-k02",
+      "term": "Control-flow graph (CFG)",
+      "kind": "definition",
+      "short": "A CFG represents possible program executions using nodes and directed edges.",
+      "explanation": "Nodes can represent, for example, start, stop, input and output, assignments, or conditions; directed edges show possible transitions. Every node except the start has at least one incoming edge, and every node except the stop has at least one outgoing edge. Every MiniJava program can be represented as a CFG.",
+      "example": "In `if (x < 0) x = 0;`, the condition node continues along one of two edges.",
+      "pitfalls": [
+        "A CFG shows possible control flows, but by itself does not give the concrete values of all variables."
+      ],
+      "related": [
+        "CFG node types",
+        "Path and operational semantics",
+        "Condition and join nodes",
+        "Reducibility"
+      ],
+      "heading": "1. Control-Flow Graphs (CFG)"
+    },
+    {
+      "id": "eip-04-k03",
+      "term": "CFG node types (Knotentypen im CFG)",
+      "kind": "definition",
+      "short": "CFG nodes represent start, stop, input and output, assignments, conditions, or joins.",
+      "explanation": "The start node marks the beginning of the program, and the stop node marks its end. An input node can represent `x = readInt();`, an output node can represent `write(y);`, and an assignment node can represent a state change. Condition and join nodes model branches and the merging of control flow.",
+      "example": "`x = readInt();` is an input node, `x = x + 1;` an assignment node, and `write(x);` an output node.",
+      "pitfalls": [
+        "A join node merges control-flow paths; it is not an additional condition."
+      ],
+      "related": [
+        "Control-flow graph (CFG)",
+        "Condition and join nodes"
+      ],
+      "heading": "1. Control-Flow Graphs (CFG)"
+    },
+    {
+      "id": "eip-04-k04",
+      "term": "Path and operational semantics (Pfad und operationale Semantik)",
+      "kind": "definition",
+      "short": "A path from start to stop corresponds to a possible execution; together with its states, it describes that execution’s operational semantics.",
+      "explanation": "A path is a sequence of nodes and edges from start to stop. At a branch, the current variable values determine which edge is taken. Recording the states along the path as well describes the execution as a sequence of state changes; this is its operational semantics.",
+      "example": "For `x = 2; x = x + 1;`, the path first reaches the state `x = 2` and then `x = 3`.",
+      "pitfalls": [
+        "A path describes one possible execution; different inputs can produce different paths."
+      ],
+      "related": [
+        "Control-flow graph (CFG)",
+        "Condition and join nodes",
+        "Syntax and semantics"
+      ],
+      "heading": "1. Control-Flow Graphs (CFG)"
+    },
+    {
+      "id": "eip-04-k05",
+      "term": "Condition and join nodes (Bedingungs- und Join-Knoten)",
+      "kind": "definition",
+      "short": "A condition node has exactly one yes edge and one no edge; a join node merges alternative paths.",
+      "explanation": "At a condition node, a Boolean expression is evaluated and one of the two outgoing edges is chosen. The edges are called `yes` and `no`. A join node marks a point where previously separated control-flow paths come together again.",
+      "example": "In `if (x < 5)`, `yes` leads into the body and `no` bypasses it; the two paths can then meet at a join.",
+      "pitfalls": [
+        "A single execution takes exactly one of the two edges at a condition node."
+      ],
+      "related": [
+        "Control-flow graph (CFG)",
+        "Path and operational semantics",
+        "if and while loops in the CFG"
+      ],
+      "heading": "1. Control-Flow Graphs (CFG)"
+    },
+    {
+      "id": "eip-04-k06",
+      "term": "if and while loops in the CFG (if- und while-Schleifen im CFG)",
+      "kind": "concept",
+      "short": "With `if`, the body leads to the next statement; with `while`, it leads back to the condition.",
+      "explanation": "Both constructs use a test and a branch. With an `if`, control flow moves from the body to the following statement. With a `while` loop, the body leads back to the condition, which is evaluated again before another possible iteration.",
+      "example": "In `while (i < n) i = i + 1;`, the body edge leads back to `i < n` after the assignment.",
+      "pitfalls": [
+        "An `if` does not repeat its body automatically."
+      ],
+      "related": [
+        "Control-flow graph (CFG)",
+        "Condition and join nodes",
+        "For-loop"
+      ],
+      "heading": "1. Control-Flow Graphs (CFG)"
+    },
+    {
+      "id": "eip-04-k07",
+      "term": "Reducibility",
+      "kind": "definition",
+      "short": "In a reducible CFG, every loop has exactly one entry point.",
+      "explanation": "An entry point is a node through which control flow enters a loop. In a reducible graph, each loop has exactly one such point, which rules out a jump from outside directly into the middle of the loop. A CFG can be converted into a structured program with branches, loops, blocks, and, where needed, labeled `break` or `continue` statements if and only if it is reducible.",
+      "example": "A loop with a single entry at its condition node is reducible; an additional edge from outside directly into its body creates a second entry point.",
+      "pitfalls": [
+        "Reducibility does not mean that a program has no loops or branches."
+      ],
+      "related": [
+        "Control-flow graph (CFG)",
+        "if and while loops in the CFG"
+      ],
+      "heading": "Reduzierbarkeit"
+    },
+    {
+      "id": "eip-04-k08",
+      "term": "Euclidean algorithm (subtraction variant; Euklidischer Algorithmus (Subtraktion))",
+      "kind": "example",
+      "short": "The subtraction algorithm subtracts the smaller positive number from the larger until both are equal.",
+      "explanation": "For positive integer inputs `x` and `y`, repeatedly check whether `x != y`. If `x < y`, subtract `x` from `y`; otherwise, subtract `y` from `x`. When the two values are equal, their common value is their greatest common divisor.",
+      "example": "For `x = 30` and `y = 20`, the steps are `(30, 20) → (10, 20) → (10, 10)`; the result is `10`.",
+      "pitfalls": [
+        "The subtraction variant assumes positive inputs; with an input of `0`, it cannot reach equality."
+      ],
+      "related": [
+        "Euclidean algorithm",
+        "Control-flow graph (CFG)",
+        "Path and operational semantics",
+        "Iteration"
+      ],
+      "heading": "Beispiel: Euklid (Subtraktion)"
+    },
+    {
+      "id": "eip-04-k09",
+      "term": "Variable declaration and initialization",
+      "kind": "concept",
+      "short": "A declaration introduces a variable, and initialization gives it an initial value.",
+      "explanation": "Declaration and first assignment can be separate (`int n; n = readInt();`) or combined (`int n = readInt();`). Local variables do not receive a default value. Reading one before its first assignment is a compiler error; it is good practice to declare and initialize variables close to where they are first used.",
+      "example": "`int n = readInt();` declares `n` and initializes it with the value that was read.",
+      "pitfalls": [
+        "A declared local `int` variable is not automatically initialized to `0`."
+      ],
+      "related": [
+        "Variable",
+        "Assignment",
+        "Type"
+      ],
+      "heading": "2. Variablen: Deklaration & Initialisierung"
+    },
+    {
+      "id": "eip-04-k10",
+      "term": "Type (Typ)",
+      "kind": "definition",
+      "short": "A type specifies the possible values of a variable and the operations allowed on it.",
+      "explanation": "The compiler uses types to detect invalid operations early. Types also describe the kind of data stored and help ensure memory is used appropriately. Examples from this unit are `int`, `String`, `int[]`, and `int[][]`.",
+      "example": "`int n = 3;` stores an integer, and `String greeting = \"Hallo\";` stores text.",
+      "pitfalls": [
+        "A variable’s type and its current value are not the same thing."
+      ],
+      "related": [
+        "Variable declaration and initialization",
+        "MiniJava"
+      ],
+      "heading": "2. Variablen: Deklaration & Initialisierung"
+    },
+    {
+      "id": "eip-04-k11",
+      "term": "String and empty string (String und leerer String)",
+      "kind": "definition",
+      "short": "A string is a sequence of characters; an empty string contains no characters.",
+      "explanation": "String literals are enclosed in double quotation marks, which are not part of the text. `\"Hello\"` contains the characters `Hello`, while `\"\"` denotes the empty string. A string can be stored in a `String` variable.",
+      "example": "`String greeting = \"Hello\"; String empty = \"\";`",
+      "pitfalls": [
+        "Quotation marks delimit the literal and do not count as characters in the string."
+      ],
+      "related": [
+        "String concatenation",
+        "String comparison using equals"
+      ],
+      "heading": "3. Strings"
+    },
+    {
+      "id": "eip-04-k12",
+      "term": "String concatenation",
+      "kind": "concept",
+      "short": "When `+` is used with a string, the other operand is converted to text; evaluation proceeds from left to right.",
+      "explanation": "If one operand of a `+` operation is a string, the other operand is appended as text. Because evaluation proceeds from left to right, parentheses affect the result. An arithmetic subexpression must be parenthesized if it is to be evaluated first.",
+      "example": "`\"sum: \" + (2 + 3)` evaluates to `\"sum: 5\"`, but `\"sum: \" + 2 + 3` evaluates to `\"sum: 23\"`.",
+      "pitfalls": [
+        "`\"sum: \" + 2 + 3` does not add `2` and `3` first."
+      ],
+      "related": [
+        "String and empty string",
+        "Operator precedence",
+        "Syntax and semantics"
+      ],
+      "heading": "3. Strings"
+    },
+    {
+      "id": "eip-04-k13",
+      "term": "String comparison using equals",
+      "kind": "method",
+      "short": "`s1.equals(s2)` compares the contents of two strings.",
+      "explanation": "The `equals` method returns `true` when both strings contain the same sequence of characters. For references, `==` checks whether they point to the same object, so it does not compare contents. Use `equals` to compare text.",
+      "example": "`String s1 = \"cat\"; String s2 = \"c\" + \"at\"; boolean sameText = s1.equals(s2);`",
+      "pitfalls": [
+        "`s1 == s2` is not a reliable test of whether both variables contain the same text."
+      ],
+      "related": [
+        "String and empty string",
+        "Array reference"
+      ],
+      "heading": "3. Strings"
+    },
+    {
+      "id": "eip-04-k14",
+      "term": "Array (Array)",
+      "kind": "definition",
+      "short": "An array stores a fixed number of values of the same type, accessed by index.",
+      "explanation": "The length is fixed when the array is created, though it can be determined at runtime and can also be `0`. It does not change if the variable originally used to specify it changes. In a newly created `int` array, every element is initially `0`.",
+      "example": "`int[] a = new int[3]; a[1] = 7; write(a[1]);`",
+      "pitfalls": [
+        "An array’s length cannot be changed after it is created."
+      ],
+      "related": [
+        "Array indices and length",
+        "Array reference",
+        "Two-dimensional array",
+        "Type"
+      ],
+      "heading": "4. Arrays"
+    },
+    {
+      "id": "eip-04-k15",
+      "term": "Array indices and length (Array-Indizes und Länge)",
+      "kind": "notation",
+      "short": "For an array of length `n`, the valid indices are `0` through `n - 1`, and `a.length` gives `n`.",
+      "explanation": "The first element has index `0`. For an array of length `n`, the set of indices is `{0, …, n - 1}`. An array of length `0` has no valid element index.",
+      "example": "For `int[] a = new int[3];`, `a[0]`, `a[1]`, and `a[2]` are valid; `a.length` is `3`.",
+      "pitfalls": [
+        "`a[a.length]` is always outside the valid index range."
+      ],
+      "related": [
+        "Array",
+        "Runtime error on array access"
+      ],
+      "heading": "4. Arrays"
+    },
+    {
+      "id": "eip-04-k16",
+      "term": "Runtime error on array access (Laufzeitfehler beim Arrayzugriff)",
+      "kind": "definition",
+      "short": "Accessing an array with an invalid index causes an `ArrayIndexOutOfBoundsException` at runtime.",
+      "explanation": "An index can be computed at runtime and checked against the array length. If it is negative or at least as large as `a.length`, it is outside the valid range and the access fails. This is a runtime error, not a compiler error.",
+      "example": "For `int[] a = new int[3];`, `write(a[3]);` causes an `ArrayIndexOutOfBoundsException`.",
+      "pitfalls": [
+        "The last valid index is `a.length - 1`, not `a.length`."
+      ],
+      "related": [
+        "Array indices and length",
+        "Runtime",
+        "Variable declaration and initialization"
+      ],
+      "heading": "4. Arrays"
+    },
+    {
+      "id": "eip-04-k17",
+      "term": "Runtime (Laufzeit)",
+      "kind": "definition",
+      "short": "Runtime is the time a program takes while it is executing.",
+      "explanation": "Runtime occurs only while a program is executing and can depend on its input and control flow. Checking an array index is an example of a runtime check. A runtime error occurs during execution, whereas a compiler error prevents compilation.",
+      "example": "The access `a[i]` can fail during program execution if `i` has an invalid value.",
+      "pitfalls": [
+        "A runtime error is not the same as a syntax error or a compiler error."
+      ],
+      "related": [
+        "Runtime error on array access",
+        "Iteration"
+      ],
+      "heading": "4. Arrays"
+    },
+    {
+      "id": "eip-04-k18",
+      "term": "Loop invariant (Schleifeninvariante)",
+      "kind": "concept",
+      "short": "A loop invariant is a statement about the state that holds before every loop test and remains true throughout the loop.",
+      "explanation": "An invariant describes what is already known after any number of loop iterations. It must hold before the first test and continue to hold after every iteration. This helps establish the correctness of a loop procedure.",
+      "example": "When reading an array, the invariant is: before each test, the first `i` elements have been read.",
+      "pitfalls": [
+        "A statement that becomes true only after a loop iteration is not enough to be an invariant before the first test."
+      ],
+      "related": [
+        "Iteration",
+        "Reading an array",
+        "Minimum of an array"
+      ],
+      "heading": "4. Arrays"
+    },
+    {
+      "id": "eip-04-k19",
+      "term": "Reading an array (Array einlesen)",
+      "kind": "method",
+      "short": "A counter-controlled loop reads each array element once and increments the index after each input.",
+      "explanation": "First set `i` to `0`. While `i < a.length`, read a value into `a[i]` and then increment `i` by one. Before each test, the first `i` elements have been read; upon termination, `a[a.length]` is not accessed.",
+      "example": "`int i = 0; while (i < a.length) { a[i] = readInt(); i = i + 1; }`",
+      "pitfalls": [
+        "The condition `i < a.length` ensures that the last access is valid."
+      ],
+      "related": [
+        "Array",
+        "Array indices and length",
+        "Loop invariant",
+        "Iteration"
+      ],
+      "heading": "Array einlesen"
+    },
+    {
+      "id": "eip-04-k20",
+      "term": "Minimum of an array (Minimum eines Arrays)",
+      "kind": "method",
+      "short": "For a nonempty array, find the minimum by starting with the first element and replacing it whenever a smaller element is found.",
+      "explanation": "The procedure assumes `a.length > 0`, so that `a[0]` exists. Set `result = a[0]`, then iterate over the indices from `1` through `a.length - 1`. If `a[i] < result`, set `result = a[i]`; before each loop test, `result` is the minimum of `a[0]` through `a[i - 1]`.",
+      "example": "For `a = [4, 2, 5]`, `result` is initially `4`, then `2`, and remains `2` afterward.",
+      "pitfalls": [
+        "For an empty array, `a[0]` does not exist; the assumption `a.length > 0` is necessary."
+      ],
+      "related": [
+        "Array",
+        "Array indices and length",
+        "Loop invariant",
+        "For-loop"
+      ],
+      "heading": "Minimum (Voraussetzung               )"
+    },
+    {
+      "id": "eip-04-k21",
+      "term": "Array reference (Array-Referenz)",
+      "kind": "concept",
+      "short": "An array variable stores a reference to an array, and assignment copies that reference rather than the array.",
+      "explanation": "After `int[] b = a;`, `a` and `b` refer to the same array. A change to an element through `b` is therefore also visible through `a`. To get an independent array, create a new array and, if needed, fill it element by element.",
+      "example": "`int[] a = new int[3]; int[] b = a; b[1] = 7; write(a[1]);` outputs `7`.",
+      "pitfalls": [
+        "`b = a` does not create a copy of the array elements."
+      ],
+      "related": [
+        "Array",
+        "String comparison using equals",
+        "Two-dimensional array"
+      ],
+      "heading": "Referenzen ⚠"
+    },
+    {
+      "id": "eip-04-k22",
+      "term": "Two-dimensional array (Zweidimensionales Array)",
+      "kind": "definition",
+      "short": "A two-dimensional array is an array whose elements are themselves arrays.",
+      "explanation": "For `int[][] grid`, `grid[1]` is a row of type `int[]`; `grid[1][2]` is a single value of type `int`. With `new int[3][4]`, there are three rows with four columns each. Because it is an array of arrays, the rows can also have different lengths.",
+      "example": "`int[][] grid = new int[3][4]; grid[1][2] = 7;`",
+      "pitfalls": [
+        "A two-dimensional array does not have to be rectangular."
+      ],
+      "related": [
+        "Array",
+        "Array indices and length",
+        "Array reference"
+      ],
+      "heading": "2D-Arrays = Array von Arrays"
+    },
+    {
+      "id": "eip-04-k23",
+      "term": "For-loop",
+      "kind": "definition",
+      "short": "A for-loop combines initialization, condition, and update in a single loop header.",
+      "explanation": "The form `for (init; cond; upd) body` first executes `init` and then checks `cond`. If the condition is true, the body runs; next, `upd` runs, followed by the next condition check. If the condition is false, the loop ends.",
+      "example": "`for (int i = 0; i < a.length; ++i) { write(a[i]); }`",
+      "pitfalls": [
+        "The update runs after the body and before the next test."
+      ],
+      "related": [
+        "Iteration",
+        "For-loop equivalence",
+        "Increment notation ++i",
+        "Loop invariant"
+      ],
+      "heading": "5. For-Schleife"
+    },
+    {
+      "id": "eip-04-k24",
+      "term": "For-loop equivalence",
+      "kind": "theorem",
+      "short": "`for (init; cond; upd) body` is equivalent to `init` followed by `while (cond) { body; upd; }`.",
+      "explanation": "Both forms execute the steps in the same order. Initialization happens once before the loop; after each body execution, the update runs before the condition is checked again. This lets us trace the behavior of a for-loop using a while-loop.",
+      "example": "`for (int i = 0; i < n; ++i) write(i);` is equivalent to `int i = 0; while (i < n) { write(i); i = i + 1; }`.",
+      "pitfalls": [
+        "The update belongs inside the loop, after the body, not before it."
+      ],
+      "related": [
+        "For-loop",
+        "if and while loops in the CFG",
+        "Iteration"
+      ],
+      "heading": "5. For-Schleife"
+    },
+    {
+      "id": "eip-04-k25",
+      "term": "Increment notation ++i",
+      "kind": "notation",
+      "short": "`++i` increases the value of `i` by one.",
+      "explanation": "As a standalone statement, `++i` is equivalent to `i = i + 1`. In a for-loop, this expression often appears as the update, which is executed after the body. The counter is thus incremented before the next condition test.",
+      "example": "After `int i = 2; ++i;`, `i` has the value `3`.",
+      "pitfalls": [
+        "In a for-loop, the update happens after the body, even though it appears in the loop header."
+      ],
+      "related": [
+        "For-loop",
+        "For-loop equivalence",
+        "Assignment"
+      ],
+      "heading": "5. For-Schleife"
+    }
+  ],
+  "generator": {
+    "model": "gpt-6-luna",
+    "effort": "xhigh",
+    "promptVersion": "k1",
+    "generatedAt": "2026-11-02T12:24:58.035Z"
+  }
+}

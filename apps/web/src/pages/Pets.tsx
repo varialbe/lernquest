@@ -1,3 +1,6 @@
+import { usePageT } from '../i18n/pages.ts';
+import { translateGameText } from '../i18n/catalog.ts';
+import { useLocale } from '../i18n/index.tsx';
 import { motion } from 'motion/react';
 import { useState } from 'react';
 import { Link } from 'wouter';
@@ -10,6 +13,8 @@ import { useMe, useMeMutation } from '../lib/queries.ts';
 import type { MeResponse } from '@lernquest/shared';
 
 export default function Pets() {
+  const t = usePageT();
+  const { locale } = useLocale();
   const { data: me } = useMe();
   const [focus, setFocus] = useState<string | null>(null);
   const setActive = useMeMutation((petId: string) => api<MeResponse>('/api/me/settings', { method: 'PATCH', body: { activePet: petId } }));
@@ -32,40 +37,40 @@ export default function Pets() {
           <motion.div key={shown.petId + shown.accessory} initial={{ scale: 0.85, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="relative mx-auto w-fit animate-float">
             <PetImage petId={shown.petId} stage={shown.stage} accessory={shown.accessory} size={190} />
           </motion.div>
-          <h2 className="mt-1 text-2xl font-black">{def.stageNames[shown.stage - 1]}</h2>
+          <h2 className="mt-1 text-2xl font-black">{translateGameText(def.stageNames[shown.stage - 1]!, locale)}</h2>
           <p className="font-bold text-muted">
-            Stufe {shown.stage} von 3 · {shown.xp} XP
+            {t("Stufe {stage} von 3 · {xp} XP", {stage: shown.stage, xp: shown.xp})}
           </p>
           {shown.stage < 3 ? (
             <div className="mx-auto mt-3 max-w-xs">
               <ProgressBar value={(shown.xp - steps[shown.stage - 1]!) / (steps[shown.stage]! - steps[shown.stage - 1]!)} color={def.color} height={12} />
               <p className="mt-1 text-xs font-bold text-muted">
-                Noch {steps[shown.stage]! - shown.xp} XP bis {names[shown.stage]}
+                {t("Noch {xp} XP bis {name}", {xp: steps[shown.stage]! - shown.xp, name: translateGameText(names[shown.stage]!, locale)})}
               </p>
             </div>
           ) : (
-            <p className="mt-2 font-black text-gold-dark">Voll entwickelt ✨</p>
+            <p className="mt-2 font-black text-gold-dark">{t("Voll entwickelt ✨")}</p>
           )}
-          <p className="mt-3 text-sm font-semibold text-muted">Dein Lieblings-Pet bekommt alle XP, die du sammelst.</p>
+          <p className="mt-3 text-sm font-semibold text-muted">{t("Dein Lieblings-Pet bekommt alle XP, die du sammelst.")}</p>
           {me.settings.activePet === shown.petId ? (
-            <p className="mt-3 font-black text-success">★ Lieblings-Pet</p>
+            <p className="mt-3 font-black text-success">{t("★ Lieblings-Pet")}</p>
           ) : (
             <Button className="mt-3" onClick={() => setActive.mutate(shown.petId)}>
-              Als Lieblings-Pet wählen
+              {t("Als Lieblings-Pet wählen")}
             </Button>
           )}
 
           {accessories.length > 0 && (
             <div className="mt-5 text-left">
-              <p className="mb-2 px-1 text-sm font-black uppercase tracking-wider text-muted">Accessoire</p>
+              <p className="mb-2 px-1 text-sm font-black uppercase tracking-wider text-muted">{t("Accessoire")}</p>
               <div className="no-scrollbar flex gap-2 overflow-x-auto pb-1">
                 <button onClick={() => equip.mutate({ petId: shown.petId, accessory: null })} className={`flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl border-2 text-xs font-black ${!shown.accessory ? 'border-primary bg-primary-soft' : 'border-line'}`}>
-                  Ohne
+                  {t("Ohne")}
                 </button>
                 {accessories.map((a) => (
                   <button
                     key={a.id}
-                    aria-label={a.name}
+                    aria-label={translateGameText(a.name, locale)}
                     onClick={() => equip.mutate({ petId: shown.petId, accessory: a.id })}
                     className={`flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl border-2 ${shown.accessory === a.id ? 'border-primary bg-primary-soft' : 'border-line'}`}
                   >
@@ -78,7 +83,7 @@ export default function Pets() {
         </Card>
       )}
 
-      <SectionTitle action={<Link href="/shop" className="text-sm font-black text-primary">Zum Shop</Link>}>Sammlung</SectionTitle>
+      <SectionTitle action={<Link href="/shop" className="text-sm font-black text-primary">{t("Zum Shop")}</Link>}>{t("Sammlung")}</SectionTitle>
       <div className="grid grid-cols-3 gap-3">
         {PETS.map((p) => {
           const o = owned.get(p.id);
@@ -90,7 +95,7 @@ export default function Pets() {
               className={`flex flex-col items-center rounded-2xl border-2 bg-surface p-2 ${active ? 'border-primary shadow-[0_4px_0_var(--c-primary)]' : 'border-line shadow-[0_4px_0_var(--c-border)]'}`}
             >
               <PetImage petId={p.id} stage={o ? petStage(o.xp) : 1} size={76} silhouette={!o} />
-              <span className="mt-1 text-sm font-black">{o ? p.stageNames[petStage(o.xp) - 1] : '???'}</span>
+              <span className="mt-1 text-sm font-black">{o ? translateGameText(p.stageNames[petStage(o.xp) - 1]!, locale) : '???'}</span>
               {!o && (
                 <span className="flex items-center gap-0.5 text-xs font-black text-gold-dark">
                   <img src={assetUrl('item-coin')} alt="" className="h-4 w-4" />

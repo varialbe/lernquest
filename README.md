@@ -57,6 +57,8 @@ pnpm pipeline backfill                # alle Vorlesungen chronologisch nachholen
 pnpm pipeline regenerate "DS/01_Vorlesungen/Diskrete Strukturen VO3.md"
 pnpm pipeline bonus                   # fehlende Praxis-Level nachziehen (oder: bonus ds-03 → nur diese Unit neu)
 pnpm pipeline knowledge [ds-03]       # Wissenssammlung für Units ohne (aktuelle) Sammlung erzeugen (oder eine Unit neu)
+pnpm pipeline translate --all          # englische Units, Wissen und Voraussetzungsbegründungen nachziehen
+pnpm pipeline translate-check --strict # Aktualität und unveränderte Antworten/Formeln/Code prüfen
 pnpm pipeline audit [ds-03 …]         # Blind-Test über bestehende Units, Durchgefallene neu generieren (--no-notify: ohne Telegram)
 pnpm pipeline audit eip-01 --force eip-01-l1-q02,eip-01-l3-q09 --reason "Regel fehlt"   # gezielt neu generieren
 pnpm pipeline watchdog                # lief heute schon ein Lauf?

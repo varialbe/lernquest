@@ -1,3 +1,5 @@
+import { useLocale } from '../i18n/index.tsx';
+import { translateGameText } from '../i18n/catalog.ts';
 import { useState } from 'react';
 import { PETS, petStage } from '@lernquest/shared';
 import { assetUrl } from '../lib/api.ts';
@@ -13,6 +15,7 @@ const ACC_POS: Record<string, { top: string; left: string; width: string; rotate
 };
 
 export function PetImage({ petId, stage, accessory, size = 96, className = '', silhouette = false }: { petId: string; stage: number; accessory?: string | null; size?: number; className?: string; silhouette?: boolean }) {
+  const { locale } = useLocale();
   const [broken, setBroken] = useState(false);
   const pet = PETS.find((p) => p.id === petId);
   const acc = accessory ? ACC_POS[accessory] : undefined;
@@ -25,7 +28,7 @@ export function PetImage({ petId, stage, accessory, size = 96, className = '', s
       ) : (
         <img
           src={assetUrl(`pet-${petId}-${stage}`)}
-          alt={pet ? pet.stageNames[stage - 1] : petId}
+          alt={pet ? translateGameText(pet.stageNames[stage - 1] ?? pet.name, locale) : petId}
           className={`h-full w-full object-contain drop-shadow-[0_6px_6px_rgba(40,20,90,0.18)] ${silhouette ? 'opacity-35 brightness-0 dark:invert' : ''}`}
           onError={() => setBroken(true)}
           draggable={false}

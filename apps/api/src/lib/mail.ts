@@ -1,4 +1,5 @@
 import nodemailer, { type Transporter } from 'nodemailer';
+import type { Locale } from './locale.ts';
 
 /**
  * E-Mails per SMTP an den lokalen Postfix (127.0.0.1:25, DKIM-Signatur mail2026 für @varialbe.xyz).
@@ -49,10 +50,12 @@ const OWNER = 'Mateen Batt · Neustifter Straße 37 · 80807 München';
  * Gemeinsames HTML-Layout (Tabellen + Inline-CSS, damit es in Gmail, Apple Mail und Outlook gleich aussieht).
  * `footer` = zusätzlicher Footer-Text (z. B. Abmeldelink beim Newsletter).
  */
-export function layout(o: { title: string; preheader?: string; body: string; footer?: string; app?: string }): string {
+export function layout(o: { title: string; preheader?: string; body: string; footer?: string; app?: string; locale?: Locale }): string {
   const app = o.app ?? appUrl();
+  const locale = o.locale ?? 'de';
+  const english = locale === 'en';
   return `<!doctype html>
-<html lang="de"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light"><title>${esc(o.title)}</title></head>
+<html lang="${locale}"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="color-scheme" content="light"><title>${esc(o.title)}</title></head>
 <body style="margin:0;padding:0;background:#f6f4ff;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#241d3d">
 <span style="display:none!important;opacity:0;color:transparent;height:0;width:0;overflow:hidden">${esc(o.preheader ?? '')}</span>
 <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f6f4ff;padding:24px 12px"><tr><td align="center">
@@ -68,9 +71,9 @@ export function layout(o: { title: string; preheader?: string; body: string; foo
   </td></tr>
   <tr><td style="padding:20px 12px 8px;text-align:center;font-size:12px;line-height:1.6;color:#6f6790">
     ${o.footer ? `<p style="margin:0 0 10px">${o.footer}</p>` : ''}
-    <p style="margin:0 0 6px"><a href="${esc(app)}" style="color:#7c5cff;font-weight:700;text-decoration:none">LernQuest öffnen</a>
-      &nbsp;·&nbsp;<a href="${esc(app)}/impressum" style="color:#6f6790">Impressum</a>
-      &nbsp;·&nbsp;<a href="${esc(app)}/datenschutz" style="color:#6f6790">Datenschutz</a></p>
+    <p style="margin:0 0 6px"><a href="${esc(app)}" style="color:#7c5cff;font-weight:700;text-decoration:none">${english ? 'Open LernQuest' : 'LernQuest öffnen'}</a>
+      &nbsp;·&nbsp;<a href="${esc(app)}/impressum" style="color:#6f6790">${english ? 'Legal notice' : 'Impressum'}</a>
+      &nbsp;·&nbsp;<a href="${esc(app)}/datenschutz" style="color:#6f6790">${english ? 'Privacy policy' : 'Datenschutz'}</a></p>
     <p style="margin:0">© ${new Date().getFullYear()} ${esc(OWNER)}</p>
   </td></tr>
 </table></td></tr></table></body></html>`;
@@ -84,60 +87,75 @@ const h = (s: string) => `<h1 style="margin:0 0 14px;font-size:22px;line-height:
 const small = (s: string) => `<p style="margin:16px 0 0;font-size:13px;color:#6f6790">${s}</p>`;
 
 // ---------- Account-Mails ----------
-export function verifyMail(o: { to: string; name: string; link: string; app: string }): Mail {
+export function verifyMail(o: { to: string; name: string; link: string; app: string; locale?: Locale }): Mail {
+  const en = o.locale === 'en';
   return {
     to: o.to,
-    subject: 'Bestätige deine E-Mail-Adresse für LernQuest',
+    subject: en ? 'Verify your email address for LernQuest' : 'Bestätige deine E-Mail-Adresse für LernQuest',
     html: layout({
-      title: 'E-Mail bestätigen',
-      preheader: 'Ein Klick, dann ist deine Adresse bestätigt.',
+      title: en ? 'Verify your email' : 'E-Mail bestätigen',
+      preheader: en ? 'One click to verify your address.' : 'Ein Klick, dann ist deine Adresse bestätigt.',
       app: o.app,
-      body: h(`Hallo ${esc(o.name)} 👋`) + p('bitte bestätige deine E-Mail-Adresse. Damit kannst du dein Passwort zurücksetzen, falls du es mal vergisst.') + button(o.link, 'E-Mail bestätigen') + small('Der Link ist 7 Tage gültig. Du hast kein Konto bei LernQuest angelegt? Dann ignoriere diese Mail einfach.'),
+      locale: o.locale,
+      body: en ? h(`Hi ${esc(o.name)} 👋`) + p('Please verify your email address. You can use it to reset your password if you forget it.') + button(o.link, 'Verify email') + small("This link is valid for 7 days. If you did not create a LernQuest account, you can ignore this email.") : h(`Hallo ${esc(o.name)} 👋`) + p('bitte bestätige deine E-Mail-Adresse. Damit kannst du dein Passwort zurücksetzen, falls du es mal vergisst.') + button(o.link, 'E-Mail bestätigen') + small('Der Link ist 7 Tage gültig. Du hast kein Konto bei LernQuest angelegt? Dann ignoriere diese Mail einfach.'),
     }),
-    text: `Hallo ${o.name},\n\nbitte bestätige deine E-Mail-Adresse für LernQuest:\n${o.link}\n\nDer Link ist 7 Tage gültig. Du hast kein Konto angelegt? Dann ignoriere diese Mail.\n\n— LernQuest · ${OWNER}`,
+    text: en ? `Hi ${o.name},\n\nPlease verify your email address for LernQuest:\n${o.link}\n\nThis link is valid for 7 days. If you did not create an account, ignore this email.\n\n— LernQuest · ${OWNER}` : `Hallo ${o.name},\n\nbitte bestätige deine E-Mail-Adresse für LernQuest:\n${o.link}\n\nDer Link ist 7 Tage gültig. Du hast kein Konto angelegt? Dann ignoriere diese Mail.\n\n— LernQuest · ${OWNER}`,
   };
 }
 
-export function resetMail(o: { to: string; name: string; username: string; link: string; app: string }): Mail {
+export function resetMail(o: { to: string; name: string; username: string; link: string; app: string; locale?: Locale }): Mail {
+  const en = o.locale === 'en';
   return {
     to: o.to,
-    subject: 'Dein LernQuest-Passwort zurücksetzen',
+    subject: en ? 'Reset your LernQuest password' : 'Dein LernQuest-Passwort zurücksetzen',
     html: layout({
-      title: 'Passwort zurücksetzen',
-      preheader: 'Leg ein neues Passwort fest.',
+      title: en ? 'Reset your password' : 'Passwort zurücksetzen',
+      preheader: en ? 'Choose a new password.' : 'Leg ein neues Passwort fest.',
       app: o.app,
-      body:
+      locale: o.locale,
+      body: en ?
+        h('Forgot your password?') +
+        p(`No problem, ${esc(o.name)}. Use the button to set a new password for <strong>@${esc(o.username)}</strong>.`) +
+        button(o.link, 'Set a new password') +
+        small('This link is valid for one hour and can only be used once. If you did not request it, ignore this email; your password will not change.') :
         h('Passwort vergessen?') +
         p(`Kein Problem, ${esc(o.name)}. Mit dem Knopf legst du ein neues Passwort für <strong>@${esc(o.username)}</strong> fest.`) +
         button(o.link, 'Neues Passwort festlegen') +
         small('Der Link ist 1 Stunde gültig und funktioniert nur einmal. Du hast das nicht angefordert? Dann ignoriere diese Mail – dein Passwort bleibt unverändert.'),
     }),
-    text: `Hallo ${o.name},\n\nneues Passwort für @${o.username} festlegen:\n${o.link}\n\nDer Link ist 1 Stunde gültig. Nicht angefordert? Dann ignoriere diese Mail.\n\n— LernQuest · ${OWNER}`,
+    text: en ? `Hi ${o.name},\n\nSet a new password for @${o.username}:\n${o.link}\n\nThis link is valid for one hour and can only be used once. If you did not request it, ignore this email.\n\n— LernQuest · ${OWNER}` : `Hallo ${o.name},\n\nneues Passwort für @${o.username} festlegen:\n${o.link}\n\nDer Link ist 1 Stunde gültig. Nicht angefordert? Dann ignoriere diese Mail.\n\n— LernQuest · ${OWNER}`,
   };
 }
 
 // ---------- Newsletter ----------
-export function optInMail(o: { to: string; name: string; link: string; app: string }): Mail {
+export function optInMail(o: { to: string; name: string; link: string; app: string; locale?: Locale }): Mail {
+  const en = o.locale === 'en';
   return {
     to: o.to,
     from: 'news',
-    subject: 'Bitte bestätige deine Newsletter-Anmeldung',
+    subject: en ? 'Confirm your newsletter subscription' : 'Bitte bestätige deine Newsletter-Anmeldung',
     html: layout({
-      title: 'Newsletter bestätigen',
-      preheader: 'Nur noch ein Klick zum LernQuest-Newsletter.',
+      title: en ? 'Confirm newsletter subscription' : 'Newsletter bestätigen',
+      preheader: en ? 'One more click to subscribe to the LernQuest newsletter.' : 'Nur noch ein Klick zum LernQuest-Newsletter.',
       app: o.app,
-      body:
+      locale: o.locale,
+      body: en ?
+        h('Almost there! 📬') +
+        p(`Hi ${esc(o.name)}, you signed up for the LernQuest newsletter. Please confirm with one click; we will only send it after you confirm.`) +
+        button(o.link, 'Subscribe to the newsletter') +
+        small('This link is valid for 7 days. If this was not you, ignore this email; you will not be subscribed.') :
         h('Fast geschafft! 📬') +
         p(`Hallo ${esc(o.name)}, du hast dich für den LernQuest-Newsletter angemeldet. Bitte bestätige das mit einem Klick – erst dann schicken wir dir etwas.`) +
         button(o.link, 'Ja, Newsletter abonnieren') +
         small('Der Link ist 7 Tage gültig. Du warst das nicht? Dann ignoriere diese Mail, du wirst nicht eingetragen.'),
     }),
-    text: `Hallo ${o.name},\n\nbitte bestätige deine Anmeldung zum LernQuest-Newsletter:\n${o.link}\n\nDu warst das nicht? Dann ignoriere diese Mail.\n\n— LernQuest · ${OWNER}`,
+    text: en ? `Hi ${o.name},\n\nPlease confirm your LernQuest newsletter subscription:\n${o.link}\n\nIf this was not you, ignore this email.\n\n— LernQuest · ${OWNER}` : `Hallo ${o.name},\n\nbitte bestätige deine Anmeldung zum LernQuest-Newsletter:\n${o.link}\n\nDu warst das nicht? Dann ignoriere diese Mail.\n\n— LernQuest · ${OWNER}`,
   };
 }
 
 /** Newsletter-Ausgabe: Inhalt (fertiges HTML) + Footer mit Abmeldelink */
-export function issueMail(o: { to: string; subject: string; contentHtml: string; contentText: string; unsubscribe: string; app: string }): Mail {
+export function issueMail(o: { to: string; subject: string; contentHtml: string; contentText: string; unsubscribe: string; app: string; locale?: Locale }): Mail {
+  const en = o.locale === 'en';
   return {
     to: o.to,
     from: 'news',
@@ -147,9 +165,10 @@ export function issueMail(o: { to: string; subject: string; contentHtml: string;
       title: o.subject,
       preheader: o.contentText.replace(/\s+/g, ' ').slice(0, 120),
       app: o.app,
+      locale: o.locale,
       body: `<div class="lq-news">${o.contentHtml}</div>`,
-      footer: `Du bekommst diese Mail, weil du den LernQuest-Newsletter abonniert und bestätigt hast.<br><a href="${esc(o.unsubscribe)}" style="color:#7c5cff;font-weight:700">Newsletter abbestellen</a> – ein Klick genügt.`,
+      footer: en ? `You are receiving this email because you confirmed your LernQuest newsletter subscription.<br><a href="${esc(o.unsubscribe)}" style="color:#7c5cff;font-weight:700">Unsubscribe</a> with one click.` : `Du bekommst diese Mail, weil du den LernQuest-Newsletter abonniert und bestätigt hast.<br><a href="${esc(o.unsubscribe)}" style="color:#7c5cff;font-weight:700">Newsletter abbestellen</a> – ein Klick genügt.`,
     }),
-    text: `${o.contentText}\n\n—\nDu bekommst diese Mail, weil du den LernQuest-Newsletter abonniert hast.\nAbbestellen: ${o.unsubscribe}\n\nLernQuest · ${OWNER}`,
+    text: en ? `${o.contentText}\n\n—\nYou are receiving this email because you subscribed to the LernQuest newsletter.\nUnsubscribe: ${o.unsubscribe}\n\nLernQuest · ${OWNER}` : `${o.contentText}\n\n—\nDu bekommst diese Mail, weil du den LernQuest-Newsletter abonniert hast.\nAbbestellen: ${o.unsubscribe}\n\nLernQuest · ${OWNER}`,
   };
 }

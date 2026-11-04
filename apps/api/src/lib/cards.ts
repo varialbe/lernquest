@@ -6,6 +6,7 @@ import type { AuthUser } from './auth.ts';
 import { badRequest, notFound } from './http.ts';
 import { knowledgeForModule } from './knowledge.ts';
 import { addDays, berlinDay } from './time.ts';
+import { localeForUser } from './locale.ts';
 
 /**
  * Karteikarten aus der Wissenssammlung: vorne der Begriff, hinten Kurzfassung + Erklärung.
@@ -21,8 +22,8 @@ export function nextCard(box: number | null, known: boolean, today: string): { b
 }
 
 /** alle Einträge eines Moduls (mit Unit-Infos), in Lernreihenfolge */
-function moduleEntries(db: DB, module: ModuleId) {
-  return knowledgeForModule(db, module).units.flatMap((u) => u.entries.map((e) => ({ entry: e, unitId: u.unitId, unitNumber: u.unitNumber, unitTitle: u.unitTitle })));
+function moduleEntries(db: DB, module: ModuleId, locale: 'de' | 'en' = 'de') {
+  return knowledgeForModule(db, module, undefined, locale).units.flatMap((u) => u.entries.map((e) => ({ entry: e, unitId: u.unitId, unitNumber: u.unitNumber, unitTitle: u.unitTitle })));
 }
 
 export function cardsOverview(db: DB, u: AuthUser, today = berlinDay()): CardsOverview {
@@ -45,7 +46,8 @@ export function cardsOverview(db: DB, u: AuthUser, today = berlinDay()): CardsOv
 
 /** Fällige Karten zuerst (älteste zuerst), dann neue in Vorlesungsreihenfolge – optional nur eine Unit. */
 export function cardSession(db: DB, u: AuthUser, module: ModuleId, unitId?: string, today = berlinDay()): CardSession {
-  const all = moduleEntries(db, module).filter((x) => !unitId || x.unitId === unitId);
+  const locale = localeForUser(u);
+  const all = moduleEntries(db, module, locale).filter((x) => !unitId || x.unitId === unitId);
   if (unitId && !all.length) throw notFound('Für diese Unit gibt es noch keine Karten.');
   const byId = new Map(all.map((x) => [x.entry.id, x]));
   const rows = db.select().from(cardItems).where(and(eq(cardItems.userId, u.id), eq(cardItems.module, module))).all();
@@ -73,7 +75,7 @@ export function reviewCard(db: DB, u: AuthUser, entryId: string, known: boolean,
   const module = m[1]!.toUpperCase() as ModuleId;
   if (!MODULES.includes(module)) throw badRequest('invalid_card', 'Unbekannte Karte.');
   const unitId = `${m[1]}-${m[2]}`;
-  if (!moduleEntries(db, module).some((x) => x.entry.id === entryId)) throw notFound('Karte nicht gefunden.');
+  if (!moduleEntries(db, module, localeForUser(u)).some((x) => x.entry.id === entryId)) throw notFound('Karte nicht gefunden.');
   const prev = db.select().from(cardItems).where(and(eq(cardItems.userId, u.id), eq(cardItems.entryId, entryId))).get();
   const next = nextCard(prev?.box ?? null, known, today);
   db.insert(cardItems)

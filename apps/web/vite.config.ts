@@ -5,6 +5,8 @@ import { VitePWA } from 'vite-plugin-pwa';
 
 /** Basis-Pfad: '/' für lern.varialbe.xyz und die iOS-App, '/lernen/' für mateenbatt.de/lernen (deploy-web.sh) */
 const base = process.env.VITE_BASE ?? '/';
+// Test previews can target an isolated API/DB copy without touching the live service.
+const apiTarget = process.env.API_PROXY_TARGET ?? 'http://127.0.0.1:3460';
 
 export default defineConfig({
   base,
@@ -38,8 +40,8 @@ export default defineConfig({
       },
     }),
   ],
-  server: { host: '127.0.0.1', port: 5173, proxy: { '/api': 'http://127.0.0.1:3460' } },
-  preview: { host: '127.0.0.1', port: 4173, proxy: { '/api': 'http://127.0.0.1:3460' } },
+  server: { host: '127.0.0.1', port: 5173, proxy: { '/api': apiTarget } },
+  preview: { host: '127.0.0.1', port: 4173, proxy: { '/api': apiTarget } },
   build: {
     target: 'es2022',
     chunkSizeWarningLimit: 1500,

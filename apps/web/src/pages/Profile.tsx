@@ -16,6 +16,8 @@ import { PasskeySettings } from '../components/PasskeySettings.tsx';
 import { StudyBlocks } from '../components/StudyBlocks.tsx';
 import { Copyright } from './Legal.tsx';
 import { GOOGLE_G, startGoogle } from '../lib/google.ts';
+import { formatDate, formatNumber, useLocale, useT, type LocalePreference } from '../i18n/index.tsx';
+import { localizedAchievement, localizedShopItem, moduleName, themeName, translateGameText } from '../i18n/catalog.ts';
 
 function StatBox({ img, value, label }: { img: string; value: React.ReactNode; label: string }) {
   return (
@@ -30,6 +32,7 @@ function StatBox({ img, value, label }: { img: string; value: React.ReactNode; l
 }
 
 function Calendar({ days }: { days: { day: string; xp: number }[] }) {
+  const t = useT();
   // auf Montag ausrichten
   const first = new Date(`${days[0]!.day}T12:00:00Z`).getUTCDay();
   const pad = (first + 6) % 7;
@@ -39,8 +42,8 @@ function Calendar({ days }: { days: { day: string; xp: number }[] }) {
   return (
     <div>
       <div className="mb-1 grid grid-cols-7 gap-1.5 text-center text-[11px] font-black text-muted">
-        {['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'].map((d) => (
-          <span key={d}>{d}</span>
+        {(['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'] as const).map((key) => (
+          <span key={key}>{t(key)}</span>
         ))}
       </div>
       <div className="grid grid-cols-7 gap-1.5">
@@ -60,6 +63,8 @@ function Calendar({ days }: { days: { day: string; xp: number }[] }) {
 
 /** E-Mail, Google und Newsletter im Profil */
 function AccountRows({ me, row, save, flash }: { me: MeResponse; row: string; save: (b: Record<string, unknown>) => Promise<unknown>; flash: (m: string) => void }) {
+  const t = useT();
+  const { locale } = useLocale();
   const qc = useQueryClient();
   const { data: cfg } = useConfig();
   const s = me.settings;
@@ -82,29 +87,29 @@ function AccountRows({ me, row, save, flash }: { me: MeResponse; row: string; sa
   // Rückkehr von Google (Verknüpfen)
   useEffect(() => {
     const p = new URLSearchParams(location.search);
-    if (p.get('google') === 'linked') flash('Google verknüpft ✅');
-    if (p.get('oauthError')) flash(p.get('oauthError')!);
+    if (p.get('google') === 'linked') flash(t('Google linked ✅'));
+    if (p.get('oauthError')) flash(locale === 'de' ? p.get('oauthError')! : 'Google sign-in failed. Please try again.');
     if (p.has('google') || p.has('oauthError')) history.replaceState(null, '', location.pathname);
   }, [flash]);
   const linkGoogle = () =>
     run(async () => {
       const r = await startGoogle('link');
-      if (r?.status === 'error') throw new Error(r.message);
-    }, 'Google verknüpft ✅');
+      if (r?.status === 'error') throw new Error(locale === 'de' ? r.message : 'Google sign-in failed. Please try again.');
+    }, t('Google linked ✅'));
   const toggle = 'relative h-8 w-14 shrink-0 rounded-full transition-colors';
   const knob = (on: boolean) => <span className={`absolute top-1 h-6 w-6 rounded-full bg-white shadow transition-all ${on ? 'left-7' : 'left-1'}`} />;
   return (
     <>
       <div className="py-3">
         <div className={`${row} py-0`}>
-          <span className="font-bold">E-Mail</span>
+          <span className="font-bold">{t('Email')}</span>
           <button onClick={() => setEditMail(!editMail)} className="min-w-0 truncate text-right text-sm font-bold text-muted">
-            {s.email ?? 'hinzufügen'} {s.email && (s.emailVerified ? <span className="text-success">✓</span> : <span className="text-gold-dark">(unbestätigt)</span>)}
+            {s.email ?? t('Add')} {s.email && (s.emailVerified ? <span className="text-success">✓</span> : <span className="text-gold-dark">({t('unverified')})</span>)}
           </button>
         </div>
         {s.email && !s.emailVerified && !editMail && (
-          <button disabled={busy} onClick={() => void run(() => api('/api/auth/verify/resend', { method: 'POST' }), 'Bestätigungs-Mail gesendet 📬')} className="mt-1 text-xs font-black text-primary">
-            Bestätigungs-Mail erneut senden
+          <button disabled={busy} onClick={() => void run(() => api('/api/auth/verify/resend', { method: 'POST' }), t('Verification email sent 📬'))} className="mt-1 text-xs font-black text-primary">
+            {t('Resend verification email')}
           </button>
         )}
         {editMail && (
@@ -112,7 +117,7 @@ function AccountRows({ me, row, save, flash }: { me: MeResponse; row: string; sa
             className="mt-2 flex gap-2"
             onSubmit={(e) => {
               e.preventDefault();
-              void run(() => save({ email }).then(() => setEditMail(false)), 'Gespeichert – bitte bestätige die neue Adresse per Mail');
+              void run(() => save({ email }).then(() => setEditMail(false)), t('Saved. Please confirm the new address by email.'));
             }}
           >
             <input type="email" required autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} className="min-w-0 flex-1 rounded-xl border-2 border-line bg-surface-2 px-3 py-1.5 font-bold outline-none focus:border-primary" />
@@ -129,12 +134,12 @@ function AccountRows({ me, row, save, flash }: { me: MeResponse; row: string; sa
             <span dangerouslySetInnerHTML={{ __html: GOOGLE_G }} /> Google
           </span>
           {s.google ? (
-            <button disabled={busy} onClick={() => confirm('Google-Verknüpfung trennen?') && void run(() => api('/api/me/google', { method: 'DELETE' }), 'Google getrennt')} className="text-sm font-black text-muted hover:text-error">
-              verknüpft · trennen
+            <button disabled={busy} onClick={() => confirm(t('Disconnect Google account?')) && void run(() => api('/api/me/google', { method: 'DELETE' }), t('Google disconnected'))} className="text-sm font-black text-muted hover:text-error">
+              {t('Linked · disconnect')}
             </button>
           ) : (
             <button disabled={busy} onClick={() => void linkGoogle()} className="rounded-xl border-2 border-primary px-2.5 py-1 text-sm font-black text-primary">
-              Verknüpfen
+              {t('Connect')}
             </button>
           )}
         </div>
@@ -142,31 +147,33 @@ function AccountRows({ me, row, save, flash }: { me: MeResponse; row: string; sa
 
       <div className="py-3">
         <div className={`${row} py-0`}>
-          <span className="font-bold">Newsletter</span>
+          <span className="font-bold">{t('Newsletter')}</span>
           <button
             role="switch"
             aria-checked={s.newsletter !== 'none'}
             disabled={busy}
             onClick={() =>
               s.newsletter !== 'none'
-                ? void run(() => save({ newsletter: false }), 'Newsletter abbestellt')
+                ? void run(() => save({ newsletter: false }), t('Unsubscribe from newsletter'))
                 : s.email
-                  ? void run(() => save({ newsletter: true }), 'Fast geschafft – bitte bestätige die Mail in deinem Postfach 📬')
-                  : (setEditMail(true), flash('Bitte zuerst eine E-Mail-Adresse hinterlegen'))
+                  ? void run(() => save({ newsletter: true }), t('Almost done — confirm the email in your inbox 📬'))
+                  : (setEditMail(true), flash(t('Add an email address first')))
             }
             className={`${toggle} ${s.newsletter !== 'none' ? 'bg-primary' : 'bg-line-strong'}`}
           >
             {knob(s.newsletter !== 'none')}
           </button>
         </div>
-        {s.newsletter === 'pending' && <p className="mt-1 text-xs font-semibold text-gold-dark">Wartet auf deine Bestätigung – schau in dein Postfach (news.quest@varialbe.xyz).</p>}
-        {s.newsletter === 'confirmed' && <p className="mt-1 text-xs font-semibold text-muted">Bestätigt · an {s.email}</p>}
+        {s.newsletter === 'pending' && <p className="mt-1 text-xs font-semibold text-gold-dark">{t('Waiting for confirmation — check your inbox.')}</p>}
+        {s.newsletter === 'confirmed' && <p className="mt-1 text-xs font-semibold text-muted">{t('Confirmed · sent to {email}', { email: s.email ?? '' })}</p>}
       </div>
     </>
   );
 }
 
 function Settings({ me, onLogout, onLogin }: { me: MeResponse; onLogout: () => void; onLogin: (t: string) => void }) {
+  const { preference, setPreference, locale } = useLocale();
+  const t = useT();
   const save = useMeMutation((body: Record<string, unknown>) => api<MeResponse>('/api/me/settings', { method: 'PATCH', body }));
   const { data: cfg } = useConfig();
   const [push, setPush] = useState<boolean | null>(null);
@@ -188,7 +195,7 @@ function Settings({ me, onLogout, onLogin }: { me: MeResponse; onLogout: () => v
   return (
     <Card className="divide-y-2 divide-line py-1">
       <div className={row}>
-        <span className="font-bold">Tagesziel</span>
+        <span className="font-bold">{t('Daily goal')}</span>
         <div className="flex gap-1.5">
           {ECONOMY.dailyGoalOptions.map((g) => (
             <button key={g} onClick={() => save.mutate({ dailyGoal: g })} className={`rounded-xl border-2 px-2.5 py-1 text-sm font-black ${me.stats.dailyGoal === g ? 'border-primary bg-primary text-white' : 'border-line'}`}>
@@ -198,38 +205,62 @@ function Settings({ me, onLogout, onLogin }: { me: MeResponse; onLogout: () => v
         </div>
       </div>
       <div className={row}>
-        <span className="font-bold">Farbschema</span>
+        <label htmlFor="locale-preference" className="font-bold">{t('Language')}</label>
+        <select
+          id="locale-preference"
+          value={preference}
+          disabled={save.isPending}
+          onChange={async (event) => {
+            const next = event.target.value as LocalePreference;
+            const previous = preference;
+            setPreference(next);
+            try {
+              await save.mutateAsync({ locale: next === 'auto' ? null : next });
+            } catch (error) {
+              setPreference(previous);
+              flash((error as Error).message);
+            }
+          }}
+          className="rounded-xl border-2 border-line bg-surface px-3 py-1.5 font-bold"
+        >
+          <option value="auto">{t('Automatic')}</option>
+          <option value="de">{t('German')}</option>
+          <option value="en">{t('English')}</option>
+        </select>
+      </div>
+      <div className={row}>
+        <span className="font-bold">{t('Color theme')}</span>
         <div className="flex gap-2">
           {themes.map((t) => (
-            <button key={t} aria-label={THEMES[t]?.name} onClick={() => save.mutate({ theme: t })} className={`h-8 w-8 rounded-full border-4 ${me.settings.theme === t ? 'border-ink' : 'border-transparent'}`} style={{ background: THEMES[t]?.primary }} />
+            <button key={t} aria-label={themeName(t, locale)} onClick={() => save.mutate({ theme: t })} className={`h-8 w-8 rounded-full border-4 ${me.settings.theme === t ? 'border-ink' : 'border-transparent'}`} style={{ background: THEMES[t]?.primary }} />
           ))}
         </div>
       </div>
       {frames.length > 0 && (
         <div className={row}>
-          <span className="font-bold">Profilrahmen</span>
+          <span className="font-bold">{t('Profile frame')}</span>
           <div className="flex gap-1.5">
             <button onClick={() => save.mutate({ frame: null })} className={`rounded-xl border-2 px-2 py-1 text-xs font-black ${!me.settings.frame ? 'border-primary' : 'border-line'}`}>
-              Ohne
+              {t('None')}
             </button>
             {frames.map((f) => (
               <button key={f} onClick={() => save.mutate({ frame: f })} className={`rounded-xl border-2 px-2 py-1 text-xs font-black ${me.settings.frame === f ? 'border-primary' : 'border-line'}`}>
-                {SHOP_ITEMS.find((i) => i.id === `frame:${f}`)?.name}
+                {localizedShopItem(`frame:${f}`, locale)?.name}
               </button>
             ))}
           </div>
         </div>
       )}
       <div className={row}>
-        <span className="font-bold">Sounds</span>
+        <span className="font-bold">{t('Sounds')}</span>
         <button role="switch" aria-checked={me.settings.soundOn} onClick={() => save.mutate({ soundOn: !me.settings.soundOn })} className={`relative h-8 w-14 rounded-full transition-colors ${me.settings.soundOn ? 'bg-success' : 'bg-locked'}`}>
           <span className={`absolute top-1 h-6 w-6 rounded-full bg-white shadow transition-all ${me.settings.soundOn ? 'left-7' : 'left-1'}`} />
         </button>
       </div>
       <div className={row}>
         <div>
-          <span className="font-bold">Mitteilungen</span>
-          <p className="text-xs font-semibold text-muted">{isNative || pushSupported() ? 'Streak-Erinnerung am Abend, neue Units, Duelle' : 'iPhone: erst „Zum Home-Bildschirm“ hinzufügen'}</p>
+          <span className="font-bold">{t('Notifications')}</span>
+          <p className="text-xs font-semibold text-muted">{isNative || pushSupported() ? t('Notifications description') : t('Add to Home Screen on iPhone')}</p>
         </div>
         <button
           role="switch"
@@ -244,7 +275,7 @@ function Settings({ me, onLogout, onLogin }: { me: MeResponse; onLogout: () => v
               } else if (push) await disablePush();
               else await enablePush(cfg!.vapidPublicKey!);
               setPush(!push);
-              flash(push ? 'Erinnerung aus' : 'Erinnerung aktiviert 🔔');
+              flash(push ? t('Reminder off') : t('Reminder on 🔔'));
             } catch (e) {
               flash((e as Error).message);
             }
@@ -257,8 +288,8 @@ function Settings({ me, onLogout, onLogin }: { me: MeResponse; onLogout: () => v
       {push && (
         <div className={row}>
           <div>
-            <span className="font-bold">Wochenrückblick</span>
-            <p className="text-xs font-semibold text-muted">Sonntags um 18 Uhr: XP, Trefferquote, wackelige Konzepte, Fälliges</p>
+            <span className="font-bold">{t('Weekly recap')}</span>
+            <p className="text-xs font-semibold text-muted">{t('Sunday at 6 pm: XP, accuracy, weak concepts and due reviews')}</p>
           </div>
           <button
             role="switch"
@@ -267,7 +298,7 @@ function Settings({ me, onLogout, onLogin }: { me: MeResponse; onLogout: () => v
               const on = !me.settings.weeklyRecap;
               await save.mutateAsync({ weeklyRecap: on });
               if (isNative) await scheduleRecap(on, true).catch(() => {});
-              flash(on ? 'Wochenrückblick an 📊' : 'Wochenrückblick aus');
+              flash(on ? t('Weekly recap on 📊') : t('Weekly recap off'));
             }}
             className={`relative h-8 w-14 shrink-0 rounded-full transition-colors ${me.settings.weeklyRecap ? 'bg-success' : 'bg-locked'}`}
           >
@@ -276,21 +307,21 @@ function Settings({ me, onLogout, onLogin }: { me: MeResponse; onLogout: () => v
         </div>
       )}
       <div className={row}>
-        <span className="font-bold">App-Version</span>
+        <span className="font-bold">{t('App version')}</span>
         <span className="font-mono text-xs font-bold text-muted">{APP_VERSION}</span>
       </div>
       <AccountRows me={me} row={row} save={(b) => save.mutateAsync(b)} flash={flash} />
       <PasskeySettings row={row} flash={flash} />
       <button className={`${row} w-full font-bold`} onClick={() => setPwOpen(true)}>
-        {me.settings.hasPassword ? 'Passwort ändern' : 'Passwort festlegen'} <Icon name="chevronRight" className="text-muted" />
+        {me.settings.hasPassword ? t('Change password') : t('Set password')} <Icon name="chevronRight" className="text-muted" />
       </button>
       {me.user.role === 'admin' && (
         <Link href="/admin" className={`${row} font-bold text-primary`}>
-          Admin-Bereich <Icon name="chevronRight" />
+          {t('Admin area')} <Icon name="chevronRight" />
         </Link>
       )}
       <button className={`${row} w-full font-bold text-error`} onClick={() => void api('/api/auth/logout', { method: 'POST' }).finally(onLogout)}>
-        Abmelden <Icon name="logout" />
+        {t('Sign out')} <Icon name="logout" />
       </button>
       <Copyright className="pt-3" />
       <Modal open={pwOpen} onClose={() => setPwOpen(false)}>
@@ -311,6 +342,8 @@ function Settings({ me, onLogout, onLogin }: { me: MeResponse; onLogout: () => v
 }
 
 export default function Profile({ username, onLogout, onLogin }: { username?: string; onLogout: () => void; onLogin: (t: string) => void }) {
+  const t = useT();
+  const { locale } = useLocale();
   const { data: p, isLoading } = useProfile(username ?? 'me');
   const { data: me } = useMe();
   if (isLoading || !p || !me) return <Spinner />;
@@ -321,39 +354,39 @@ export default function Profile({ username, onLogout, onLogin }: { username?: st
   const unlocked = p.achievements.filter((a) => a.unlocked).length;
 
   return (
-    <Page topLeft={username ? <Link href="/league" className="flex items-center gap-1 font-black text-muted"><Icon name="chevronLeft" /> Zurück</Link> : <h1 className="text-xl font-black">Profil</h1>}>
+    <Page topLeft={username ? <Link href="/league" className="flex items-center gap-1 font-black text-muted"><Icon name="chevronLeft" /> {t('Back')}</Link> : <h1 className="text-xl font-black">{t('Profile')}</h1>}>
       <div className="flex items-center gap-4">
         <Avatar pet={activePet} petStage={stage} frame={isMe ? me.settings.frame : null} size={92} name={p.user.displayName} />
         <div className="min-w-0">
           <h2 className="truncate text-2xl font-black">{p.user.displayName}</h2>
           <p className="font-bold text-muted">@{p.user.username}</p>
-          <p className="text-sm font-semibold text-muted">Dabei seit {new Date(p.joinedAt).toLocaleDateString('de-DE', { month: 'long', year: 'numeric' })}</p>
+          <p className="text-sm font-semibold text-muted">{t('Joined {date}', { date: formatDate(p.joinedAt, { month: 'long', year: 'numeric' }, locale) })}</p>
         </div>
       </div>
 
-      <SectionTitle>Statistik</SectionTitle>
+      <SectionTitle>{t('Statistics')}</SectionTitle>
       <div className="grid grid-cols-2 gap-3">
-        <StatBox img="item-flame" value={p.stats.streak} label={`Tage Streak · Rekord ${p.stats.longestStreak}`} />
-        <StatBox img="item-xp" value={p.stats.xp} label="XP gesamt" />
-        <StatBox img="badge-first" value={p.stats.levelsDone} label={`Level · ${p.stats.perfectLevels} perfekt`} />
-        <StatBox img="badge-perfect" value={`${Math.round(p.stats.accuracy * 100)} %`} label={`Trefferquote · ${p.stats.questionsAnswered} Antworten`} />
-        <StatBox img="badge-xp" value={p.stats.league} label={`Liga · ${p.stats.weekXp} XP diese Woche`} />
-        <StatBox img="item-streak_freeze" value={p.stats.streakFreezes} label="Streak-Freezes" />
+        <StatBox img="item-flame" value={p.stats.streak} label={t('day streak · record {days}', { days: p.stats.longestStreak })} />
+        <StatBox img="item-xp" value={formatNumber(p.stats.xp, locale)} label={t('Total XP')} />
+        <StatBox img="badge-first" value={formatNumber(p.stats.levelsDone, locale)} label={t('levels · {count} perfect', { count: p.stats.perfectLevels })} />
+        <StatBox img="badge-perfect" value={`${Math.round(p.stats.accuracy * 100)} %`} label={t('Accuracy · {count} answers', { count: p.stats.questionsAnswered })} />
+        <StatBox img="badge-xp" value={translateGameText(p.stats.league, locale)} label={t('League · {xp} XP this week', { xp: p.stats.weekXp })} />
+        <StatBox img="item-streak_freeze" value={p.stats.streakFreezes} label={t('Streak freezes')} />
       </div>
 
       {isMe && <StudyBlocks />}
 
-      <SectionTitle>Streak-Kalender</SectionTitle>
+      <SectionTitle>{t('Streak calendar')}</SectionTitle>
       <Card>
         <Calendar days={p.calendar} />
       </Card>
 
-      <SectionTitle>Module</SectionTitle>
+      <SectionTitle>{t('Modules')}</SectionTitle>
       <Card className="space-y-3">
         {p.moduleProgress.map((m) => (
           <div key={m.module}>
             <div className="mb-1 flex justify-between text-sm font-black">
-              <span>{MODULE_INFO[m.module].name}</span>
+              <span className="min-w-0 flex-1">{moduleName(m.module, locale)}</span>
               <span className="text-muted">
                 {m.done}/{m.total}
               </span>
@@ -363,9 +396,10 @@ export default function Profile({ username, onLogout, onLogin }: { username?: st
         ))}
       </Card>
 
-      <SectionTitle action={<span className="text-sm font-black text-muted">{unlocked}/{p.achievements.length}</span>}>Abzeichen</SectionTitle>
+      <SectionTitle action={<span className="text-sm font-black text-muted">{unlocked}/{p.achievements.length}</span>}>{t('Achievements')}</SectionTitle>
       <div className="grid grid-cols-3 gap-3">
-        {ACHIEVEMENTS.map((a) => {
+        {ACHIEVEMENTS.map((sourceAchievement) => {
+          const a = localizedAchievement(sourceAchievement.id, locale) ?? sourceAchievement;
           const ok = p.achievements.find((x) => x.id === a.id)?.unlocked;
           return (
             <div key={a.id} className={`flex flex-col items-center rounded-2xl border-2 bg-surface p-2.5 text-center ${ok ? 'border-gold/60' : 'border-line'}`} title={a.description}>
@@ -378,13 +412,13 @@ export default function Profile({ username, onLogout, onLogin }: { username?: st
 
       {isMe && (
         <>
-          <SectionTitle>Einstellungen</SectionTitle>
+          <SectionTitle>{t('Profile settings')}</SectionTitle>
           <Settings me={me} onLogout={onLogout} onLogin={onLogin} />
         </>
       )}
       {!isMe && (
         <Button full variant="secondary" className="mt-6" onClick={() => history.back()}>
-          Zurück
+          {t('Back')}
         </Button>
       )}
     </Page>
