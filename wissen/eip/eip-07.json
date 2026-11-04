@@ -1,0 +1,460 @@
+{
+  "schemaVersion": 1,
+  "unitId": "eip-07",
+  "module": "EIP",
+  "unitNumber": 7,
+  "unitTitle": "Rekursion und Suchalgorithmen",
+  "sourceSha": "bc984befd7ce7a80a65a7bbbfb39f88cebccfce8ebc65cd1180458f2207ae56e",
+  "overview": "Diese Unit erklärt rekursive Methoden, die ein Problem auf kleinere Teilprobleme zurückführen und deren Ergebnisse beim Zurückkehren kombinieren. Basisfall, Fortschritt und Kombination machen die Berechnung nachvollziehbar; Call Stack und Stack Frames erklären, wie aktive Aufrufe verwaltet werden. Summe und Fakultät veranschaulichen Aufruf- und Rückgabephase. Lineare und binäre Suche vergleichen Suchverfahren: Die binäre Suche setzt ein aufsteigend sortiertes Array voraus und halbiert den Suchbereich, wodurch ihre Laufzeit logarithmisch wächst.",
+  "entries": [
+    {
+      "id": "eip-07-k01",
+      "term": "Rekursion",
+      "kind": "definition",
+      "short": "Bei Rekursion ruft eine Methode sich selbst auf, um eine kleinere Version desselben Problems zu lösen.",
+      "explanation": "Jeder rekursive Aufruf bearbeitet eine kleinere Teilaufgabe und hat eigene Parameter sowie lokale Variablen. Eine rekursive Lösung braucht einen Basisfall, Fortschritt in Richtung dieses Basisfalls und eine Kombination der Teilergebnisse. Ohne erreichbaren Basisfall können immer weitere Aufrufe entstehen, bis der Call Stack überläuft.",
+      "example": "Für die Summe von 1 bis 3 berechnet `sum(3)` zunächst `sum(2)` und verwendet anschließend dessen Rückgabe.",
+      "pitfalls": [
+        "Ein Selbstaufruf allein macht eine Methode noch nicht zu einer korrekt endenden rekursiven Lösung; der Basisfall muss erreichbar sein."
+      ],
+      "related": [
+        "Basisfall",
+        "Fortschritt",
+        "Kombination",
+        "Call Stack",
+        "Rekursionsanker",
+        "Rekursionsschritt"
+      ],
+      "heading": "1. Rekursion: kleinere Probleme lösen"
+    },
+    {
+      "id": "eip-07-k02",
+      "term": "Basisfall",
+      "kind": "concept",
+      "short": "Der Basisfall beantwortet den kleinsten Fall direkt und löst keinen weiteren rekursiven Aufruf aus.",
+      "explanation": "Bei der rekursiven Summe ist `n == 0` der Basisfall und die Methode gibt `0` zurück. Bei der Fakultät ist `n == 0` der Basisfall und liefert `1`. Der Basisfall muss bei den rekursiven Aufrufen tatsächlich erreicht werden, damit die Berechnung endet.",
+      "example": "`sum(0)` gibt `0` zurück, während `factorial(0)` den Wert `1` zurückgibt.",
+      "pitfalls": [
+        "Die Basiswerte für Summe und Fakultät sind verschieden.",
+        "Ein Basisfall, der bei den erlaubten Eingaben nie erreicht wird, verhindert endlose Aufrufe nicht."
+      ],
+      "related": [
+        "Rekursion",
+        "Fortschritt",
+        "Kombination",
+        "Rekursionsanker"
+      ],
+      "heading": "1. Rekursion: kleinere Probleme lösen"
+    },
+    {
+      "id": "eip-07-k03",
+      "term": "Fortschritt",
+      "kind": "concept",
+      "short": "Fortschritt bedeutet, dass jeder rekursive Aufruf näher an den Basisfall heranführt.",
+      "explanation": "Bei der Summe wird `n` in jedem Aufruf um eins verkleinert, also mit `n - 1` weitergerechnet. Für einen erlaubten nichtnegativen Startwert erreicht die Folge der Aufrufe dadurch schließlich `n == 0`. Ohne Fortschritt kann sich dieselbe Teilaufgabe wiederholen, ohne den Basisfall zu erreichen.",
+      "example": "`sum(3)` ruft nacheinander `sum(2)`, `sum(1)` und `sum(0)` auf.",
+      "pitfalls": [
+        "Ein rekursiver Aufruf, der den Eingabewert nicht in Richtung Basisfall verändert, garantiert keine Terminierung."
+      ],
+      "related": [
+        "Rekursion",
+        "Basisfall",
+        "Kombination",
+        "Termination"
+      ],
+      "heading": "1. Rekursion: kleinere Probleme lösen"
+    },
+    {
+      "id": "eip-07-k04",
+      "term": "Kombination",
+      "kind": "concept",
+      "short": "Bei der Kombination wird die Rückgabe des kleineren Problems verwendet, um das ursprüngliche Problem zu lösen.",
+      "explanation": "Bei der Summe addiert jeder Aufruf sein eigenes `n` zum Ergebnis von `sum(n - 1)`. Bei der Fakultät multipliziert jeder Aufruf sein eigenes `n` mit dem Ergebnis von `factorial(n - 1)`. Die Kombination erfolgt erst, nachdem der rekursive Aufruf einen Wert zurückgegeben hat.",
+      "example": "Wenn `sum(2)` den Wert `3` zurückgibt, berechnet `sum(3)` daraus `3 + 3 = 6`.",
+      "pitfalls": [
+        "Die Berechnung mit dem Ergebnis des kleineren Problems kann erst nach dessen Rückgabe erfolgen."
+      ],
+      "related": [
+        "Rekursion",
+        "Basisfall",
+        "Fortschritt",
+        "Unwinding (Rückkehr- und Rückgabephase)"
+      ],
+      "heading": "1. Rekursion: kleinere Probleme lösen"
+    },
+    {
+      "id": "eip-07-k05",
+      "term": "Summe von 1 bis n",
+      "kind": "example",
+      "short": "Die Summe von 1 bis n lässt sich durch einen Basiswert und die Summe bis n − 1 ausdrücken.",
+      "explanation": "Mit $S(0)=0$ und $S(n)=S(n-1)+n$ für $n\\ge 1$ wird jede Summe auf eine kleinere zurückgeführt. Für $n=3$ gilt $S(3)=S(2)+3$, $S(2)=S(1)+2$ und $S(1)=S(0)+1$. Damit ist $S(3)=1+2+3=6$.",
+      "example": "Für $n=4$ ergibt die Regel $S(4)=S(3)+4=10$.",
+      "pitfalls": [
+        "Die Formel $S(n)=S(n-1)+n$ gilt für $n\\ge 1$; für `n == 0` gilt der Basisfall."
+      ],
+      "related": [
+        "Rekursion",
+        "Basisfall",
+        "Fortschritt",
+        "Kombination",
+        "Rekursive Summenmethode"
+      ],
+      "heading": "Beispiel: Summe von 1 bis n"
+    },
+    {
+      "id": "eip-07-k06",
+      "term": "Rekursive Summenmethode",
+      "kind": "method",
+      "short": "Die rekursive Summenmethode gibt bei null null zurück und addiert sonst n zur Summe bis n − 1.",
+      "explanation": "Die Beispielmethode erlaubt Eingaben von `0` bis `100`; für andere Werte löst sie eine `IllegalArgumentException` aus. Für gültige Eingaben prüft sie zuerst den Basisfall und wartet dann auf die Rückgabe des kleineren Problems, bevor sie `n` addiert. Die Zuweisung an `smaller` wird erst abgeschlossen, wenn `sum(n - 1)` zurückkehrt.",
+      "example": "```java\npublic static int sum(int n) {\n    if (n < 0 || n > 100)\n        throw new IllegalArgumentException();\n\n    if (n == 0)\n        return 0;\n\n    int smaller = sum(n - 1);\n    int result = smaller + n;\n    return result;\n}\n```",
+      "pitfalls": [
+        "Der erlaubte Eingabebereich `0` bis `100` ist eine Einschränkung dieser Beispielmethode."
+      ],
+      "related": [
+        "Summe von 1 bis n",
+        "Basisfall",
+        "Fortschritt",
+        "Kombination",
+        "Exception (Ausnahme)"
+      ],
+      "heading": "Java: vollständige Summenmethode"
+    },
+    {
+      "id": "eip-07-k07",
+      "term": "Unwinding (Rückkehr- und Rückgabephase)",
+      "kind": "concept",
+      "short": "Unwinding ist das Zurückkehren aus rekursiven Aufrufen und das Weiterrechnen mit ihren Rückgabewerten.",
+      "explanation": "Zuerst entstehen bei `sum(3)` die Aufrufe bis `sum(0)`. Nachdem `sum(0)` den Wert `0` liefert, setzt jeder wartende Aufruf seine Berechnung fort und gibt sein eigenes Ergebnis zurück. Die Aufrufe kehren in umgekehrter Startreihenfolge zurück: zuerst `sum(0)`, dann `sum(1)`, `sum(2)` und zuletzt `sum(3)`.",
+      "example": "`sum(1)` erhält `0` von `sum(0)`, berechnet `0 + 1` und gibt `1` zurück.",
+      "pitfalls": [
+        "Beim Hinabsteigen der Aufrufkette wird die Kombination der wartenden Aufrufe noch nicht berechnet."
+      ],
+      "related": [
+        "Rekursion",
+        "Kombination",
+        "Call Stack",
+        "Stack Frame",
+        "LIFO-Prinzip (Last In, First Out)"
+      ],
+      "heading": "Aufrufphase und Rückgabephase bei sum(3)"
+    },
+    {
+      "id": "eip-07-k08",
+      "term": "Call Stack",
+      "kind": "definition",
+      "short": "Der Call Stack verwaltet aktive Methodenaufrufe, bis sie zurückkehren.",
+      "explanation": "Bei einer rekursiven Methode wird für jeden neuen Aufruf ein weiterer Aufruf auf dem Stack aktiv. Wartende Aufrufe bleiben dort, bis der darunter gestartete Aufruf zurückkehrt. Die Reihenfolge der Rückkehr folgt dem LIFO-Prinzip.",
+      "example": "Während `sum(0)` ausgeführt wird, warten die Aufrufe `sum(1)`, `sum(2)` und `sum(3)` auf ihre Rückgaben.",
+      "pitfalls": [
+        "Viele gleichzeitig aktive rekursive Aufrufe benötigen Stack-Speicher und können bei zu großer Tiefe einen Stack Overflow verursachen."
+      ],
+      "related": [
+        "Stack Frame",
+        "LIFO-Prinzip (Last In, First Out)",
+        "Unwinding (Rückkehr- und Rückgabephase)",
+        "Call und Return"
+      ],
+      "heading": "Call Stack und Stack Frames (Folien 303–319)"
+    },
+    {
+      "id": "eip-07-k09",
+      "term": "Stack Frame",
+      "kind": "definition",
+      "short": "Ein Stack Frame enthält den Zustand eines einzelnen aktiven Methodenaufrufs.",
+      "explanation": "Ein Stack Frame enthält unter anderem die Parameter, die lokalen Variablen und die Stelle, an der nach der Rückkehr weitergearbeitet wird. Jeder rekursive Aufruf hat einen eigenen Frame, auch wenn alle Aufrufe dieselbe Methode ausführen. Deshalb behalten wartende Aufrufe jeweils ihr eigenes `n` und ihr eigenes `smaller`.",
+      "example": "Die Frames für `sum(2)` und `sum(1)` enthalten unterschiedliche Werte für den Parameter `n`.",
+      "pitfalls": [
+        "Rekursive Aufrufe teilen ihre lokalen Variablen nicht, obwohl sie denselben Methodencode ausführen."
+      ],
+      "related": [
+        "Call Stack",
+        "Rekursion",
+        "Lokale Variable und Vorbedingung",
+        "Call und Return"
+      ],
+      "heading": "Call Stack und Stack Frames (Folien 303–319)"
+    },
+    {
+      "id": "eip-07-k10",
+      "term": "LIFO-Prinzip (Last In, First Out)",
+      "kind": "concept",
+      "short": "LIFO bedeutet, dass der zuletzt gestartete noch aktive Aufruf zuerst zurückkehrt.",
+      "explanation": "Ein rekursiver Aufruf startet den nächsten Aufruf, bevor er selbst fertig ist. Daher kehrt der innerste Aufruf zuerst zurück und danach jeweils sein aufrufender Vorgänger. Das englische Kürzel bedeutet „Last In, First Out“.",
+      "example": "Bei `sum(3)` kehrt `sum(0)` vor `sum(1)`, `sum(2)` und `sum(3)` zurück.",
+      "pitfalls": [
+        "Die Rückgabereihenfolge ist nicht dieselbe wie die Reihenfolge, in der die Aufrufe gestartet wurden."
+      ],
+      "related": [
+        "Call Stack",
+        "Stack Frame",
+        "Unwinding (Rückkehr- und Rückgabephase)"
+      ],
+      "heading": "Call Stack und Stack Frames (Folien 303–319)"
+    },
+    {
+      "id": "eip-07-k11",
+      "term": "Exception (Ausnahme)",
+      "kind": "definition",
+      "short": "Eine Exception ist ein Objekt, das mit `throw` ausgelöst wird und den normalen Kontrollfluss unterbricht.",
+      "explanation": "Die Summenmethode prüft, ob `n` außerhalb des erlaubten Bereichs von `0` bis `100` liegt, und löst dann eine `IllegalArgumentException` aus. `new IllegalArgumentException()` erzeugt das Exception-Objekt, während `throw` es auslöst. Wird die Exception nicht mit `catch` abgefangen, endet der gezeigte Programmablauf mit einem Fehler.",
+      "example": "```java\nif (n < 0 || n > 100)\n    throw new IllegalArgumentException();\n```",
+      "pitfalls": [
+        "Das Erzeugen des Exception-Objekts und das Auslösen mit `throw` sind zwei getrennte Schritte."
+      ],
+      "related": [
+        "Rekursive Summenmethode",
+        "Fakultät (Factorial)",
+        "Selektion"
+      ],
+      "heading": "Exceptions: ungültige Argumente (Folie 302)"
+    },
+    {
+      "id": "eip-07-k12",
+      "term": "Fakultät (Factorial)",
+      "kind": "definition",
+      "short": "Die Fakultät von n ist das Produkt der positiven ganzen Zahlen bis n, wobei $0!=1$ gilt.",
+      "explanation": "Für $n\\ge 1$ gilt $n!=1\\cdot2\\cdot\\ldots\\cdot n$ und rekursiv $n!=n\\cdot(n-1)!$. Der Basisfall $0!=1$ ermöglicht, dass die rekursiven Aufrufe enden. Die Beispielmethode beschränkt die Eingabe auf `0` bis `12`, weil $12!$ in einen Java-`int` passt, $13!$ aber nicht.",
+      "example": "Für $3!$ gilt $3!=3\\cdot2!=3\\cdot2\\cdot1=6$.",
+      "pitfalls": [
+        "Der Basiswert ist $0!=1$, nicht $0$.",
+        "Ein Java-`int` kann $13!$ nicht darstellen."
+      ],
+      "related": [
+        "Rekursion",
+        "Basisfall",
+        "Fortschritt",
+        "Kombination",
+        "Overflow"
+      ],
+      "heading": "2. Fakultät / Factorial (Folien 321–332)"
+    },
+    {
+      "id": "eip-07-k13",
+      "term": "Rekursive Fakultätsmethode",
+      "kind": "method",
+      "short": "Die rekursive Fakultätsmethode gibt bei null eins zurück und multipliziert sonst n mit der Fakultät von n − 1.",
+      "explanation": "Die Methode erlaubt Eingaben von `0` bis `12` und löst bei ungültigen Eingaben eine `IllegalArgumentException` aus. Für `n == 0` gibt sie `1` zurück. Andernfalls wartet sie auf `factorial(n - 1)` und multipliziert den zurückgegebenen Wert mit `n`.",
+      "example": "```java\npublic static int factorial(int n) {\n    if (n < 0 || n > 12)\n        throw new IllegalArgumentException();\n\n    if (n == 0)\n        return 1;\n\n    int smaller = factorial(n - 1);\n    return smaller * n;\n}\n```",
+      "pitfalls": [
+        "Die Eingabegrenze verhindert, dass das Fakultätsergebnis den darstellbaren Bereich eines Java-`int` überschreitet."
+      ],
+      "related": [
+        "Fakultät (Factorial)",
+        "Basisfall",
+        "Fortschritt",
+        "Kombination",
+        "Exception (Ausnahme)"
+      ],
+      "heading": "2. Fakultät / Factorial (Folien 321–332)"
+    },
+    {
+      "id": "eip-07-k14",
+      "term": "Lineare Suche (Linear Search)",
+      "kind": "definition",
+      "short": "Die lineare Suche prüft ein Array von links nach rechts und liefert den Index des gesuchten Werts oder −1.",
+      "explanation": "Die Suche beginnt bei Index `0` und prüft die Elemente der Reihe nach. Sobald ein Element dem gesuchten Wert `x` entspricht, wird dessen Index zurückgegeben. Wird das Arrayende erreicht, ohne den Wert zu finden, lautet das Ergebnis `-1`.",
+      "example": "Im Array `[17, 3, -2, 9, 0, 1, 7, 42, 5]` liegt der Wert `7` am Index `6`.",
+      "pitfalls": [
+        "Das Ergebnis ist der Index des gefundenen Werts, nicht der Wert selbst.",
+        "Ein Arrayindex beginnt bei `0`, nicht bei `1`."
+      ],
+      "related": [
+        "Rekursive lineare Suche",
+        "Suchinvariante der linearen Suche",
+        "Arrays und Indizes",
+        "Laufzeit"
+      ],
+      "heading": "3. Lineare Suche / Linear Search (Folien 333–344)"
+    },
+    {
+      "id": "eip-07-k15",
+      "term": "Rekursive lineare Suche",
+      "kind": "method",
+      "short": "Die rekursive lineare Suche prüft den aktuellen Index und sucht bei einem Fehlschlag ab dem nächsten Index weiter.",
+      "explanation": "Der Hilfsaufruf `find0` prüft zuerst, ob `i` das Arrayende erreicht hat, und greift erst danach auf `a[i]` zu. Dann gibt er `i` zurück, wenn `a[i]` gleich `x` ist; andernfalls ruft er sich mit `i + 1` auf. Das Ergebnis dieses Folgeaufrufs wird unverändert weitergegeben.",
+      "example": "```java\npublic static int find(int[] a, int x) {\n    return find0(a, x, 0);\n}\n\npublic static int find0(int[] a, int x, int i) {\n    if (i == a.length)\n        return -1;\n\n    if (a[i] == x)\n        return i;\n\n    return find0(a, x, i + 1);\n}\n```",
+      "pitfalls": [
+        "Die Prüfung `i == a.length` muss vor dem Zugriff auf `a[i]` stehen.",
+        "Wird der Wert mehrfach gefunden, liefert diese Methode den ersten passenden Index."
+      ],
+      "related": [
+        "Lineare Suche (Linear Search)",
+        "Suchinvariante der linearen Suche",
+        "Basisfall",
+        "Fortschritt",
+        "Arrays und Indizes"
+      ],
+      "heading": "Rekursiver Java-Code"
+    },
+    {
+      "id": "eip-07-k16",
+      "term": "Suchinvariante der linearen Suche",
+      "kind": "concept",
+      "short": "Vor der Prüfung von `a[i]` ist bekannt, dass kein früherer Index den gesuchten Wert enthält.",
+      "explanation": "Wenn die Suche bei Index `i` angekommen ist, wurde jeder Index von `0` bis `i-1` bereits geprüft und als nicht passend erkannt. Diese Aussage erklärt, warum ein Treffer bei `i` der erste Treffer ist und warum das Weitersuchen bei `i + 1` keine früheren Möglichkeiten überspringt. Am Anfang bei `i == 0` gibt es noch keine früheren Indizes.",
+      "example": "Vor der Prüfung von `a[3]` ist bereits bekannt, dass `a[0]`, `a[1]` und `a[2]` nicht `x` sind.",
+      "pitfalls": [
+        "Am Index `i` selbst wurde der Wert noch nicht ausgeschlossen; genau dieser Index wird als Nächstes geprüft."
+      ],
+      "related": [
+        "Lineare Suche (Linear Search)",
+        "Rekursive lineare Suche",
+        "Invariante",
+        "Schleifeninvariante"
+      ],
+      "heading": "Invariante und Kosten (Folie 344)"
+    },
+    {
+      "id": "eip-07-k17",
+      "term": "Kosten der linearen Suche",
+      "kind": "concept",
+      "short": "Die lineare Suche benötigt im Worst Case O(n) Vergleiche und O(n) zusätzlichen Stack-Speicher.",
+      "explanation": "Bei einem Array mit $n$ Elementen kann es nötig sein, jedes Element zu prüfen, daher ist die Worst-Case-Zahl der Elementvergleiche $O(n)$. Wenn der gesuchte Wert genau einmal vorkommt und jede Position gleich wahrscheinlich ist, beträgt die durchschnittliche Zahl der Vergleiche $(n+1)/2$. Die rekursive Variante kann im Worst Case bis zu $n$ aktive Suchaufrufe haben und benötigt deshalb zusätzlichen Stack-Speicher in $O(n)$.",
+      "example": "Bei `n = 9` und einem genau einmal vorkommenden, gleich wahrscheinlich platzierten Wert sind es durchschnittlich `(9 + 1) / 2 = 5` Vergleiche.",
+      "pitfalls": [
+        "Die Durchschnittsformel setzt genau ein Vorkommen und gleich wahrscheinliche Positionen voraus.",
+        "Die Speicherangabe bezieht sich auf den zusätzlichen Call Stack der rekursiven Methode."
+      ],
+      "related": [
+        "Lineare Suche (Linear Search)",
+        "Rekursive lineare Suche",
+        "Call Stack",
+        "Laufzeit"
+      ],
+      "heading": "Invariante und Kosten (Folie 344)"
+    },
+    {
+      "id": "eip-07-k18",
+      "term": "Binäre Suche (Binary Search)",
+      "kind": "method",
+      "short": "Die binäre Suche prüft die Mitte eines Suchbereichs und setzt die Suche in der passenden Hälfte fort.",
+      "explanation": "Die Methode verlangt ein aufsteigend sortiertes Array, damit der Vergleich mit `a[mid]` bestimmt, welche Hälfte noch infrage kommt. Der Suchbereich wird durch die inklusiven Grenzen `lo` und `hi` beschrieben; ein leerer Bereich mit `lo > hi` bedeutet, dass der Wert fehlt. Die Methode liefert einen passenden Index oder `-1` zurück.",
+      "example": "```java\npublic static int find(int[] a, int x) {\n    return find0(a, x, 0, a.length - 1);\n}\n\npublic static int find0(int[] a, int x, int lo, int hi) {\n    if (lo > hi)\n        return -1;\n\n    int mid = (lo + hi) / 2;\n\n    if (a[mid] == x)\n        return mid;\n\n    if (x > a[mid])\n        return find0(a, x, mid + 1, hi);\n\n    return find0(a, x, lo, mid - 1);\n}\n```",
+      "pitfalls": [
+        "Auf einem unsortierten Array kann der Vergleich mit dem Mittelwert die falsche Hälfte ausschließen.",
+        "Bei mehreren Vorkommen garantiert diese Methode nicht, den ersten passenden Index zu liefern."
+      ],
+      "related": [
+        "Voraussetzung der binären Suche",
+        "Suchintervall [lo, hi]",
+        "Mittenindex mid",
+        "Logarithmische Laufzeit",
+        "Arrays und Indizes"
+      ],
+      "heading": "Java-Code aus Folie 356"
+    },
+    {
+      "id": "eip-07-k19",
+      "term": "Voraussetzung der binären Suche",
+      "kind": "concept",
+      "short": "Die binäre Suche setzt voraus, dass die Arraywerte aufsteigend sortiert sind.",
+      "explanation": "Wenn `a[mid]` kleiner als `x` ist, kann die linke Hälfte einschließlich `mid` ausgeschlossen werden; wenn `a[mid]` größer als `x` ist, kann die rechte Hälfte ausgeschlossen werden. Diese Schlussfolgerungen sind nur verlässlich, wenn die Werte aufsteigend sortiert sind. Ohne diese Ordnung kann ein gesuchter Wert in einer ausgeschlossenen Hälfte liegen.",
+      "example": "Im sortierten Array `[-2, 0, 1, 3, 5, 7, 9]` zeigt `a[mid] = 5`, dass eine Suche nach `7` rechts davon fortgesetzt werden muss.",
+      "pitfalls": [
+        "Ein Array mit denselben Werten, aber anderer Reihenfolge erfüllt die Voraussetzung nicht."
+      ],
+      "related": [
+        "Binäre Suche (Binary Search)",
+        "Suchintervall [lo, hi]",
+        "Mittenindex mid"
+      ],
+      "heading": "4. Binäre Suche / Binary Search (Folien 345–356)"
+    },
+    {
+      "id": "eip-07-k20",
+      "term": "Suchintervall [lo, hi]",
+      "kind": "notation",
+      "short": "`lo` und `hi` bezeichnen die inklusive untere und obere Grenze des aktuellen Suchbereichs.",
+      "explanation": "Die Schreibweise `[lo, hi]` umfasst die Indizes von `lo` bis `hi`, einschließlich beider Grenzen. Der Suchbereich ist leer, wenn `lo > hi`; dann gibt die binäre Suche `-1` zurück. Nach dem Vergleich wird der geprüfte Index `mid` aus dem nächsten Bereich ausgeschlossen, indem die neue Grenze auf `mid + 1` oder `mid - 1` gesetzt wird.",
+      "example": "Wenn `lo = 5`, `hi = 8` und `mid = 6`, kann der nächste Bereich `[7, 8]` oder `[5, 5]` sein.",
+      "pitfalls": [
+        "Die Grenzen sind inklusive; bei einem nicht gefundenen Wert endet die Suche erst, wenn `lo > hi` gilt."
+      ],
+      "related": [
+        "Binäre Suche (Binary Search)",
+        "Voraussetzung der binären Suche",
+        "Mittenindex mid"
+      ],
+      "heading": "4. Binäre Suche / Binary Search (Folien 345–356)"
+    },
+    {
+      "id": "eip-07-k21",
+      "term": "Mittenindex mid",
+      "kind": "notation",
+      "short": "`mid` ist der ganzzahlig berechnete mittlere Index des aktuellen Suchbereichs.",
+      "explanation": "In der gezeigten Java-Methode wird `mid` mit `(lo + hi) / 2` berechnet; die ganzzahlige Division liefert einen ganzzahligen Index. Zuerst wird `a[mid]` mit `x` verglichen. Weil dieser Index bereits geprüft wurde, beginnt der rechte Teilbereich bei `mid + 1` oder der linke endet bei `mid - 1`.",
+      "example": "Bei `lo = 0` und `hi = 8` ist `mid = 4`.",
+      "pitfalls": [
+        "Der bereits geprüfte Index `mid` gehört nicht mehr zum nächsten Suchbereich."
+      ],
+      "related": [
+        "Binäre Suche (Binary Search)",
+        "Suchintervall [lo, hi]",
+        "Voraussetzung der binären Suche"
+      ],
+      "heading": "Java-Code aus Folie 356"
+    },
+    {
+      "id": "eip-07-k22",
+      "term": "Suche nach 7 mit binärer Suche",
+      "kind": "example",
+      "short": "Im sortierten Beispielarray findet die binäre Suche den Wert 7 am Index 5.",
+      "explanation": "Das Array lautet `[-2, 0, 1, 3, 5, 7, 9, 17, 42]` und der anfängliche Suchbereich ist `[0, 8]`. Zuerst ist `mid = 4` und `a[4] = 5`, also wird rechts weitergesucht; danach ist `mid = 6` und `a[6] = 9`, also wird links weitergesucht. Im Bereich `[5, 5]` liegt `7` bei `mid = 5`, daher gibt die Methode `5` zurück.",
+      "example": "Die geprüften Mittelelemente sind `5`, `9` und `7`.",
+      "pitfalls": [
+        "Der Index hängt von der konkreten Arrayreihenfolge ab; in einem anderen Array kann `7` an einem anderen Index stehen."
+      ],
+      "related": [
+        "Binäre Suche (Binary Search)",
+        "Suchintervall [lo, hi]",
+        "Mittenindex mid",
+        "Voraussetzung der binären Suche"
+      ],
+      "heading": "Beispiel: Suche nach 7"
+    },
+    {
+      "id": "eip-07-k23",
+      "term": "Logarithmische Laufzeit",
+      "kind": "concept",
+      "short": "Die binäre Suche hat im Worst Case O(log n) Elementprüfungen, weil sie den Suchbereich ungefähr halbiert.",
+      "explanation": "Bei jedem Schritt bleibt ungefähr die Hälfte der bisherigen Kandidaten übrig. Die Zahl der Schritte wächst daher logarithmisch mit der Arraygröße: Eine Million Elemente erfordern im Worst Case höchstens etwa 20 Prüfungen der Mittelelemente. Diese Laufzeit zählt Elementprüfungen und nicht alle einzelnen Java-Operatoren oder Methodenaufrufe.",
+      "example": "Für `n = 1.000` benötigt die binäre Suche im Worst Case höchstens etwa 10 Prüfungen der Mittelelemente.",
+      "pitfalls": [
+        "Die logarithmische Laufzeit setzt die sortierte Eingabevoraussetzung der binären Suche voraus.",
+        "Auch eine erfolgreiche Suche kann den ungünstigsten Suchpfad benötigen."
+      ],
+      "related": [
+        "Binäre Suche (Binary Search)",
+        "Voraussetzung der binären Suche",
+        "Laufzeit",
+        "Lineare Suche (Linear Search)"
+      ],
+      "heading": "Warum logarithmisch?"
+    },
+    {
+      "id": "eip-07-k24",
+      "term": "Control-Flow Graph (CFG)",
+      "kind": "definition",
+      "short": "Ein Control-Flow Graph beschreibt die möglichen Kontrollflusswege durch eine Methode.",
+      "explanation": "Ein Kontrollflussdiagramm stellt dar, in welcher Reihenfolge Anweisungen ausgeführt werden können. Bei einem rekursiven Aufruf wird dieselbe Methode erneut ausgeführt, wobei der neue Aufruf eigene Parameter und lokale Variablen hat. Der Graph beschreibt den Ablauf der Methode; der Call Stack hält die einzelnen aktiven Aufrufe auseinander.",
+      "example": "Jeder Aufruf von `sum` folgt demselben Kontrollfluss, hat aber einen eigenen Parameterwert `n`.",
+      "pitfalls": [
+        "Ein einzelner Kontrollflussgraph bildet nicht die verschiedenen lokalen Zustände aller rekursiven Aufrufe ab."
+      ],
+      "related": [
+        "Call Stack",
+        "Stack Frame",
+        "Rekursion",
+        "Call und Return"
+      ],
+      "heading": "Call Stack und Stack Frames (Folien 303–319)"
+    }
+  ],
+  "generator": {
+    "model": "gpt-6-luna",
+    "effort": "xhigh",
+    "promptVersion": "k1",
+    "generatedAt": "2026-11-04T20:35:31.651Z"
+  }
+}
