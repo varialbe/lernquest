@@ -1,0 +1,2005 @@
+{
+  "schemaVersion": 1,
+  "id": "era-03",
+  "module": "ERA",
+  "number": 3,
+  "slug": "quelltext-zu-maschinenbefehl",
+  "title": "From Source Code to Machine Instructions",
+  "summary": "This unit traces the path from C source code through the compiler to a binary file (Binärdatei), machine instructions (Maschinenbefehle), and disassembly (Disassembly). It covers the instruction set architecture (Befehlssatzarchitektur, ISA), RISC/CISC, RISC-V, instruction formats, instruction classes, registers, and integer arithmetic.",
+  "concepts": [
+    "Compiler and Binary File",
+    "ISA",
+    "Headers and Disassembly",
+    "Assembly Language",
+    "RISC and CISC",
+    "RISC-V",
+    "Machine Instruction Format",
+    "Instruction Classes",
+    "Integer Arithmetic",
+    "Registers",
+    "Operands and Mnemonics",
+    "Zero Register x0"
+  ],
+  "keyFacts": [
+    "The ISA specifies which machine instructions a processor can execute.",
+    "The compiler knows the target ISA and operating system and translates source code into a binary program.",
+    "A binary file contains program code, initial values, and metadata; its format and contents depend on the operating system and hardware.",
+    "The .text section of a binary file contains executable program code.",
+    "Disassembly represents encoded machine instructions as readable assembly instructions.",
+    "Assembly language is the lowest directly readable level of abstraction. It uses primitive instructions and requires explicit resource management.",
+    "RISC uses a reduced, simple base instruction set; CISC uses an extensive instruction set.",
+    "The classical RISC/CISC distinction only partly describes modern implementations.",
+    "RISC-V is an open, deliberately simple, extensible ISA.",
+    "The RISC-V base instruction set focuses on integers; extensions can include floating-point and vector operations, among others.",
+    "A machine instruction encodes an operation, or opcode, and operands.",
+    "Instructions can have a uniform fixed length or variable lengths.",
+    "The three basic instruction classes are arithmetic and logical operations, data transfer, and control flow.",
+    "In add a, b, c, b and c are source operands, and a is the destination operand.",
+    "Registers are a small number of quickly accessible storage locations in the processor; each holds one word of the ISA's width.",
+    "The zero register x0 always contains zero; load and store instructions move data between registers and memory."
+  ],
+  "tags": [],
+  "links": [],
+  "source": {
+    "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO3.md",
+    "sha256": "5d3181f500186c4cbc5c77a73950ebcb7abb98c09870e0b80a745c83a3696601",
+    "commit": "c01f10e1818d61e8fd05d663cf852d7a59f2e1e4"
+  },
+  "generator": {
+    "model": "gpt-5.6-luna",
+    "effort": "xhigh",
+    "reviewEffort": "high",
+    "promptVersion": "v2",
+    "generatedAt": "2026-10-31T00:21:57.972Z",
+    "review": {
+      "checked": 44,
+      "fixed": 1,
+      "removed": 0,
+      "notes": "44 Fragen geprüft. Einen mehrdeutigen Cloze-Distraktor („Registerbreite“) durch einen eindeutig falschen Distraktor ersetzt. Antworten, Berechnungen, Mermaid-Diagramme, Quellenüberschriften und formale Vorgaben geprüft."
+    }
+  },
+  "levels": [
+    {
+      "id": "era-03-l1",
+      "index": 1,
+      "kind": "basics",
+      "title": "Foundations",
+      "questions": [
+        {
+          "id": "era-03-l1-q01",
+          "type": "single",
+          "prompt": "What does ISA stand for, and what does it specify?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Input Signal Arrangement; it specifies character encoding."
+            },
+            {
+              "id": "b",
+              "text": "Instruction Set Architecture; it specifies which machine instructions a processor can execute."
+            },
+            {
+              "id": "c",
+              "text": "Instruction Storage Allocation; it specifies only the size of main memory."
+            },
+            {
+              "id": "d",
+              "text": "Internal Software Access; it describes compiler options exclusively."
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "ISA stands for Instruction Set Architecture. It defines the executable machine instructions and serves as the interface between software and the processor.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO3.md",
+            "heading": "Vom Quelltext zum Maschinenprogramm"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "ISA",
+            "Compiler and Binary File"
+          ]
+        },
+        {
+          "id": "era-03-l1-q02",
+          "type": "cloze",
+          "prompt": "The compiler knows the target ___ and translates the source code into a binary program.",
+          "options": [
+            {
+              "id": "a",
+              "text": "Metadata"
+            },
+            {
+              "id": "b",
+              "text": "Disassembly"
+            },
+            {
+              "id": "c",
+              "text": "Font"
+            },
+            {
+              "id": "d",
+              "text": "ISA"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "The compiler must know the target ISA so that it can generate suitable machine instructions.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO3.md",
+            "heading": "Vom Quelltext zum Maschinenprogramm"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Compiler and Binary File",
+            "ISA"
+          ]
+        },
+        {
+          "id": "era-03-l1-q03",
+          "type": "multi",
+          "prompt": "Select all the correct statements about a generated binary file. More than one answer may be correct.",
+          "options": [
+            {
+              "id": "a",
+              "text": "It contains program code, initial values, and metadata."
+            },
+            {
+              "id": "b",
+              "text": "It remains readily readable as C source code."
+            },
+            {
+              "id": "c",
+              "text": "It becomes an executable program only after objdump -h is run."
+            },
+            {
+              "id": "d",
+              "text": "Its format and contents depend on the operating system and hardware."
+            }
+          ],
+          "correct": [
+            "a",
+            "d"
+          ],
+          "explanation": "A binary file contains initial values and metadata as well as code, and is adapted to the operating system and hardware. After translation, it is not readily readable as C source code.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO3.md",
+            "heading": "Vom Quelltext zum Maschinenprogramm"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Compiler and Binary File",
+            "ISA"
+          ]
+        },
+        {
+          "id": "era-03-l1-q04",
+          "type": "diagram",
+          "prompt": "Which step belongs between source code and the binary file?\n\n```mermaid\nflowchart LR\n A[\"C-Quelltext\"] --> B[\"?\"]\n B --> C[\"Binärdatei\"]\n```",
+          "options": [
+            {
+              "id": "a",
+              "text": "Register set"
+            },
+            {
+              "id": "b",
+              "text": "Disassembler"
+            },
+            {
+              "id": "c",
+              "text": "Compiler"
+            },
+            {
+              "id": "d",
+              "text": "Zero register"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "The compiler translates the C source code into a binary program.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO3.md",
+            "heading": "Vom Quelltext zum Maschinenprogramm"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Compiler and Binary File"
+          ]
+        },
+        {
+          "id": "era-03-l1-q05",
+          "type": "single",
+          "prompt": "Which section of a binary file contains executable program code?",
+          "options": [
+            {
+              "id": "a",
+              "text": "`<main>`"
+            },
+            {
+              "id": "b",
+              "text": "`sp`"
+            },
+            {
+              "id": "c",
+              "text": "`argv`"
+            },
+            {
+              "id": "d",
+              "text": "`.text`"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "`.text` is the code section of the binary file. `<main>`, by contrast, is the name of a routine.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO3.md",
+            "heading": "Header und Disassembly"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Headers and Disassembly"
+          ]
+        },
+        {
+          "id": "era-03-l1-q06",
+          "type": "truefalse",
+          "prompt": "During disassembly, encoded machine instructions are represented again as readable assembly instructions.",
+          "options": [
+            {
+              "id": "true",
+              "text": "True"
+            },
+            {
+              "id": "false",
+              "text": "False"
+            }
+          ],
+          "correct": [
+            "true"
+          ],
+          "explanation": "Disassembly makes encoded machine instructions readable as assembly instructions; it does not simply reconstruct the original C source code.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO3.md",
+            "heading": "Header und Disassembly"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Headers and Disassembly",
+            "Assembly Language"
+          ]
+        },
+        {
+          "id": "era-03-l1-q07",
+          "type": "single",
+          "prompt": "Which description applies to assembly language?",
+          "options": [
+            {
+              "id": "a",
+              "text": "A high-level language with complex data structures and automatic resource management."
+            },
+            {
+              "id": "b",
+              "text": "An operating system interface that does not describe machine instructions."
+            },
+            {
+              "id": "c",
+              "text": "A representation of header metadata only, with no instructions."
+            },
+            {
+              "id": "d",
+              "text": "The lowest level of abstraction that users can read directly, with primitive instructions."
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Assembly language describes elementary computational steps and requires explicit management of resources, memory locations, and data transfers.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO3.md",
+            "heading": "Assembler und ISA"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Assembly Language",
+            "ISA"
+          ]
+        },
+        {
+          "id": "era-03-l1-q08",
+          "type": "multi",
+          "prompt": "Select all the correct statements about RISC in the classical comparison. More than one answer may be correct.",
+          "options": [
+            {
+              "id": "a",
+              "text": "RISC has a reduced, simple base instruction set."
+            },
+            {
+              "id": "b",
+              "text": "Individual instructions typically perform a particularly large number of complex steps."
+            },
+            {
+              "id": "c",
+              "text": "The compiler takes on more of the difficult work."
+            },
+            {
+              "id": "d",
+              "text": "The implementation can be simpler, more efficient, and faster."
+            }
+          ],
+          "correct": [
+            "a",
+            "c",
+            "d"
+          ],
+          "explanation": "RISC relies on simple base instructions and efficient implementation, which leaves more of the work to the compiler. Complex individual instructions, by contrast, are typical of the classical description of CISC.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO3.md",
+            "heading": "RISC und CISC"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "RISC and CISC"
+          ]
+        },
+        {
+          "id": "era-03-l1-q09",
+          "type": "cloze",
+          "prompt": "The RISC-V base instruction set focuses on integers, that is, on ___.",
+          "options": [
+            {
+              "id": "a",
+              "text": "Vectors"
+            },
+            {
+              "id": "b",
+              "text": "Integers"
+            },
+            {
+              "id": "c",
+              "text": "Disassembly"
+            },
+            {
+              "id": "d",
+              "text": "Metadata"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "The RISC-V base instruction set handles integers. Additional functionality can be provided by extensions.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO3.md",
+            "heading": "RISC-V als Beispiel-ISA"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "RISC-V"
+          ]
+        },
+        {
+          "id": "era-03-l1-q10",
+          "type": "single",
+          "prompt": "What does a machine instruction encode in general?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Only the name of the C program."
+            },
+            {
+              "id": "b",
+              "text": "The operation, or opcode, and the operands."
+            },
+            {
+              "id": "c",
+              "text": "Only the address of the operating system."
+            },
+            {
+              "id": "d",
+              "text": "Only the metadata of the binary file."
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "A machine instruction contains the operation to be performed and its operands, such as the sources and destination of an addition.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO3.md",
+            "heading": "Was steckt in einem Maschinenbefehl?"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Machine Instruction Format",
+            "Operands and Mnemonics"
+          ]
+        },
+        {
+          "id": "era-03-l1-q11",
+          "type": "single",
+          "prompt": "In `add a, b, c`, `a` is the …",
+          "options": [
+            {
+              "id": "a",
+              "text": "destination operand"
+            },
+            {
+              "id": "b",
+              "text": "instruction memory"
+            },
+            {
+              "id": "c",
+              "text": "first source operand"
+            },
+            {
+              "id": "d",
+              "text": "opcode"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "The pattern is `a = b + c`: `b` and `c` are source operands, and `a` receives the result.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO3.md",
+            "heading": "Ganzzahlige Arithmetik und Register"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Integer Arithmetic",
+            "Operands and Mnemonics"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "era-03-l2",
+      "index": 2,
+      "kind": "apply",
+      "title": "Application",
+      "questions": [
+        {
+          "id": "era-03-l2-q01",
+          "type": "calc",
+          "prompt": "What is the value of `c` after this loop?\n\n```c\nint c = 0;\nfor (int i = 0; i < 10; i++) {\n    c = c + i;\n}\n```",
+          "options": [
+            {
+              "id": "a",
+              "text": "36"
+            },
+            {
+              "id": "b",
+              "text": "45"
+            },
+            {
+              "id": "c",
+              "text": "55"
+            },
+            {
+              "id": "d",
+              "text": "10"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "The loop adds the values $0$ through $9$: $0+1+\\dots+9=45$. The value 10 is not added because of `i < 10`.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO3.md",
+            "heading": "Vom Quelltext zum Maschinenprogramm"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Compiler and Binary File",
+            "Integer Arithmetic"
+          ]
+        },
+        {
+          "id": "era-03-l2-q02",
+          "type": "code_output",
+          "prompt": "What does this code print?\n\n```c\nint c = 0;\nfor (int i = 0; i < 10; i++) {\n    c = c + i;\n}\nprintf(\"Ergebnis ist %i\\n\", c);\n```",
+          "options": [
+            {
+              "id": "a",
+              "text": "`Ergebnis ist 45`"
+            },
+            {
+              "id": "b",
+              "text": "`Ergebnis ist 10`"
+            },
+            {
+              "id": "c",
+              "text": "`Ergebnis ist 0`"
+            },
+            {
+              "id": "d",
+              "text": "`Ergebnis ist 55`"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "The loop computes $0+1+\\dots+9=45$ and prints this value with the given text.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO3.md",
+            "heading": "Vom Quelltext zum Maschinenprogramm"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Compiler and Binary File",
+            "Integer Arithmetic"
+          ]
+        },
+        {
+          "id": "era-03-l2-q03",
+          "type": "single",
+          "prompt": "What does `objdump -h count` display?",
+          "options": [
+            {
+              "id": "a",
+              "text": "A new ISA for the program."
+            },
+            {
+              "id": "b",
+              "text": "An overview of the binary file's headers and sections."
+            },
+            {
+              "id": "c",
+              "text": "The original C source code."
+            },
+            {
+              "id": "d",
+              "text": "Only the values of all registers during execution."
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "`objdump -h` displays an overview of the binary file's headers and sections, not the source code or runtime values.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO3.md",
+            "heading": "Header und Disassembly"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Headers and Disassembly"
+          ]
+        },
+        {
+          "id": "era-03-l2-q04",
+          "type": "calc",
+          "prompt": "In the schematic disassembly, the instruction addresses are `684`, `688`, `68c`, and `690` in sequence. What address comes next if the sequence continues in the same way?",
+          "options": [
+            {
+              "id": "a",
+              "text": "`698`"
+            },
+            {
+              "id": "b",
+              "text": "`694`"
+            },
+            {
+              "id": "c",
+              "text": "`691`"
+            },
+            {
+              "id": "d",
+              "text": "`680`"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "The addresses increase by four each time: $684\\to688\\to68c\\to690\\to694$. These values should be read as hexadecimal addresses.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO3.md",
+            "heading": "Header und Disassembly"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Headers and Disassembly"
+          ]
+        },
+        {
+          "id": "era-03-l2-q05",
+          "type": "code_output",
+          "prompt": "What value is in `a` after execution?\n\n```asm\n# b = 7, c = 5\nadd a, b, c\n```",
+          "options": [
+            {
+              "id": "a",
+              "text": "0"
+            },
+            {
+              "id": "b",
+              "text": "2"
+            },
+            {
+              "id": "c",
+              "text": "12"
+            },
+            {
+              "id": "d",
+              "text": "35"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "The mnemonic `add` performs `a = b + c`. With $b=7$ and $c=5$, this gives $a=12$.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO3.md",
+            "heading": "Ganzzahlige Arithmetik und Register"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Integer Arithmetic",
+            "Operands and Mnemonics"
+          ]
+        },
+        {
+          "id": "era-03-l2-q06",
+          "type": "multi",
+          "prompt": "Select all the correct statements about the classical comparison of CISC and RISC. More than one answer may be correct.",
+          "options": [
+            {
+              "id": "a",
+              "text": "RISC has a reduced, simple base instruction set."
+            },
+            {
+              "id": "b",
+              "text": "CISC has an extensive instruction set; individual instructions can do a great deal."
+            },
+            {
+              "id": "c",
+              "text": "Programming for RISC can require more work from humans."
+            },
+            {
+              "id": "d",
+              "text": "RISC fundamentally requires complex microprograms for every instruction."
+            },
+            {
+              "id": "e",
+              "text": "CISC is classically characterized by particularly simple decoding."
+            }
+          ],
+          "correct": [
+            "a",
+            "b",
+            "c"
+          ],
+          "explanation": "CISC provides extensive instructions, while RISC uses simple instructions, which can mean more individual work for a human programmer. In the classical comparison, complex decoding and microprograms are more commonly associated with CISC.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO3.md",
+            "heading": "RISC und CISC"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "RISC and CISC"
+          ]
+        },
+        {
+          "id": "era-03-l2-q07",
+          "type": "cloze",
+          "prompt": "RISC-V is ___ and can be extended with standardized or non-standardized specialized extensions.",
+          "options": [
+            {
+              "id": "a",
+              "text": "hardwired exclusively"
+            },
+            {
+              "id": "b",
+              "text": "immutable"
+            },
+            {
+              "id": "c",
+              "text": "extensible"
+            },
+            {
+              "id": "d",
+              "text": "responsible only for C source code"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "RISC-V is an extensible ISA. Examples include extensions for floating-point numbers, vectors, multiprocessor operation, and multicore systems.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO3.md",
+            "heading": "RISC-V als Beispiel-ISA"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "RISC-V"
+          ]
+        },
+        {
+          "id": "era-03-l2-q08",
+          "type": "single",
+          "prompt": "In the schema `OP | F | Q1 | Q2 | Z` for `add a, b, c`, which field represents the source `b`?",
+          "options": [
+            {
+              "id": "a",
+              "text": "`OP`"
+            },
+            {
+              "id": "b",
+              "text": "`Q2`"
+            },
+            {
+              "id": "c",
+              "text": "`Q1`"
+            },
+            {
+              "id": "d",
+              "text": "`Z`"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "In the given schema, `Q1` denotes the first source `b`, `Q2` the second source `c`, and `Z` the destination `a`.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO3.md",
+            "heading": "Was steckt in einem Maschinenbefehl?"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Machine Instruction Format",
+            "Operands and Mnemonics"
+          ]
+        },
+        {
+          "id": "era-03-l2-q09",
+          "type": "calc",
+          "prompt": "`x0` always contains zero. What value does `a` receive in `add a, x0, c` if `c=13`?",
+          "options": [
+            {
+              "id": "a",
+              "text": "13"
+            },
+            {
+              "id": "b",
+              "text": "26"
+            },
+            {
+              "id": "c",
+              "text": "0"
+            },
+            {
+              "id": "d",
+              "text": "−13"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "The zero register supplies the value $0$. The instruction therefore computes $a=0+13=13$.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO3.md",
+            "heading": "Ganzzahlige Arithmetik und Register"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Registers",
+            "Zero Register x0",
+            "Integer Arithmetic"
+          ]
+        },
+        {
+          "id": "era-03-l2-q10",
+          "type": "single",
+          "prompt": "Which basic instruction class does `lw` belong to?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Control flow"
+            },
+            {
+              "id": "b",
+              "text": "Data transfer"
+            },
+            {
+              "id": "c",
+              "text": "Input/output only"
+            },
+            {
+              "id": "d",
+              "text": "Arithmetic and logical operations"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "`lw` loads data, moving it between memory and a register. This is data transfer.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO3.md",
+            "heading": "Drei grundlegende Befehlsklassen"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Instruction Classes"
+          ]
+        },
+        {
+          "id": "era-03-l2-q11",
+          "type": "diagram",
+          "prompt": "Which label is missing from the process for implementing `c = c + i`?\n\n```mermaid\nflowchart LR\n A[\"C-Zeile\"] --> B[\"Operanden holen\"]\n B --> C[\"?\"]\n C --> D[\"Ergebnis ablegen\"]\n```",
+          "options": [
+            {
+              "id": "a",
+              "text": "Disassemble"
+            },
+            {
+              "id": "b",
+              "text": "Add"
+            },
+            {
+              "id": "c",
+              "text": "Extend the instruction set"
+            },
+            {
+              "id": "d",
+              "text": "Display the header"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "The elementary steps are: retrieve the operands, add them, and store the result.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO3.md",
+            "heading": "Header und Disassembly"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Headers and Disassembly",
+            "Integer Arithmetic"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "era-03-l3",
+      "index": 3,
+      "kind": "deepen",
+      "title": "In Depth",
+      "questions": [
+        {
+          "id": "era-03-l3-q01",
+          "type": "truefalse",
+          "prompt": "Compiler optimizations can substantially change the direct mapping of a high-level language code block to an assembly block.",
+          "options": [
+            {
+              "id": "true",
+              "text": "True"
+            },
+            {
+              "id": "false",
+              "text": "False"
+            }
+          ],
+          "correct": [
+            "true"
+          ],
+          "explanation": "Without significant optimization, a code block can often be mapped to an assembly block. Optimizations can, however, substantially change this mapping.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO3.md",
+            "heading": "Header und Disassembly"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Headers and Disassembly",
+            "Compiler and Binary File"
+          ]
+        },
+        {
+          "id": "era-03-l3-q02",
+          "type": "multi",
+          "prompt": "Select all the correct statements about how RISC and CISC are classified today. More than one answer may be correct.",
+          "options": [
+            {
+              "id": "a",
+              "text": "RISC and CISC are labels exclusively for compiler optimization levels."
+            },
+            {
+              "id": "b",
+              "text": "The classical comparison fully describes every modern implementation."
+            },
+            {
+              "id": "c",
+              "text": "A CISC processor can have a RISC-like core."
+            },
+            {
+              "id": "d",
+              "text": "RISC extensions can appear CISC-like."
+            }
+          ],
+          "correct": [
+            "c",
+            "d"
+          ],
+          "explanation": "The classical distinction is only partly valid today: implementations can combine features of both approaches. The categories therefore do not fully describe every modern implementation.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO3.md",
+            "heading": "RISC und CISC"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "RISC and CISC"
+          ]
+        },
+        {
+          "id": "era-03-l3-q03",
+          "type": "single",
+          "prompt": "Which statement explains how Intel and AMD can use the same ISA?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Both manufacturers must build the same processor chip to do so."
+            },
+            {
+              "id": "b",
+              "text": "Independent implementations cannot execute the same machine instructions."
+            },
+            {
+              "id": "c",
+              "text": "An ISA describes only the processor's brand."
+            },
+            {
+              "id": "d",
+              "text": "Their processors can be implemented independently and still execute the same ISA."
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "The ISA describes the shared, observable interface. The specific implementation of a processor can nevertheless be developed independently.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO3.md",
+            "heading": "Assembler und ISA"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "ISA",
+            "Assembly Language"
+          ]
+        },
+        {
+          "id": "era-03-l3-q04",
+          "type": "single",
+          "prompt": "Why is RISC-V used as an example ISA in this module?",
+          "options": [
+            {
+              "id": "a",
+              "text": "It is open, deliberately simple, and does not have the accumulated legacy complexity of many older ISAs."
+            },
+            {
+              "id": "b",
+              "text": "It processes only 128-bit values and has no variants."
+            },
+            {
+              "id": "c",
+              "text": "It fundamentally does not allow extensions."
+            },
+            {
+              "id": "d",
+              "text": "It executes C source code directly without translation."
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "RISC-V is introduced as an open, deliberately simple approach without much accumulated legacy complexity. It also comes in different widths and extensions.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO3.md",
+            "heading": "RISC-V als Beispiel-ISA"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "RISC-V",
+            "ISA"
+          ]
+        },
+        {
+          "id": "era-03-l3-q05",
+          "type": "diagram",
+          "prompt": "Which mapping of the two instruction formats is correct?\n\n```mermaid\nflowchart TD\n A[\"Befehlsformat\"] --> B[\"Einheitliche Länge\"]\n A --> C[\"Variable Länge\"]\n```",
+          "options": [
+            {
+              "id": "a",
+              "text": "Uniform length: typical of CISC; variable length: classical RISC approach."
+            },
+            {
+              "id": "b",
+              "text": "Uniform length: classical RISC approach; variable length: typical of CISC."
+            },
+            {
+              "id": "c",
+              "text": "Both formats are associated exclusively with CISC."
+            },
+            {
+              "id": "d",
+              "text": "Both formats are associated exclusively with RISC."
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "A uniform instruction length is described as a classical RISC approach. Variable length is typical of CISC.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO3.md",
+            "heading": "Was steckt in einem Maschinenbefehl?"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Machine Instruction Format",
+            "RISC and CISC"
+          ]
+        },
+        {
+          "id": "era-03-l3-q06-r1",
+          "type": "multi",
+          "prompt": "For the addition `add a, b, c`, this schema applies: `OP` encodes the operation, `F` contains additional function information if the instruction format requires it, `Q1` and `Q2` denote the two sources in the order `b` and `c`, and `Z` denotes the destination `a`. Select all the correct mappings.",
+          "options": [
+            {
+              "id": "a",
+              "text": "`Q2` denotes the destination `a`."
+            },
+            {
+              "id": "b",
+              "text": "`Z` denotes the destination `a`."
+            },
+            {
+              "id": "c",
+              "text": "In this schema, `F` is always a memory address."
+            },
+            {
+              "id": "d",
+              "text": "`Q1` denotes the source `b`."
+            },
+            {
+              "id": "e",
+              "text": "`OP` describes the addition operation."
+            }
+          ],
+          "correct": [
+            "b",
+            "d",
+            "e"
+          ],
+          "explanation": "According to the given schema definition, `Z` is the destination `a`, `OP` encodes the addition, and `Q1` is the source `b`. `Q2` is the source `c`; `F` contains additional function information if needed and is not a memory address.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO3.md",
+            "heading": "Was steckt in einem Maschinenbefehl?"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Instruction Fields",
+            "Opcode",
+            "Source and Destination Operands"
+          ]
+        },
+        {
+          "id": "era-03-l3-q07",
+          "type": "truefalse",
+          "prompt": "If the total width of a machine instruction increases, every individual field automatically grows proportionally.",
+          "options": [
+            {
+              "id": "true",
+              "text": "True"
+            },
+            {
+              "id": "false",
+              "text": "False"
+            }
+          ],
+          "correct": [
+            "false"
+          ],
+          "explanation": "Opcode and operand fields are specified separately. A greater total width therefore does not require every field to grow proportionally.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO3.md",
+            "heading": "Was steckt in einem Maschinenbefehl?"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Machine Instruction Format"
+          ]
+        },
+        {
+          "id": "era-03-l3-q08",
+          "type": "single",
+          "prompt": "Why can `add`, `sub`, and `neg` be used with signed and unsigned numbers?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Only `add` works with both representations; `sub` and `neg` do not."
+            },
+            {
+              "id": "b",
+              "text": "For signed numbers, these instructions are always replaced by `cmp`."
+            },
+            {
+              "id": "c",
+              "text": "Signed representation is based on two's complement, so the same basic instructions can be used."
+            },
+            {
+              "id": "d",
+              "text": "The instructions work only with decimal text and ignore the bit representation."
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Signed representation uses two's complement. Therefore, basic arithmetic does not need a separate instruction for each interpretation.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO3.md",
+            "heading": "Ganzzahlige Arithmetik und Register"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Integer Arithmetic"
+          ]
+        },
+        {
+          "id": "era-03-l3-q09",
+          "type": "code_output",
+          "prompt": "Assume an 8-bit two's-complement representation. What value is in `a` after this code?\n\n```asm\n# c = 9\nsub a, x0, c\n```",
+          "options": [
+            {
+              "id": "a",
+              "text": "247"
+            },
+            {
+              "id": "b",
+              "text": "9"
+            },
+            {
+              "id": "c",
+              "text": "−9"
+            },
+            {
+              "id": "d",
+              "text": "0"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "`x0` supplies $0$, so `sub` computes $0-9=-9$. This value is representable in 8-bit two's complement; `247` would be the unsigned interpretation of the same bit pattern.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO3.md",
+            "heading": "Ganzzahlige Arithmetik und Register"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Integer Arithmetic",
+            "Registers",
+            "Zero Register x0"
+          ]
+        },
+        {
+          "id": "era-03-l3-q10",
+          "type": "single",
+          "prompt": "Which instructions belong to the control-flow class?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Additions and subtractions only"
+            },
+            {
+              "id": "b",
+              "text": "Load and store instructions only"
+            },
+            {
+              "id": "c",
+              "text": "Jumps and subroutine calls"
+            },
+            {
+              "id": "d",
+              "text": "Bitwise operations only"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Control flow includes, in particular, jumps and subroutine calls.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO3.md",
+            "heading": "Drei grundlegende Befehlsklassen"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Instruction Classes"
+          ]
+        },
+        {
+          "id": "era-03-l3-q11",
+          "type": "multi",
+          "prompt": "Select all the correct statements about registers. More than one answer may be correct.",
+          "options": [
+            {
+              "id": "a",
+              "text": "In RISC, arithmetic operations fundamentally access memory locations directly instead of registers."
+            },
+            {
+              "id": "b",
+              "text": "Registers are a small number of quickly accessible storage locations in the processor."
+            },
+            {
+              "id": "c",
+              "text": "Load and store instructions move data between registers and memory."
+            },
+            {
+              "id": "d",
+              "text": "A register stores one word at the width of the ISA."
+            },
+            {
+              "id": "e",
+              "text": "Registers are always larger than main memory."
+            }
+          ],
+          "correct": [
+            "b",
+            "c",
+            "d"
+          ],
+          "explanation": "Registers are quickly accessible within the processor and hold words of the ISA's width. Separate load and store instructions transfer data to and from memory.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO3.md",
+            "heading": "Ganzzahlige Arithmetik und Register"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Registers",
+            "Integer Arithmetic"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "era-03-l4",
+      "index": 4,
+      "kind": "boss",
+      "title": "Challenge",
+      "questions": [
+        {
+          "id": "era-03-l4-q01",
+          "type": "multi",
+          "prompt": "A C program must run on two platforms with different ISAs. Select all the correct conclusions. More than one answer may be correct.",
+          "options": [
+            {
+              "id": "a",
+              "text": "The ISA is an interface between software and the processor."
+            },
+            {
+              "id": "b",
+              "text": "An independent implementation can use the same ISA as another implementation."
+            },
+            {
+              "id": "c",
+              "text": "The same C source code must produce a bit-for-bit identical binary file on both platforms."
+            },
+            {
+              "id": "d",
+              "text": "The compiler must generate machine instructions suitable for the target ISA."
+            }
+          ],
+          "correct": [
+            "a",
+            "b",
+            "d"
+          ],
+          "explanation": "The target ISA determines the executable machine instructions and serves as the interface between software and the processor. Different processors can independently implement the same ISA, but this does not mean that every platform uses the same binary file.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO1.md",
+            "heading": null
+          },
+          "difficulty": 5,
+          "concepts": [
+            "ISA",
+            "Compiler and Binary File"
+          ]
+        },
+        {
+          "id": "era-03-l4-q02",
+          "type": "calc",
+          "prompt": "After an `add` operation, an 8-bit register contains the bit pattern `11111111`. Which signed/unsigned interpretation is correct?",
+          "options": [
+            {
+              "id": "a",
+              "text": "unsigned: 255; signed: −1"
+            },
+            {
+              "id": "b",
+              "text": "unsigned: 255; signed: +1"
+            },
+            {
+              "id": "c",
+              "text": "unsigned: −1; signed: 255"
+            },
+            {
+              "id": "d",
+              "text": "unsigned: 127; signed: −1"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "Unsigned, eight ones equal $2^8-1=255$. In 8-bit two's complement, the same pattern represents $-1$.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO2 (ZÜ).md",
+            "heading": null
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Integer Arithmetic",
+            "Registers"
+          ]
+        },
+        {
+          "id": "era-03-l4-q03",
+          "type": "calc",
+          "prompt": "What result does an 8-bit addition with `add` produce for `01111111 + 00000001`?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Bit pattern `01111110`; unsigned 126, signed 126"
+            },
+            {
+              "id": "b",
+              "text": "Bit pattern `00000000`; unsigned 0, signed 0"
+            },
+            {
+              "id": "c",
+              "text": "Bit pattern `10000000`; unsigned 128, signed +128"
+            },
+            {
+              "id": "d",
+              "text": "Bit pattern `10000000`; unsigned 128, signed −128"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "The bitwise addition yields `10000000`. This pattern represents unsigned $128$, but $-128$ in 8-bit two's complement; the signed addition has therefore overflowed.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO2 (ZÜ).md",
+            "heading": null
+          },
+          "difficulty": 5,
+          "concepts": [
+            "Integer Arithmetic",
+            "Registers"
+          ]
+        },
+        {
+          "id": "era-03-l4-q04-r1",
+          "type": "single",
+          "prompt": "Memory contains the words `x` at `-8(sp)` with value `7` and `y` at `-12(sp)` with value `3`. `sp` is the reference point for these addresses. The instructions in a sequence execute from left to right. `lw r, offset(sp)` loads the memory value into register `r`; `sw r, offset(sp)` stores the register value at that address. `add d, s, t` computes `d = s + t`, and `sub d, s, t` computes `d = s - t`. The operands for `add` and `sub` must be registers. Which sequence sets `x` to `x + y` and leaves `y` unchanged?",
+          "options": [
+            {
+              "id": "a",
+              "text": "`lw t0, -8(sp); lw t1, -12(sp); sub t2, t0, t1; sw t2, -8(sp)`"
+            },
+            {
+              "id": "b",
+              "text": "`lw t0, -8(sp); lw t1, -12(sp); add t2, t0, t1; sw t2, -12(sp)`"
+            },
+            {
+              "id": "c",
+              "text": "`lw t0, -8(sp); lw t1, -12(sp); add t2, t0, t1; sw t2, -8(sp)`"
+            },
+            {
+              "id": "d",
+              "text": "`add t2, -8(sp), -12(sp); sw t2, -8(sp)`"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "The two `lw` instructions load `x = 7` and `y = 3` into registers. `add` computes `10`. Only option b stores this result back at `-8(sp)`, which is where `x` is; `y` at `-12(sp)` remains unchanged.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO3.md",
+            "heading": "Ganzzahlige Arithmetik und Register"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Register Arithmetic",
+            "Load and Store Instructions",
+            "Memory Addresses"
+          ]
+        },
+        {
+          "id": "era-03-l4-q05",
+          "type": "diagram",
+          "prompt": "Which statement correctly describes the process?\n\n```mermaid\nflowchart LR\n A[\"C-Quelltext\"] --> B[\"Compiler\"]\n B --> C[\"Binärdatei\"]\n C --> D[\"Maschinenbefehle\"]\n C --> E[\"Disassembly\"]\n```",
+          "options": [
+            {
+              "id": "a",
+              "text": "Disassembly always reconstructs the original C source code exactly."
+            },
+            {
+              "id": "b",
+              "text": "In the diagram, `objdump -h` performs the translation of the C source code."
+            },
+            {
+              "id": "c",
+              "text": "The processor executes the C source code before the compiler."
+            },
+            {
+              "id": "d",
+              "text": "The binary file leads both to machine instructions for execution and to readable assembly through disassembly."
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "The compiler generates the binary file. Machine instructions are executed from it, or its encoded instructions are represented as assembly through disassembly.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO3.md",
+            "heading": "Vom Quelltext zum Maschinenprogramm"
+          },
+          "difficulty": 5,
+          "concepts": [
+            "Compiler and Binary File",
+            "Headers and Disassembly"
+          ]
+        },
+        {
+          "id": "era-03-l4-q06",
+          "type": "multi",
+          "prompt": "Select all the correct statements about instruction formats. More than one answer may be correct.",
+          "options": [
+            {
+              "id": "a",
+              "text": "A greater total width automatically makes every individual field grow proportionally."
+            },
+            {
+              "id": "b",
+              "text": "With variable length, instructions can differ in length and can contain different numbers or formats of address fields."
+            },
+            {
+              "id": "c",
+              "text": "With uniform length, all instructions have the same length."
+            },
+            {
+              "id": "d",
+              "text": "A fixed format cannot encode operands."
+            }
+          ],
+          "correct": [
+            "b",
+            "c"
+          ],
+          "explanation": "Fixed length means that every instruction has the same total length; variable length allows different lengths and field arrangements. Opcode and operand fields are specified independently, so every field does not automatically grow proportionally.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO3.md",
+            "heading": "Was steckt in einem Maschinenbefehl?"
+          },
+          "difficulty": 5,
+          "concepts": [
+            "Machine Instruction Format",
+            "Operands and Mnemonics"
+          ]
+        },
+        {
+          "id": "era-03-l4-q07",
+          "type": "single",
+          "prompt": "Why is a single C line such as `c = c + i` represented by several assembly instructions?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Every C line is always translated into exactly four instructions, regardless of its contents."
+            },
+            {
+              "id": "b",
+              "text": "Assembly language requires explicit elementary steps such as retrieving operands, adding them, and storing the result."
+            },
+            {
+              "id": "c",
+              "text": "Assembly cannot express arithmetic operations."
+            },
+            {
+              "id": "d",
+              "text": "The compiler first replaces the C line with metadata instead of instructions."
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "Assembly language uses primitive instructions and requires explicit resource management. The more complex C operation is therefore broken down into individual load, compute, and store actions.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO3.md",
+            "heading": "Header und Disassembly"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Assembly Language",
+            "Headers and Disassembly",
+            "Instruction Classes"
+          ]
+        },
+        {
+          "id": "era-03-l4-q08",
+          "type": "single",
+          "prompt": "What does the base width of a RISC-V variant describe?",
+          "options": [
+            {
+              "id": "a",
+              "text": "The number of metadata fields in a binary file."
+            },
+            {
+              "id": "b",
+              "text": "The number of permitted ISA extensions."
+            },
+            {
+              "id": "c",
+              "text": "The number of source operands in each machine instruction."
+            },
+            {
+              "id": "d",
+              "text": "The number of bits in a value or word used for basic operations."
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "For RISC-V, the base width is the number of bits in a value or word used for basic operations. 32-, 64-, and 128-bit variants are given as examples.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO3.md",
+            "heading": "RISC-V als Beispiel-ISA"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "RISC-V",
+            "Registers"
+          ]
+        },
+        {
+          "id": "era-03-l4-q09",
+          "type": "code_output",
+          "prompt": "In the following schematic sequence, initially `-20(sp)=8` and `-24(sp)=3`. What value is stored back at `-20(sp)` at the end?\n\n```asm\nlw  t0, -20(sp)\nlw  t1, -24(sp)\nadd t2, t0, t1\nsw  t2, -20(sp)\n```",
+          "options": [
+            {
+              "id": "a",
+              "text": "8"
+            },
+            {
+              "id": "b",
+              "text": "5"
+            },
+            {
+              "id": "c",
+              "text": "11"
+            },
+            {
+              "id": "d",
+              "text": "24"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "`lw` loads $8$ into `t0` and $3$ into `t1`; `add` computes `t2=8+3=11`; `sw` stores $11$ at `-20(sp)`.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO3.md",
+            "heading": "Header und Disassembly"
+          },
+          "difficulty": 5,
+          "concepts": [
+            "Headers and Disassembly",
+            "Integer Arithmetic",
+            "Instruction Classes"
+          ]
+        },
+        {
+          "id": "era-03-l4-q10",
+          "type": "single",
+          "prompt": "Which statement correctly describes `x0`, `x1` through `x31`, and the PC?",
+          "options": [
+            {
+              "id": "a",
+              "text": "`x0` contains the current program counter, and `x1` through `x31` are memory sections."
+            },
+            {
+              "id": "b",
+              "text": "`x0` always contains zero; in addition, there are `x1` through `x31` and special registers such as the PC."
+            },
+            {
+              "id": "c",
+              "text": "The PC is the only register, while `x0` through `x31` contain machine instructions."
+            },
+            {
+              "id": "d",
+              "text": "All the names refer to variable memory areas outside the processor."
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "`x0` is the constant zero register. `x1` through `x31` are other registers; the PC is a special register.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO3.md",
+            "heading": "Ganzzahlige Arithmetik und Register"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Registers",
+            "Zero Register x0"
+          ]
+        },
+        {
+          "id": "era-03-l4-q11",
+          "type": "multi",
+          "prompt": "Select all the correct statements about RISC-V and its instruction set structure. More than one answer may be correct.",
+          "options": [
+            {
+              "id": "a",
+              "text": "RISC-V is not extensible because the base instruction set must include all functionality."
+            },
+            {
+              "id": "b",
+              "text": "The base instruction set focuses on integers."
+            },
+            {
+              "id": "c",
+              "text": "Extensions can include floating-point and vector operations, among others."
+            },
+            {
+              "id": "d",
+              "text": "The processor executes the encoded machine language of its ISA, not the original C source."
+            },
+            {
+              "id": "e",
+              "text": "The base instruction set consists exclusively of binary file metadata."
+            }
+          ],
+          "correct": [
+            "b",
+            "c",
+            "d"
+          ],
+          "explanation": "RISC-V separates an integer base instruction set from optional extensions. After translation, the processor handles the encoded ISA instructions, not the original C source code.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO3.md",
+            "heading": "RISC-V als Beispiel-ISA"
+          },
+          "difficulty": 5,
+          "concepts": [
+            "RISC-V",
+            "ISA",
+            "Compiler and Binary File"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "era-03-l5",
+      "index": 5,
+      "kind": "bonus",
+      "title": "Practice: From Code to Chip",
+      "questions": [
+        {
+          "id": "era-03-l5-q01",
+          "type": "single",
+          "prompt": "You compile the same C app for a laptop with an x86 ISA and an embedded board with RISC-V. Why are two binary files typically produced?",
+          "options": [
+            {
+              "id": "a",
+              "text": "The zero register `x0` contains a different program on each device."
+            },
+            {
+              "id": "b",
+              "text": "The toolchain generates a binary file suited to each target ISA and platform."
+            },
+            {
+              "id": "c",
+              "text": "Disassembly automatically converts binary files back into C."
+            },
+            {
+              "id": "d",
+              "text": "The `.text` section stores different photos on each device."
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "The toolchain generates machine instructions and a binary program suited to the target ISA and platform. The same C app may therefore require different binary files for x86 and RISC-V.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO3.md",
+            "heading": "Vom Quelltext zum Maschinenprogramm"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Compiler and Binary File",
+            "ISA"
+          ]
+        },
+        {
+          "id": "era-03-l5-q02",
+          "type": "multi",
+          "prompt": "After a crash, you examine a binary file with a disassembler. Which two observations are correct?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Disassembly represents encoded machine instructions as readable assembly instructions."
+            },
+            {
+              "id": "b",
+              "text": "`.text` contains executable program code."
+            },
+            {
+              "id": "c",
+              "text": "A header overview never contains code sections."
+            },
+            {
+              "id": "d",
+              "text": "The hex column contains the original C source code."
+            }
+          ],
+          "correct": [
+            "a",
+            "b"
+          ],
+          "explanation": "The `.text` section contains executable code. Disassembly makes encoded machine instructions readable as mnemonics such as `add` or `lw`.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO3.md",
+            "heading": "Header und Disassembly"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Headers and Disassembly",
+            "Compiler and Binary File"
+          ]
+        },
+        {
+          "id": "era-03-l5-q03",
+          "type": "estimate",
+          "prompt": "You design a small ISA format with $12$ bits for a value. How many different bit patterns are possible?",
+          "options": [],
+          "correct": [],
+          "slider": {
+            "min": 1024,
+            "max": 8192,
+            "step": 128,
+            "answer": 4096,
+            "tolerance": 0,
+            "unit": "Bit patterns",
+            "scale": "linear"
+          },
+          "explanation": "Each bit has two possible states. Therefore, there are $2^{12}=4096$ different bit patterns.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO3.md",
+            "heading": "Was steckt in einem Maschinenbefehl?"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Machine Instruction Format",
+            "ISA"
+          ]
+        },
+        {
+          "id": "era-03-l5-q04",
+          "type": "single",
+          "prompt": "While a game is running, the physics engine computes new values from positions and combines bitmasks. Which instruction class is typically at the core of this work?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Data transfer"
+            },
+            {
+              "id": "b",
+              "text": "Control flow"
+            },
+            {
+              "id": "c",
+              "text": "Arithmetic and logical operations"
+            },
+            {
+              "id": "d",
+              "text": "Binary file metadata"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Additions, subtractions, and bitwise operations are arithmetic and logical operations. They form one of the three basic instruction classes.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO3.md",
+            "heading": "Drei grundlegende Befehlsklassen"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Instruction Classes",
+            "Integer Arithmetic"
+          ]
+        },
+        {
+          "id": "era-03-l5-q05",
+          "type": "multi",
+          "prompt": "A database app loads records and branches when a matching record is found. Which two instruction classes directly correspond to these steps?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Header and metadata management"
+            },
+            {
+              "id": "b",
+              "text": "Control flow"
+            },
+            {
+              "id": "c",
+              "text": "Arithmetic and logical operations"
+            },
+            {
+              "id": "d",
+              "text": "Data transfer"
+            }
+          ],
+          "correct": [
+            "b",
+            "d"
+          ],
+          "explanation": "Loading data is data transfer; branching is control flow. Each step is implemented at the machine level by its own instruction class.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO3.md",
+            "heading": "Drei grundlegende Befehlsklassen"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Instruction Classes"
+          ]
+        },
+        {
+          "id": "era-03-l5-q06",
+          "type": "estimate",
+          "prompt": "A register with a width of 64 bits stores exactly one value. How many bytes correspond to this register width?",
+          "options": [],
+          "correct": [],
+          "slider": {
+            "min": 2,
+            "max": 20,
+            "step": 1,
+            "answer": 8,
+            "tolerance": 0,
+            "unit": "Byte",
+            "scale": "linear"
+          },
+          "explanation": "One byte contains 8 bits, so $64/8=8$. The register width therefore corresponds to 8 bytes.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO3.md",
+            "heading": "Ganzzahlige Arithmetik und Register"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Registers"
+          ]
+        },
+        {
+          "id": "era-03-l5-q07",
+          "type": "truefalse",
+          "prompt": "Is this correct? When your smartphone encrypts a message, the processor handles the data in many elementary steps; registers hold fast intermediate values, and load/store instructions move data between memory and registers.",
+          "options": [
+            {
+              "id": "true",
+              "text": "True"
+            },
+            {
+              "id": "false",
+              "text": "False"
+            }
+          ],
+          "correct": [
+            "true"
+          ],
+          "explanation": "Even complex tasks such as encryption are broken down into elementary machine operations. Registers hold operands and intermediate values, while load and store instructions handle data transfer.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO3.md",
+            "heading": "Ganzzahlige Arithmetik und Register"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Assembly Language",
+            "Registers",
+            "Instruction Classes"
+          ]
+        },
+        {
+          "id": "era-03-l5-q08",
+          "type": "estimate",
+          "prompt": "A `.text` section is $192$ bytes in size and contains only fixed $32$-bit instructions. How many instructions fit in it?",
+          "options": [],
+          "correct": [],
+          "slider": {
+            "min": 8,
+            "max": 96,
+            "step": 1,
+            "answer": 48,
+            "tolerance": 0,
+            "unit": "Instructions",
+            "scale": "linear"
+          },
+          "explanation": "A $32$-bit instruction requires $4$ bytes. Therefore, $192/4=48$ fixed-length instructions fit in the executable `.text` section.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO3.md",
+            "heading": "Header und Disassembly"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Headers and Disassembly",
+            "Machine Instruction Format"
+          ]
+        },
+        {
+          "id": "era-03-l5-q09",
+          "type": "single",
+          "prompt": "A spreadsheet calculates `summe = preis + steuer` for each row. In the schematic assembly notation used in this unit, `add a, b, c` is used. What role does `a` have?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Mnemonic: `a` describes the addition."
+            },
+            {
+              "id": "b",
+              "text": "Destination operand: the result is placed in `a`."
+            },
+            {
+              "id": "c",
+              "text": "First source operand: the value is read from `a`."
+            },
+            {
+              "id": "d",
+              "text": "Program counter: `a` is the next instruction address."
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "In the schematic notation `add a, b, c`, `b` and `c` are the source operands, and `a` is the destination operand. The compiler breaks the spreadsheet operation down into elementary instructions like this.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO3.md",
+            "heading": "Ganzzahlige Arithmetik und Register"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Operands and Mnemonics",
+            "Compiler and Binary File",
+            "Integer Arithmetic"
+          ]
+        },
+        {
+          "id": "era-03-l5-q10",
+          "type": "truefalse",
+          "prompt": "Is this correct? In a RISC-V routine, you can use `x0` as a constant $0$; even `add x0, t0, t1` does not change the value of `x0`.",
+          "options": [
+            {
+              "id": "true",
+              "text": "True"
+            },
+            {
+              "id": "false",
+              "text": "False"
+            }
+          ],
+          "correct": [
+            "true"
+          ],
+          "explanation": "The RISC-V zero register `x0` always supplies the value zero. Writes to `x0` discard their result, so the register's value remains unchanged.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO3.md",
+            "heading": "Ganzzahlige Arithmetik und Register"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "RISC-V",
+            "Zero Register x0",
+            "Registers"
+          ]
+        }
+      ]
+    }
+  ]
+}

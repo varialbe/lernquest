@@ -1,0 +1,497 @@
+{
+  "schemaVersion": 1,
+  "unitId": "era-10",
+  "module": "ERA",
+  "unitNumber": 10,
+  "unitTitle": "Stack Frames (Stackframes), the Von Neumann Concept (Von-Neumann-Konzept), and the Instruction Cycle (Instruktionszyklus)",
+  "sourceSha": "74ffdde6f26a3838ba7e0097f981b519e865479ec9d396c862d753a1c3267bd4",
+  "overview": "The unit reviews stack frames and subroutine calls (Unterprogrammaufrufe) and explains the Von Neumann concept and instruction cycle. It covers the four functional units (die vier Werke), memory organization (Speicherorganisation), encoded instructions and data (codierte Befehle und Daten), linking (Linken), and self-modifying code (selbstmodifizierender Code). The `lw` example shows how the processor fetches an instruction, advances the PC, decodes the instruction, and then accesses its data operand.",
+  "entries": [
+    {
+      "id": "era-10-k01",
+      "term": "Stack in Main Memory (Stack im Hauptspeicher)",
+      "kind": "concept",
+      "short": "The stack is an area of byte-addressable main memory.",
+      "explanation": "The stack is not separate from main memory. Its contents are accessed using memory addresses that refer to individual bytes.",
+      "example": "A value can be read from the stack using an offset relative to the frame pointer.",
+      "pitfalls": [
+        "The stack is not a separate hardware memory."
+      ],
+      "related": [
+        "Stack frame",
+        "Main memory",
+        "Byte addressing (Byteadressierung)"
+      ],
+      "heading": "Rückblick: Stackframes und Unterprogramme"
+    },
+    {
+      "id": "era-10-k02",
+      "term": "Stack frame",
+      "kind": "definition",
+      "short": "A stack frame is the area of the stack a routine uses while it executes.",
+      "explanation": "A stack frame can contain local variables, saved registers, and other values needed by the routine. The compiler assigns the values positions within the frame and reserves the required space. The stack frame is deallocated when the routine returns.",
+      "example": "In the slide example, the function reserves 48 bytes using `add sp,sp,-48`.",
+      "pitfalls": [
+        "Stack frames are not the same size for all routines."
+      ],
+      "related": [
+        "Stack in main memory",
+        "Stack Pointer (SP)",
+        "Frame Pointer (FP)",
+        "Prologue and epilogue (Prolog und Epilog)",
+        "Calling convention"
+      ],
+      "heading": "Rückblick: Stackframes und Unterprogramme"
+    },
+    {
+      "id": "era-10-k03",
+      "term": "Stack Pointer (SP)",
+      "kind": "notation",
+      "short": "`SP` denotes the register that marks the current top of the stack.",
+      "explanation": "The stack pointer is adjusted when a stack frame is set up and deallocated. In the slide example, stack space is reserved by decrementing `sp` by 48 bytes. There, the stack grows toward lower addresses.",
+      "example": "In the example, `sp_neu = sp_alt - 48`.",
+      "pitfalls": [
+        "Stack frame offsets may be given relative to the frame pointer rather than the stack pointer."
+      ],
+      "related": [
+        "Stack frame",
+        "Frame Pointer (FP)",
+        "Prologue and epilogue"
+      ],
+      "heading": "Rückblick: Stackframes und Unterprogramme"
+    },
+    {
+      "id": "era-10-k04",
+      "term": "Frame Pointer (FP)",
+      "kind": "notation",
+      "short": "The frame pointer is a reference point for positions within a stack frame.",
+      "explanation": "Local values and saved registers can be accessed using fixed offsets relative to the frame pointer. In the slide example, `s0` is used as the frame pointer and set to the stack pointer's original value. This lets the values be accessed using the same offsets even if `sp` changes during the routine.",
+      "example": "`lw a5,-24(s0)` reads the value at address `s0 - 24`.",
+      "pitfalls": [
+        "An offset relative to `s0` is not, by itself, an absolute address."
+      ],
+      "related": [
+        "Stack frame",
+        "Stack Pointer (SP)",
+        "RISC-V"
+      ],
+      "heading": "Rückblick: Stackframes und Unterprogramme"
+    },
+    {
+      "id": "era-10-k05",
+      "term": "Prologue and epilogue",
+      "kind": "concept",
+      "short": "The prologue sets up the stack frame; the epilogue restores saved values and deallocates the stack frame.",
+      "explanation": "The prologue appears at the beginning of a routine and, when needed, reserves stack space and saves values that will be needed later. The routine body performs the computation and may call other routines. At the end, the epilogue reloads saved values, restores the stack pointer, and enables the return to the caller.",
+      "example": "In the slide example, `ra` and `s0` are saved and later reloaded, and the 48 bytes of reserved stack space are deallocated.",
+      "pitfalls": [
+        "Not every routine needs to save registers.",
+        "The calling convention determines which registers must be preserved."
+      ],
+      "related": [
+        "Stack frame",
+        "Stack Pointer (SP)",
+        "Frame Pointer (FP)",
+        "Calling convention",
+        "Return address (Rücksprungadresse)"
+      ],
+      "heading": "Prolog und Epilog"
+    },
+    {
+      "id": "era-10-k06",
+      "term": "Calling convention",
+      "kind": "definition",
+      "short": "The calling convention specifies how routines handle arguments, results, and register values.",
+      "explanation": "Among other things, it specifies how arguments are passed, where a result is made available, and which registers must be preserved across a call. The prologue and epilogue save or restore the values required for this. Not all registers have to remain unchanged after a call.",
+      "example": "In the slide example, before `printf` is called, the computed sum is passed as an argument in `a1`.",
+      "pitfalls": [
+        "The calling convention does not require every register to be preserved."
+      ],
+      "related": [
+        "Prologue and epilogue",
+        "Stack frame",
+        "Subroutine call",
+        "Caller-saved and callee-saved registers"
+      ],
+      "heading": "Rückblick: Stackframes und Unterprogramme"
+    },
+    {
+      "id": "era-10-k07",
+      "term": "Local Data and Stack Frame Offsets (Lokale Daten und Stackframe-Offsets)",
+      "kind": "concept",
+      "short": "Local values can be stored at fixed offsets relative to the frame pointer within the stack frame.",
+      "explanation": "When setting up a routine, the compiler assigns stack positions to variables and saved values. In the slide example, the running sum is at `-24(s0)` and the loop counter is at `-20(s0)`. Load and store instructions must match the size of the value in question.",
+      "example": "`sw a5,-24(s0)` stores a 4-byte value at address `s0 - 24`.",
+      "pitfalls": [
+        "An offset such as `-24` is an address only when combined with the base register.",
+        "`sw` accesses 4 bytes, whereas `sd` accesses 8 bytes."
+      ],
+      "related": [
+        "Stack frame",
+        "Frame Pointer (FP)",
+        "Load/store architecture (Load/Store-Architektur)"
+      ],
+      "heading": "Prolog und lokale Daten"
+    },
+    {
+      "id": "era-10-k08",
+      "term": "Loop Execution: Sum from 0 to 9 (Schleifenablauf: Summe von 0 bis 9)",
+      "kind": "example",
+      "short": "The slide example adds the numbers from 0 to 9 and obtains the sum 45.",
+      "explanation": "The function initially sets the sum and counter to zero. While the counter is at most 9, it adds the counter to the sum and then increments it by one. After the iteration with 9, the sum is 45.",
+      "example": "`0 + 1 + 2 + 3 + 4 + 5 + 6 + 7 + 8 + 9 = 45`.",
+      "pitfalls": [
+        "The condition includes 9.",
+        "The counter is incremented after the addition."
+      ],
+      "related": [
+        "Conditional and unconditional jumps (Bedingte und unbedingte Sprünge)",
+        "Local data and stack frame offsets",
+        "Stack frame"
+      ],
+      "heading": "Schleifenkörper und Bedingung"
+    },
+    {
+      "id": "era-10-k09",
+      "term": "Compiler Optimization with -O2 (Compileroptimierung mit -O2)",
+      "kind": "concept",
+      "short": "`-O2` denotes optimization level 2 and can change register allocation and instruction sequence.",
+      "explanation": "An optimizing compiler can allocate registers differently and generate a different instruction sequence from an unoptimized compiler. The examples with stack variables and specific registers therefore need not match the output produced with `-O2`. The optimized program must still preserve the required observable behavior.",
+      "example": "A value that is stored on the stack in an unoptimized version can remain in a register during computation with `-O2`.",
+      "pitfalls": [
+        "A disassembly does not necessarily show the instruction sequence produced at a different optimization level."
+      ],
+      "related": [
+        "Stack frame",
+        "Calling convention",
+        "Instruction cycle"
+      ],
+      "heading": "Compileroptimierung"
+    },
+    {
+      "id": "era-10-k10",
+      "term": "Von Neumann Concept",
+      "kind": "concept",
+      "short": "The Von Neumann concept describes a general-purpose computer whose program controls the task it performs.",
+      "explanation": "The computer's structure is fundamentally independent of the problem being solved. Programs and data reside in the same main memory and are processed as encoded memory contents. Different programs can therefore use the same computer for different tasks.",
+      "example": "The processor can fetch instructions from main memory while also processing input data stored there.",
+      "pitfalls": [
+        "The concept does not require a particular computer to have only one cache or one execution unit."
+      ],
+      "related": [
+        "The four functional units",
+        "Memory organization: cells and addresses (Speicherorganisation: Zellen und Adressen)",
+        "Encoded instructions and data",
+        "Harvard architecture (Harvard-Architektur)",
+        "Von Neumann model (Von-Neumann-Modell)"
+      ],
+      "heading": "Das Von-Neumann-Konzept"
+    },
+    {
+      "id": "era-10-k11",
+      "term": "The Four Functional Units (Die vier Werke)",
+      "kind": "definition",
+      "short": "The four functional units are main memory, the control unit, the arithmetic unit, and the input/output unit.",
+      "explanation": "Main memory, or primary memory, contains programs and data. The control unit carries out the instruction cycle, while the arithmetic unit, or ALU, performs arithmetic operations. The input/output unit handles input and output, including secondary storage.",
+      "example": "The control unit directs the arithmetic unit when a fetched instruction requires an arithmetic operation.",
+      "pitfalls": [
+        "The input/output unit and main memory are distinct functional units."
+      ],
+      "related": [
+        "Von Neumann concept",
+        "Main memory",
+        "Instruction cycle"
+      ],
+      "heading": "Die vier Werke"
+    },
+    {
+      "id": "era-10-k12",
+      "term": "Memory Organization: Cells and Addresses",
+      "kind": "definition",
+      "short": "Main memory consists of equal-sized cells with consecutive addresses.",
+      "explanation": "A memory address identifies a location in main memory. With byte addressing, each byte has its own address, and multi-byte values occupy several consecutive bytes. Instructions and data can be accessed using their memory addresses.",
+      "example": "A 4-byte instruction starting at address `0x684` occupies the bytes at addresses `0x684` through `0x687`.",
+      "pitfalls": [
+        "With byte addressing, the next address is one byte later, but the next instruction does not have to be one byte later."
+      ],
+      "related": [
+        "Main memory",
+        "Byte addressing",
+        "Instruction Length and PC Advancement (Instruktionslänge und Weiterschalten des PC)"
+      ],
+      "heading": "Die Merkpunkte mit bereinigter Nummerierung"
+    },
+    {
+      "id": "era-10-k13",
+      "term": "Encoded Instructions and Data",
+      "kind": "concept",
+      "short": "Instructions and data are encoded memory contents whose roles depend on how they are interpreted.",
+      "explanation": "Data are stored as binary patterns and interpreted according to an agreed representation. Instructions are encoded according to the Instruction Set Architecture (ISA); assembly language presents them in readable form. In the Von Neumann concept, the same main memory and memory cells can contain both instructions and data.",
+      "example": "The bit sequence `fe842783` encodes the instruction `lw` in the slide example; it is not the data value loaded by the instruction.",
+      "pitfalls": [
+        "A bit pattern is not inherently designated as an instruction or data value by its bits alone; its use determines its role."
+      ],
+      "related": [
+        "Von Neumann concept",
+        "Instruction Set Architecture (ISA)",
+        "Instruction and Data Access (Befehls- und Datenzugriff)",
+        "Main memory"
+      ],
+      "heading": "Daten und Befehle sind codierte Speicherinhalte"
+    },
+    {
+      "id": "era-10-k14",
+      "term": "MAR and MDR",
+      "kind": "notation",
+      "short": "`MAR` and `MDR` denote registers for the memory address and memory data in a memory model.",
+      "explanation": "`MDR` stands for *Memory Data Register* and denotes a register for data read or written during a memory access. The usual expansion of `MAR` is *Memory Address Register*, denoting a register for the memory address. The notes mark the full name and the precise sequence as unclear.",
+      "example": "In a simplified model, the address can be held in `MAR` and the value read in `MDR`.",
+      "pitfalls": [
+        "For `MAR`, the notes give the name “Memory Access Register,” but mark it as needing verification."
+      ],
+      "related": [
+        "Memory organization: cells and addresses",
+        "Instruction and data access",
+        "Instruction cycle"
+      ],
+      "heading": "Daten und Befehle sind codierte Speicherinhalte"
+    },
+    {
+      "id": "era-10-k15",
+      "term": "Sequential Instruction Execution (Sequenzielle Befehlsausführung)",
+      "kind": "concept",
+      "short": "In sequential execution, instructions are generally executed in the order in which they are stored.",
+      "explanation": "A program consists of a sequence of instructions that generally reside at increasing memory addresses. Without a change in control flow, the processor fetches the next instruction in this order. The simple model considers one instruction at a time, even though modern processors may operate differently internally.",
+      "example": "In sequential execution, after the 4-byte instruction at `0x684` comes the instruction at `0x688`.",
+      "pitfalls": [
+        "A jump can change the execution order even when instructions are stored at increasing addresses."
+      ],
+      "related": [
+        "Von Neumann concept",
+        "Conditional and unconditional jumps",
+        "Instruction cycle",
+        "Instruction length and PC advancement"
+      ],
+      "heading": "Die Merkpunkte mit bereinigter Nummerierung"
+    },
+    {
+      "id": "era-10-k16",
+      "term": "Conditional and Unconditional Jumps",
+      "kind": "definition",
+      "short": "Jumps change the address from which the processor fetches the next instruction.",
+      "explanation": "A conditional jump changes control flow if its condition is met. An unconditional jump changes control flow without such a condition. Both can interrupt sequential execution and are used, for example, for branches and loops.",
+      "example": "In the slide example, `bge a5,a4,690` jumps back to the loop body as long as `a5` is at least as large as `a4`.",
+      "pitfalls": [
+        "A jump changes control flow, but does not itself change the contents of the instruction at its target."
+      ],
+      "related": [
+        "Sequential instruction execution",
+        "Loop execution: sum from 0 to 9",
+        "Program Counter (PC; Befehlszähler, BZ)"
+      ],
+      "heading": "Die Merkpunkte mit bereinigter Nummerierung"
+    },
+    {
+      "id": "era-10-k17",
+      "term": "Harvard Architecture",
+      "kind": "concept",
+      "short": "The Harvard architecture uses separate memories for programs and data.",
+      "explanation": "In a Harvard architecture, program memory and data memory are separate. This memory arrangement describes where instructions and data reside. It is a different question from whether individual memory regions are write-protected.",
+      "example": "A system can read instructions from program memory and operands from separate data memory.",
+      "pitfalls": [
+        "Separate memories for programs and data do not automatically mean that their contents are immutable."
+      ],
+      "related": [
+        "Von Neumann concept",
+        "Separate Instruction and Data Caches (Getrennte Befehls- und Datencaches)",
+        "Write Protection and Memory Partitioning (Schreibschutz und Speicheraufteilung)"
+      ],
+      "heading": "Gemeinsamer oder getrennter Speicher?"
+    },
+    {
+      "id": "era-10-k18",
+      "term": "Separate Instruction and Data Caches",
+      "kind": "concept",
+      "short": "One hybrid design mentioned uses shared main memory and separate instruction and data caches.",
+      "explanation": "Programs and data share main memory, while instructions and data can be cached separately. The separate caches do not change the fact that main memory is shared. This hybrid design therefore differs from a fully separate program and data memory organization.",
+      "example": "The processor can obtain an instruction from the instruction cache and an operand from the data cache, even though both ultimately belong to the same main memory.",
+      "pitfalls": [
+        "Separate caches are not the same as separate main memories for programs and data."
+      ],
+      "related": [
+        "Von Neumann concept",
+        "Harvard architecture",
+        "Main memory",
+        "Instruction and data access"
+      ],
+      "heading": "Gemeinsamer oder getrennter Speicher?"
+    },
+    {
+      "id": "era-10-k19",
+      "term": "Write Protection and Memory Partitioning",
+      "kind": "concept",
+      "short": "Write protection and the separation of program and data memory are different properties.",
+      "explanation": "Write protection determines whether a memory region may be written to. By contrast, the distinction between Von Neumann and Harvard architectures describes whether programs and data use the same or separate memories. A shared memory can contain regions with different write permissions.",
+      "example": "A program can reside in shared main memory while its code region is protected against writes.",
+      "pitfalls": [
+        "Shared memory does not mean that every region is writable."
+      ],
+      "related": [
+        "Von Neumann concept",
+        "Harvard architecture",
+        "Self-modifying code"
+      ],
+      "heading": "Gemeinsamer oder getrennter Speicher?"
+    },
+    {
+      "id": "era-10-k20",
+      "term": "Linking",
+      "kind": "method",
+      "short": "Linking combines compiled program components and required library components into a program.",
+      "explanation": "The linker combines object files and required library components. In doing so, it resolves references between the components and may adjust address information. For example, a reference to `printf` can be matched to a suitable target in a library.",
+      "example": "A call to `printf` is connected to the appropriate target during linking.",
+      "pitfalls": [
+        "Linking combines and adjusts program components; it does not execute the program."
+      ],
+      "related": [
+        "Encoded instructions and data",
+        "Self-modifying code",
+        "Compiler and binary file (Compiler und Binärdatei)"
+      ],
+      "heading": "Was bedeutet Linken?"
+    },
+    {
+      "id": "era-10-k21",
+      "term": "Self-Modifying Code",
+      "kind": "concept",
+      "short": "Self-modifying code changes the program code that it consists of.",
+      "explanation": "Because programs reside in memory, a program can in principle modify memory contents that are used as instructions. When it changes its own program code in this way, it is called self-modifying code. This is now a rare exception; the notes cite viruses and dynamic tools as remaining examples.",
+      "example": "A program could overwrite an instruction word in memory at runtime and later execute the modified instruction.",
+      "pitfalls": [
+        "Changing data in memory is not automatically self-modifying code.",
+        "A conditional jump changes the execution flow, not the program code."
+      ],
+      "related": [
+        "Von Neumann concept",
+        "Encoded instructions and data",
+        "Write protection and memory partitioning",
+        "Linking"
+      ],
+      "heading": "Selbstmodifizierender Code"
+    },
+    {
+      "id": "era-10-k22",
+      "term": "Instruction Cycle",
+      "kind": "method",
+      "short": "The instruction cycle describes the steps from fetching an instruction to storing its result.",
+      "explanation": "In the simplified model, an instruction is fetched from memory using the PC and loaded into the IR. The PC is then advanced to the next instruction, the instruction is decoded, and the source of the operands or a required address is determined. Required operands are fetched, the instruction is executed, and the result is written to a register or memory.",
+      "example": "For `lw`, after the instruction is fetched and decoded, the data value is read from the calculated operand address.",
+      "pitfalls": [
+        "Not every instruction requires an additional memory access for an operand.",
+        "The PC may already point to the following instruction while the current instruction is still being processed."
+      ],
+      "related": [
+        "Program Counter (PC; Befehlszähler, BZ)",
+        "Instruction Register (IR; Instruktionsregister)",
+        "Instruction and data access",
+        "The four functional units"
+      ],
+      "heading": "Instruktionszyklus"
+    },
+    {
+      "id": "era-10-k23",
+      "term": "Program Counter (PC; Befehlszähler, BZ)",
+      "kind": "notation",
+      "short": "`BZ` or `PC` holds the address from which the next instruction will be fetched.",
+      "explanation": "`PC` is the abbreviation for *Program Counter*, and `BZ` stands for the German term *Befehlszähler*. When an instruction is fetched, the PC provides its address and is then advanced to the next instruction. A jump instead sets it to the target address.",
+      "example": "After fetching a 4-byte instruction at `0x684`, the PC can point to `0x688`.",
+      "pitfalls": [
+        "While an instruction is being processed, the PC often already points to the following instruction."
+      ],
+      "related": [
+        "Instruction cycle",
+        "Instruction Register (IR)",
+        "Instruction length and PC advancement",
+        "Conditional and unconditional jumps"
+      ],
+      "heading": "Instruktionszyklus"
+    },
+    {
+      "id": "era-10-k24",
+      "term": "Instruction Register (IR)",
+      "kind": "notation",
+      "short": "`IR` holds the instruction fetched from memory for decoding.",
+      "explanation": "After the memory access, the encoded instruction is loaded into the instruction register. The control unit decodes the contents of the IR to determine the operation and its operands. For a load instruction, the IR contains the instruction code, not the data value loaded later.",
+      "example": "For `lw`, the IR contains the encoding of `lw`, while the loaded value is subsequently written to a destination register such as `a5`.",
+      "pitfalls": [
+        "The IR holds the fetched instruction; the PC holds an instruction address."
+      ],
+      "related": [
+        "Program Counter (PC; Befehlszähler, BZ)",
+        "Instruction cycle",
+        "Encoded instructions and data"
+      ],
+      "heading": "Instruktionszyklus"
+    },
+    {
+      "id": "era-10-k25",
+      "term": "Instruction and Data Access",
+      "kind": "concept",
+      "short": "Fetching an instruction and reading its data operands are separate memory accesses.",
+      "explanation": "The processor fetches the instruction at the instruction address specified by the PC. An instruction such as `lw` can then perform another memory access to a data address calculated from a base register and an offset. When main memory is shared, both addresses can refer to the same memory, but they serve different purposes.",
+      "example": "For `lw a5,-24(s0)`, the instruction is fetched from the PC address and the operand is read from address `s0 - 24`.",
+      "pitfalls": [
+        "For `lw`, the instruction address is not automatically the address of the data value to be loaded."
+      ],
+      "related": [
+        "Von Neumann concept",
+        "Encoded instructions and data",
+        "Program Counter (PC; Befehlszähler, BZ)",
+        "Instruction cycle"
+      ],
+      "heading": "Instruktionszyklus"
+    },
+    {
+      "id": "era-10-k26",
+      "term": "Instruction Length and PC Advancement",
+      "kind": "concept",
+      "short": "In sequential execution, the PC advances by the length of the fetched instruction.",
+      "explanation": "With byte addressing, the distance to the next sequential instruction is its length in bytes. The PC is therefore not invariably incremented by one byte. The slide example includes 2-byte and 4-byte instructions.",
+      "example": "For the instructions shown, `0x684 + 4 = 0x688` and then `0x688 + 2 = 0x68a`.",
+      "pitfalls": [
+        "`PC++` can mean “advance to the next instruction,” not `PC + 1` byte."
+      ],
+      "related": [
+        "Program Counter (PC; Befehlszähler, BZ)",
+        "Sequential instruction execution",
+        "Memory organization: cells and addresses"
+      ],
+      "heading": "Instruktionszyklus"
+    },
+    {
+      "id": "era-10-k27",
+      "term": "Slide Example: lw Step by Step (Folienbeispiel: lw Schritt für Schritt)",
+      "kind": "example",
+      "short": "The `lw` example separates fetching the instruction from reading its data operand.",
+      "explanation": "In the example, the instruction `lw a5,-24(s0)` is at address `0x684`. When it is fetched, the instruction code is read from memory and the PC is advanced to `0x688`. The value at data address `s0 - 24` is then read and written to `a5`; the current instruction and the already updated PC address must be tracked separately.",
+      "example": "The encoding `fe842783` denotes the instruction; the memory contents at `s0 - 24` are the operand.",
+      "pitfalls": [
+        "The instruction encoding is not the data value loaded by `lw`.",
+        "The sequence shown also contains 2-byte instructions, which affect the distance to the next instruction address."
+      ],
+      "related": [
+        "Instruction and data access",
+        "Instruction cycle",
+        "Instruction length and PC advancement",
+        "Encoded instructions and data"
+      ],
+      "heading": null
+    }
+  ],
+  "generator": {
+    "model": "gpt-6-luna",
+    "effort": "xhigh",
+    "promptVersion": "k1",
+    "generatedAt": "2026-11-03T16:57:16.250Z"
+  }
+}

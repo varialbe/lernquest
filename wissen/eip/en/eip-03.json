@@ -1,0 +1,518 @@
+{
+  "schemaVersion": 1,
+  "unitId": "eip-03",
+  "module": "EIP",
+  "unitNumber": 3,
+  "unitTitle": "Syntax, Grammars, and Syntax Trees",
+  "sourceSha": "bffaf7c700134f3f11a4252b1f217b5c11fd732c888b698888624d351084a060",
+  "overview": "The unit distinguishes syntax and semantics and shows how reserved words and token rules describe individual units, while grammar rules combine larger program fragments. Regular expressions mainly describe token forms; EBNF and BNF represent grammar rules. Parsing processes a token sequence according to such rules into a structure made visible by a syntax tree. Operator precedence and the association of `else` determine which syntax tree is intended for certain ambiguous forms.",
+  "entries": [
+    {
+      "id": "eip-03-k01",
+      "term": "Syntax",
+      "kind": "definition",
+      "short": "Syntax formally specifies which words and sentences are valid in a language.",
+      "explanation": "For a programming language, the rules must be precise enough for a machine to check whether a program is well formed. These rules include reserved words, token rules, and rules for constructing larger fragments. Syntax alone does not say what a program does.",
+      "example": "`int zahl;` follows the shown naming and declaration form; `int 7zahl;` does not, because a name may not begin with a digit under the naming rule.",
+      "pitfalls": [
+        "A syntactically valid program can still produce an incorrect result.",
+        "Syntax describes form; semantics describes meaning."
+      ],
+      "related": [
+        "Semantics",
+        "Token",
+        "Grammar rule",
+        "Context condition"
+      ],
+      "heading": "Syntax und Semantik"
+    },
+    {
+      "id": "eip-03-k02",
+      "term": "Semantics",
+      "kind": "definition",
+      "short": "Semantics assigns meaning to a program described syntactically.",
+      "explanation": "It describes what a program means or does once its structure has been established. Operational semantics describes execution steps; denotational semantics assigns a mathematical meaning to the program. A syntactically valid program may solve a different problem from the one intended.",
+      "example": "`write(2 + 2);` is valid under the simplified model, but it does not output the value of `2 · 2 + 1`.",
+      "pitfalls": [
+        "Syntax and semantics answer different questions: whether a program is well formed and what it means.",
+        "Syntactic validity does not guarantee correctness of content."
+      ],
+      "related": [
+        "Syntax",
+        "Parsing"
+      ],
+      "heading": "Syntax und Semantik"
+    },
+    {
+      "id": "eip-03-k03",
+      "term": "Components of a language description",
+      "kind": "concept",
+      "short": "A language description can specify reserved words, token rules, grammar rules, and context conditions.",
+      "explanation": "Reserved words have a fixed role, token rules specify valid character sequences for individual units, and grammar rules describe how those units are combined. Context conditions additionally require a program to satisfy certain conditions in context. These components check different levels of a program.",
+      "example": "The rule for `name` describes a token form; the rule for `decl` describes a declaration made up of several tokens and syntactic categories.",
+      "pitfalls": [
+        "Not every meaningful condition is already described by a grammar rule.",
+        "The components serve different purposes and cannot replace one another."
+      ],
+      "related": [
+        "Reserved word",
+        "Token rule",
+        "Grammar rule",
+        "Context condition"
+      ],
+      "heading": "Syntax und Semantik"
+    },
+    {
+      "id": "eip-03-k04",
+      "term": "Token",
+      "kind": "definition",
+      "short": "A token is a program unit recognized according to character rules.",
+      "explanation": "Tokens can be keywords, names, numbers, or special characters. Characters such as `(`, `)`, `{`, `}`, `=`, `,`, and `;` separate or connect parts of a program. A token can consist of several characters and gets its role from the language rules.",
+      "example": "In `int zahl;`, `int`, `zahl`, and `;` are each tokens.",
+      "pitfalls": [
+        "A token is not necessarily a single character; a keyword can consist of several characters.",
+        "A word that looks like a name may have a different role as a reserved word."
+      ],
+      "related": [
+        "Reserved word",
+        "Regular expression",
+        "Parsing"
+      ],
+      "heading": "Syntax und Semantik"
+    },
+    {
+      "id": "eip-03-k05",
+      "term": "Reserved word",
+      "kind": "definition",
+      "short": "A reserved word is a token with a fixed role in the language that cannot also be used as a variable name.",
+      "explanation": "Examples in the simplified model are `if`, `int`, `else`, and `while`. Here, `int` denotes a primitive type; `if`, `else`, and `while` belong to control structures. A word may match the character form of a name and still be invalid as a name because it has a reserved role.",
+      "example": "`if` is reserved; `int2` is not a reserved word under the stated naming convention and can count as a name.",
+      "pitfalls": [
+        "Not every word that begins with a reserved word is itself reserved.",
+        "Which words are reserved depends on the language."
+      ],
+      "related": [
+        "Token",
+        "Naming rule for name"
+      ],
+      "heading": "Syntax und Semantik"
+    },
+    {
+      "id": "eip-03-k06",
+      "term": "Context condition",
+      "kind": "definition",
+      "short": "A context condition is an additional requirement on a program that cannot be described by its grammatical form alone.",
+      "explanation": "It checks a property for which the surrounding program context matters. One example is the requirement that a variable be declared before it is used. Such a condition goes beyond asking whether tokens occur in a grammatically valid order.",
+      "example": "A fragment may look like an assignment but violate a context condition if the variable it uses has not been declared anywhere.",
+      "pitfalls": [
+        "A grammatically valid form does not automatically satisfy every context condition.",
+        "A context condition does not describe the character form of a single token."
+      ],
+      "related": [
+        "Syntax",
+        "Grammar rule",
+        "Components of a language description"
+      ],
+      "heading": "Syntax und Semantik"
+    },
+    {
+      "id": "eip-03-k07",
+      "term": "Token rule",
+      "kind": "definition",
+      "short": "A token rule describes which character sequences are recognized as a particular kind of token.",
+      "explanation": "Token rules concern, for example, names or numbers. The rule for `name` requires a letter at the beginning and allows letters or digits after that. A token rule describes the form of a unit, not the complete structure of a statement or program.",
+      "example": "Under the example assumption that letters are `A–Z` or `a–z` and digits are `0–9`, `a7B` matches the naming form.",
+      "pitfalls": [
+        "The character classes must be specified before all individual cases can be decided.",
+        "A reserved word can be excluded as a name despite matching the token form."
+      ],
+      "related": [
+        "Token",
+        "Naming rule for name",
+        "Regular expression"
+      ],
+      "heading": "Namen und reguläre Ausdrücke"
+    },
+    {
+      "id": "eip-03-k08",
+      "term": "Naming rule for name",
+      "kind": "notation",
+      "short": "The rule `name ::= letter (letter | digit)*` requires a letter first, followed by any number of letters or digits.",
+      "explanation": "`letter` stands for a letter and `digit` for a digit. The alternative `(letter | digit)` is repeated zero or more times by the following `*`; at each repetition, a letter or digit can be chosen anew. The rule does not specify the exact definition of the character classes.",
+      "example": "`x` and `a7B` match the form; `7a` and `a_b` do not. `if` matches the character form, but as a reserved word it is not a variable name.",
+      "pitfalls": [
+        "`*` repeats the entire parenthesized alternative, not just `digit`.",
+        "Examples using the letters `A–Z` and `a–z` apply only under this explicitly assumed character convention."
+      ],
+      "related": [
+        "Token rule",
+        "Regular expression",
+        "Reserved word"
+      ],
+      "heading": "Namen und reguläre Ausdrücke"
+    },
+    {
+      "id": "eip-03-k09",
+      "term": "Regular expression",
+      "kind": "definition",
+      "short": "A regular expression describes a form of character strings, such as the form of a name or a number token.",
+      "explanation": "Patterns can contain character classes and alternative or repeated parts. For example, `(letter letter)*` describes an even number of letters, including the empty sequence. Regular expressions are particularly suited to token forms; recursive grammar rules describe nested program fragments.",
+      "example": "`$ digit* 17` describes a dollar sign, followed by zero or more digits and then the fixed text `17`; matching sequences include `$17` and `$0417`. Similarly, `letter* test letter*` describes any number of letters before and after the fixed text `test`.",
+      "pitfalls": [
+        "Spaces that make a pattern easier to read in an explanation do not have to be permitted characters.",
+        "A regular expression for token forms is not automatically a complete grammar for programs."
+      ],
+      "related": [
+        "Token",
+        "Token rule",
+        "Naming rule for name",
+        "Grammar rule"
+      ],
+      "heading": "Namen und reguläre Ausdrücke"
+    },
+    {
+      "id": "eip-03-k10",
+      "term": "Alternation and repetition in patterns",
+      "kind": "notation",
+      "short": "In the patterns shown, `|` denotes an alternative and `*` denotes zero or more repetitions of the preceding part.",
+      "explanation": "`letter | digit` means that either a letter or a digit is chosen at that position. In `(letter | digit)*`, the entire group is repeated any number of times, including zero. These notations appear in both token patterns and EBNF rules.",
+      "example": "`(letter letter)*` allows the empty sequence, `ab`, and `abcd`, but no sequence with an odd number of letters.",
+      "pitfalls": [
+        "`*` means zero or more, not at least one repetition.",
+        "With a parenthesized group, `*` repeats the entire group."
+      ],
+      "related": [
+        "Regular expression",
+        "Naming rule for name",
+        "EBNF notation"
+      ],
+      "heading": "Namen und reguläre Ausdrücke"
+    },
+    {
+      "id": "eip-03-k11",
+      "term": "Grammar rule",
+      "kind": "definition",
+      "short": "A grammar rule specifies how a fragment in a syntactic category is constructed from tokens and other categories.",
+      "explanation": "A rule has the form `A ::= Ausdruck`: the category being described is on the left, and a valid structure is on the right. Categories can refer to one another recursively, allowing nested statements and expressions to be described. A collection of such rules forms a grammar.",
+      "example": "`type ::= \"int\"` specifies that, in this simplified model, a `type` consists of the fixed token `int`.",
+      "pitfalls": [
+        "A rule describes the structure of a syntactic form, not its runtime meaning.",
+        "A grammar rule alone does not necessarily cover context conditions such as declaring a variable."
+      ],
+      "related": [
+        "EBNF (Extended Backus–Naur Form)",
+        "BNF (Backus–Naur Form)",
+        "Syntax tree",
+        "Context condition"
+      ],
+      "heading": "Von Tokens zu Programmfragmenten"
+    },
+    {
+      "id": "eip-03-k12",
+      "term": "EBNF (Extended Backus–Naur Form)",
+      "kind": "definition",
+      "short": "EBNF is a notation for grammar rules that provides compact ways to express grouping, repetition, and optionality.",
+      "explanation": "An EBNF rule has the form `A ::= Ausdruck`, with a syntactic category on the left and its structure on the right. Parentheses group parts, `*` denotes zero or more repetitions, and `?` marks an optional part. EBNF writes some structures more concisely than BNF, where they can be expressed using additional rules.",
+      "example": "`decl ::= type name (\",\" name)* \";\"` describes a type, at least one name, and then zero or more additional names, each introduced by a comma.",
+      "pitfalls": [
+        "`?` means optional, or zero or one occurrence; `*` allows any number of occurrences.",
+        "An EBNF expression describes a form; it is not an executed program."
+      ],
+      "related": [
+        "BNF (Backus–Naur Form)",
+        "Grammar rule",
+        "EBNF notation"
+      ],
+      "heading": "EBNF kompakt"
+    },
+    {
+      "id": "eip-03-k13",
+      "term": "BNF (Backus–Naur Form)",
+      "kind": "definition",
+      "short": "BNF is the basic form of a grammar notation, using production rules and alternatives.",
+      "explanation": "In BNF, categories are described by production rules, and alternatives specify different possible forms. Grouping, repetition, and optionality—which EBNF writes compactly—must be expressed in BNF using additional rules, often with recursion. Both notations describe grammatical structures.",
+      "example": "A repetition such as `stmt*` can be represented in BNF by a recursive category with an empty alternative and another sequence of `stmt`.",
+      "pitfalls": [
+        "BNF is a notation for grammar rules, not a different meaning of the grammar.",
+        "The shorthand symbols `*` and `?` belong to the EBNF notation used here."
+      ],
+      "related": [
+        "EBNF (Extended Backus–Naur Form)",
+        "Grammar rule",
+        "EBNF notation"
+      ],
+      "heading": "EBNF kompakt"
+    },
+    {
+      "id": "eip-03-k14",
+      "term": "EBNF notation",
+      "kind": "notation",
+      "short": "`::=`, `|`, `(…)`, `*`, `?`, and quotation marks indicate how to read an EBNF rule.",
+      "explanation": "`::=` means that the category on the left is formed according to the expression on the right; `|` separates alternatives. Parentheses group parts, `*` repeats the preceding part zero or more times, and `?` makes it optional. Text in quotation marks denotes a fixed token or character sequence.",
+      "example": "`stmt ::= \";\" | \"{\" stmt* \"}\"` allows either a semicolon or a block containing zero or more statements as a statement form.",
+      "pitfalls": [
+        "`stmt*` also allows zero statements.",
+        "Fixed tokens in quotation marks should not be confused with names of syntactic categories."
+      ],
+      "related": [
+        "EBNF (Extended Backus–Naur Form)",
+        "BNF (Backus–Naur Form)",
+        "Grammar rule"
+      ],
+      "heading": "EBNF kompakt"
+    },
+    {
+      "id": "eip-03-k15",
+      "term": "Simplified MiniJava model",
+      "kind": "concept",
+      "short": "The model describes programs with EBNF rules for declarations, statements, expressions, and conditions.",
+      "explanation": "The rules represent a simplified MiniJava model and are not a complete grammar of the Java language. A program contains declarations followed by statements; statements can in turn contain blocks or expressions. `binop`, `comp`, and `bbinop` are placeholders for operator groups; the lecture notes also mention `bunop` as a unary logical operator, without using it in the displayed `cond` rule.",
+      "example": "```text\nprogram ::= decl* stmt*\ndecl    ::= type name (\",\" name)* \";\"\ntype    ::= \"int\"\n\nstmt    ::= \";\"\n          | \"{\" stmt* \"}\"\n          | name \"=\" expr \";\"\n          | name \"=\" \"readInt\" \"(\" \")\" \";\"\n          | \"write\" \"(\" expr \")\" \";\"\n          | \"if\" \"(\" cond \")\" stmt (\"else\" stmt)?\n          | \"while\" \"(\" cond \")\" stmt\n\nexpr    ::= number | name | \"(\" expr \")\" | \"-\" expr\n          | expr binop expr\ncond    ::= \"true\" | \"false\" | \"!\" cond | \"(\" cond \")\"\n          | expr comp expr | cond bbinop cond\n```",
+      "pitfalls": [
+        "The specific sets for `binop`, `comp`, and `bbinop` are not written out; `bunop` appears only in the accompanying explanation.",
+        "The grammar is schematic and should not be equated with the complete Java grammar.",
+        "The input token is `readInt`; `readint` would be a different spelling."
+      ],
+      "related": [
+        "program",
+        "Declaration (decl)",
+        "Statement (stmt)",
+        "Expression (expr)",
+        "Condition (cond)",
+        "EBNF (Extended Backus–Naur Form)"
+      ],
+      "heading": "Von Tokens zu Programmfragmenten"
+    },
+    {
+      "id": "eip-03-k16",
+      "term": "program",
+      "kind": "definition",
+      "short": "In the simplified model, a `program` consists of zero or more declarations followed by zero or more statements.",
+      "explanation": "The EBNF rule is `program ::= decl* stmt*`. Declarations may occur first, followed by statements; either sequence may be empty. The rule therefore also describes programs without declarations or statements.",
+      "example": "`int x; write(x);` matches the schema with one declaration and one statement.",
+      "pitfalls": [
+        "The order is fixed: declarations come before statements.",
+        "`*` allows zero occurrences, so neither a declaration nor a statement is required."
+      ],
+      "related": [
+        "Declaration (decl)",
+        "Statement (stmt)",
+        "EBNF notation"
+      ],
+      "heading": "Von Tokens zu Programmfragmenten"
+    },
+    {
+      "id": "eip-03-k17",
+      "term": "Declaration (decl)",
+      "kind": "definition",
+      "short": "In the simplified model, a `decl` contains a type, at least one name, optionally more comma-separated names, and a terminating semicolon.",
+      "explanation": "The rule is `decl ::= type name (\",\" name)* \";\"`. Here, `type` is exclusively `int`. The first `name` is required; the repetition allows zero or more additional names, each preceded by a comma.",
+      "example": "`int x;` and `int x, y, z;` match the declaration form.",
+      "pitfalls": [
+        "Under this rule, `int;` is not a declaration because at least one name is required.",
+        "The list of names after the first name may be omitted."
+      ],
+      "related": [
+        "program",
+        "Naming rule for name",
+        "EBNF notation"
+      ],
+      "heading": "Von Tokens zu Programmfragmenten"
+    },
+    {
+      "id": "eip-03-k18",
+      "term": "Statement (stmt)",
+      "kind": "definition",
+      "short": "In the simplified model, a `stmt` is an empty statement, a block, an assignment, input, output, a conditional branch, or a loop.",
+      "explanation": "The grammar allows `;`, `{ stmt* }`, an assignment with an expression, an assignment with `readInt()`, `write(expr)`, `if` with an optional `else`, and `while`. Statements can be nested in blocks and used as branches of other statements. The rule describes valid forms, not their effects when executed.",
+      "example": "`x = -3;`, `x = readInt();`, and `write(x + 1);` are examples of different statement forms.",
+      "pitfalls": [
+        "Under this rule, an `if` may appear without an `else`.",
+        "`readInt` and `write` are fixed, explicitly written token sequences in this model."
+      ],
+      "related": [
+        "Empty statement",
+        "Block",
+        "Expression (expr)",
+        "Condition (cond)",
+        "Ambiguity",
+        "else association"
+      ],
+      "heading": "Von Tokens zu Programmfragmenten"
+    },
+    {
+      "id": "eip-03-k19",
+      "term": "Empty statement",
+      "kind": "definition",
+      "short": "The empty statement `;` is a complete statement that does nothing.",
+      "explanation": "In the statement grammar, a single semicolon is a separate alternative for `stmt`. It can appear where a statement is expected, even when no further action is intended. The semicolon is still a required token.",
+      "example": "`;`",
+      "pitfalls": [
+        "An empty statement is not the same as omitting a required statement.",
+        "It is a syntactic statement, even if it performs no visible action."
+      ],
+      "related": [
+        "Statement (stmt)",
+        "Block"
+      ],
+      "heading": "Von Tokens zu Programmfragmenten"
+    },
+    {
+      "id": "eip-03-k20",
+      "term": "Block",
+      "kind": "definition",
+      "short": "A block is a statement of the form `{ stmt* }` and contains zero or more statements.",
+      "explanation": "The braces mark the beginning and end of the block. Because of `stmt*`, the block may be empty or contain several statements. As a statement, a block can appear, for example, as the branch of an `if` or `while`.",
+      "example": "`{ write(1); write(0); }`",
+      "pitfalls": [
+        "Under this rule, a block may be empty.",
+        "The braces are part of the block's syntax."
+      ],
+      "related": [
+        "Statement (stmt)",
+        "Empty statement"
+      ],
+      "heading": "Von Tokens zu Programmfragmenten"
+    },
+    {
+      "id": "eip-03-k21",
+      "term": "Expression (expr)",
+      "kind": "definition",
+      "short": "In the simplified model, an `expr` is a number, a name, a parenthesized expression, unary negation, or a combination of two expressions using a binary operator.",
+      "explanation": "The recursive rule includes forms such as `number`, `name`, `(expr)`, `- expr`, and `expr binop expr`. Because an expression can contain other expressions, nested forms can be built. The specific operators and their precedence rules are not fully specified by this schematic rule alone.",
+      "example": "`x + (y * z)` consists of nested expressions; `-3` uses unary negation.",
+      "pitfalls": [
+        "`- expr` is a unary form; `expr binop expr` has two operands.",
+        "Without a precedence convention, `expr binop expr` can allow several tree structures."
+      ],
+      "related": [
+        "Condition (cond)",
+        "Parsing",
+        "Syntax tree",
+        "Ambiguity",
+        "Operator precedence"
+      ],
+      "heading": "Von Tokens zu Programmfragmenten"
+    },
+    {
+      "id": "eip-03-k22",
+      "term": "Condition (cond)",
+      "kind": "definition",
+      "short": "In the simplified model, a `cond` is a Boolean value, a negation, a parenthesized condition, a comparison, or a combination of conditions.",
+      "explanation": "The displayed rule allows `true`, `false`, `! cond`, `(cond)`, a comparison of the form `expr comp expr`, or `cond bbinop cond`. Conditions can therefore be composed recursively and nested. The specific comparison operators (`comp`) and binary logical operators (`bbinop`) are not specified.",
+      "example": "`x > 0` is schematically a comparison of two expressions, provided `>` belongs to the unspecified operator group `comp`.",
+      "pitfalls": [
+        "`comp` and `bbinop` are placeholders for operator groups, not specified individual tokens.",
+        "The accompanying explanation mentions `bunop` as a unary logical operator, but the displayed rule explicitly uses `! cond` instead."
+      ],
+      "related": [
+        "Statement (stmt)",
+        "Expression (expr)",
+        "Grammar rule",
+        "Syntax tree"
+      ],
+      "heading": "Von Tokens zu Programmfragmenten"
+    },
+    {
+      "id": "eip-03-k23",
+      "term": "Parsing",
+      "kind": "method",
+      "short": "Parsing applies grammar rules to a token sequence and builds a structure for the program.",
+      "explanation": "Parsing checks whether the token sequence can be generated by the grammar's rules. Applicable rule applications are applied recursively to fragments, and their nesting is recorded in a syntax tree. If a grammar allows multiple structures, a convention or a more precise grammar is needed to select the intended structure.",
+      "example": "When parsing `x + y * z`, the tokens are grouped into a tree structure according to the specified precedence rule.",
+      "pitfalls": [
+        "Parsing operates on token sequences; recognizing the individual tokens is a separate stage.",
+        "If a grammar allows multiple trees, the structure is ambiguous without an additional convention."
+      ],
+      "related": [
+        "Token",
+        "Grammar rule",
+        "Syntax tree",
+        "Ambiguity"
+      ],
+      "heading": "Mehrdeutigkeit und Parsing"
+    },
+    {
+      "id": "eip-03-k24",
+      "term": "Syntax tree",
+      "kind": "definition",
+      "short": "A syntax tree shows how a token sequence is combined into nested program fragments through rule applications.",
+      "explanation": "Internal nodes typically represent syntactic categories or rule applications; leaves represent tokens. Reading the leaves from left to right gives the token sequence of the fragment shown. A summarized subtree can serve as shorthand for a complete subtree.",
+      "example": "For `x + (y * z)`, an `expr` node can be the root, with the operator `+` and two expression subtrees; the right subtree contains `y * z`.",
+      "pitfalls": [
+        "A syntax tree shows syntactic structure, not automatically the meaning or execution result.",
+        "The tree's leaves must yield the displayed token sequence from left to right."
+      ],
+      "related": [
+        "Parsing",
+        "Grammar rule",
+        "Ambiguity",
+        "Operator precedence"
+      ],
+      "heading": "Mehrdeutigkeit und Parsing"
+    },
+    {
+      "id": "eip-03-k25",
+      "term": "Ambiguity",
+      "kind": "definition",
+      "short": "A grammar is ambiguous for a token sequence if it allows multiple syntax trees for that sequence.",
+      "explanation": "With an ambiguous grammar, the same tokens can be grouped in different ways. For `x + y * z`, for example, `(x + y) * z` and `x + (y * z)` are both possible without a precedence rule. A convention or a more precise grammar specifies which structure is intended.",
+      "example": "The rule `expr ::= expr binop expr` alone does not specify which operator binds first when operators are mixed.",
+      "pitfalls": [
+        "Ambiguity concerns multiple possible structures for the same token sequence, not multiple different spellings.",
+        "A syntax tree shows one chosen interpretation, but does not remove the ambiguity of the grammar rule."
+      ],
+      "related": [
+        "Parsing",
+        "Syntax tree",
+        "Operator precedence",
+        "else association"
+      ],
+      "heading": "Mehrdeutigkeit und Parsing"
+    },
+    {
+      "id": "eip-03-k26",
+      "term": "Operator precedence",
+      "kind": "concept",
+      "short": "Under the usual Java precedence rule, `*` binds more tightly than `+` and `-`.",
+      "explanation": "Therefore, in an expression such as `x + y * z`, `y * z` is grouped first and then added to `x`. The corresponding structure is `x + (y * z)`. This convention selects among possible syntax trees for the same token sequence.",
+      "example": "`a + b * c` is read as `a + (b * c)`.",
+      "pitfalls": [
+        "Without a precedence rule, the general binary expression rule allows different groupings.",
+        "Precedence specifies which operator binds more tightly; additional conventions may also be needed."
+      ],
+      "related": [
+        "Expression (expr)",
+        "Ambiguity",
+        "Parsing",
+        "Syntax tree"
+      ],
+      "heading": "Mehrdeutigkeit und Parsing"
+    },
+    {
+      "id": "eip-03-k27",
+      "term": "else association",
+      "kind": "concept",
+      "short": "In nested `if` statements, `else` attaches to the next `else`-unpaired `if`.",
+      "explanation": "This convention determines which conditional branch an `else` belongs to when several `if` statements are nested. In `if (a) if (b) write(1); else write(0);`, the `else` is associated with the inner `if (b)`. Braces can explicitly specify the intended grouping.",
+      "example": "```text\nif (a)\n    if (b) write(1);\n    else write(0);  // else gehört zum inneren if\n```",
+      "pitfalls": [
+        "Indentation alone does not determine the association; the rule for the next unmatched `if` governs it.",
+        "If an outer association is desired, the structure should be explicitly specified using curly braces."
+      ],
+      "related": [
+        "Statement (stmt)",
+        "Ambiguity",
+        "Parsing",
+        "Syntax tree"
+      ],
+      "heading": "Mehrdeutigkeit und Parsing"
+    }
+  ],
+  "generator": {
+    "model": "gpt-6-luna",
+    "effort": "xhigh",
+    "promptVersion": "k1",
+    "generatedAt": "2026-11-02T12:24:03.434Z"
+  }
+}

@@ -1,0 +1,454 @@
+{
+  "schemaVersion": 1,
+  "unitId": "ds-07",
+  "module": "DS",
+  "unitNumber": 7,
+  "unitTitle": "Fibonacci, Induction (Induktion), and Relations (Relationen)",
+  "sourceSha": "01687b1c53eb45f9a4c857a81630265e4c010925933ff2e95e2f10be36ebc14f",
+  "overview": "This unit covers limits (Grenzwerte) through the geometric series (geometrische Reihe), Fibonacci numbers (Fibonacci-Zahlen), and induction. It introduces relations as sets of tuples, processes them with relational algebra (relationale Algebra), and represents binary relations (binäre Relationen) as directed graphs (gerichtete Graphen).",
+  "entries": [
+    {
+      "id": "ds-07-k01",
+      "term": "Infinite geometric series and limit",
+      "kind": "theorem",
+      "short": "For $|x|<1$, the infinite geometric series is the limit of its finite partial sums and has value $1/(1-x)$.",
+      "explanation": "The series is defined through its finite partial sums: $$\\sum_{k=0}^{\\infty}x^k:=\\lim_{n\\to\\infty}\\sum_{k=0}^{n}x^k=\\lim_{n\\to\\infty}\\frac{1-x^{n+1}}{1-x}=\\frac{1}{1-x},\\qquad |x|<1.$$ The limit follows because $x^{n+1}$ tends to zero. Infinity is not a natural-number index that can be substituted as the final summand. A strict inequality for every sequence term need not remain strict at the limit.",
+      "example": "For $S_n=\\sum_{k=0}^{n}(1/2)^k=2-2^{-n}$, we have $S_n<2$ for every $n\\in\\mathbb N_0$, but $\\lim_{n\\to\\infty}S_n=2$.",
+      "pitfalls": [
+        "Infinity is not a summation index; the series is understood as the limit of finite sums.",
+        "A property of all finite partial sums need not hold for their limit."
+      ],
+      "related": [
+        "Geometric sum (geometrische Summe)",
+        "Sequences (Folgen)"
+      ],
+      "heading": "Ausblick: geometrische Reihe und Grenzwerte"
+    },
+    {
+      "id": "ds-07-k02",
+      "term": "Fibonacci sequence (Fibonacci-Folge)",
+      "kind": "definition",
+      "short": "The Fibonacci sequence begins with $F_0=0$ and $F_1=1$; each subsequent term is the sum of its two predecessors.",
+      "explanation": "The sequence is defined recursively by $$F_0:=0,\\qquad F_1:=1,\\qquad F_{n+2}:=F_{n+1}+F_n\\quad(n\\in\\mathbb N_0)$$. Its first terms are $0,1,1,2,3,5,8,13,21,\\ldots$. Two initial values are needed because the recurrence uses two predecessors. The original interpretation is the number of adult rabbit pairs after $n$ months; the assumptions required by this model are not specified.",
+      "example": "$F_4=F_3+F_2=2+1=3$.",
+      "pitfalls": [
+        "When listing the terms, $F_0=0$ is often omitted, so pay attention to the indexing convention.",
+        "One initial value is not enough for this recurrence."
+      ],
+      "related": [
+        "Recursive definitions (rekursive Definitionen)",
+        "Sequences"
+      ],
+      "heading": "Fibonacci-Zahlen"
+    },
+    {
+      "id": "ds-07-k03",
+      "term": "Golden ratio (goldener Schnitt) and Binet's formula (Satz von Binet)",
+      "kind": "theorem",
+      "short": "Binet's formula computes the Fibonacci number $F_n$ directly from $n$ using the golden ratio $\\varphi=(1+\\sqrt5)/2$.",
+      "explanation": "The golden ratio is $\\varphi:=\\frac{1+\\sqrt5}{2}\\approx1{,}618$. For every $n\\in\\mathbb N_0$, Binet's formula gives $$F_n=\\frac{\\varphi^n-(-\\varphi)^{-n}}{\\sqrt5}.$$ The formula gives a sequence term directly, without recursively calculating the preceding terms. The upper bounds $F_n\\le 2^n$ and $F_n\\le 2\\varphi^n/\\sqrt5$ also hold; a strong induction proof in this unit establishes a lower bound instead.",
+      "example": "For $n=5$, $F_5=(\\varphi^5-(-\\varphi)^{-5})/\\sqrt5=5$.",
+      "pitfalls": [
+        "In $(-\\varphi)^{-n}$, both the minus sign and the exponent $-n$ belong to the expression.",
+        "Binet's formula is an equality; the growth bounds are inequalities."
+      ],
+      "related": [
+        "Fibonacci sequence",
+        "Lower bound on Fibonacci growth (untere Wachstumsschranke für Fibonacci-Zahlen)"
+      ],
+      "heading": "Goldener Schnitt und Satz von Binet"
+    },
+    {
+      "id": "ds-07-k04",
+      "term": "Fibonacci squares (Fibonacci-Quadrate), the Fibonacci spiral (Fibonacci-Spirale), and the golden angle (goldener Winkel)",
+      "kind": "concept",
+      "short": "Adjacent squares with Fibonacci side lengths and connected quarter-circles illustrate the Fibonacci spiral.",
+      "explanation": "The construction begins with squares of side lengths $1$ and $1$; each subsequent square is added with side length equal to the sum of the previous two. This gives the side lengths $1,1,2,3,5,8,\\ldots$. Quarter-circles in the squares can be connected to form a Fibonacci spiral, which approximates a golden spiral but is not exactly the same curve. The golden angle is $\\alpha:=360^\\circ/\\varphi^2\\approx137{,}5^\\circ$; spiral aloe, pine cones, and sunflowers are cited as visual examples of spiral directions.",
+      "example": "After squares with side lengths $1,1,2,3$, the next square has side length $3+2=5$.",
+      "pitfalls": [
+        "Connected quarter-circles in Fibonacci squares do not form an exact golden spiral.",
+        "Examples from nature do not prove that every natural spiral follows this construction exactly."
+      ],
+      "related": [
+        "Fibonacci sequence",
+        "Golden ratio and Binet's formula"
+      ],
+      "heading": "Quadrate, Spirale und goldener Winkel"
+    },
+    {
+      "id": "ds-07-k05",
+      "term": "Strong induction (starke Induktion)",
+      "kind": "method",
+      "short": "In strong induction, the inductive step may use all earlier cases from the specified base onward.",
+      "explanation": "To prove a statement about indices, first prove the necessary base cases, then show the transition to the subsequent cases. In the strong inductive step, one may assume that the statement holds for all earlier indices in the range under consideration. This assumption does not replace a base-case proof; the base ensures that the proof chain begins. The method is especially useful when a recurrence uses multiple predecessors.",
+      "example": "To derive a bound for $F_{n+2}=F_{n+1}+F_n$, one may use the already-proved bounds for both predecessors.",
+      "pitfalls": [
+        "The induction hypothesis applies only to the earlier indices explicitly specified.",
+        "Strong induction fixes neither a missing base case nor an invalid inductive step."
+      ],
+      "related": [
+        "Induction base case (Induktionsbasis) and inductive step (Induktionsschritt)",
+        "Lower bound on Fibonacci growth",
+        "Gap in the horse proof's induction (Induktionslücke im Pferdebeweis)"
+      ],
+      "heading": "Was bedeutet „starke Induktion“?"
+    },
+    {
+      "id": "ds-07-k06",
+      "term": "Induction base case and inductive step",
+      "kind": "method",
+      "short": "An induction proof first establishes the base cases, then the transition from earlier cases to subsequent ones.",
+      "explanation": "For a statement $P(n)$, the induction base case is the proof of $P(n_0)$ at the chosen starting point. In the inductive step, one assumes one or more earlier cases and derives the next case from them. If the step holds only from a later index onward, the base case must cover all necessary cases before that index. This ensures that every claimed index is actually reached.",
+      "example": "For the lower Fibonacci bound, check $n=1$ and $n=2$ as base cases because the recurrence uses two predecessors.",
+      "pitfalls": [
+        "A step that works for large indices is not sufficient if it fails immediately after the base case.",
+        "In the step, the index must be chosen arbitrarily but fixed."
+      ],
+      "related": [
+        "Strong induction",
+        "Gap in the horse proof's induction"
+      ],
+      "heading": "Induktionsbasis"
+    },
+    {
+      "id": "ds-07-k07",
+      "term": "Lower bound on Fibonacci growth",
+      "kind": "theorem",
+      "short": "For all $n\\ge1$, $F_n\\ge2^{(n-2)/2}$.",
+      "explanation": "The base cases are $F_1=1\\ge2^{-1/2}$ and $F_2=1\\ge2^0$. Let $n\\ge1$ and assume by strong induction that $F_k\\ge2^{(k-2)/2}$ for all $1\\le k\\le n+1$. Then $$F_{n+2}=F_{n+1}+F_n\\ge2^{(n-1)/2}+2^{(n-2)/2}=2^{n/2}(2^{-1/2}+2^{-1})\\ge2^{n/2},$$ since $1/\\sqrt2+1/2\\ge1$. Thus the bound holds for all indices starting at $1$.",
+      "example": "For $n=6$, the bound gives $F_6\\ge2^2=4$; in fact, $F_6=8$.",
+      "pitfalls": [
+        "The claim starts at $n=1$ and does not include $n=0$.",
+        "The exponent is $(n-2)/2$."
+      ],
+      "related": [
+        "Fibonacci sequence",
+        "Strong induction",
+        "Induction base case and inductive step"
+      ],
+      "heading": "Untere Wachstumsschranke mit starker Induktion"
+    },
+    {
+      "id": "ds-07-k08",
+      "term": "Induction on finite sets (Induktion über endliche Mengen)",
+      "kind": "method",
+      "short": "In induction on finite sets, a statement is proved for all sets according to their number of elements.",
+      "explanation": "First prove the statement for the empty set, then assume it holds for every set with $n$ elements. For an arbitrary set with $n+1$ elements, choose an element and remove it. The induction hypothesis applies to the remaining set of $n$ elements, from which the case with $n+1$ elements is derived. Thus, the hypothesis must hold for all sets of the given size, not just one particular set.",
+      "example": "For a set $A$ with $n+1$ elements, choose $a\\in A$ and set $B=A\\setminus\\{a\\}$; then $B$ has exactly $n$ elements.",
+      "pitfalls": [
+        "The induction hypothesis must cover all sets of size $n$.",
+        "When removing or adding an element, the cardinality must be correct."
+      ],
+      "related": [
+        "Power set theorem (Potenzmengensatz)",
+        "Cardinality of a Cartesian product (Kardinalität eines kartesischen Produkts)",
+        "Finite sets (endliche Mengen)"
+      ],
+      "heading": "Induktion über endliche Mengen"
+    },
+    {
+      "id": "ds-07-k09",
+      "term": "Power set theorem",
+      "kind": "theorem",
+      "short": "A finite set with $n$ elements has exactly $2^n$ subsets.",
+      "explanation": "For every finite set $A$, $$|\\mathcal P(A)|=|2^A|=2^{|A|},$$ where $\\mathcal P(A)$ is the set of all subsets of $A$. When an element is added, the subsets split into those that contain the new element and those that do not. Each group corresponds to the subsets of the previous set, so their number doubles. For the empty set, $\\mathcal P(\\varnothing)=\\{\\varnothing\\}$.",
+      "example": "For $A=\\{p,q\\}$ there are four subsets, so $|\\mathcal P(A)|=4=2^2$.",
+      "pitfalls": [
+        "The empty set is itself a subset of the empty set.",
+        "Adding one element doubles the number of subsets."
+      ],
+      "related": [
+        "Induction on finite sets",
+        "Power set (Potenzmenge)",
+        "Cardinality (Mächtigkeit)"
+      ],
+      "heading": "Potenzmenge: doppelt so viele Teilmengen pro zusätzlichem Element"
+    },
+    {
+      "id": "ds-07-k10",
+      "term": "Cardinality of a Cartesian product",
+      "kind": "theorem",
+      "short": "For finitely many finite sets, the number of tuples in their Cartesian product is the product of their cardinalities.",
+      "explanation": "For $n\\ge1$ and finite sets $A_1,\\ldots,A_n$, $$|A_1\\times\\cdots\\times A_n|=\\prod_{i=1}^{n}|A_i|.$$ Each tuple is formed by independently choosing one element from each factor. When a factor is added, each existing tuple can be combined with every element of the new factor. If a factor is empty, there are no tuples and the product of the cardinalities is zero.",
+      "example": "If $|A|=2$ and $|B|=3$, then $A\\times B$ contains exactly $2\\cdot3=6$ ordered pairs.",
+      "pitfalls": [
+        "The order of the factors determines the positions in the tuple.",
+        "Appending entries in the proof does not assert that flat and nested tuples are the same object."
+      ],
+      "related": [
+        "Induction on finite sets",
+        "Cartesian product (kartesisches Produkt)",
+        "Tuples (Tupel)"
+      ],
+      "heading": "Kardinalität eines kartesischen Produkts"
+    },
+    {
+      "id": "ds-07-k11",
+      "term": "Gap in the horse proof's induction",
+      "kind": "concept",
+      "short": "The false horse proof fails because the groups being compared have no horse in common when moving from one horse to two.",
+      "explanation": "The false claim is that all horses in every nonempty finite set have the same color. In the purported induction step, from $n+1$ horses the first $n$ and last $n$ are selected; a shared horse is supposed to connect the colors of the two groups. For $n=1$, however, the two groups are disjoint, so the comparison fails. The base case of one horse is therefore insufficient; a base case of two horses does not help either, because the claim may already be false there.",
+      "example": "For $\\{h_1,h_2\\}$, the groups are $\\{h_1\\}$ and $\\{h_2\\}$, and they have no horse in common.",
+      "pitfalls": [
+        "Overlap in larger groups does not guarantee overlap at the first required transition.",
+        "A different base case cannot repair an invalid inductive step if the claim is false at that base case."
+      ],
+      "related": [
+        "Induction base case and inductive step",
+        "Strong induction"
+      ],
+      "heading": "Der falsche Induktionsbeweis mit den Pferden"
+    },
+    {
+      "id": "ds-07-k12",
+      "term": "k-ary relation (k-stellige Relation) and arity (Stelligkeit)",
+      "kind": "definition",
+      "short": "A $k$-ary relation is a subset of a Cartesian product whose tuples each have $k$ entries.",
+      "explanation": "For sets $A_1,\\ldots,A_k$, a $k$-ary relation is a subset $$R\\subseteq A_1\\times\\cdots\\times A_k.$$ Its arity is the number $k$ of positions in each tuple. A tuple $(a_1,\\ldots,a_k)\\in R$ means that its entries are related with respect to $R$. A relation is a set of tuples; in a table, each row usually corresponds to a tuple and each column to a position or attribute.",
+      "example": "$R=\\{(1,\\mathrm{Man},\\mathrm{Spider})\\}$ is a ternary relation.",
+      "pitfalls": [
+        "Arity counts entries per tuple, not the number of tuples.",
+        "A table with three columns represents ternary tuples."
+      ],
+      "related": [
+        "Cartesian product",
+        "Tuples",
+        "Binary relation"
+      ],
+      "heading": "Relationen und Stelligkeit"
+    },
+    {
+      "id": "ds-07-k13",
+      "term": "Relational algebra",
+      "kind": "concept",
+      "short": "Relational algebra processes relations through operations that produce new relations.",
+      "explanation": "Selection $\\sigma$ chooses rows satisfying a condition, projection $\\pi$ chooses tuple positions, and Cartesian product $\\times$ forms combinations of tuples. A join $\\bowtie$ combines matching tuples; the equijoin defined in this unit retains both compared columns. Union $\\cup$, intersection $\\cap$, and difference $\\setminus$ require matching arities and column domains. Renaming $\\rho$ can give relations or attributes distinct names; a natural join outputs a shared attribute only once.",
+      "example": "$\\sigma_{\\mathrm{Id}=3}(T)$ selects the rows of $T$ with Id $3$, while $\\pi_3(R)$ outputs only the third position.",
+      "pitfalls": [
+        "Selection chooses rows; projection chooses positions or columns.",
+        "A natural join and an equijoin can have different arities."
+      ],
+      "related": [
+        "k-ary relation and arity",
+        "Equijoin",
+        "Projection (Projektion)"
+      ],
+      "heading": "Mein Mini-Crashkurs zur relationalen Algebra"
+    },
+    {
+      "id": "ds-07-k14",
+      "term": "Equijoin",
+      "kind": "definition",
+      "short": "An equijoin concatenates complete tuples when the selected positions contain equal values.",
+      "explanation": "For a $k$-ary relation $R$ and an $\\ell$-ary relation $S$, the join at positions $i_0$ and $j_0$ is defined by $$R\\bowtie_{i_0=j_0}S:=\\{(r_1,\\ldots,r_k,s_1,\\ldots,s_\\ell)\\mid(r_1,\\ldots,r_k)\\in R,\\ (s_1,\\ldots,s_\\ell)\\in S,\\ r_{i_0}=s_{j_0}\\}.$$ The indices refer to positions in the two input relations. Both complete tuples are concatenated, so the compared positions are retained in the result. The result relation therefore has arity $k+\\ell$.",
+      "example": "For $R=\\{(1,\\mathrm{Man},\\mathrm{Spider})\\}$ and $S=\\{(1,3141)\\}$, the join at position $1=1$ gives the five-place tuple $(1,\\mathrm{Man},\\mathrm{Spider},1,3141)$.",
+      "pitfalls": [
+        "The indices in $\\bowtie_{1=1}$ refer to column positions, not two numerical values.",
+        "Unlike in a natural join, the compared columns are not merged."
+      ],
+      "related": [
+        "Relational algebra",
+        "k-ary relation and arity",
+        "Projection"
+      ],
+      "heading": "Join: passende Tupel zusammenhängen"
+    },
+    {
+      "id": "ds-07-k15",
+      "term": "Projection",
+      "kind": "definition",
+      "short": "A projection retains selected tuple positions and, as a set, includes identical result tuples only once.",
+      "explanation": "For a relation $R$, projection onto positions $i_1,\\ldots,i_m$ is defined as $$\\pi_{i_1,\\ldots,i_m}(R):=\\{(r_{i_1},\\ldots,r_{i_m})\\mid(r_1,\\ldots,r_k)\\in R\\}.$$ The result is an $m$-ary relation. Because the result is a set, identical projected tuples appear only once. A projection can therefore contain fewer tuples than the input relation.",
+      "example": "Using the relations $R,T$ and $W:=\\{(\\mathtt w)\\}$ from the table schema gives $$\\pi_3\\!\\left(R\\bowtie_{1=1}(T\\bowtie_{2=1}W)\\right)=\\{(\\mathrm{Wonder}),(\\mathrm{Lady})\\}.$$",
+      "pitfalls": [
+        "A projection outputs tuples as a set, not as a list with repetitions.",
+        "Identical result tuples appear only once."
+      ],
+      "related": [
+        "Relational algebra",
+        "Equijoin",
+        "k-ary relation and arity"
+      ],
+      "heading": "Projektion: ausgewählte Spalten behalten"
+    },
+    {
+      "id": "ds-07-k16",
+      "term": "Binary relation",
+      "kind": "definition",
+      "short": "A binary relation between $A$ and $B$ is a subset of $A\\times B$.",
+      "explanation": "A binary relation has ordered pairs as its elements and is written $R\\subseteq A\\times B$. In the setting used here, $A$ and $B$ are nonempty, but $R$ may be empty. If $A=B$, $R$ is called a relation on $A$, an endorelation, or a homogeneous relation. The order of the pair's entries matters: the first entry belongs to $A$, the second to $B$.",
+      "example": "For $A=\\{1,2\\}$ and $B=\\{a,b\\}$, $R=\\{(1,b),(2,a)\\}$ is a binary relation between $A$ and $B$.",
+      "pitfalls": [
+        "A relation may associate no partner, one partner, or several partners with an element of $A$.",
+        "Nonempty underlying sets do not imply that the relation itself is nonempty."
+      ],
+      "related": [
+        "k-ary relation and arity",
+        "Total function (totale Funktion)",
+        "Directed graph induced by a relation (gerichteter Graph aus einer Relation)"
+      ],
+      "heading": "Relation und Funktion auseinanderhalten"
+    },
+    {
+      "id": "ds-07-k17",
+      "term": "Total function",
+      "kind": "definition",
+      "short": "A total function from $A$ to $B$ assigns each element of $A$ exactly one element of $B$.",
+      "explanation": "A relation $f\\subseteq A\\times B$ is a total function if, for every $a\\in A$, there exists exactly one $b\\in B$ such that $(a,b)\\in f$. Totality means that no element of the domain is left without a value; uniqueness means that two different values are not assigned to the same $a$. The notation $f(a)=b$ denotes the uniquely assigned value.",
+      "example": "For $A=\\{1,2\\}$ and $B=\\{a,b\\}$, $f=\\{(1,a),(2,b)\\}$ is a total function.",
+      "pitfalls": [
+        "A partial function is not defined for every element of its domain.",
+        "A relation with two different values for the same argument is not a function."
+      ],
+      "related": [
+        "Binary relation",
+        "k-ary relation and arity"
+      ],
+      "heading": "Relation und Funktion auseinanderhalten"
+    },
+    {
+      "id": "ds-07-k18",
+      "term": "Successors and predecessors of a relation (Nachfolger und Vorgänger einer Relation)",
+      "kind": "notation",
+      "short": "The successors of $a$ are the second entries of its associated pairs, and the predecessors of $b$ are their first entries.",
+      "explanation": "For $R\\subseteq A\\times B$, define the sets of successors and predecessors by $$aR:=\\{b\\in B\\mid(a,b)\\in R\\},\\qquad Rb:=\\{a\\in A\\mid(a,b)\\in R\\}.$$ These notations denote sets, which may be empty or contain multiple elements. $aR$ fixes the first entry, whereas $Rb$ fixes the second.",
+      "example": "For $R=\\{(\\mathrm{Anna},\\mathrm{Clara}),(\\mathrm{Anna},\\mathrm{David}),(\\mathrm{Ben},\\mathrm{Clara})\\}$, we have $\\mathrm{Anna}R=\\{\\mathrm{Clara},\\mathrm{David}\\}$ and $R\\mathrm{Clara}=\\{\\mathrm{Anna},\\mathrm{Ben}\\}$.",
+      "pitfalls": [
+        "$aR$ denotes a set, not generally a single successor.",
+        "$aR$ and $Rb$ each fix a different pair position."
+      ],
+      "related": [
+        "Binary relation",
+        "Directed graph induced by a relation"
+      ],
+      "heading": "Nachfolger und Vorgänger"
+    },
+    {
+      "id": "ds-07-k19",
+      "term": "Identity relation (Identitätsrelation) and infix notation (Infixnotation)",
+      "kind": "notation",
+      "short": "The identity relation contains exactly the pairs $(a,a)$, and infix notation writes $aRb$ for $(a,b)\\in R$.",
+      "explanation": "On a set $A$, the identity relation is $$\\operatorname{Id}_A:=\\{(a,a)\\mid a\\in A\\}.$$ Infix notation means $a\\,R\\,b\\Longleftrightarrow(a,b)\\in R$ and $a\\mathrel{\\not R}b\\Longleftrightarrow(a,b)\\notin R$. Thus $3\\le_{\\mathbb N}5$ is shorthand for $(3,5)\\in\\le_{\\mathbb N}$. A subscript naming the underlying set on a relation symbol can clarify the set on which the relation is considered.",
+      "example": "For $A=\\{p,q\\}$, $\\operatorname{Id}_A=\\{(p,p),(q,q)\\}$.",
+      "pitfalls": [
+        "The identity relation contains only pairs with equal entries, not all pairs in $A\\times A$.",
+        "Equality itself can be viewed as a relation."
+      ],
+      "related": [
+        "Binary relation",
+        "Converse relation"
+      ],
+      "heading": "Identitätsrelation und Infixnotation"
+    },
+    {
+      "id": "ds-07-k20",
+      "term": "Converse relation (transponierte Relation)",
+      "kind": "notation",
+      "short": "The converse relation is obtained by swapping the first and second entries in every pair.",
+      "explanation": "For $R\\subseteq A\\times B$, the converse, transpose, or inverse relation is $$R^\\top:=\\{(b,a)\\mid(a,b)\\in R\\}\\subseteq B\\times A.$$ Each existing pair is reversed; an inverse function is not required. For example, swapping the entries in the relation $\\le$ gives $\\ge$. The statements 'sufficient for' and 'necessary for' are also converses of one another.",
+      "example": "If $R=\\{(p,q),(p,r)\\}$, then $R^\\top=\\{(q,p),(r,p)\\}$.",
+      "pitfalls": [
+        "Swapping the pairs does not automatically invert a function.",
+        "The converse relation is a subset of $B\\times A$."
+      ],
+      "related": [
+        "Binary relation",
+        "Identity relation and infix notation"
+      ],
+      "heading": "Transponierte Relation"
+    },
+    {
+      "id": "ds-07-k21",
+      "term": "Directed graph induced by a relation",
+      "kind": "definition",
+      "short": "A binary relation is represented as a directed graph by turning each pair into an arrow from source to target.",
+      "explanation": "For a finite relation $E\\subseteq A\\times B$, set $V:=A\\cup B$ and represent the elements of $V$ as vertices. Each pair $(s,t)\\in E$ is drawn as a directed edge $s\\to t$; $s$ is the source and $t$ the target. A pair $(v,v)$ gives a loop. For the example graph, $V=\\{1,2,a,b\\}$ and $E=\\{(1,b),(2,b),(2,a),(1,2),(b,b),(b,2),(a,1)\\}$; the positions of the vertices in the drawing do not change this relation.",
+      "example": "There are arrows from $1$ to $2$ and $b$, and from $b$ to $2$ and back to $b$.",
+      "pitfalls": [
+        "A directed arrow distinguishes source from target; $(s,t)$ and $(t,s)$ are generally different.",
+        "A loop is an edge from a vertex to itself."
+      ],
+      "related": [
+        "Binary relation",
+        "Successors and predecessors of a relation",
+        "Path and cycle (Pfad und Zyklus)"
+      ],
+      "heading": "Binäre Relationen als gerichtete Graphen"
+    },
+    {
+      "id": "ds-07-k22",
+      "term": "Path and cycle",
+      "kind": "definition",
+      "short": "A path follows directed edges, and a cycle is a path of positive length that ends at its starting vertex.",
+      "explanation": "A sequence $(v_0,\\ldots,v_\\ell)\\in V^{\\ell+1}$ is a path of length $\\ell$ if $(v_{i-1},v_i)\\in E$ for all $i\\in[\\ell]$. Length counts the edges traversed; a path of length zero consists of a single vertex. A cycle is a path with $v_0=v_\\ell$ and $\\ell>0$, with no additional requirement that all intermediate vertices be distinct. A loop is therefore a cycle of length one.",
+      "example": "In the example graph, $(2,a,1,b)$ is a path of length $3$, and $(b,b)$ is a cycle of length $1$.",
+      "pitfalls": [
+        "Path length counts edges, not the listed vertices.",
+        "A path of length zero is not a cycle.",
+        "Each step must follow an edge in its direction."
+      ],
+      "related": [
+        "Directed graph induced by a relation",
+        "Reachability (Erreichbarkeit)"
+      ],
+      "heading": "Pfad, Zyklus und Erreichbarkeit"
+    },
+    {
+      "id": "ds-07-k23",
+      "term": "Reachability",
+      "kind": "definition",
+      "short": "A vertex $s$ can reach $t$ if there is a finite-length directed path from $s$ to $t$.",
+      "explanation": "Such a path starts at $s$, ends at $t$, and follows the arrow direction at every step. Its length is the number of edges traversed and must be finite. By this definition, every vertex reaches itself by a path of length zero. Reachability therefore describes whether a sequence of permitted transitions exists between two vertices.",
+      "example": "In the example graph, $2$ reaches vertex $b$ directly and vertex $1$ via the path $(2,a,1)$.",
+      "pitfalls": [
+        "Traversing an edge against its direction does not establish reachability.",
+        "The path must have finite length."
+      ],
+      "related": [
+        "Path and cycle",
+        "Directed graph induced by a relation"
+      ],
+      "heading": "Pfad, Zyklus und Erreichbarkeit"
+    },
+    {
+      "id": "ds-07-k24",
+      "term": "Graph drawing (Zeichnung eines Graphen)",
+      "kind": "concept",
+      "short": "The geometric arrangement of vertices and edges does not change the represented relation.",
+      "explanation": "A graph can be drawn with vertices in different positions or with curved edges, provided the same pairs are represented as arrows. A mere crossing of two edges does not create an additional vertex. In general, the positions of the elements have no mathematical significance of their own, although a legible drawing avoids overlaps and unnecessary crossings. Whether a graph can be drawn without edge crossings is a question of planarity.",
+      "example": "Two crossing arrows still represent only their respective source-target pairs if no vertex is drawn at the crossing.",
+      "pitfalls": [
+        "An edge crossing is not automatically a vertex.",
+        "Different drawings can represent the same relation."
+      ],
+      "related": [
+        "Directed graph induced by a relation",
+        "Graph theory (Graphentheorie)"
+      ],
+      "heading": "Was an der Zeichnung wichtig ist"
+    },
+    {
+      "id": "ds-07-k25",
+      "term": "Bipartite graph (bipartiter Graph)",
+      "kind": "definition",
+      "short": "A graph is bipartite if its vertices can be divided into two classes and every edge connects vertices in different classes.",
+      "explanation": "There must be disjoint classes $L$ and $R$ with $V=L\\,\\dot\\cup\\,R$ such that $$E\\subseteq(L\\times R)\\cup(R\\times L).$$ For directed graphs, the arrow direction is ignored for this condition; what matters is whether the connected vertices lie in different classes. A loop prevents bipartiteness because it connects a vertex to itself. The two classes can, for example, be marked with two colors.",
+      "example": "For $V=\\{p,q,u,v\\}$ with $L=\\{p,q\\}$ and $R=\\{u,v\\}$, $E=\\{(p,u),(p,v),(q,v)\\}$ is bipartite.",
+      "pitfalls": [
+        "A loop makes a graph non-bipartite.",
+        "The arrow direction does not determine whether an edge connects two classes."
+      ],
+      "related": [
+        "Directed graph induced by a relation",
+        "Graph theory"
+      ],
+      "heading": "Bipartiter Graph"
+    }
+  ],
+  "generator": {
+    "model": "gpt-6-luna",
+    "effort": "xhigh",
+    "promptVersion": "k1",
+    "generatedAt": "2026-11-03T16:45:18.236Z"
+  }
+}

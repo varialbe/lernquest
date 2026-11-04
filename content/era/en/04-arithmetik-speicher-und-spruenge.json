@@ -1,0 +1,2021 @@
+{
+  "schemaVersion": 1,
+  "id": "era-04",
+  "module": "ERA",
+  "number": 4,
+  "slug": "arithmetik-speicher-und-spruenge",
+  "title": "Arithmetic, Memory, and Jumps",
+  "summary": "The unit covers immediate operands (Immediate Operand) and arithmetic instructions, the M extension (M-Erweiterung), bitwise logical instructions (Bitweise logische Befehle), and shifts. It then addresses byte addressing (Byteadressierung), word size (Wortbreite), alignment (Alignment), endianness, and 64-bit transfers between registers and main memory (Hauptspeicher). Finally, it examines unconditional and conditional jumps and branches (Sprünge und Branches) as mechanisms for controlling program flow.",
+  "concepts": [
+    "Immediate operand",
+    "Sign extension",
+    "M extension",
+    "Bitwise logical instructions",
+    "Shifts",
+    "Floating-point numbers (Gleitkommazahlen)",
+    "Main memory",
+    "Load/store architecture",
+    "Byte addressing",
+    "Word size",
+    "Alignment",
+    "Little-endian and big-endian",
+    "Jumps and branches",
+    "Two's complement (Zweierkomplement)",
+    "RISC-V"
+  ],
+  "keyFacts": [
+    "`addi a, b, imm` adds the constant `imm` to the value in `b` and writes the result to `a`.",
+    "To subtract a constant, use `addi` with a negative constant; there is no separate `subi` instruction.",
+    "The immediate in `addi` is limited to 12 bits and is sign-extended when negative.",
+    "`addi a, x0, imm` copies a constant directly into the destination register because `x0` always contains zero.",
+    "`lui` loads a 20-bit portion into the upper bits; `addi` can add another portion.",
+    "Depending on the instruction, `mul`, `mulh`, `mulhsu`, and `mulhu` return the lower or upper product portion with different signedness interpretations.",
+    "`div` and `rem` operate on signed values; `divu` and `remu` operate on unsigned values.",
+    "`and`, `or`, and `xor` combine register values bit by bit.",
+    "Logical right shifts fill the leftmost positions with zeros; arithmetic right shifts preserve the sign bit.",
+    "Floating-point arithmetic is not part of the RISC-V base instruction set; `fadd` and `fsub` are examples of floating-point instructions.",
+    "Main memory usually consists of addressable bytes, each 8 bits; registers are a small number of fast temporary storage locations.",
+    "With an address width of $n$ bits, at most $2^n$ distinct byte addresses can be represented.",
+    "A 32-bit value occupies four consecutive byte addresses; a 64-bit value occupies eight.",
+    "A datum is aligned to an $n$-byte boundary when $A \\bmod n=0$.",
+    "In little-endian order, the least significant byte is at the lowest address; in big-endian order, the most significant byte is.",
+    "In `ld a1, 8(s0)`, `a1` is the destination register, and the effective address is the value in `s0` plus 8.",
+    "In `sd a1, 8(s0)`, `a1` is the source, and its value is written to RAM starting at the effective address.",
+    "`beq`, `bne`, `blt`, and `bge` branch based on a comparison between two registers; an unconditional jump is always taken."
+  ],
+  "tags": [],
+  "links": [],
+  "source": {
+    "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO4.md",
+    "sha256": "09649143182adc74786d4fe6deddb7560290a1660ba0e0627dee29f47cf2136b",
+    "commit": "c01f10e1818d61e8fd05d663cf852d7a59f2e1e4"
+  },
+  "generator": {
+    "model": "gpt-5.6-luna",
+    "effort": "xhigh",
+    "reviewEffort": "high",
+    "promptVersion": "v2",
+    "generatedAt": "2026-10-31T00:33:22.511Z",
+    "review": {
+      "checked": 45,
+      "fixed": 1,
+      "removed": 0,
+      "notes": "45 Fragen geprüft. Eine Diagramm-Antwort wurde zur eindeutigen Formulierung von „Daten aus dem RAM laden“ präzisiert. Rechenaufgaben, Codeausgaben, Distraktoren, Mermaid-Blöcke, LaTeX, Cloze-Lücken und Quellen wurden kontrolliert."
+    }
+  },
+  "levels": [
+    {
+      "id": "era-04-l1",
+      "index": 1,
+      "kind": "basics",
+      "title": "Fundamentals",
+      "questions": [
+        {
+          "id": "era-04-l1-q01",
+          "type": "single",
+          "prompt": "In `addi a, b, imm`, what role does `imm` play?",
+          "options": [
+            {
+              "id": "a",
+              "text": "The jump target"
+            },
+            {
+              "id": "b",
+              "text": "A constant specified in the instruction"
+            },
+            {
+              "id": "c",
+              "text": "The source register"
+            },
+            {
+              "id": "d",
+              "text": "The destination register"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "`imm` is the immediate operand, a constant encoded directly in the instruction. `a` is the destination register and `b` is the source register.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO4.md",
+            "heading": "Konstanten und arithmetische Befehle"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Immediate operand"
+          ]
+        },
+        {
+          "id": "era-04-l1-q02",
+          "type": "truefalse",
+          "prompt": "To subtract a constant in RISC-V, use `addi` with a negative constant; a separate `subi` instruction is not needed.",
+          "options": [
+            {
+              "id": "true",
+              "text": "True"
+            },
+            {
+              "id": "false",
+              "text": "False"
+            }
+          ],
+          "correct": [
+            "true"
+          ],
+          "explanation": "Because it accepts negative immediate values, `addi` can also perform subtraction. The negative value is sign-extended.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO4.md",
+            "heading": "Konstanten und arithmetische Befehle"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Immediate operand",
+            "Sign extension"
+          ]
+        },
+        {
+          "id": "era-04-l1-q03",
+          "type": "cloze",
+          "prompt": "In `addi a, x0, imm`, ___ is copied into `a`.",
+          "options": [
+            {
+              "id": "a",
+              "text": "the value of the program counter"
+            },
+            {
+              "id": "b",
+              "text": "the address of `imm`"
+            },
+            {
+              "id": "c",
+              "text": "the constant `imm`"
+            },
+            {
+              "id": "d",
+              "text": "the value of the next instruction"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Since `x0` always contains zero, the sum `0 + imm` is exactly the constant `imm`.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO4.md",
+            "heading": "Konstanten und arithmetische Befehle"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Immediate operand",
+            "RISC-V"
+          ]
+        },
+        {
+          "id": "era-04-l1-q04",
+          "type": "single",
+          "prompt": "How many bits wide is the immediate in `addi`?",
+          "options": [
+            {
+              "id": "a",
+              "text": "20 bits"
+            },
+            {
+              "id": "b",
+              "text": "8 bits"
+            },
+            {
+              "id": "c",
+              "text": "5 bits"
+            },
+            {
+              "id": "d",
+              "text": "12 bits"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "The immediate in `addi` is 12 bits wide. For larger constants, `lui` and `addi` can be combined, among other approaches.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO4.md",
+            "heading": "Konstanten und arithmetische Befehle"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Immediate operand"
+          ]
+        },
+        {
+          "id": "era-04-l1-q05",
+          "type": "multi",
+          "prompt": "Which instructions require the M extension? Select all correct statements; more than one answer may be correct.",
+          "options": [
+            {
+              "id": "a",
+              "text": "`divu`"
+            },
+            {
+              "id": "b",
+              "text": "`addi`"
+            },
+            {
+              "id": "c",
+              "text": "`rem`"
+            },
+            {
+              "id": "d",
+              "text": "`mulh`"
+            },
+            {
+              "id": "e",
+              "text": "`and`"
+            }
+          ],
+          "correct": [
+            "a",
+            "c",
+            "d"
+          ],
+          "explanation": "`mulh`, `divu`, and `rem` are among the multiplication, division, and remainder instructions in the M extension. `and` and `addi` are not M-extension instructions.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO4.md",
+            "heading": "Multiplikation, Division und Rest: M-Erweiterung"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "M extension"
+          ]
+        },
+        {
+          "id": "era-04-l1-q06",
+          "type": "single",
+          "prompt": "How do `and`, `or`, and `xor` work?",
+          "options": [
+            {
+              "id": "a",
+              "text": "They compare only the most significant bits."
+            },
+            {
+              "id": "b",
+              "text": "They shift the register values by one position."
+            },
+            {
+              "id": "c",
+              "text": "They access main memory directly."
+            },
+            {
+              "id": "d",
+              "text": "They combine the source registers bit by bit."
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Each of these three instructions performs its respective logical operation separately at every bit position.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO4.md",
+            "heading": "Logische Befehle und Shifts"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Bitwise logical instructions"
+          ]
+        },
+        {
+          "id": "era-04-l1-q07",
+          "type": "single",
+          "prompt": "Which right shift preserves the sign bit?",
+          "options": [
+            {
+              "id": "a",
+              "text": "`srl` or `srli`"
+            },
+            {
+              "id": "b",
+              "text": "`sra` or `srai`"
+            },
+            {
+              "id": "c",
+              "text": "`sll` or `slli`"
+            },
+            {
+              "id": "d",
+              "text": "`xor`"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "In an arithmetic right shift (`sra`/`srai`), the sign bit is preserved. A logical right shift instead fills the leftmost positions with zeros.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO4.md",
+            "heading": "Logische Befehle und Shifts"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Shifts"
+          ]
+        },
+        {
+          "id": "era-04-l1-q08",
+          "type": "truefalse",
+          "prompt": "Floating-point arithmetic using instructions such as `fadd` and `fsub` is part of the RISC-V base instruction set.",
+          "options": [
+            {
+              "id": "true",
+              "text": "True"
+            },
+            {
+              "id": "false",
+              "text": "False"
+            }
+          ],
+          "correct": [
+            "false"
+          ],
+          "explanation": "Floating-point arithmetic is not part of the base instruction set. `fadd` and `fsub` are floating-point instructions, but they require an extension.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO4.md",
+            "heading": "Gleitkommazahlen"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Floating-point numbers",
+            "RISC-V"
+          ]
+        },
+        {
+          "id": "era-04-l1-q09",
+          "type": "single",
+          "prompt": "Which statement best describes main memory in relation to registers?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Main memory is smaller than registers but faster."
+            },
+            {
+              "id": "b",
+              "text": "Main memory contains only instructions, never data."
+            },
+            {
+              "id": "c",
+              "text": "Main memory is just another name for secondary storage."
+            },
+            {
+              "id": "d",
+              "text": "Main memory has greater capacity and holds data being processed."
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Registers are few in number and fast to access. RAM has greater capacity and holds the data being processed.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO4.md",
+            "heading": "Datentransfer und Hauptspeicher"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Main memory"
+          ]
+        },
+        {
+          "id": "era-04-l1-q10",
+          "type": "diagram",
+          "prompt": "Which edge in the diagram represents the transfer from RAM to a register?\n\n```mermaid\nflowchart LR\n    M[\"RAM\"] -->|Load| R[\"Register\"]\n    R -->|Store| M\n    R --> C[\"Rechen- und Logikbefehle\"]\n    C --> R\n```",
+          "options": [
+            {
+              "id": "a",
+              "text": "The edge to the arithmetic unit"
+            },
+            {
+              "id": "b",
+              "text": "The return edge from the arithmetic unit"
+            },
+            {
+              "id": "c",
+              "text": "`Load`"
+            },
+            {
+              "id": "d",
+              "text": "`Store`"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "`Load` loads data from RAM into a register. `Store` moves data in the opposite direction.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO4.md",
+            "heading": "Datentransfer und Hauptspeicher"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Main memory",
+            "Load/store architecture"
+          ]
+        },
+        {
+          "id": "era-04-l1-q11",
+          "type": "calc",
+          "prompt": "How many distinct byte addresses can be represented with an address width of 3 bits?",
+          "options": [
+            {
+              "id": "a",
+              "text": "16"
+            },
+            {
+              "id": "b",
+              "text": "3"
+            },
+            {
+              "id": "c",
+              "text": "6"
+            },
+            {
+              "id": "d",
+              "text": "8"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "With $n=3$, $2^n=2^3=8$. The addresses range from `000` to `111`.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO4.md",
+            "heading": "Adressen, Speicherzellen und Wortbreite"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Byte addressing"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "era-04-l2",
+      "index": 2,
+      "kind": "apply",
+      "title": "Applying",
+      "questions": [
+        {
+          "id": "era-04-l2-q01",
+          "type": "calc",
+          "prompt": "`b` contains the value 27. What value does `a` contain after `addi a, b, -9`?",
+          "options": [
+            {
+              "id": "a",
+              "text": "9"
+            },
+            {
+              "id": "b",
+              "text": "36"
+            },
+            {
+              "id": "c",
+              "text": "18"
+            },
+            {
+              "id": "d",
+              "text": "−18"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "The negative constant is sign-extended and added: $27+(-9)=18$. The value 36 would result from incorrectly adding 9.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO4.md",
+            "heading": "Konstanten und arithmetische Befehle"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Immediate operand",
+            "Sign extension"
+          ]
+        },
+        {
+          "id": "era-04-l2-q02",
+          "type": "code_output",
+          "prompt": "What output does this code produce, more precisely: what value does `t0` contain afterward?\n\n```asm\nlui  t0, 0x12345\naddi t0, t0, 0x678\n```",
+          "options": [
+            {
+              "id": "a",
+              "text": "`0x00000678`"
+            },
+            {
+              "id": "b",
+              "text": "`0x12345678`"
+            },
+            {
+              "id": "c",
+              "text": "`0x12345FFF`"
+            },
+            {
+              "id": "d",
+              "text": "`0x12345000`"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "`lui` first produces `0x12345000`. Adding `0x678` gives `0x12345678`.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO4.md",
+            "heading": "Konstanten und arithmetische Befehle"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Immediate operand",
+            "RISC-V"
+          ]
+        },
+        {
+          "id": "era-04-l2-q03",
+          "type": "calc",
+          "prompt": "For the four bits, let `s1 = 1010` and `s2 = 1100`. What result does `xor s3, s1, s2` produce?",
+          "options": [
+            {
+              "id": "a",
+              "text": "`1000`"
+            },
+            {
+              "id": "b",
+              "text": "`0110`"
+            },
+            {
+              "id": "c",
+              "text": "`1110`"
+            },
+            {
+              "id": "d",
+              "text": "`0000`"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "XOR produces 1 exactly when the bits differ: `1010 XOR 1100 = 0110`. `1000` would be the result of AND, and `1110` the result of OR.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO4.md",
+            "heading": "Logische Befehle und Shifts"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Bitwise logical instructions"
+          ]
+        },
+        {
+          "id": "era-04-l2-q04",
+          "type": "calc",
+          "prompt": "What result does a logical right shift by one position produce for the 8-bit value `10110100`?",
+          "options": [
+            {
+              "id": "a",
+              "text": "`10110100`"
+            },
+            {
+              "id": "b",
+              "text": "`01101101`"
+            },
+            {
+              "id": "c",
+              "text": "`11011010`"
+            },
+            {
+              "id": "d",
+              "text": "`01011010`"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "With `srl`, one bit is removed on the right and a 0 is added on the left: `10110100` becomes `01011010`. `11011010` would result from an arithmetic right shift.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO4.md",
+            "heading": "Logische Befehle und Shifts"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Shifts"
+          ]
+        },
+        {
+          "id": "era-04-l2-q05",
+          "type": "multi",
+          "prompt": "Which mappings are correct? Select all correct statements; more than one answer may be correct.",
+          "options": [
+            {
+              "id": "a",
+              "text": "`remu` returns the unsigned remainder."
+            },
+            {
+              "id": "b",
+              "text": "`mulhsu` returns the lower portion of the product."
+            },
+            {
+              "id": "c",
+              "text": "`mulhu` returns the upper portion for two unsigned operands."
+            },
+            {
+              "id": "d",
+              "text": "`mul` returns the lower portion of the product."
+            },
+            {
+              "id": "e",
+              "text": "`divu` returns a signed quotient."
+            }
+          ],
+          "correct": [
+            "a",
+            "c",
+            "d"
+          ],
+          "explanation": "`mul` returns the lower product portion, `mulhu` the upper portion for two unsigned operands, and `remu` the unsigned remainder. By contrast, `mulhsu` returns an upper product portion, and `divu` operates on unsigned values.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO4.md",
+            "heading": "Multiplikation, Division und Rest: M-Erweiterung"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "M extension"
+          ]
+        },
+        {
+          "id": "era-04-l2-q06",
+          "type": "calc",
+          "prompt": "Which of the following starting addresses is aligned for a 4-byte datum?",
+          "options": [
+            {
+              "id": "a",
+              "text": "6"
+            },
+            {
+              "id": "b",
+              "text": "12"
+            },
+            {
+              "id": "c",
+              "text": "14"
+            },
+            {
+              "id": "d",
+              "text": "10"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "Alignment to a 4-byte boundary means $A \\bmod 4=0$. Only $12\\bmod4=0$; the other addresses have a remainder of 2 or 3.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO4.md",
+            "heading": "Ausrichtung (*Alignment*)"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Alignment"
+          ]
+        },
+        {
+          "id": "era-04-l2-q07-r1",
+          "type": "calc",
+          "prompt": "The 32-bit value `0x6C2A91E7` begins at byte address `n`. Its bytes from most significant to least significant are `0x6C`, `0x2A`, `0x91`, `0xE7`. In little-endian order, the least significant byte is at `n`; the next more significant byte is at each subsequent address. Which byte is at `n+2`?",
+          "options": [
+            {
+              "id": "a",
+              "text": "0xE7"
+            },
+            {
+              "id": "b",
+              "text": "0x91"
+            },
+            {
+              "id": "c",
+              "text": "0x2A"
+            },
+            {
+              "id": "d",
+              "text": "0x6C"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "In little-endian order, the bytes are stored starting at `n` as `0xE7`, `0x91`, `0x2A`, `0x6C`. Therefore, the byte at `n+2` is `0x2A`.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO4.md",
+            "heading": "Little Endian und Big Endian"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Little-endian order",
+            "Byte order",
+            "Memory addresses"
+          ]
+        },
+        {
+          "id": "era-04-l2-q08",
+          "type": "single",
+          "prompt": "`s0` contains 1000. What does `ld a1, 8(s0)` do?",
+          "options": [
+            {
+              "id": "a",
+              "text": "It loads 64 bits from address 1008 into `a1`."
+            },
+            {
+              "id": "b",
+              "text": "It loads 64 bits from address 992 into `a1`."
+            },
+            {
+              "id": "c",
+              "text": "It stores `a1` at address 1008."
+            },
+            {
+              "id": "d",
+              "text": "It loads 8 bits from address 1000 into `a1`."
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "The effective address is $1000+8=1008$. `ld` loads a doubleword, or 64 bits, from RAM into the destination register `a1`.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO4.md",
+            "heading": "Laden und Speichern von 64 Bit"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Load/store architecture",
+            "Word size"
+          ]
+        },
+        {
+          "id": "era-04-l2-q09",
+          "type": "single",
+          "prompt": "What role does `a1` play in `sd a1, 8(s0)`?",
+          "options": [
+            {
+              "id": "a",
+              "text": "`a1` is the destination register for a load."
+            },
+            {
+              "id": "b",
+              "text": "`a1` specifies the number of bits to shift."
+            },
+            {
+              "id": "c",
+              "text": "`a1` is the source of the 64 bits to be stored."
+            },
+            {
+              "id": "d",
+              "text": "`a1` contains the calculated address."
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "With `sd`, the first register is the source. The value from `a1` is written to RAM at address `Wert(s0)+8`.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO4.md",
+            "heading": "Laden und Speichern von 64 Bit"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Load/store architecture"
+          ]
+        },
+        {
+          "id": "era-04-l2-q10",
+          "type": "code_output",
+          "prompt": "What output does this code produce, more precisely: what value does `s0` contain at the end?\n\n```asm\naddi s3, x0, 4\naddi s4, x0, 4\naddi s0, x0, 1\nbne  s3, s4, L1\naddi s0, s0, 2\nL1:\nsub  s0, s0, s3\n```",
+          "options": [
+            {
+              "id": "a",
+              "text": "−1"
+            },
+            {
+              "id": "b",
+              "text": "5"
+            },
+            {
+              "id": "c",
+              "text": "1"
+            },
+            {
+              "id": "d",
+              "text": "3"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "`s3` and `s4` are equal, so the code does not branch to `L1`. Then $s0=1+2-4=-1$.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO4.md",
+            "heading": "Bedingter Sprung (*Branch*)"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Jumps and branches"
+          ]
+        },
+        {
+          "id": "era-04-l2-q11",
+          "type": "single",
+          "prompt": "Under what condition does `bge r1, r2, ziel` branch?",
+          "options": [
+            {
+              "id": "a",
+              "text": "When `r1` is less than `r2`"
+            },
+            {
+              "id": "b",
+              "text": "When `r1` and `r2` are different"
+            },
+            {
+              "id": "c",
+              "text": "Always, regardless of the registers"
+            },
+            {
+              "id": "d",
+              "text": "When `r1` is greater than or equal to `r2`"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "`bge` stands for “branch if greater or equal.” The branch is taken if the first register value is greater than or equal to the second.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO4.md",
+            "heading": "Bedingter Sprung (*Branch*)"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Jumps and branches"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "era-04-l3",
+      "index": 3,
+      "kind": "deepen",
+      "title": "Deepening Your Understanding",
+      "questions": [
+        {
+          "id": "era-04-l3-q01",
+          "type": "multi",
+          "prompt": "Which statements about immediate constants are correct? Select all correct statements; more than one answer may be correct.",
+          "options": [
+            {
+              "id": "a",
+              "text": "Subtraction by a constant can be expressed using `addi` with a negative immediate."
+            },
+            {
+              "id": "b",
+              "text": "`addi a, x0, imm` can write a constant directly to `a`."
+            },
+            {
+              "id": "c",
+              "text": "The immediate in `addi` is limited to 12 bits."
+            },
+            {
+              "id": "d",
+              "text": "A negative immediate value is processed without sign extension."
+            },
+            {
+              "id": "e",
+              "text": "`lui` alone always automatically adds all lower bits of an arbitrarily large constant."
+            }
+          ],
+          "correct": [
+            "a",
+            "b",
+            "c"
+          ],
+          "explanation": "`addi` can subtract using negative constants, but it has only a 12-bit immediate and uses sign extension. Using `x0`, a constant can be written directly to a register; `lui` alone does not add lower bits.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO4.md",
+            "heading": "Konstanten und arithmetische Befehle"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Immediate operand",
+            "Sign extension"
+          ]
+        },
+        {
+          "id": "era-04-l3-q02",
+          "type": "single",
+          "prompt": "Which instruction returns the upper portion of the product when the first operand is interpreted as signed and the second as unsigned?",
+          "options": [
+            {
+              "id": "a",
+              "text": "`mul`"
+            },
+            {
+              "id": "b",
+              "text": "`mulhsu`"
+            },
+            {
+              "id": "c",
+              "text": "`mulhu`"
+            },
+            {
+              "id": "d",
+              "text": "`mulh`"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "`mulhsu` returns the upper product portion with a signed first operand and an unsigned second operand. By contrast, `mulh` uses two signed operands.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO4.md",
+            "heading": "Multiplikation, Division und Rest: M-Erweiterung"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "M extension"
+          ]
+        },
+        {
+          "id": "era-04-l3-q03",
+          "type": "truefalse",
+          "prompt": "An `AND` mask leaves a 1 at a bit position only when both operands contain a 1 there.",
+          "options": [
+            {
+              "id": "true",
+              "text": "True"
+            },
+            {
+              "id": "false",
+              "text": "False"
+            }
+          ],
+          "correct": [
+            "true"
+          ],
+          "explanation": "For AND, $1\\text{ AND }1=1$; all other input combinations produce 0. Therefore, only the shared 1-bits remain.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO4.md",
+            "heading": "Logische Befehle und Shifts"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Bitwise logical instructions"
+          ]
+        },
+        {
+          "id": "era-04-l3-q04",
+          "type": "single",
+          "prompt": "Which combination correctly describes the two right shifts of the value `10110100` by one position?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Logical: `11011010`, arithmetic: `01011010`"
+            },
+            {
+              "id": "b",
+              "text": "Logical: `01011010`, arithmetic: `00101101`"
+            },
+            {
+              "id": "c",
+              "text": "Logical: `10110100`, arithmetic: `01011010`"
+            },
+            {
+              "id": "d",
+              "text": "Logical: `01011010`, arithmetic: `11011010`"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "`srl` adds a 0 on the left and produces `01011010`. `sra` copies the leading 1-bit and produces `11011010`.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO4.md",
+            "heading": "Logische Befehle und Shifts"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Shifts"
+          ]
+        },
+        {
+          "id": "era-04-l3-q05",
+          "type": "diagram",
+          "prompt": "Which label belongs on the edge from RAM to the register?\n\n```mermaid\nflowchart LR\n    M[\"RAM\"] -->|?| R[\"Register\"]\n    R --> C[\"Rechen- und Logikbefehle\"]\n    C --> R\n```",
+          "options": [
+            {
+              "id": "a",
+              "text": "`Load`"
+            },
+            {
+              "id": "b",
+              "text": "`Branch`"
+            },
+            {
+              "id": "c",
+              "text": "`Immediate`"
+            },
+            {
+              "id": "d",
+              "text": "`Store`"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "A load transfers data from RAM to a register. A store would denote the opposite direction, from the register to RAM.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO4.md",
+            "heading": "Datentransfer und Hauptspeicher"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Load/store architecture",
+            "Main memory"
+          ]
+        },
+        {
+          "id": "era-04-l3-q06",
+          "type": "multi",
+          "prompt": "Which statements about memory cells and word size are correct? Select all correct statements; more than one answer may be correct.",
+          "options": [
+            {
+              "id": "a",
+              "text": "A 32-bit instruction must always be read in four separate byte accesses."
+            },
+            {
+              "id": "b",
+              "text": "A typical addressable memory cell contains 8 bits, or one byte."
+            },
+            {
+              "id": "c",
+              "text": "A byte address identifies only the location of a complete 32-bit value."
+            },
+            {
+              "id": "d",
+              "text": "A 32-bit value occupies four consecutive byte addresses."
+            },
+            {
+              "id": "e",
+              "text": "The processor's word size and the size of an addressable memory cell are different properties."
+            }
+          ],
+          "correct": [
+            "b",
+            "d",
+            "e"
+          ],
+          "explanation": "Memory is usually byte-addressable, so a 32-bit value occupies four bytes. The processor's word size is not the same as the size of an individual memory cell; a single access does not necessarily have to be byte-wide.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO4.md",
+            "heading": "Adressen, Speicherzellen und Wortbreite"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Byte addressing",
+            "Word size"
+          ]
+        },
+        {
+          "id": "era-04-l3-q07",
+          "type": "calc",
+          "prompt": "`s0` contains 1000. Which byte addresses are written by `sd a1, 8(s0)`?",
+          "options": [
+            {
+              "id": "a",
+              "text": "1008 through 1015"
+            },
+            {
+              "id": "b",
+              "text": "1000 through 1007"
+            },
+            {
+              "id": "c",
+              "text": "1008 through 1016"
+            },
+            {
+              "id": "d",
+              "text": "1010 through 1017"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "The effective address is $1000+8=1008$. A 64-bit store occupies eight bytes, so it uses addresses 1008 through 1015 inclusive.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO4.md",
+            "heading": "Laden und Speichern von 64 Bit"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Load/store architecture",
+            "Word size",
+            "Byte addressing"
+          ]
+        },
+        {
+          "id": "era-04-l3-q08",
+          "type": "truefalse",
+          "prompt": "Little-endian order is technically necessary because this byte order became universally established through Intel.",
+          "options": [
+            {
+              "id": "true",
+              "text": "True"
+            },
+            {
+              "id": "false",
+              "text": "False"
+            }
+          ],
+          "correct": [
+            "false"
+          ],
+          "explanation": "Intel's prevalence explains the widespread use of little-endian order, but it is not a technical necessity. Big-endian order is also possible.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO4.md",
+            "heading": "Little Endian und Big Endian"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Little-endian and big-endian order"
+          ]
+        },
+        {
+          "id": "era-04-l3-q09-r1",
+          "type": "single",
+          "prompt": "For this question, a 4-byte datum at address $A$ is aligned if $A \\bmod 4 = 0$. x86 can allow unaligned accesses; some ARM types have stricter alignment requirements. A 4-byte access begins at byte address 6. Which statement is correct?",
+          "options": [
+            {
+              "id": "a",
+              "text": "All x86 processors must reject the access, and all ARM processors must allow it."
+            },
+            {
+              "id": "b",
+              "text": "An x86 processor that allows unaligned accesses may permit the access; for some ARM types, it may violate the stricter alignment requirement."
+            },
+            {
+              "id": "c",
+              "text": "Address 6 is aligned because it is divisible by 2."
+            },
+            {
+              "id": "d",
+              "text": "Alignment matters only for jump instructions, not for data accesses."
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "$6 \\bmod 4 = 2$, so the address is unaligned for a 4-byte datum. According to the properties stated in the question, an x86 processor can allow unaligned accesses; for some ARM types, the address may violate the stricter requirement.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO4.md",
+            "heading": "Ausrichtung (*Alignment*)"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Alignment",
+            "Byte addresses",
+            "Unaligned accesses"
+          ]
+        },
+        {
+          "id": "era-04-l3-q10-r1",
+          "type": "code_output",
+          "prompt": "In this RISC-V code, `x0 = 0`. `addi rd, rs, n` writes `rs + n` to `rd`; `add` adds two registers, and `sub` subtracts the second register from the first. `bne r1, r2, L` branches to `L` if the register values differ. A jump to a label resumes execution there; instructions before the label are skipped, and instructions starting at the label are executed.\n\nWhat value does `s0` contain after the code executes?\n\n```asm\naddi s3, x0, 4\naddi s4, x0, 7\naddi s0, x0, 20\naddi s1, x0, 6\nbne  s3, s4, L1\nadd  s0, s0, s1\nL1:\nsub  s0, s0, s3\n```",
+          "options": [
+            {
+              "id": "a",
+              "text": "4"
+            },
+            {
+              "id": "b",
+              "text": "26"
+            },
+            {
+              "id": "c",
+              "text": "16"
+            },
+            {
+              "id": "d",
+              "text": "22"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "`s3` and `s4` contain 4 and 7. Because they differ, `bne` branches to `L1` and skips the addition. The subtraction at the label is executed: `s0 = 20 − 4 = 16`.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO4.md",
+            "heading": "Bedingter Sprung (*Branch*)"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Conditional branch",
+            "bne",
+            "Labels",
+            "Assembler execution"
+          ]
+        },
+        {
+          "id": "era-04-l3-q11",
+          "type": "cloze",
+          "prompt": "For `ld a1, 8(s0)`, effective address = ___.",
+          "options": [
+            {
+              "id": "a",
+              "text": "value in `a1` + 8"
+            },
+            {
+              "id": "b",
+              "text": "value in `s0` − 8"
+            },
+            {
+              "id": "c",
+              "text": "8 · value in `s0`"
+            },
+            {
+              "id": "d",
+              "text": "value in `s0` + 8"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "The offset is added to the value in the base register. The destination register `a1` does not affect the address calculation.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO4.md",
+            "heading": "Laden und Speichern von 64 Bit"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Load/store architecture"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "era-04-l4",
+      "index": 4,
+      "kind": "boss",
+      "title": "Boss",
+      "questions": [
+        {
+          "id": "era-04-l4-q01",
+          "type": "single",
+          "prompt": "The 5-bit pattern `11110` represents −2 in two's-complement notation. Which combination uses this meaning correctly for addition with a constant?",
+          "options": [
+            {
+              "id": "a",
+              "text": "The value is +2; use `addi a, b, 2`."
+            },
+            {
+              "id": "b",
+              "text": "The value is +30; use `subi a, b, 2`."
+            },
+            {
+              "id": "c",
+              "text": "The value is −1; use `addi a, b, 1`."
+            },
+            {
+              "id": "d",
+              "text": "The value is −2; use `addi a, b, -2`."
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "With five bits, `11110` corresponds to the signed value −2. In RISC-V, subtraction by a negative constant is expressed using `addi` and sign extension.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO2 (ZÜ).md",
+            "heading": null
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Two's complement",
+            "Immediate operand",
+            "Sign extension"
+          ]
+        },
+        {
+          "id": "era-04-l4-q02",
+          "type": "multi",
+          "prompt": "Which statements correctly describe the relationship between the ISA and RISC-V load/store instructions? Select all correct statements; more than one answer may be correct.",
+          "options": [
+            {
+              "id": "a",
+              "text": "Disassembly automatically turns a store into an arithmetic instruction."
+            },
+            {
+              "id": "b",
+              "text": "A load transfers data from RAM to a register, and a store transfers it in the opposite direction."
+            },
+            {
+              "id": "c",
+              "text": "In RISC-V, registers are only names for memory addresses in RAM."
+            },
+            {
+              "id": "d",
+              "text": "RISC-V arithmetic instructions generally use operands directly from RAM."
+            },
+            {
+              "id": "e",
+              "text": "The ISA specifies the observable effects of register, load, and store instructions."
+            }
+          ],
+          "correct": [
+            "b",
+            "e"
+          ],
+          "explanation": "The ISA specifies instructions, registers, and their observable effects. RISC-V follows a load/store architecture: arithmetic instructions operate on registers, while load and store instructions handle data transfers.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO3.md",
+            "heading": null
+          },
+          "difficulty": 5,
+          "concepts": [
+            "RISC-V",
+            "Load/store architecture"
+          ]
+        },
+        {
+          "id": "era-04-l4-q03",
+          "type": "calc",
+          "prompt": "A 64-bit value is stored in ordinary 8-bit memory cells. How many consecutive byte addresses does it require?",
+          "options": [
+            {
+              "id": "a",
+              "text": "8"
+            },
+            {
+              "id": "b",
+              "text": "16"
+            },
+            {
+              "id": "c",
+              "text": "64"
+            },
+            {
+              "id": "d",
+              "text": "4"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "64 bits divided by 8 bits per byte equals 8 bytes. Therefore, a 64-bit word size does not describe the size of an individual memory cell.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO1.md",
+            "heading": null
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Word size",
+            "Byte addressing"
+          ]
+        },
+        {
+          "id": "era-04-l4-q04",
+          "type": "code_output",
+          "prompt": "What output does this code produce, more precisely: what value does `s0` contain at the end?\n\n```asm\naddi s1, x0, 10\naddi s2, x0, 12\nxor  s3, s1, s2\naddi s0, x0, 1\nbne  s3, s2, L1\naddi s0, s0, 4\nL1:\nadd  s0, s0, s3\n```",
+          "options": [
+            {
+              "id": "a",
+              "text": "7"
+            },
+            {
+              "id": "b",
+              "text": "11"
+            },
+            {
+              "id": "c",
+              "text": "1"
+            },
+            {
+              "id": "d",
+              "text": "6"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "`10` is `1010` and `12` is `1100`; their XOR is `0110`, or 6. Since 6 is not equal to 12, the code branches to `L1`, skips the addition of 4, and ends with $1+6=7$.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO4.md",
+            "heading": "Logische Befehle und Shifts"
+          },
+          "difficulty": 5,
+          "concepts": [
+            "Bitwise logical instructions",
+            "Jumps and branches"
+          ]
+        },
+        {
+          "id": "era-04-l4-q05-r2",
+          "type": "multi",
+          "prompt": "The 32-bit value `0x5C7E91A3` begins at byte address 128. Its bytes from most significant to least significant are `0x5C`, `0x7E`, `0x91`, `0xA3`. In little-endian order, the least significant byte is at the lowest address; the next more significant byte is at each subsequent address. A 4-byte datum at address $A$ is aligned if $A \\bmod 4 = 0$. Which statements are correct? Select all correct statements.",
+          "options": [
+            {
+              "id": "a",
+              "text": "The byte at address 130 is 0x91."
+            },
+            {
+              "id": "b",
+              "text": "The most significant byte 0x5C is at address 131."
+            },
+            {
+              "id": "c",
+              "text": "Address 128 is aligned for a 4-byte datum."
+            },
+            {
+              "id": "d",
+              "text": "The byte at address 128 is 0xA3."
+            },
+            {
+              "id": "e",
+              "text": "The byte at address 129 is 0x7E."
+            }
+          ],
+          "correct": [
+            "b",
+            "c",
+            "d"
+          ],
+          "explanation": "In little-endian order, the bytes are at addresses 128 through 131 in the order `0xA3`, `0x91`, `0x7E`, `0x5C`. Thus c and e are correct. Also, 128 is divisible by 4, so a is correct as well.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO4.md",
+            "heading": "Little Endian und Big Endian"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Little-endian order",
+            "Alignment",
+            "Byte order",
+            "Memory addresses"
+          ]
+        },
+        {
+          "id": "era-04-l4-q06",
+          "type": "multi",
+          "prompt": "Which instructions return the upper portion of a 32-bit-by-32-bit product? Select all correct statements; more than one answer may be correct.",
+          "options": [
+            {
+              "id": "a",
+              "text": "`mul` for the upper portion"
+            },
+            {
+              "id": "b",
+              "text": "`mulhu` for two unsigned operands"
+            },
+            {
+              "id": "c",
+              "text": "`mulhsu` for one signed and one unsigned operand"
+            },
+            {
+              "id": "d",
+              "text": "`mulh` for two signed operands"
+            },
+            {
+              "id": "e",
+              "text": "`rem` for the upper portion"
+            }
+          ],
+          "correct": [
+            "b",
+            "c",
+            "d"
+          ],
+          "explanation": "The three upper-product variants are `mulh`, `mulhsu`, and `mulhu`; they differ in how they interpret signedness. `mul` returns the lower product portion, and `rem` returns a remainder.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO4.md",
+            "heading": "Multiplikation, Division und Rest: M-Erweiterung"
+          },
+          "difficulty": 5,
+          "concepts": [
+            "M extension"
+          ]
+        },
+        {
+          "id": "era-04-l4-q07",
+          "type": "code_output",
+          "prompt": "What output does this code produce, more precisely: what value does `s2` contain at the end?\n\n```asm\naddi s0, x0, 5\naddi s1, x0, 8\nblt  s0, s1, L1\naddi s2, x0, 0\nj    Ende\nL1:\naddi s2, x0, 1\nEnde:\nadd  s2, s2, s0\n```",
+          "options": [
+            {
+              "id": "a",
+              "text": "1"
+            },
+            {
+              "id": "b",
+              "text": "6"
+            },
+            {
+              "id": "c",
+              "text": "5"
+            },
+            {
+              "id": "d",
+              "text": "0"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "Since $5<8$, `blt` branches to `L1` and sets `s2` to 1. The code then adds `s0=5`, giving 6.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO4.md",
+            "heading": "Bedingter Sprung (*Branch*)"
+          },
+          "difficulty": 5,
+          "concepts": [
+            "Jumps and branches"
+          ]
+        },
+        {
+          "id": "era-04-l4-q08",
+          "type": "diagram",
+          "prompt": "Which description matches the possible data flow in the diagram?\n\n```mermaid\nflowchart LR\n    M[\"RAM\"] -->|Load| R[\"Register\"]\n    R --> C[\"Rechen- und Logikbefehle\"]\n    C --> R\n    R -->|Store| M\n```",
+          "options": [
+            {
+              "id": "a",
+              "text": "A store loads data from RAM into a register"
+            },
+            {
+              "id": "b",
+              "text": "Load registers from RAM only and never write them back"
+            },
+            {
+              "id": "c",
+              "text": "Load data from RAM, process it in a register, and store the result back in RAM"
+            },
+            {
+              "id": "d",
+              "text": "Modify RAM directly with an arithmetic instruction, without using registers"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "The data flow is a load from RAM into a register, processing with register operands, and then a store back to RAM. This is the load/store architecture.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO4.md",
+            "heading": "Datentransfer und Hauptspeicher"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Load/store architecture",
+            "Main memory"
+          ]
+        },
+        {
+          "id": "era-04-l4-q09",
+          "type": "single",
+          "prompt": "A value such as `0x12345678` does not fit entirely in a 12-bit immediate. Which strategy matches the RISC-V syntax described?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Load the upper portion with `lui` and add another portion with `addi`"
+            },
+            {
+              "id": "b",
+              "text": "Shift the value into main memory with `srl`"
+            },
+            {
+              "id": "c",
+              "text": "Fetch the value from RAM with `beq` and add to it with `j`"
+            },
+            {
+              "id": "d",
+              "text": "Automatically generate an arbitrarily large constant with `and` and `xor`"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "`lui` loads a 20-bit portion into the upper bits; `addi` adds the lower portion. The other instructions are not used to construct a large constant.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO4.md",
+            "heading": "Konstanten und arithmetische Befehle"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Immediate operand",
+            "RISC-V"
+          ]
+        },
+        {
+          "id": "era-04-l4-q10",
+          "type": "multi",
+          "prompt": "Given `s0 = 1000` and the instructions `ld a1, 8(s0)` and `sd a1, 8(s0)`, which statements are correct? Select all correct statements; more than one answer may be correct.",
+          "options": [
+            {
+              "id": "a",
+              "text": "For `ld`, `a1` is the source; for `sd`, it is the destination."
+            },
+            {
+              "id": "b",
+              "text": "The effective address is 1008."
+            },
+            {
+              "id": "c",
+              "text": "The transfer uses only byte addresses 1000 through 1007."
+            },
+            {
+              "id": "d",
+              "text": "`sd` writes the value in `a1` to RAM."
+            },
+            {
+              "id": "e",
+              "text": "The 64-bit transfer uses byte addresses 1008 through 1015."
+            }
+          ],
+          "correct": [
+            "b",
+            "d",
+            "e"
+          ],
+          "explanation": "The offset 8 gives address 1008, and 64 bits occupy eight bytes there, through address 1015. `ld` loads into `a1`, while `sd` writes the value in `a1` to memory.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO4.md",
+            "heading": "Laden und Speichern von 64 Bit"
+          },
+          "difficulty": 5,
+          "concepts": [
+            "Load/store architecture",
+            "Word size",
+            "Byte addressing"
+          ]
+        },
+        {
+          "id": "era-04-l4-q11",
+          "type": "multi",
+          "prompt": "Which statements correctly compare conditional branches? Select all correct statements; more than one answer may be correct.",
+          "options": [
+            {
+              "id": "a",
+              "text": "`bne` always branches, regardless of the register values."
+            },
+            {
+              "id": "b",
+              "text": "Other ISAs such as x86 can check status flags from a previous arithmetic operation."
+            },
+            {
+              "id": "c",
+              "text": "A conditional branch is taken only when its condition is met."
+            },
+            {
+              "id": "d",
+              "text": "`bne r1, r2, ziel` directly checks whether the registers differ."
+            },
+            {
+              "id": "e",
+              "text": "Every conditional branch must first evaluate a status register."
+            }
+          ],
+          "correct": [
+            "b",
+            "c",
+            "d"
+          ],
+          "explanation": "In RISC-V, `bne` compares the two registers directly and branches only if they are unequal. Other ISAs may instead use status flags from a previous arithmetic operation; a branch is never taken unconditionally when its condition is not met.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO4.md",
+            "heading": "Bedingter Sprung (*Branch*)"
+          },
+          "difficulty": 5,
+          "concepts": [
+            "Jumps and branches"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "era-04-l5",
+      "index": 5,
+      "kind": "bonus",
+      "title": "Practice: Bits, Bytes, and Jumps in Everyday Life",
+      "questions": [
+        {
+          "id": "era-04-l5-q01",
+          "type": "single",
+          "prompt": "You are developing a navigation app: at each intersection, it checks whether the requested street is closed. If it is closed, the program chooses an alternative; otherwise, it follows the route. Which concept does this illustrate?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Little-endian order"
+            },
+            {
+              "id": "b",
+              "text": "Immediate operand"
+            },
+            {
+              "id": "c",
+              "text": "Alignment"
+            },
+            {
+              "id": "d",
+              "text": "Conditional branch (*branch*)"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "The app checks a condition and then decides which part of the program to execute. Conditional branches such as `beq` or `bne` serve exactly this purpose.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO4.md",
+            "heading": "Bedingter Sprung (*Branch*)"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Jumps and branches"
+          ]
+        },
+        {
+          "id": "era-04-l5-q02",
+          "type": "multi",
+          "prompt": "In which situations are bitwise logic and bit masks especially useful?",
+          "options": [
+            {
+              "id": "a",
+              "text": "A network protocol checks several independent flags in a header."
+            },
+            {
+              "id": "b",
+              "text": "A smartphone stores several on/off switches compactly in a bit mask."
+            },
+            {
+              "id": "c",
+              "text": "Image processing uses a mask to isolate a color channel in packed pixel data."
+            },
+            {
+              "id": "d",
+              "text": "A spreadsheet sorts names alphabetically."
+            }
+          ],
+          "correct": [
+            "a",
+            "b",
+            "c"
+          ],
+          "explanation": "AND, OR, and XOR operate on individual bits, so they are suitable for compact flags and masks, for example in status fields or packed pixel data. Alphabetically sorting names, by contrast, is not a bitwise operation.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO4.md",
+            "heading": "Logische Befehle und Shifts"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Bitwise logical instructions"
+          ]
+        },
+        {
+          "id": "era-04-l5-q03",
+          "type": "estimate",
+          "prompt": "How many different bit patterns can a 12-bit field contain?",
+          "options": [],
+          "correct": [],
+          "slider": {
+            "min": 3600,
+            "max": 4300,
+            "step": 2,
+            "answer": 4096,
+            "tolerance": 0,
+            "unit": "Patterns",
+            "scale": "linear"
+          },
+          "explanation": "Each of the 12 bit positions can be 0 or 1. Therefore, there are $2^{12}=4096$ different bit patterns.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO4.md",
+            "heading": "Konstanten und arithmetische Befehle"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Immediate operand"
+          ]
+        },
+        {
+          "id": "era-04-l5-q04",
+          "type": "truefalse",
+          "prompt": "You are reading a 32-bit number from four bytes stored by another system. Is this statement correct: without knowing the byte order, the numeric value generally cannot be reconstructed reliably?",
+          "options": [
+            {
+              "id": "true",
+              "text": "True"
+            },
+            {
+              "id": "false",
+              "text": "False"
+            }
+          ],
+          "correct": [
+            "true"
+          ],
+          "explanation": "In little-endian and big-endian formats, the bytes of a multi-byte value are stored in different orders in memory. The software must know which endianness is used to assemble the numeric value correctly.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO4.md",
+            "heading": "Little Endian und Big Endian"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Little-endian and big-endian order",
+            "Byte addressing"
+          ]
+        },
+        {
+          "id": "era-04-l5-q05",
+          "type": "single",
+          "prompt": "In a data structure, the ABI in use requires a 64-bit timestamp to begin at an 8-byte boundary. Why might the compiler insert extra bytes before the timestamp?",
+          "options": [
+            {
+              "id": "a",
+              "text": "To make the timestamp begin at an 8-byte boundary"
+            },
+            {
+              "id": "b",
+              "text": "To automatically reorder the bytes into little-endian order"
+            },
+            {
+              "id": "c",
+              "text": "To convert a floating-point number into an integer"
+            },
+            {
+              "id": "d",
+              "text": "To turn the timestamp into a conditional branch"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "Padding can align an address to the 8-byte boundary required by the ABI. This alignment can make accesses to multi-byte values easier or faster.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO4.md",
+            "heading": "Ausrichtung (*Alignment*)"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Alignment",
+            "Main memory"
+          ]
+        },
+        {
+          "id": "era-04-l5-q06",
+          "type": "estimate",
+          "prompt": "A microcontroller uses 16-bit addresses for individual bytes. How many distinct byte addresses can it represent?",
+          "options": [],
+          "correct": [],
+          "slider": {
+            "min": 32768,
+            "max": 73728,
+            "step": 128,
+            "answer": 65536,
+            "tolerance": 0,
+            "unit": "Byte addresses",
+            "scale": "linear"
+          },
+          "explanation": "With $n$ address bits, $2^n$ distinct byte addresses are possible. For 16 bits, that is $2^{16}=65536$ addresses.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO4.md",
+            "heading": "Adressen, Speicherzellen und Wortbreite"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Byte addressing",
+            "Main memory"
+          ]
+        },
+        {
+          "id": "era-04-l5-q07",
+          "type": "single",
+          "prompt": "In a game, 64-bit coordinates are loaded from RAM, processed in registers, and then written back. Which architectural principle does this illustrate?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Sign extension"
+            },
+            {
+              "id": "b",
+              "text": "Load/store architecture"
+            },
+            {
+              "id": "c",
+              "text": "Big-endian order"
+            },
+            {
+              "id": "d",
+              "text": "Unconditional jump"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "In a load/store architecture, load instructions bring data into registers, arithmetic instructions operate on it there, and store instructions write results back to main memory.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO4.md",
+            "heading": "Laden und Speichern von 64 Bit"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Load/store architecture",
+            "Main memory"
+          ]
+        },
+        {
+          "id": "era-04-l5-q08",
+          "type": "estimate",
+          "prompt": "You store a 64-bit value in byte-addressable RAM. How many consecutive bytes does it occupy?",
+          "options": [],
+          "correct": [],
+          "slider": {
+            "min": 1,
+            "max": 16,
+            "step": 1,
+            "answer": 8,
+            "tolerance": 0,
+            "unit": "Bytes",
+            "scale": "linear"
+          },
+          "explanation": "A byte contains 8 bits. Therefore, a 64-bit value requires $64/8=8$ consecutive bytes.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO4.md",
+            "heading": "Adressen, Speicherzellen und Wortbreite"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Byte addressing",
+            "Word size"
+          ]
+        },
+        {
+          "id": "era-04-l5-q09",
+          "type": "single",
+          "prompt": "A compiler translates `points -= 3` without loading the number 3 separately from memory. Which idea does it typically use?",
+          "options": [
+            {
+              "id": "a",
+              "text": "`mulh` with the upper half of the product"
+            },
+            {
+              "id": "b",
+              "text": "Reversing the byte order"
+            },
+            {
+              "id": "c",
+              "text": "An unconditional jump"
+            },
+            {
+              "id": "d",
+              "text": "`addi` with the negative immediate `-3`"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "RISC-V has no separate `subi` instruction; subtraction can be expressed as addition of a negative immediate. The negative 12-bit immediate is extended to the register width by sign extension.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO4.md",
+            "heading": "Konstanten und arithmetische Befehle"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Immediate operand",
+            "Sign extension"
+          ]
+        },
+        {
+          "id": "era-04-l5-q10",
+          "type": "single",
+          "prompt": "You are analyzing large counter readings in a measurement system: two signed 32-bit values are multiplied, and the result may require more than 32 bits. Which RISC-V support is relevant?",
+          "options": [
+            {
+              "id": "a",
+              "text": "`mul` returns the lower portion and `mulh` the upper portion of the signed product"
+            },
+            {
+              "id": "b",
+              "text": "`and` reverses the byte order"
+            },
+            {
+              "id": "c",
+              "text": "`fsub` stores the value in main memory"
+            },
+            {
+              "id": "d",
+              "text": "`beq` automatically doubles the word size"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "The M extension provides separate instructions for the lower and upper portions of a product. For signed 32-bit operands, `mul` returns the lower portion and `mulh` the upper portion of the 64-bit product.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO4.md",
+            "heading": "Multiplikation, Division und Rest: M-Erweiterung"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "M extension",
+            "Word size"
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,1989 @@
+{
+  "schemaVersion": 1,
+  "id": "era-02",
+  "module": "ERA",
+  "number": 2,
+  "slug": "zahlendarstellung-arithmetik-und-speichergroesse",
+  "title": "Number Representation, Arithmetic, and Storage Sizes",
+  "summary": "This unit covers base-b positional representation (b-adische Darstellung) and conversion among decimal, binary (Binärsystem), octal (Oktalsystem), and hexadecimal (Hexadezimalsystem) numeral systems. Building on place values (Stellenwerte), it examines addition, subtraction using two's complement (Zweierkomplement), carries and borrowing (Übertrag und Ausleihen), overflow and underflow (Überlauf und Unterlauf), multiplication, and division. It concludes with SI and IEC prefixes and the unambiguous interpretation of signed and unsigned values (signed/unsigned-Interpretation) at a given word width (Wortbreite).",
+  "concepts": [
+    "Base-b positional representation",
+    "Binary system",
+    "Hexadecimal system",
+    "Octal system",
+    "Place values",
+    "Carry and borrowing",
+    "Two's complement",
+    "Word width and interpretation",
+    "Overflow and underflow",
+    "Binary multiplication and division",
+    "SI and IEC prefixes",
+    "Signed/unsigned interpretation"
+  ],
+  "keyFacts": [
+    "The value of a digit depends on its position and the base of the numeral system.",
+    "For nonnegative integers, the base-b representation is $n=\\sum_{i=0}^{k}a_i b^i$ with $b\\ge2$ and $a_i\\in\\{0,\\ldots,b-1\\}$.",
+    "One binary digit corresponds to one bit, one hexadecimal digit to four bits or a nibble, and one octal digit to three bits or a triad.",
+    "$2026_{10}=11111101010_2=3752_8=7EA_{16}$; the base changes the representation, not the numerical value.",
+    "In the mapping considered here, 1 represents a present signal and 0 an absent signal; active-low circuits can reverse this mapping.",
+    "Addition proceeds from right to left, carrying a value to the next higher place.",
+    "In binary subtraction, borrowing from a higher place is done when needed.",
+    "To form the two's complement, invert the bits and then add 1.",
+    "With a fixed word width, a carry beyond the word width is discarded; this does not automatically mean signed overflow.",
+    "With five bits, $9-7$ gives the two's-complement pattern $00010$, while $7-9$ gives the pattern $11110$, which represents signed $-2$.",
+    "The four-bit two's-complement range is $-8$ to $7$; therefore, $0111+0001$ overflows and produces the pattern $1000$.",
+    "Binary multiplication forms partial products, shifts them according to their positions, and adds them.",
+    "Long division examines suitable leading portions, subtracts a multiple of the divisor, and brings down the next digit.",
+    "SI prefixes use powers of ten, while IEC prefixes such as kibi, mebi, and gibi use powers of two.",
+    "$1\\ \\mathrm{KiB}=1024\\ \\mathrm{Byte}$, while $1\\ \\mathrm{KB}=1000\\ \\mathrm{Byte}$; $16\\ \\mathrm{GB}$ is approximately $14{,}90\\ \\mathrm{GiB}$.",
+    "To interpret a bit pattern unambiguously, the word width and the signed/unsigned convention in particular must be known."
+  ],
+  "tags": [],
+  "links": [],
+  "source": {
+    "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO2 (ZÜ).md",
+    "sha256": "c47ad417cb9e0d1a62672896f8547f847774f176fde298b53d0b07225338da7e",
+    "commit": "c01f10e1818d61e8fd05d663cf852d7a59f2e1e4"
+  },
+  "generator": {
+    "model": "gpt-5.6-luna",
+    "effort": "xhigh",
+    "reviewEffort": "high",
+    "promptVersion": "v2",
+    "generatedAt": "2026-10-31T00:16:51.438Z",
+    "review": {
+      "checked": 48,
+      "fixed": 5,
+      "removed": 0,
+      "notes": "48 Fragen geprüft. Fünf formale LaTeX-Stellen mit Unicode-Multiplikationspunkt zu \\cdot korrigiert. Alle Antworten, Distraktoren, Erklärungen und Quellen sind materialgedeckt; je Level bleiben 12 Fragen erhalten."
+    }
+  },
+  "levels": [
+    {
+      "id": "era-02-l1",
+      "index": 1,
+      "kind": "basics",
+      "title": "Fundamentals",
+      "questions": [
+        {
+          "id": "era-02-l1-q01",
+          "type": "single",
+          "prompt": "In the base-b representation $n=\\sum_{i=0}^{k}a_i b^i$, what does $b$ represent?",
+          "options": [
+            {
+              "id": "a",
+              "text": "The base of the numeral system"
+            },
+            {
+              "id": "b",
+              "text": "The digit at position $i$"
+            },
+            {
+              "id": "c",
+              "text": "The highest position used"
+            },
+            {
+              "id": "d",
+              "text": "The entire numerical value"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "$b$ is the base of the numeral system. The digits $a_i$ depend on their positions and on the base.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO2 (ZÜ).md",
+            "heading": "2. Generische Zahlendarstellung: b-adische Darstellung"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Base-b positional representation",
+            "Place values"
+          ]
+        },
+        {
+          "id": "era-02-l1-q02",
+          "type": "multi",
+          "prompt": "Which statements about numeral systems are correct? More than one answer may be correct.",
+          "options": [
+            {
+              "id": "a",
+              "text": "An octal digit can have values from 0 to 9."
+            },
+            {
+              "id": "b",
+              "text": "An octal digit corresponds to three bits, or a triad."
+            },
+            {
+              "id": "c",
+              "text": "The binary system has base 2 and uses the digits 0 and 1."
+            },
+            {
+              "id": "d",
+              "text": "A hexadecimal digit corresponds to four bits, or a nibble."
+            }
+          ],
+          "correct": [
+            "b",
+            "c",
+            "d"
+          ],
+          "explanation": "Binary digits correspond to individual bits, hexadecimal digits to four bits, and octal digits to three bits. Only the digits 0 through 7 are allowed in the octal system.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO2 (ZÜ).md",
+            "heading": "Die Zahlensysteme im Überblick"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Binary system",
+            "Hexadecimal system",
+            "Octal system"
+          ]
+        },
+        {
+          "id": "era-02-l1-q03-r1",
+          "type": "truefalse",
+          "prompt": "For a particular digital signal, the mapping is defined as follows: bit value 1 means “on” (signal present), and bit value 0 means “off” (signal absent). Statement: In this mapping, 1 means “on.” True or false?",
+          "options": [
+            {
+              "id": "true",
+              "text": "True"
+            },
+            {
+              "id": "false",
+              "text": "False"
+            }
+          ],
+          "correct": [
+            "true"
+          ],
+          "explanation": "This mapping is explicitly defined for this signal. Other circuits may use the reverse mapping, as in active-low circuits.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO2 (ZÜ).md",
+            "heading": "4. Binärdarstellung im Computer"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Bit values",
+            "Signal mapping"
+          ]
+        },
+        {
+          "id": "era-02-l1-q04",
+          "type": "cloze",
+          "prompt": "A hexadecimal digit groups ___ binary digits.",
+          "options": [
+            {
+              "id": "a",
+              "text": "4"
+            },
+            {
+              "id": "b",
+              "text": "16"
+            },
+            {
+              "id": "c",
+              "text": "2"
+            },
+            {
+              "id": "d",
+              "text": "8"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "A hexadecimal digit ranges from 0 to 15, so it can be represented exactly by four bits.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO2 (ZÜ).md",
+            "heading": "Die Zahlensysteme im Überblick"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Hexadecimal system",
+            "Binary system"
+          ]
+        },
+        {
+          "id": "era-02-l1-q05",
+          "type": "single",
+          "prompt": "What is the value range of ASCII characters in the mapping described?",
+          "options": [
+            {
+              "id": "a",
+              "text": "0 to 127"
+            },
+            {
+              "id": "b",
+              "text": "1 to 128"
+            },
+            {
+              "id": "c",
+              "text": "−128 to 127"
+            },
+            {
+              "id": "d",
+              "text": "0 to 255"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "Each ASCII character is assigned a numerical value from 0 to 127.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO2 (ZÜ).md",
+            "heading": "1. Zahlen als universelles Datenformat"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Base-b positional representation"
+          ]
+        },
+        {
+          "id": "era-02-l1-q06",
+          "type": "calc",
+          "prompt": "What is the decimal value of $01001_2$?",
+          "options": [
+            {
+              "id": "a",
+              "text": "9"
+            },
+            {
+              "id": "b",
+              "text": "10"
+            },
+            {
+              "id": "c",
+              "text": "8"
+            },
+            {
+              "id": "d",
+              "text": "11"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "$01001_2=0\\cdot2^4+1\\cdot2^3+1\\cdot2^0=8+1=9$.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO2 (ZÜ).md",
+            "heading": "Binär"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Place values",
+            "Binary system"
+          ]
+        },
+        {
+          "id": "era-02-l1-q07",
+          "type": "single",
+          "prompt": "Which notation uses the commonly cited prefix for the hexadecimal number $7EA_{16}$?",
+          "options": [
+            {
+              "id": "a",
+              "text": "7xEA"
+            },
+            {
+              "id": "b",
+              "text": "0x7EA"
+            },
+            {
+              "id": "c",
+              "text": "0o7EA"
+            },
+            {
+              "id": "d",
+              "text": "0b7EA"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "The commonly cited prefix for hexadecimal numbers is `0x`, giving `0x7EA`.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO2 (ZÜ).md",
+            "heading": "Hexadezimalsystem"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Hexadecimal system"
+          ]
+        },
+        {
+          "id": "era-02-l1-q08",
+          "type": "multi",
+          "prompt": "Which statements about addition in numeral systems are correct? More than one answer may be correct.",
+          "options": [
+            {
+              "id": "a",
+              "text": "The place-value principle applies to decimal, binary, octal, and hexadecimal numbers."
+            },
+            {
+              "id": "b",
+              "text": "In general, addition proceeds from right to left."
+            },
+            {
+              "id": "c",
+              "text": "A carry and overflow at a fixed word width are always the same thing."
+            },
+            {
+              "id": "d",
+              "text": "A value that does not fit in the current place is carried to the next place."
+            }
+          ],
+          "correct": [
+            "a",
+            "b",
+            "d"
+          ],
+          "explanation": "Addition follows the place-value principle in every base. A carry is passed to the next place; overflow, by contrast, means exceeding a specified value range.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO2 (ZÜ).md",
+            "heading": "6. Addition in verschiedenen Zahlensystemen"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Carry and borrowing",
+            "Place values"
+          ]
+        },
+        {
+          "id": "era-02-l1-q09",
+          "type": "cloze",
+          "prompt": "To form the two's complement, the bits are inverted and then ___ is added.",
+          "options": [
+            {
+              "id": "a",
+              "text": "2"
+            },
+            {
+              "id": "b",
+              "text": "a carry"
+            },
+            {
+              "id": "c",
+              "text": "the base"
+            },
+            {
+              "id": "d",
+              "text": "1"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "After inverting the bits, exactly 1 is added. This produces the two's complement of the original bit pattern.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO2 (ZÜ).md",
+            "heading": "8. Subtraktion mit Zweierkomplement"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Two's complement"
+          ]
+        },
+        {
+          "id": "era-02-l1-q10-r1",
+          "type": "truefalse",
+          "prompt": "Consider ordinary positional representations of nonnegative numbers, such as binary numbers. There is no fixed word width and no signed interpretation. Statement: Adding a zero to the left of such a number changes its numerical value. True or false?",
+          "options": [
+            {
+              "id": "true",
+              "text": "True"
+            },
+            {
+              "id": "false",
+              "text": "False"
+            }
+          ],
+          "correct": [
+            "false"
+          ],
+          "explanation": "In an ordinary positional representation, a leading zero contributes a value of 0 at a higher place. The numerical value therefore remains unchanged. The statement explicitly excludes fixed word widths and signed bit patterns.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO2 (ZÜ).md",
+            "heading": "5. Stellenwerte an einem kleinen Beispiel"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Positional representation",
+            "Leading zeros",
+            "Numerical value"
+          ]
+        },
+        {
+          "id": "era-02-l1-q11",
+          "type": "single",
+          "prompt": "What convention is needed to interpret a bit pattern with a negative result unambiguously?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Only the processor clock frequency"
+            },
+            {
+              "id": "b",
+              "text": "Only the hexadecimal prefix used"
+            },
+            {
+              "id": "c",
+              "text": "The word width and signed or unsigned interpretation"
+            },
+            {
+              "id": "d",
+              "text": "The order of the variable names"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "The same bit pattern can represent different values depending on the word width and the signed/unsigned convention. These details must therefore be specified.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO2 (ZÜ).md",
+            "heading": "Wenn das Ergebnis negativ ist"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Word width and interpretation",
+            "Signed/unsigned interpretation"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "era-02-l2",
+      "index": 2,
+      "kind": "apply",
+      "title": "Apply",
+      "questions": [
+        {
+          "id": "era-02-l2-q01",
+          "type": "calc",
+          "prompt": "Which hexadecimal representation corresponds to $2026_{10}$?",
+          "options": [
+            {
+              "id": "a",
+              "text": "$7EA_{16}$"
+            },
+            {
+              "id": "b",
+              "text": "$7AE_{16}$"
+            },
+            {
+              "id": "c",
+              "text": "$7FA_{16}$"
+            },
+            {
+              "id": "d",
+              "text": "$6EA_{16}$"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "Group the binary representation into fours from the right: $0111\\ 1110\\ 1010_2=7EA_{16}$.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO2 (ZÜ).md",
+            "heading": "Hexadezimalsystem"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Hexadecimal system",
+            "Binary system"
+          ]
+        },
+        {
+          "id": "era-02-l2-q02",
+          "type": "calc",
+          "prompt": "Which octal representation corresponds to $2026_{10}$?",
+          "options": [
+            {
+              "id": "a",
+              "text": "$3750_8$"
+            },
+            {
+              "id": "b",
+              "text": "$3572_8$"
+            },
+            {
+              "id": "c",
+              "text": "$3752_8$"
+            },
+            {
+              "id": "d",
+              "text": "$3725_8$"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Grouping the bits in threes gives $011\\ 111\\ 101\\ 010_2=3752_8$. Checking gives $3\\cdot8^3+7\\cdot8^2+5\\cdot8+2=2026$.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO2 (ZÜ).md",
+            "heading": "Oktalsystem"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Octal system",
+            "Place values"
+          ]
+        },
+        {
+          "id": "era-02-l2-q03",
+          "type": "calc",
+          "prompt": "What is the result of $01001_2+00111_2$ using five result bits?",
+          "options": [
+            {
+              "id": "a",
+              "text": "$01000_2$"
+            },
+            {
+              "id": "b",
+              "text": "$10001_2$"
+            },
+            {
+              "id": "c",
+              "text": "$10000_2$"
+            },
+            {
+              "id": "d",
+              "text": "$01111_2$"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "The decimal values are 9 and 7, so their sum is 16. With five bits, the result is $10000_2$; the carries move one place to the left each time.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO2 (ZÜ).md",
+            "heading": "Binär: Basis 2"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Carry and borrowing",
+            "Binary system"
+          ]
+        },
+        {
+          "id": "era-02-l2-q04",
+          "type": "calc",
+          "prompt": "Calculate $11_8+07_8$.",
+          "options": [
+            {
+              "id": "a",
+              "text": "$18_8$"
+            },
+            {
+              "id": "b",
+              "text": "$20_8$"
+            },
+            {
+              "id": "c",
+              "text": "$10_8$"
+            },
+            {
+              "id": "d",
+              "text": "$21_8$"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "$11_8=9_{10}$ and $07_8=7_{10}$. The sum, 16 in decimal, is written as $20_8$.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO2 (ZÜ).md",
+            "heading": "Oktal: Basis 8"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Octal system",
+            "Carry and borrowing"
+          ]
+        },
+        {
+          "id": "era-02-l2-q05",
+          "type": "calc",
+          "prompt": "What is the result of $01001_2-00111_2$?",
+          "options": [
+            {
+              "id": "a",
+              "text": "$01010_2$"
+            },
+            {
+              "id": "b",
+              "text": "$00010_2$"
+            },
+            {
+              "id": "c",
+              "text": "$00100_2$"
+            },
+            {
+              "id": "d",
+              "text": "$11110_2$"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "This calculation is equivalent to $9-7=2$. With five bits, the result is therefore $00010_2$.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO2 (ZÜ).md",
+            "heading": "7. Binäre Subtraktion"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Carry and borrowing",
+            "Binary system"
+          ]
+        },
+        {
+          "id": "era-02-l2-q06",
+          "type": "calc",
+          "prompt": "What five-bit pattern results from $00111_2$ for $-7$ in two's complement?",
+          "options": [
+            {
+              "id": "a",
+              "text": "$10111_2"
+            },
+            {
+              "id": "b",
+              "text": "$11000_2$"
+            },
+            {
+              "id": "c",
+              "text": "$00110_2$"
+            },
+            {
+              "id": "d",
+              "text": "$11001_2$"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Inverting the bits gives $11000_2$; adding 1 then gives $11001_2$. This is the five-bit representation of $-7$.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO2 (ZÜ).md",
+            "heading": "Beispiel mit fünf Bits: 9 minus 7"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Two's complement",
+            "Word width and interpretation"
+          ]
+        },
+        {
+          "id": "era-02-l2-q07",
+          "type": "calc",
+          "prompt": "Calculate $7-9$ using five bits in two's complement.",
+          "options": [
+            {
+              "id": "a",
+              "text": "$11110_2$"
+            },
+            {
+              "id": "b",
+              "text": "$01110_2"
+            },
+            {
+              "id": "c",
+              "text": "$10010_2$"
+            },
+            {
+              "id": "d",
+              "text": "$00010_2$"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "The two's complement of $01001_2$ is $10111_2$. Adding it to $00111_2$ gives $11110_2$, which represents $-2$ under signed interpretation.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO2 (ZÜ).md",
+            "heading": "Ergänzte Gegenrichtung: 7 minus 9"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Two's complement",
+            "Signed/unsigned interpretation"
+          ]
+        },
+        {
+          "id": "era-02-l2-q08",
+          "type": "calc",
+          "prompt": "Which binary representation is the result of $7_{10}\\cdot5_{10}$?",
+          "options": [
+            {
+              "id": "a",
+              "text": "$100101_2"
+            },
+            {
+              "id": "b",
+              "text": "$100011_2$"
+            },
+            {
+              "id": "c",
+              "text": "$101011_2$"
+            },
+            {
+              "id": "d",
+              "text": "$11100_2$"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "$7\\cdot5=35$. The binary representation of 35 is $32+2+1=100011_2$.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO2 (ZÜ).md",
+            "heading": "Beispiel: 7 mal 5"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Binary multiplication and division"
+          ]
+        },
+        {
+          "id": "era-02-l2-q09",
+          "type": "calc",
+          "prompt": "Perform the unsigned division $10101_2:11_2$. What quotient and remainder do you get?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Quotient $101_2$, remainder $10_2$"
+            },
+            {
+              "id": "b",
+              "text": "Quotient $111_2$, remainder $0$"
+            },
+            {
+              "id": "c",
+              "text": "Quotient $1110_2$, remainder $0$"
+            },
+            {
+              "id": "d",
+              "text": "Quotient $110_2$, remainder $1$"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "$10101_2=21_{10}$ and $11_2=3_{10}$. Thus, $21:3=7$, or $111_2$ with remainder 0.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO2 (ZÜ).md",
+            "heading": "Binärbeispiel: 10101 durch 11"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Binary multiplication and division",
+            "Binary system"
+          ]
+        },
+        {
+          "id": "era-02-l2-q10",
+          "type": "calc",
+          "prompt": "Approximately how many GiB is $16\\ \\mathrm{GB}$?",
+          "options": [
+            {
+              "id": "a",
+              "text": "$16\\ \\mathrm{GiB}$"
+            },
+            {
+              "id": "b",
+              "text": "$15{,}36\\ \\mathrm{GiB}$"
+            },
+            {
+              "id": "c",
+              "text": "$14{,}31\\ \\mathrm{GiB}$"
+            },
+            {
+              "id": "d",
+              "text": "$14{,}90\\ \\mathrm{GiB}$"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "$16\\ \\mathrm{GB}=16\\cdot10^9\\ \\mathrm{Byte}$. Dividing by $2^{30}$ gives approximately $14{,}90\\ \\mathrm{GiB}$.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO2 (ZÜ).md",
+            "heading": "Warum ein 16-GB-Stick nicht 16 GiB anzeigt"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "SI and IEC prefixes"
+          ]
+        },
+        {
+          "id": "era-02-l2-q11",
+          "type": "multi",
+          "prompt": "Which prefix-factor mappings are correct? More than one answer may be correct.",
+          "options": [
+            {
+              "id": "a",
+              "text": "mega represents $2^{20}$."
+            },
+            {
+              "id": "b",
+              "text": "kilo represents $10^3$."
+            },
+            {
+              "id": "c",
+              "text": "Gi is the binary abbreviation for gibi."
+            },
+            {
+              "id": "d",
+              "text": "kibi represents $2^{10}=1024$."
+            }
+          ],
+          "correct": [
+            "b",
+            "c",
+            "d"
+          ],
+          "explanation": "SI prefixes such as kilo and mega use powers of ten. The IEC prefixes kibi, mebi, and gibi use powers of two; $2^{20}$ corresponds to mebi, not mega.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO2 (ZÜ).md",
+            "heading": "12. Speichergrößen: SI- und Binärpräfixe"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "SI and IEC prefixes"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "era-02-l3",
+      "index": 3,
+      "kind": "deepen",
+      "title": "Explore Further",
+      "questions": [
+        {
+          "id": "era-02-l3-q01",
+          "type": "multi",
+          "prompt": "Which statements distinguish a carry from overflow? More than one answer may be correct.",
+          "options": [
+            {
+              "id": "a",
+              "text": "Every carry beyond the word boundary is automatically signed overflow."
+            },
+            {
+              "id": "b",
+              "text": "A carry is passed to the next higher place."
+            },
+            {
+              "id": "c",
+              "text": "Overflow or underflow occurs when the representable value range of the fixed word width is exceeded."
+            },
+            {
+              "id": "d",
+              "text": "The carry out of a five-bit calculation alone does not prove signed overflow."
+            }
+          ],
+          "correct": [
+            "b",
+            "c",
+            "d"
+          ],
+          "explanation": "A carry is a normal step in arithmetic between places. Overflow, by contrast, means that the mathematical result no longer fits within the specified value range.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO2 (ZÜ).md",
+            "heading": "6. Addition in verschiedenen Zahlensystemen"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Carry and borrowing",
+            "Overflow and underflow"
+          ]
+        },
+        {
+          "id": "era-02-l3-q02",
+          "type": "single",
+          "prompt": "Why can zeros be added on the left when converting from binary to hexadecimal?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Because every binary number must be exactly four bits long."
+            },
+            {
+              "id": "b",
+              "text": "Because leading zeros do not change the value, and a hexadecimal digit comprises four bits."
+            },
+            {
+              "id": "c",
+              "text": "Because this scales the base 2 up to base 16."
+            },
+            {
+              "id": "d",
+              "text": "Because only the final group of four matters in the conversion."
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "The zeros on the left contribute no value. They only complete the groups of four needed to map the bits to hexadecimal digits.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO2 (ZÜ).md",
+            "heading": "Hexadezimalsystem"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Hexadecimal system",
+            "Place values"
+          ]
+        },
+        {
+          "id": "era-02-l3-q03",
+          "type": "truefalse",
+          "prompt": "In two's complement, the four-bit pattern $1000_2$ is the correct representation of the mathematical result $7+1=8$.",
+          "options": [
+            {
+              "id": "true",
+              "text": "True"
+            },
+            {
+              "id": "false",
+              "text": "False"
+            }
+          ],
+          "correct": [
+            "false"
+          ],
+          "explanation": "With four bits, the signed two's-complement range is only $-8$ to $7$. The pattern $1000_2$ is therefore interpreted as $-8$; the mathematical value 8 cannot be represented.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO2 (ZÜ).md",
+            "heading": "9. Überlauf und Unterlauf"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Two's complement",
+            "Overflow and underflow"
+          ]
+        },
+        {
+          "id": "era-02-l3-q04",
+          "type": "calc",
+          "prompt": "What signed value is represented by $0111_2+0001_2$ using four bits in two's complement?",
+          "options": [
+            {
+              "id": "a",
+              "text": "$7$"
+            },
+            {
+              "id": "b",
+              "text": "$-8$"
+            },
+            {
+              "id": "c",
+              "text": "$-7$"
+            },
+            {
+              "id": "d",
+              "text": "$8$"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "The four-bit calculation produces the pattern $1000_2$. In four-bit two's complement, this pattern represents $-8$; the mathematical value 8 is outside the range.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO2 (ZÜ).md",
+            "heading": "Beispiel: vier Bit im Zweierkomplement"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Two's complement",
+            "Overflow and underflow"
+          ]
+        },
+        {
+          "id": "era-02-l3-q05",
+          "type": "single",
+          "prompt": "What pair of values results when the five-bit pattern $11110_2$ is read once as unsigned and once as signed two's complement?",
+          "options": [
+            {
+              "id": "a",
+              "text": "unsigned 30, signed −1"
+            },
+            {
+              "id": "b",
+              "text": "unsigned 30, signed −2"
+            },
+            {
+              "id": "c",
+              "text": "unsigned 14, signed −2"
+            },
+            {
+              "id": "d",
+              "text": "unsigned 31, signed −2"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "As unsigned, it is $16+8+4+2=30$. In two's complement, $11110_2$ is the pattern for $-2$.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO2 (ZÜ).md",
+            "heading": "Wenn das Ergebnis negativ ist"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Two's complement",
+            "Signed/unsigned interpretation"
+          ]
+        },
+        {
+          "id": "era-02-l3-q06",
+          "type": "multi",
+          "prompt": "Which statements correctly describe borrowing in $01001_2-00111_2$? More than one answer may be correct.",
+          "options": [
+            {
+              "id": "a",
+              "text": "The result is $00100_2$ because the borrowed unit is counted twice."
+            },
+            {
+              "id": "b",
+              "text": "At bit position 1, $0-1$ occurs first, so borrowing is needed."
+            },
+            {
+              "id": "c",
+              "text": "Borrowing proceeds from bit position 3 across bit position 2."
+            },
+            {
+              "id": "d",
+              "text": "The result is $00010_2$."
+            }
+          ],
+          "correct": [
+            "b",
+            "c",
+            "d"
+          ],
+          "explanation": "The 1 at position 3 is borrowed across position 2, giving position 1 two units. The complete calculation gives $00010_2$.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO2 (ZÜ).md",
+            "heading": "Beispiel: 9 minus 7"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Carry and borrowing",
+            "Binary system"
+          ]
+        },
+        {
+          "id": "era-02-l3-q07",
+          "type": "single",
+          "prompt": "Why is borrowing alone, without an additional convention, insufficient to represent a negative number unambiguously in $7-9$?",
+          "options": [
+            {
+              "id": "a",
+              "text": "The word width and signed/unsigned interpretation must be specified."
+            },
+            {
+              "id": "b",
+              "text": "Binary subtraction is fundamentally impossible."
+            },
+            {
+              "id": "c",
+              "text": "The result must always be written as a hexadecimal number."
+            },
+            {
+              "id": "d",
+              "text": "A negative number can only occur in the decimal system."
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "For negative results, the number of bits used and how the pattern is interpreted must be specified. Two's complement provides an agreed representation for this.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO2 (ZÜ).md",
+            "heading": "Wenn das Ergebnis negativ ist"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Word width and interpretation",
+            "Two's complement"
+          ]
+        },
+        {
+          "id": "era-02-l3-q08",
+          "type": "multi",
+          "prompt": "Which statements apply to the general base-b representation? More than one answer may be correct.",
+          "options": [
+            {
+              "id": "a",
+              "text": "Positions are numbered starting from 0 on the right."
+            },
+            {
+              "id": "b",
+              "text": "Each digit $a_i$ is between 0 and $b-1$."
+            },
+            {
+              "id": "c",
+              "text": "A digit may always have the value 9, regardless of the base."
+            },
+            {
+              "id": "d",
+              "text": "The base satisfies $b\\ge2$."
+            }
+          ],
+          "correct": [
+            "a",
+            "b",
+            "d"
+          ],
+          "explanation": "The allowed digits depend on the base: $a_i\\in\\{0,\\ldots,b-1\\}$. The rightmost place has place value $b^0$ and therefore position 0.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO2 (ZÜ).md",
+            "heading": "2. Generische Zahlendarstellung: b-adische Darstellung"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Base-b positional representation",
+            "Place values"
+          ]
+        },
+        {
+          "id": "era-02-l3-q09",
+          "type": "cloze",
+          "prompt": "In long binary multiplication, partial products are formed, shifted according to place value, ___, and then added.",
+          "options": [
+            {
+              "id": "a",
+              "text": "discarded"
+            },
+            {
+              "id": "b",
+              "text": "divided"
+            },
+            {
+              "id": "c",
+              "text": "sorted alphabetically"
+            },
+            {
+              "id": "d",
+              "text": "shifted"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Each set bit of the factor produces a partial product. It is shifted according to its bit position and then added to the other partial products.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO2 (ZÜ).md",
+            "heading": "10. Binäre Multiplikation"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Binary multiplication and division"
+          ]
+        },
+        {
+          "id": "era-02-l3-q10",
+          "type": "truefalse",
+          "prompt": "In the unsigned division $10101_2:11_2$, the quotient is $111_2$ and the remainder is 0.",
+          "options": [
+            {
+              "id": "true",
+              "text": "True"
+            },
+            {
+              "id": "false",
+              "text": "False"
+            }
+          ],
+          "correct": [
+            "true"
+          ],
+          "explanation": "$10101_2$ equals 21 and $11_2$ equals 3. $21:3=7$, or $111_2$, with no remainder.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO2 (ZÜ).md",
+            "heading": "Binärbeispiel: 10101 durch 11"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Binary multiplication and division"
+          ]
+        },
+        {
+          "id": "era-02-l3-q11",
+          "type": "single",
+          "prompt": "Why does a system not automatically display $16\\ \\mathrm{GB}$ as $16\\ \\mathrm{GiB}$?",
+          "options": [
+            {
+              "id": "a",
+              "text": "GiB always means less than 1 byte."
+            },
+            {
+              "id": "b",
+              "text": "GB is a binary unit and GiB is a decimal unit."
+            },
+            {
+              "id": "c",
+              "text": "GB and GiB both use $2^{30}$ Byte, but have different letters."
+            },
+            {
+              "id": "d",
+              "text": "GB uses $10^9$ Byte, whereas GiB uses $2^{30}$ Byte."
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "GB is an SI prefix based on a power of ten, while GiB is an IEC prefix based on a power of two. The same number of bytes therefore yields different numerical values.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO2 (ZÜ).md",
+            "heading": "12. Speichergrößen: SI- und Binärpräfixe"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "SI and IEC prefixes"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "era-02-l4",
+      "index": 4,
+      "kind": "boss",
+      "title": "Boss",
+      "questions": [
+        {
+          "id": "era-02-l4-q01",
+          "type": "calc",
+          "prompt": "A 6-bit field is interpreted once as unsigned and once as signed two's complement. Which value ranges are correct?",
+          "options": [
+            {
+              "id": "a",
+              "text": "unsigned: 0 to 31; signed: −64 to 63"
+            },
+            {
+              "id": "b",
+              "text": "unsigned: −32 to 31; signed: 0 to 63"
+            },
+            {
+              "id": "c",
+              "text": "unsigned: 0 to 63; signed: −32 to 31"
+            },
+            {
+              "id": "d",
+              "text": "unsigned: 0 to 64; signed: −31 to 32"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "For $n$ bits, unsigned values range from 0 to $2^n-1$, and signed two's-complement values range from $-2^{n-1}$ to $2^{n-1}-1$. For six bits, these ranges are 0 to 63 and −32 to 31, respectively.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO1.md",
+            "heading": null
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Word width and interpretation",
+            "Two's complement"
+          ]
+        },
+        {
+          "id": "era-02-l4-q02",
+          "type": "multi",
+          "prompt": "A 5-bit pattern is passed as an operand to an ISA. Which statements are correct for unambiguous interpretation or observable behavior? More than one answer may be correct.",
+          "options": [
+            {
+              "id": "a",
+              "text": "The bit width must be known because it determines the representable value range."
+            },
+            {
+              "id": "b",
+              "text": "The bit sequence always has the same mathematical value, regardless of the instruction."
+            },
+            {
+              "id": "c",
+              "text": "The signed/unsigned interpretation must suit the task or operation."
+            },
+            {
+              "id": "d",
+              "text": "The ISA describes instructions, registers, and their observable effects as an interface."
+            }
+          ],
+          "correct": [
+            "a",
+            "c",
+            "d"
+          ],
+          "explanation": "Word width and interpretation affect the value of a bit pattern. The ISA also specifies which instructions and registers make up the software interface and what effects can be observed.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO1.md",
+            "heading": null
+          },
+          "difficulty": 5,
+          "concepts": [
+            "Word width and interpretation",
+            "Signed/unsigned interpretation"
+          ]
+        },
+        {
+          "id": "era-02-l4-q03",
+          "type": "calc",
+          "prompt": "For $N=12\\,800$, the loop order i/j was reported to take $0{,}71\\,s$ and j/i to take $4{,}54\\,s$. Approximately how many times longer does j/i take?",
+          "options": [
+            {
+              "id": "a",
+              "text": "About 5.1 times"
+            },
+            {
+              "id": "b",
+              "text": "About 0.16 times"
+            },
+            {
+              "id": "c",
+              "text": "About 6.4 times"
+            },
+            {
+              "id": "d",
+              "text": "About 3.8 times"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "The ratio is $4{,}54/0{,}71\\approx6{,}4$. In this example, the j/i order therefore takes approximately 6.4 times as long.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO1.md",
+            "heading": null
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Word width and interpretation"
+          ]
+        },
+        {
+          "id": "era-02-l4-q04",
+          "type": "calc",
+          "prompt": "Calculate the mixed-base addition $17_8+0x9$ and give the result in octal.",
+          "options": [
+            {
+              "id": "a",
+              "text": "$31_8$"
+            },
+            {
+              "id": "b",
+              "text": "$20_8$"
+            },
+            {
+              "id": "c",
+              "text": "$26_8$"
+            },
+            {
+              "id": "d",
+              "text": "$30_8$"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "$17_8=15_{10}$ and $0x9=9_{10}$. The sum, 24 in decimal, is equivalent to $30_8$.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO2 (ZÜ).md",
+            "heading": "6. Addition in verschiedenen Zahlensystemen"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Base-b positional representation",
+            "Carry and borrowing",
+            "Octal system"
+          ]
+        },
+        {
+          "id": "era-02-l4-q05",
+          "type": "calc",
+          "prompt": "How many bits are needed for the shortest unsigned binary representation of $2026_{10}$?",
+          "options": [
+            {
+              "id": "a",
+              "text": "10 bits"
+            },
+            {
+              "id": "b",
+              "text": "11 bits"
+            },
+            {
+              "id": "c",
+              "text": "12 bits"
+            },
+            {
+              "id": "d",
+              "text": "16 bits"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "With 10 bits, the largest representable value is $2^{10}-1=1023$. With 11 bits, the range extends to $2^{11}-1=2047$ and therefore includes 2026.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO1.md",
+            "heading": null
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Binary system",
+            "Place values"
+          ]
+        },
+        {
+          "id": "era-02-l4-q06",
+          "type": "calc",
+          "prompt": "Perform $12-5$ using five bits in two's complement. Which five bits remain after discarding the carry out?",
+          "options": [
+            {
+              "id": "a",
+              "text": "$10111_2$"
+            },
+            {
+              "id": "b",
+              "text": "$11001_2$"
+            },
+            {
+              "id": "c",
+              "text": "$00111_2$"
+            },
+            {
+              "id": "d",
+              "text": "$00011_2"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "$12=01100_2$, and $-5$ is obtained from $00101_2$ by inverting the bits and adding 1, giving $11011_2$. The sum is $1\\ 00111_2$; limited to five bits, $00111_2=7$ remains.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO2 (ZÜ).md",
+            "heading": "8. Subtraktion mit Zweierkomplement"
+          },
+          "difficulty": 5,
+          "concepts": [
+            "Two's complement",
+            "Word width and interpretation"
+          ]
+        },
+        {
+          "id": "era-02-l4-q07",
+          "type": "multi",
+          "prompt": "Which statements about overflow and underflow using four bits in two's complement are correct? More than one answer may be correct.",
+          "options": [
+            {
+              "id": "a",
+              "text": "$1000+1111$ is mathematically $-8+(-1)=-9$, which is below the range."
+            },
+            {
+              "id": "b",
+              "text": "A carry out alone always proves signed overflow."
+            },
+            {
+              "id": "c",
+              "text": "$0111+0001$ is mathematically 8, which is outside the range −8 to 7."
+            },
+            {
+              "id": "d",
+              "text": "$0011+0001$ causes signed overflow because every addition produces a carry."
+            }
+          ],
+          "correct": [
+            "a",
+            "c"
+          ],
+          "explanation": "With four signed bits, only −8 to 7 can be represented. The first two calculations exceed this range; a carry alone is not a sufficient criterion for overflow.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO1.md",
+            "heading": null
+          },
+          "difficulty": 5,
+          "concepts": [
+            "Two's complement",
+            "Overflow and underflow"
+          ]
+        },
+        {
+          "id": "era-02-l4-q08",
+          "type": "single",
+          "prompt": "The five-bit pattern $10000_2$ is read once as unsigned and once as signed two's complement. Which value pair (unsigned, signed) is correct?",
+          "options": [
+            {
+              "id": "a",
+              "text": "$(31,-1)$"
+            },
+            {
+              "id": "b",
+              "text": "$(32,-16)$"
+            },
+            {
+              "id": "c",
+              "text": "$(16,-16)$"
+            },
+            {
+              "id": "d",
+              "text": "$(16,-15)$"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "As unsigned, $10000_2=16$. In five-bit two's complement, the pattern represents $-16$ because its sign bit is set.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO1.md",
+            "heading": null
+          },
+          "difficulty": 5,
+          "concepts": [
+            "Two's complement",
+            "Signed/unsigned interpretation"
+          ]
+        },
+        {
+          "id": "era-02-l4-q09",
+          "type": "multi",
+          "prompt": "Which statements correctly describe long multiplication of $0111_2\\cdot0101_2$? More than one answer may be correct.",
+          "options": [
+            {
+              "id": "a",
+              "text": "Bit 0 of the second factor contributes $7\\cdot2^0=7$."
+            },
+            {
+              "id": "b",
+              "text": "Bit 3 of the second factor is 1 and contributes 56."
+            },
+            {
+              "id": "c",
+              "text": "Bit 1 of the second factor is 0 and produces no partial product."
+            },
+            {
+              "id": "d",
+              "text": "Bit 2 of the second factor contributes $7\\cdot2^2=28$."
+            }
+          ],
+          "correct": [
+            "a",
+            "c",
+            "d"
+          ],
+          "explanation": "The factor $0101_2$ has set bits at positions 0 and 2. This produces the partial products 7 and 28; bit 3 is 0 and produces no partial product.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO2 (ZÜ).md",
+            "heading": "10. Binäre Multiplikation"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Binary multiplication and division",
+            "Place values"
+          ]
+        },
+        {
+          "id": "era-02-l4-q10",
+          "type": "multi",
+          "prompt": "Which statements correctly describe the steps for $51_{10}:3_{10}$? More than one answer may be correct.",
+          "options": [
+            {
+              "id": "a",
+              "text": "The first digit gives $5:3$ with quotient digit 1."
+            },
+            {
+              "id": "b",
+              "text": "After the first step, the complete quotient 17 is already determined."
+            },
+            {
+              "id": "c",
+              "text": "After bringing down the next digit, the result is 21."
+            },
+            {
+              "id": "d",
+              "text": "After $5-3$, the remainder is 2."
+            }
+          ],
+          "correct": [
+            "a",
+            "c",
+            "d"
+          ],
+          "explanation": "First, consider 5: the quotient digit is 1 and the remainder is 2. Bring down the next digit, 1, to form 21; only then do you get the next quotient digit, 7.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO1.md",
+            "heading": null
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Binary multiplication and division",
+            "Place values"
+          ]
+        },
+        {
+          "id": "era-02-l4-q11",
+          "type": "single",
+          "prompt": "A problem gives a bit pattern but leaves it unspecified whether it is signed or unsigned. What is the correct response?",
+          "options": [
+            {
+              "id": "a",
+              "text": "The interpretation is ambiguous; the missing information should be pointed out."
+            },
+            {
+              "id": "b",
+              "text": "The most significant bit always automatically determines that the value is signed."
+            },
+            {
+              "id": "c",
+              "text": "The missing convention can be replaced by a hexadecimal representation."
+            },
+            {
+              "id": "d",
+              "text": "Bit patterns are always unsigned by definition."
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "The same bit pattern can have different values under signed and unsigned interpretations. If the required information is missing, this should be pointed out.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO2 (ZÜ).md",
+            "heading": "Signed oder unsigned?"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Signed/unsigned interpretation",
+            "Word width and interpretation"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "era-02-l5",
+      "index": 5,
+      "kind": "bonus",
+      "title": "In Practice: Bits, Bytes & Aha Moments",
+      "questions": [
+        {
+          "id": "era-02-l5-q01",
+          "type": "single",
+          "prompt": "You are building a website and see the color `#FF8800`. What concept underlies this notation?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Two's complement: the color is stored as a negative number."
+            },
+            {
+              "id": "b",
+              "text": "IEC prefixes: `FF` means femtobyte."
+            },
+            {
+              "id": "c",
+              "text": "Octal system: each digit represents three bits."
+            },
+            {
+              "id": "d",
+              "text": "Hexadecimal system: every two hexadecimal digits describe one color channel."
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Web colors are often written in hexadecimal. A hexadecimal digit corresponds to four bits, so two hexadecimal digits represent exactly one 8-bit color channel.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO2 (ZÜ).md",
+            "heading": "Hexadezimalsystem"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Hexadecimal system",
+            "Place values"
+          ]
+        },
+        {
+          "id": "era-02-l5-q02",
+          "type": "single",
+          "prompt": "An unsigned 8-bit counter in a device reads `255`. On the next step, it jumps to `0`. Which concept explains this?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Overflow at a fixed word width"
+            },
+            {
+              "id": "b",
+              "text": "Conversion from GB to GiB"
+            },
+            {
+              "id": "c",
+              "text": "Forming the two's complement"
+            },
+            {
+              "id": "d",
+              "text": "Borrowing in subtraction"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "With 8 bits, only values from 0 to 255 can be represented as unsigned. The carry beyond the most significant bit is discarded, so counting starts again at 0.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO2 (ZÜ).md",
+            "heading": "9. Überlauf und Unterlauf"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Word width and interpretation",
+            "Overflow and underflow"
+          ]
+        },
+        {
+          "id": "era-02-l5-q03",
+          "type": "estimate",
+          "prompt": "You are designing an unsigned 12-bit register for brightness values. How many different values fit in it?",
+          "options": [],
+          "correct": [],
+          "slider": {
+            "min": 1024,
+            "max": 5120,
+            "step": 16,
+            "answer": 4096,
+            "tolerance": 0,
+            "unit": "Values",
+            "scale": "linear"
+          },
+          "explanation": "Each of the 12 bits has two states. Therefore, there are 2¹² = 4096 different bit patterns and values from 0 to 4095.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO2 (ZÜ).md",
+            "heading": "4. Binärdarstellung im Computer"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Binary system",
+            "Word width and interpretation"
+          ]
+        },
+        {
+          "id": "era-02-l5-q04",
+          "type": "single",
+          "prompt": "You read the pattern `11111111` from an 8-bit sensor register. What do you need to know to determine its numerical value unambiguously?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Whether octal digits were grouped when reading it"
+            },
+            {
+              "id": "b",
+              "text": "Whether the number was originally displayed in hexadecimal"
+            },
+            {
+              "id": "c",
+              "text": "Whether the sensor uses SI or IEC prefixes"
+            },
+            {
+              "id": "d",
+              "text": "Whether the pattern is interpreted as signed or unsigned"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "The same 8-bit pattern can represent 255 as unsigned or −1 as signed two's complement. The word width and interpretation convention must therefore be known.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO2 (ZÜ).md",
+            "heading": "Signed oder unsigned?"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Signed/unsigned interpretation",
+            "Word width and interpretation"
+          ]
+        },
+        {
+          "id": "era-02-l5-q05",
+          "type": "multi",
+          "prompt": "Which two situations explicitly use two's complement?",
+          "options": [
+            {
+              "id": "a",
+              "text": "A file manager converts 16 GB to GiB."
+            },
+            {
+              "id": "b",
+              "text": "A processor calculates signed `7−9` using five bits and stores `11110`."
+            },
+            {
+              "id": "c",
+              "text": "A browser interprets `#00FF00` as a green web color."
+            },
+            {
+              "id": "d",
+              "text": "An embedded program interprets negative temperatures in a fixed signed register using two's complement."
+            }
+          ],
+          "correct": [
+            "b",
+            "d"
+          ],
+          "explanation": "Two's complement represents negative values at a fixed word width and allows signed subtraction to be performed as addition. The other cases concern storage prefixes or hexadecimal representation.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO2 (ZÜ).md",
+            "heading": "8. Subtraktion mit Zweierkomplement"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Two's complement",
+            "Word width and interpretation"
+          ]
+        },
+        {
+          "id": "era-02-l5-q06",
+          "type": "estimate",
+          "prompt": "A truth table has 5 independent binary variables. How many rows do you need?",
+          "options": [],
+          "correct": [],
+          "slider": {
+            "min": 4,
+            "max": 64,
+            "step": 1,
+            "answer": 32,
+            "tolerance": 0,
+            "unit": "Rows",
+            "scale": "linear"
+          },
+          "explanation": "Each variable can be 0 or 1. This gives 2⁵ = 32 possible assignments and therefore 32 rows in the table.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO2 (ZÜ).md",
+            "heading": "4. Binärdarstellung im Computer"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Binary system",
+            "Place values"
+          ]
+        },
+        {
+          "id": "era-02-l5-q07",
+          "type": "truefalse",
+          "prompt": "Is this correct: A USB drive advertised as 16 GB can appear as about 14,90 GiB in the operating system because GB and GiB use different factors.",
+          "options": [
+            {
+              "id": "true",
+              "text": "True"
+            },
+            {
+              "id": "false",
+              "text": "False"
+            }
+          ],
+          "correct": [
+            "true"
+          ],
+          "explanation": "16 GB is 16·10⁹ Byte. Dividing by 2³⁰ Byte per GiB gives approximately 14,90 GiB; SI and IEC prefixes are therefore not identical.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO2 (ZÜ).md",
+            "heading": "Warum ein 16-GB-Stick nicht 16 GiB anzeigt"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "SI and IEC prefixes"
+          ]
+        },
+        {
+          "id": "era-02-l5-q08",
+          "type": "estimate",
+          "prompt": "Your file manager uses the binary unit KiB. How many Byte are exactly 1 KiB?",
+          "options": [],
+          "correct": [],
+          "slider": {
+            "min": 128,
+            "max": 1664,
+            "step": 4,
+            "answer": 1024,
+            "tolerance": 0,
+            "unit": "Byte",
+            "scale": "linear"
+          },
+          "explanation": "The IEC prefix kibi represents 2¹⁰. Therefore, 1 KiB = 1024 Byte, whereas 1 kB denotes 1000 Byte.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO2 (ZÜ).md",
+            "heading": "12. Speichergrößen: SI- und Binärpräfixe"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "SI and IEC prefixes"
+          ]
+        },
+        {
+          "id": "era-02-l5-q09",
+          "type": "single",
+          "prompt": "While debugging, a tool displays the value `0x7EA`. Why is hexadecimal representation useful for bit patterns like this?",
+          "options": [
+            {
+              "id": "a",
+              "text": "A hexadecimal digit groups exactly four binary bits."
+            },
+            {
+              "id": "b",
+              "text": "Every hexadecimal digit represents 1000 Byte."
+            },
+            {
+              "id": "c",
+              "text": "Hexadecimal uses only the digits 0 through 7."
+            },
+            {
+              "id": "d",
+              "text": "Hexadecimal numbers are always negative."
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "Hexadecimal is a compact notation for binary data: each digit corresponds to a nibble of four bits. The represented numerical value remains unchanged.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO2 (ZÜ).md",
+            "heading": "Dieselbe Zahl, verschiedene Schreibweisen"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Hexadecimal system",
+            "Binary system"
+          ]
+        },
+        {
+          "id": "era-02-l5-q10",
+          "type": "single",
+          "prompt": "Which octal number corresponds to the binary pattern `101101`?",
+          "options": [
+            {
+              "id": "a",
+              "text": "`65₈`"
+            },
+            {
+              "id": "b",
+              "text": "`45₈`"
+            },
+            {
+              "id": "c",
+              "text": "`55₈`"
+            },
+            {
+              "id": "d",
+              "text": "`101₈`"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "To convert to octal, group the binary pattern in threes from the right: `101 101` corresponds to `5 5`, or `55₈`. Each octal digit represents three bits.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO2 (ZÜ).md",
+            "heading": "Oktal"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Octal system",
+            "Binary system",
+            "Place values"
+          ]
+        }
+      ]
+    }
+  ]
+}

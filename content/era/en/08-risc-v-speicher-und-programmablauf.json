@@ -1,0 +1,1978 @@
+{
+  "schemaVersion": 1,
+  "id": "era-08",
+  "module": "ERA",
+  "number": 8,
+  "slug": "risc-v-speicher-und-programmablauf",
+  "title": "RISC-V: Memory and Program Flow",
+  "summary": "This unit covers memory accesses in RV32 and shows how bytes, words, strings, arrays, and structs are laid out in memory. You will also practice pointer arithmetic, stack operations, branches, loops, and subroutine calls, including register preservation.",
+  "concepts": [
+    "RV32 notation (RV32-Notation)",
+    "Load and store (Load und Store)",
+    "Sign extension and zero extension (Sign Extension und Zero Extension)",
+    "Little endian and big endian (Little Endian und Big Endian)",
+    "Sections and memory layout (Sections und Speicherlayout)",
+    "ASCII and C strings (ASCII und C-Strings)",
+    "Pointers and dereferencing (Pointer und Dereferenzierung)",
+    "Arrays and pointer arithmetic (Arrays und Pointerarithmetik)",
+    "Struct layout (Struct-Layout)",
+    "Stack: PUSH and POP (Stack: PUSH und POP)",
+    "Conditional branches and branch pseudoinstructions",
+    "Subroutines and register preservation (Unterprogramme und Register-Sicherung)",
+    "Assembly loops (Assembler-Schleifen)"
+  ],
+  "keyFacts": [
+    "In RV32, registers and pointers are 32 bits wide.",
+    "Memory is byte-addressable; `b`, `h`, and `w` denote 1, 2, and 4 bytes.",
+    "The effective address of a load or store instruction is the base register plus a sign-extended immediate.",
+    "`lb` and `lh` sign-extend; `lbu` and `lhu` zero-extend by padding with zeros on the left.",
+    "Stores write only the selected lower bits and do not extend the value.",
+    "Little endian places the least significant byte at the lowest address; big endian places the most significant byte there.",
+    "`.text` contains executable code; `.data`, `.rodata`, and `.bss` contain global data with different properties.",
+    "`.asciz` automatically appends a terminating NULL byte to a string.",
+    "A C string ends with NULL; a Pascal string stores its length in a leading byte.",
+    "A pointer contains an address; `la` loads an address, while `lw` loads a word from an address.",
+    "In an array, element `i` is `i × sizeof(Element)` bytes past the start of the array.",
+    "Struct members can have different types; the ERA course simplification ignores padding.",
+    "PUSH first decrements `sp` and then writes; POP first reads and then increments `sp`.",
+    "A branch jumps when its condition is true; `blt` and `bge` compare signed values, while their u variants compare unsigned values.",
+    "`jal` stores the address of the following instruction in `rd`; `jalr` jumps to the register value plus a sign-extended immediate.",
+    "When calling a subroutine, values that are still needed must be saved, and any modified callee-saved registers must be restored before returning.",
+    "An assembly for loop typically checks the negated exit condition before the body and jumps back after incrementing."
+  ],
+  "tags": [],
+  "links": [],
+  "source": {
+    "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO8.md",
+    "sha256": "27467f29e703b0a4feb7e3ba3a4d1ecdd3040d592503532596f0f07b6f21fd8e",
+    "commit": "7323156457fc7de1e05720d4d6409f86fb0b437b"
+  },
+  "generator": {
+    "model": "gpt-6-luna",
+    "effort": "xhigh",
+    "reviewEffort": "high",
+    "promptVersion": "v3",
+    "generatedAt": "2026-11-02T12:42:12.420Z",
+    "review": {
+      "checked": 45,
+      "fixed": 1,
+      "removed": 0,
+      "notes": "45 Fragen geprüft; Antworten, Distraktoren, Erklärungen, Selbstständigkeit und Rechen-/Code-Verifikationen waren korrekt. Die Quellenüberschrift „jal und jalr“ steht nicht in der erlaubten Überschriftenliste und wurde auf null gesetzt. Keine Fragen entfernt."
+    }
+  },
+  "levels": [
+    {
+      "id": "era-08-l1",
+      "index": 1,
+      "kind": "basics",
+      "title": "Foundations",
+      "questions": [
+        {
+          "id": "era-08-l1-q01",
+          "type": "single",
+          "prompt": "What does `la t0, x` mean in this RV32 example?",
+          "options": [
+            {
+              "id": "a",
+              "text": "It loads a byte from the address in `x`."
+            },
+            {
+              "id": "b",
+              "text": "It loads the address of `x` into `t0`."
+            },
+            {
+              "id": "c",
+              "text": "It loads the value of `x` into `t0`."
+            },
+            {
+              "id": "d",
+              "text": "It stores `t0` at the address of `x`."
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "`la` loads the address of a label. To read the data at that address, you would then need something like `lw`.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO8.md",
+            "heading": "Pointer: Adresse und Datum auseinanderhalten"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Pointers and dereferencing"
+          ]
+        },
+        {
+          "id": "era-08-l1-q02",
+          "type": "cloze",
+          "prompt": "The load suffix `h` denotes a halfword of ___ bytes.",
+          "options": [
+            {
+              "id": "a",
+              "text": "1"
+            },
+            {
+              "id": "b",
+              "text": "8"
+            },
+            {
+              "id": "c",
+              "text": "4"
+            },
+            {
+              "id": "d",
+              "text": "2"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "A halfword is 16 bits wide, so it occupies two bytes.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO8.md",
+            "heading": "Speicherzugriffe: Load und Store"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Load and store"
+          ]
+        },
+        {
+          "id": "era-08-l1-q03",
+          "type": "single",
+          "prompt": "Which load instructions zero-extend a loaded byte to the register width?",
+          "options": [
+            {
+              "id": "a",
+              "text": "`lw` and `lhu`"
+            },
+            {
+              "id": "b",
+              "text": "`lb` and `lh`"
+            },
+            {
+              "id": "c",
+              "text": "`lb` and `lbu`"
+            },
+            {
+              "id": "d",
+              "text": "`lbu` and `lhu`"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Here, the `u` marks zero extension: `lbu` and `lhu` pad with zeros on the left. `lb` and `lh` use sign extension.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO8.md",
+            "heading": "Befehle und Erweiterung auf Registerbreite"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Sign extension and zero extension"
+          ]
+        },
+        {
+          "id": "era-08-l1-q04",
+          "type": "truefalse",
+          "prompt": "With little endian, the least significant byte of a multibyte value is at the lowest address.",
+          "options": [
+            {
+              "id": "true",
+              "text": "True"
+            },
+            {
+              "id": "false",
+              "text": "False"
+            }
+          ],
+          "correct": [
+            "true"
+          ],
+          "explanation": "Little endian stores the least significant byte first, at the lowest address of the value.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO8.md",
+            "heading": "Little Endian und Big Endian"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Little endian and big endian"
+          ]
+        },
+        {
+          "id": "era-08-l1-q05",
+          "type": "single",
+          "prompt": "What kind of content is stored in the `.rodata` section?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Executable code"
+            },
+            {
+              "id": "b",
+              "text": "Initialized, non-writable global data"
+            },
+            {
+              "id": "c",
+              "text": "Uninitialized, writable global data"
+            },
+            {
+              "id": "d",
+              "text": "Initialized, writable global data"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "`.rodata` contains initialized global data that is not writable. Executable code is stored in `.text`.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO8.md",
+            "heading": "Sections und Speicherlayout"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Sections and memory layout"
+          ]
+        },
+        {
+          "id": "era-08-l1-q06",
+          "type": "cloze",
+          "prompt": "The assembler directive `.asciz` automatically appends a terminating ___ to a string.",
+          "options": [
+            {
+              "id": "a",
+              "text": "NULL byte"
+            },
+            {
+              "id": "b",
+              "text": "Word"
+            },
+            {
+              "id": "c",
+              "text": "Space"
+            },
+            {
+              "id": "d",
+              "text": "Length byte"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "`.asciz` stands for ASCII Zero and appends a NULL byte at the end.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO8.md",
+            "heading": "Daten mit Assembler-Direktiven anlegen"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "ASCII and C strings"
+          ]
+        },
+        {
+          "id": "era-08-l1-q07",
+          "type": "truefalse",
+          "prompt": "ASCII encodes characters with numeric values from 0 to 127.",
+          "options": [
+            {
+              "id": "true",
+              "text": "True"
+            },
+            {
+              "id": "false",
+              "text": "False"
+            }
+          ],
+          "correct": [
+            "true"
+          ],
+          "explanation": "The ASCII range used in this unit covers the values 0 to 127.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO8.md",
+            "heading": "Strings sind Arrays aus Zahlen"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "ASCII and C strings"
+          ]
+        },
+        {
+          "id": "era-08-l1-q08",
+          "type": "single",
+          "prompt": "How wide is a pointer in the RV32 context used here?",
+          "options": [
+            {
+              "id": "a",
+              "text": "64 bits"
+            },
+            {
+              "id": "b",
+              "text": "32 bits"
+            },
+            {
+              "id": "c",
+              "text": "16 bits"
+            },
+            {
+              "id": "d",
+              "text": "8 bits"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "RV32 uses 32-bit registers and 32-bit pointers.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO8.md",
+            "heading": "Pointer: Adresse und Datum auseinanderhalten"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "RV32 notation",
+            "Pointers and dereferencing"
+          ]
+        },
+        {
+          "id": "era-08-l1-q09",
+          "type": "multi",
+          "prompt": "Which statements about arrays and structs are correct? More than one answer may be correct.",
+          "options": [
+            {
+              "id": "a",
+              "text": "A struct cannot have named members."
+            },
+            {
+              "id": "b",
+              "text": "Structs group fields that can have different types."
+            },
+            {
+              "id": "c",
+              "text": "Arrays always store their elements at separate, arbitrary addresses."
+            },
+            {
+              "id": "d",
+              "text": "Arrays contain elements of the same type."
+            }
+          ],
+          "correct": [
+            "b",
+            "d"
+          ],
+          "explanation": "Arrays consist of elements of the same type; structs group members that can have different types. The other statements contradict these definitions.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO8.md",
+            "heading": "Structs: unterschiedliche Datentypen hintereinander"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Arrays and pointer arithmetic",
+            "Struct layout"
+          ]
+        },
+        {
+          "id": "era-08-l1-q10",
+          "type": "single",
+          "prompt": "Which sequence describes pushing a 32-bit register onto the stack?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Write to `sp`, then decrement `sp` by 4"
+            },
+            {
+              "id": "b",
+              "text": "Write to `sp`, then increment `sp` by 4"
+            },
+            {
+              "id": "c",
+              "text": "Decrement `sp` by 4, then write to `sp`"
+            },
+            {
+              "id": "d",
+              "text": "Increment `sp` by 4, then read from `sp`"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "PUSH uses pre-decrement: first, `sp` is decremented by four bytes, then the register is stored at the new address.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO8.md",
+            "heading": "Stack / Keller: PUSH und POP"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Stack: PUSH and POP"
+          ]
+        },
+        {
+          "id": "era-08-l1-q11",
+          "type": "cloze",
+          "prompt": "In the instruction notation, `rd` stands for the ___ register.",
+          "options": [
+            {
+              "id": "a",
+              "text": "second source"
+            },
+            {
+              "id": "b",
+              "text": "stack"
+            },
+            {
+              "id": "c",
+              "text": "destination"
+            },
+            {
+              "id": "d",
+              "text": "first source"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "`rd` stands for Register Destination, meaning the destination register. `rs`, `rs1`, and `rs2` denote source registers.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO8.md",
+            "heading": "Notation"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "RV32 notation"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "era-08-l2",
+      "index": 2,
+      "kind": "apply",
+      "title": "Apply",
+      "questions": [
+        {
+          "id": "era-08-l2-q01",
+          "type": "calc",
+          "prompt": "A load uses `rs1 = 0x1000` and `imm = -12`. What is the resulting effective address?",
+          "options": [
+            {
+              "id": "a",
+              "text": "`0x0FF4`"
+            },
+            {
+              "id": "b",
+              "text": "`0x100C`"
+            },
+            {
+              "id": "c",
+              "text": "`0x0FEC`"
+            },
+            {
+              "id": "d",
+              "text": "`0x1FF4`"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "The effective address is the base plus the sign-extended immediate: `0x1000 − 12 = 0x0FF4`.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO8.md",
+            "heading": "Speicherzugriffe: Load und Store"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Load and store",
+            "RV32 notation"
+          ]
+        },
+        {
+          "id": "era-08-l2-q02",
+          "type": "calc",
+          "prompt": "A byte with the bit pattern `10000000` is loaded into RV32 using `lb`. What 32-bit pattern is then in the register?",
+          "options": [
+            {
+              "id": "a",
+              "text": "`0x000000FF`"
+            },
+            {
+              "id": "b",
+              "text": "`0x80000000`"
+            },
+            {
+              "id": "c",
+              "text": "`0x00000080`"
+            },
+            {
+              "id": "d",
+              "text": "`0xFFFFFF80`"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "The most significant bit of the byte is 1. `lb` repeats this sign bit to the register width, giving `0xFFFFFF80`.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO8.md",
+            "heading": "Befehle und Erweiterung auf Registerbreite"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Sign extension and zero extension"
+          ]
+        },
+        {
+          "id": "era-08-l2-q03",
+          "type": "calc",
+          "prompt": "The 32-bit value `0xA1B2C3D4` is stored in little-endian order starting at address `n`. Which bytes appear in the order `n`, `n+1`, `n+2`, `n+3`?",
+          "options": [
+            {
+              "id": "a",
+              "text": "`B2 A1 D4 C3`"
+            },
+            {
+              "id": "b",
+              "text": "`C3 D4 A1 B2`"
+            },
+            {
+              "id": "c",
+              "text": "`A1 B2 C3 D4`"
+            },
+            {
+              "id": "d",
+              "text": "`D4 C3 B2 A1`"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Little endian stores the least significant byte first. Therefore, `D4`, `C3`, `B2`, `A1` appear at successive addresses.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO8.md",
+            "heading": "Little Endian und Big Endian"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Little endian and big endian"
+          ]
+        },
+        {
+          "id": "era-08-l2-q04",
+          "type": "calc",
+          "prompt": "How many bytes does `.asciz \"RAM\"` occupy in memory?",
+          "options": [
+            {
+              "id": "a",
+              "text": "12 bytes"
+            },
+            {
+              "id": "b",
+              "text": "5 bytes"
+            },
+            {
+              "id": "c",
+              "text": "4 bytes"
+            },
+            {
+              "id": "d",
+              "text": "3 bytes"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Each of the three ASCII characters occupies one byte. `.asciz` adds a terminating NULL byte, for a total of four bytes.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO8.md",
+            "heading": "Daten mit Assembler-Direktiven anlegen"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "ASCII and C strings"
+          ]
+        },
+        {
+          "id": "era-08-l2-q05",
+          "type": "calc",
+          "prompt": "An array of 4-byte elements starts at `0x2000`. At what address is `a[3]`?",
+          "options": [
+            {
+              "id": "a",
+              "text": "`0x200C`"
+            },
+            {
+              "id": "b",
+              "text": "`0x2010`"
+            },
+            {
+              "id": "c",
+              "text": "`0x2008`"
+            },
+            {
+              "id": "d",
+              "text": "`0x2003`"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "The offset is `3 × 4 = 12` bytes. Therefore, `a[3]` is at `0x2000 + 12 = 0x200C`.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO8.md",
+            "heading": "Arrays und Pointerarithmetik"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Arrays and pointer arithmetic"
+          ]
+        },
+        {
+          "id": "era-08-l2-q06",
+          "type": "code_output",
+          "prompt": "What do `t0` and `t1` contain after this code? The label `x` is at `0x200`; the word `17` is stored there.\n```asm\nla t0, x\nlw t1, 0(t0)\n```",
+          "options": [
+            {
+              "id": "a",
+              "text": "`t0 = 0x200`, `t1 = 17`"
+            },
+            {
+              "id": "b",
+              "text": "`t0 = 17`, `t1 = 0x200`"
+            },
+            {
+              "id": "c",
+              "text": "`t0 = 0x204`, `t1 = 17`"
+            },
+            {
+              "id": "d",
+              "text": "`t0 = 0x200`, `t1 = 0`"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "`la` loads the address `0x200` into `t0`. Then `lw` reads the word at that address into `t1`, which is the value 17.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO8.md",
+            "heading": "Pointer: Adresse und Datum auseinanderhalten"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Pointers and dereferencing"
+          ]
+        },
+        {
+          "id": "era-08-l2-q07",
+          "type": "calc",
+          "prompt": "A struct is laid out without padding. Its fields, in order, are `int` (4 bytes), `short` (2 bytes), `unsigned int` (4 bytes), and `unsigned char` (1 byte). What is the byte offset of the third field?",
+          "options": [
+            {
+              "id": "a",
+              "text": "4"
+            },
+            {
+              "id": "b",
+              "text": "6"
+            },
+            {
+              "id": "c",
+              "text": "0"
+            },
+            {
+              "id": "d",
+              "text": "8"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "The third field starts after the first two fields: `4 + 2 = 6` bytes from the start of the struct.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO8.md",
+            "heading": "Structs: unterschiedliche Datentypen hintereinander"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Struct layout"
+          ]
+        },
+        {
+          "id": "era-08-l2-q08",
+          "type": "calc",
+          "prompt": "`sp` is `0x7FFC` before a PUSH. The PUSH saves a 32-bit register. What is the value of `sp` immediately after the PUSH?",
+          "options": [
+            {
+              "id": "a",
+              "text": "`0x7FF8`"
+            },
+            {
+              "id": "b",
+              "text": "`0x8000`"
+            },
+            {
+              "id": "c",
+              "text": "`0x7FF4`"
+            },
+            {
+              "id": "d",
+              "text": "`0x7FFC`"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "A 32-bit register occupies four bytes. PUSH first decrements `sp` by 4, so `0x7FFC − 4 = 0x7FF8`.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO8.md",
+            "heading": "Stack / Keller: PUSH und POP"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Stack: PUSH and POP"
+          ]
+        },
+        {
+          "id": "era-08-l2-q09",
+          "type": "calc",
+          "prompt": "`t0 = 0xFFFFFFFF` and `t1 = 1`. Is branch `blt t0, t1, ziel` taken? Interpret the register values as signed.",
+          "options": [
+            {
+              "id": "a",
+              "text": "Yes, because `t0` is signed −1."
+            },
+            {
+              "id": "b",
+              "text": "Yes, because `0xFFFFFFFF` is greater as an unsigned value."
+            },
+            {
+              "id": "c",
+              "text": "No, because the two values are equal."
+            },
+            {
+              "id": "d",
+              "text": "No, because `blt` performs an unsigned comparison."
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "`blt` performs a signed comparison. As a 32-bit two's-complement value, `0xFFFFFFFF` equals −1; −1 is less than 1, so the branch is taken.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO8.md",
+            "heading": "Bedingte Sprünge"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Conditional branches"
+          ]
+        },
+        {
+          "id": "era-08-l2-q10",
+          "type": "single",
+          "prompt": "How is the branch pseudoinstruction `bgt rs1, rs2, label` implemented?",
+          "options": [
+            {
+              "id": "a",
+              "text": "`blt rs1, rs2, label`"
+            },
+            {
+              "id": "b",
+              "text": "`bne rs1, rs2, label`"
+            },
+            {
+              "id": "c",
+              "text": "`bge rs2, rs1, label`"
+            },
+            {
+              "id": "d",
+              "text": "`blt rs2, rs1, label`"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "The branch pseudoinstruction (Branch-Pseudoinstruktion) for “greater than” swaps the operands of the available `blt` instruction: `rs2 < rs1`.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO8.md",
+            "heading": "Branch-Pseudoinstruktionen"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Conditional branches and branch pseudoinstructions"
+          ]
+        },
+        {
+          "id": "era-08-l2-q11",
+          "type": "code_output",
+          "prompt": "How many times does the loop body execute, and what value is in `t1` afterward?\n```asm\nli t0, 1\nli a0, 4\nli t1, 0\nloop:\n    bge t0, a0, end\n    addi t1, t1, 1\n    addi t0, t0, 1\n    j loop\nend:\n```",
+          "options": [
+            {
+              "id": "a",
+              "text": "The body runs 4 times; `t1 = 4`."
+            },
+            {
+              "id": "b",
+              "text": "The body runs 2 times; `t1 = 2`."
+            },
+            {
+              "id": "c",
+              "text": "The body runs 3 times; `t1 = 3`."
+            },
+            {
+              "id": "d",
+              "text": "The body runs 5 times; `t1 = 5`."
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "The branch ends the loop when `t0 >= 4`. The body runs for `t0 = 1, 2, 3`, so it executes three times; `t1` is incremented three times.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO8.md",
+            "heading": "Eine for-Schleife in Assembler"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Assembly loops",
+            "Conditional branches"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "era-08-l3",
+      "index": 3,
+      "kind": "deepen",
+      "title": "Deepen",
+      "questions": [
+        {
+          "id": "era-08-l3-q01",
+          "type": "multi",
+          "prompt": "`t0 = 0xFFFFFFFF` and `t1 = 1`. Which statements about the two comparisons are correct? More than one answer may be correct.",
+          "options": [
+            {
+              "id": "a",
+              "text": "`bltu t0, t1, L` branches because `0xFFFFFFFF` is less than 1."
+            },
+            {
+              "id": "b",
+              "text": "`blt` and `bltu` always interpret the operands the same way."
+            },
+            {
+              "id": "c",
+              "text": "`bltu t0, t1, L` does not branch because, as unsigned values, `0xFFFFFFFF > 1`."
+            },
+            {
+              "id": "d",
+              "text": "`blt t0, t1, L` branches because, as signed values, `−1 < 1`."
+            }
+          ],
+          "correct": [
+            "c",
+            "d"
+          ],
+          "explanation": "`blt` interprets `0xFFFFFFFF` as signed −1, while `bltu` interprets the same bit value as a large unsigned number. Therefore, only the signed comparison is true.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO8.md",
+            "heading": "Bedingte Sprünge"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Conditional branches"
+          ]
+        },
+        {
+          "id": "era-08-l3-q02",
+          "type": "calc",
+          "prompt": "`rs2` contains `0x123456AB`. A `sb rs2, 0(t0)` stores to the address in `t0`. What byte value is written?",
+          "options": [
+            {
+              "id": "a",
+              "text": "`0x56`"
+            },
+            {
+              "id": "b",
+              "text": "`0xAB`"
+            },
+            {
+              "id": "c",
+              "text": "`0x34`"
+            },
+            {
+              "id": "d",
+              "text": "`0x12`"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "`sb` stores only the lower 8 bits of `rs2`. The least significant byte is `0xAB`.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO8.md",
+            "heading": "Befehle und Erweiterung auf Registerbreite"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Load and store"
+          ]
+        },
+        {
+          "id": "era-08-l3-q03",
+          "type": "single",
+          "prompt": "Which formula describes the effective address for `lw rd, imm(rs1)`?",
+          "options": [
+            {
+              "id": "a",
+              "text": "`rs1 × SignExt(imm)`"
+            },
+            {
+              "id": "b",
+              "text": "`rs1 − abs(imm)` for every immediate"
+            },
+            {
+              "id": "c",
+              "text": "`rs1 + SignExt(imm)`"
+            },
+            {
+              "id": "d",
+              "text": "`imm` as an absolute address, independent of `rs1`"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "The base address comes from register `rs1`; the sign-extended immediate is added as the offset.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO8.md",
+            "heading": "Speicherzugriffe: Load und Store"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Load and store",
+            "RV32 notation"
+          ]
+        },
+        {
+          "id": "era-08-l3-q04",
+          "type": "truefalse",
+          "prompt": "The target of a conditional branch is encoded relative to the PC; its range is approximately ±4 KiB.",
+          "options": [
+            {
+              "id": "true",
+              "text": "True"
+            },
+            {
+              "id": "false",
+              "text": "False"
+            }
+          ],
+          "correct": [
+            "true"
+          ],
+          "explanation": "The branch offset is encoded in the instruction. The stated range is approximately ±4 KiB.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO8.md",
+            "heading": "Bedingte Sprünge"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Conditional branches"
+          ]
+        },
+        {
+          "id": "era-08-l3-q05",
+          "type": "multi",
+          "prompt": "Which statements about `.bss` are correct? More than one answer may be correct.",
+          "options": [
+            {
+              "id": "a",
+              "text": "It can reserve space for a specified number of bytes."
+            },
+            {
+              "id": "b",
+              "text": "It is the section for initialized, non-writable global data."
+            },
+            {
+              "id": "c",
+              "text": "It contains only executable instructions."
+            },
+            {
+              "id": "d",
+              "text": "It contains uninitialized, writable global data."
+            }
+          ],
+          "correct": [
+            "a",
+            "d"
+          ],
+          "explanation": "`.bss` is intended for uninitialized, writable global data and reserves the required space. Code is stored in `.text`, and initialized, non-writable data is stored in `.rodata`.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO8.md",
+            "heading": "Sections und Speicherlayout"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Sections and memory layout"
+          ]
+        },
+        {
+          "id": "era-08-l3-q06",
+          "type": "multi",
+          "prompt": "Which statements correctly describe PUSH and POP? More than one answer may be correct.",
+          "options": [
+            {
+              "id": "a",
+              "text": "With POP, the stored value is overwritten first and then read."
+            },
+            {
+              "id": "b",
+              "text": "POP first reads the value and then increments `sp`."
+            },
+            {
+              "id": "c",
+              "text": "PUSH first decrements `sp` and then writes the value."
+            },
+            {
+              "id": "d",
+              "text": "In this example, PUSH and POP are each single, newly introduced RV32I machine instructions."
+            }
+          ],
+          "correct": [
+            "b",
+            "c"
+          ],
+          "explanation": "PUSH is a pre-decrement instruction sequence, and POP is a post-increment sequence. Here, these names do not refer to additional single machine instructions.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO8.md",
+            "heading": "Stack / Keller: PUSH und POP"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Stack: PUSH and POP"
+          ]
+        },
+        {
+          "id": "era-08-l3-q07",
+          "type": "multi",
+          "prompt": "Which statements correctly distinguish the string formats presented here? More than one answer may be correct.",
+          "options": [
+            {
+              "id": "a",
+              "text": "A Pascal string begins with a byte that gives its length."
+            },
+            {
+              "id": "b",
+              "text": "A Pascal string must end with NULL to indicate its length."
+            },
+            {
+              "id": "c",
+              "text": "A C string ends with a terminating NULL byte."
+            },
+            {
+              "id": "d",
+              "text": "A C string always stores its length in a leading byte."
+            }
+          ],
+          "correct": [
+            "a",
+            "c"
+          ],
+          "explanation": "For a C string, a NULL byte marks the end; the Pascal string presented here stores the length in its first byte. The other statements swap these characteristics.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO8.md",
+            "heading": "Strings sind Arrays aus Zahlen"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "ASCII and C strings"
+          ]
+        },
+        {
+          "id": "era-08-l3-q08",
+          "type": "single",
+          "prompt": "Which actual instruction form corresponds to the unconditional jump `j label`?",
+          "options": [
+            {
+              "id": "a",
+              "text": "`jal zero, label`"
+            },
+            {
+              "id": "b",
+              "text": "`bne zero, zero, label`"
+            },
+            {
+              "id": "c",
+              "text": "`jalr ra, label, 0`"
+            },
+            {
+              "id": "d",
+              "text": "`jal ra, label`"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "`j label` is `jal x0, label` or `jal zero, label`. The link address is written to `zero` and thus discarded.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO8.md",
+            "heading": null
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Subroutines and register preservation"
+          ]
+        },
+        {
+          "id": "era-08-l3-q09",
+          "type": "calc",
+          "prompt": "For `jalr ra, t0, -4`, before the instruction: old PC `0x200`, `t0 = 0x800`. What new PC address and return address result?",
+          "options": [
+            {
+              "id": "a",
+              "text": "New PC `0x804`, `ra = 0x200`"
+            },
+            {
+              "id": "b",
+              "text": "New PC `0x7FC`, `ra = 0x204`"
+            },
+            {
+              "id": "c",
+              "text": "New PC `0x7FC`, `ra = 0x200`"
+            },
+            {
+              "id": "d",
+              "text": "New PC `0x204`, `ra = 0x7FC`"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "`jalr` sets the new PC to `t0 + SignExt(−4) = 0x7FC` and stores `PC_alt + 4 = 0x204` in `ra`.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO8.md",
+            "heading": null
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Subroutines and register preservation",
+            "RV32 notation"
+          ]
+        },
+        {
+          "id": "era-08-l3-q10",
+          "type": "code_output",
+          "prompt": "What number is in `t2` at the end?\n```asm\nli t0, -1\nli t1, 1\nblt t0, t1, less\nli t2, 0\nj end\nless:\nli t2, 1\nend:\n```",
+          "options": [
+            {
+              "id": "a",
+              "text": "The code does not branch to `end`."
+            },
+            {
+              "id": "b",
+              "text": "−1"
+            },
+            {
+              "id": "c",
+              "text": "1"
+            },
+            {
+              "id": "d",
+              "text": "0"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "`blt` performs a signed comparison. −1 is less than 1, so the code branches to `less` and sets `t2` to 1.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO8.md",
+            "heading": "Bedingte Sprünge"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Conditional branches"
+          ]
+        },
+        {
+          "id": "era-08-l3-q11",
+          "type": "single",
+          "prompt": "An assembly instruction `sw a1, 6(a0)` stores a word. Which statement describes the access?",
+          "options": [
+            {
+              "id": "a",
+              "text": "The 32 bits in `a1` are written to absolute address 6."
+            },
+            {
+              "id": "b",
+              "text": "The 32 bits in `a1` are written starting at address `a0 + 6`."
+            },
+            {
+              "id": "c",
+              "text": "The word at `a0` is loaded into `a1`; 6 is the register width."
+            },
+            {
+              "id": "d",
+              "text": "The lower 16 bits of `a1` are written to address `a0 + 6`."
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "For `sw`, `a1` is the source; 32 bits are written to the effective address formed from the base register plus the offset, here `a0 + 6`.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO8.md",
+            "heading": "Structs: unterschiedliche Datentypen hintereinander"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Load and store",
+            "Struct layout"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "era-08-l4",
+      "index": 4,
+      "kind": "boss",
+      "title": "Boss Challenge",
+      "questions": [
+        {
+          "id": "era-08-l4-q01",
+          "type": "single",
+          "prompt": "Subroutine A calls B with `jal ra, B`. B then calls C with `jal ra, C` and must return to A afterward. What must B do?",
+          "options": [
+            {
+              "id": "a",
+              "text": "B must not save `ra` because `jal` automatically places the old return address on the stack."
+            },
+            {
+              "id": "b",
+              "text": "B must set `ra` to zero before calling C."
+            },
+            {
+              "id": "c",
+              "text": "B must save its current return address before calling C and restore it before returning."
+            },
+            {
+              "id": "d",
+              "text": "B must save C's return address in `x0`."
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "The second `jal` overwrites `ra` with the return address inside B. B must therefore save the return address to A and restore it later.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO6.md",
+            "heading": null
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Subroutines and register preservation",
+            "Stack: PUSH and POP"
+          ]
+        },
+        {
+          "id": "era-08-l4-q02",
+          "type": "single",
+          "prompt": "A program has instructions in `.text` and initialized global data in `.data`. Which statement fits the Von Neumann model?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Only data resides in main memory; instructions are stored exclusively in registers."
+            },
+            {
+              "id": "b",
+              "text": "`.text` and `.data` necessarily refer to two separate processors."
+            },
+            {
+              "id": "c",
+              "text": "Code and data are always stored in separate main memories."
+            },
+            {
+              "id": "d",
+              "text": "Program code and data reside in the same main memory."
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "In the Von Neumann model, programs and data reside in the same main memory. The sections identify different kinds of content in that memory.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO7.md",
+            "heading": null
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Sections and memory layout"
+          ]
+        },
+        {
+          "id": "era-08-l4-q03",
+          "type": "code_output",
+          "prompt": "A struct is at `0x100`; its pointer field `data` contains `0x200`. At `0x200` are the bytes `0x48`, `0x69`, `0x00` (ASCII “Hi” plus NULL). The length field begins at offset 4. What value does the code store there?\n```asm\nlw t0, 0(a0)\nli t1, 0\nloop:\n    lbu t2, 0(t0)\n    beq t2, zero, done\n    addi t1, t1, 1\n    addi t0, t0, 1\n    j loop\ndone:\n    sw t1, 4(a0)\n```",
+          "options": [
+            {
+              "id": "a",
+              "text": "2"
+            },
+            {
+              "id": "b",
+              "text": "3"
+            },
+            {
+              "id": "c",
+              "text": "1"
+            },
+            {
+              "id": "d",
+              "text": "0"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "The code loads the string pointer and counts bytes until it reads the NULL byte. It counts `0x48` and `0x69`, but not the NULL byte; it stores 2.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO8.md",
+            "heading": "Livecoding: Stringlänge in einem Struct speichern"
+          },
+          "difficulty": 5,
+          "concepts": [
+            "ASCII and C strings",
+            "Pointers and dereferencing",
+            "Struct layout"
+          ]
+        },
+        {
+          "id": "era-08-l4-q04",
+          "type": "calc",
+          "prompt": "A word array starts at `0x300` and contains `5`, `8`, and `42` in that order; each element occupies 4 bytes. The code loads `a[2]` using `lw`. What value is read?",
+          "options": [
+            {
+              "id": "a",
+              "text": "The address `0x308`"
+            },
+            {
+              "id": "b",
+              "text": "42"
+            },
+            {
+              "id": "c",
+              "text": "8"
+            },
+            {
+              "id": "d",
+              "text": "5"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "`a[2]` is at `0x300 + 2 × 4 = 0x308`. `lw` loads the data at that address, which is the third word with value 42.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO8.md",
+            "heading": "Arrays und Pointerarithmetik"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Arrays and pointer arithmetic",
+            "Pointers and dereferencing"
+          ]
+        },
+        {
+          "id": "era-08-l4-q05",
+          "type": "calc",
+          "prompt": "At address `s0` is the byte `0x80`. The code then executes `lb t0, 0(s0)` and `bge t0, zero, nonnegative`. Is the branch taken?",
+          "options": [
+            {
+              "id": "a",
+              "text": "No, because `lb` sign-extends the value to −128."
+            },
+            {
+              "id": "b",
+              "text": "Yes, `lb` zero-extends the byte."
+            },
+            {
+              "id": "c",
+              "text": "No, because `bge` always compares unsigned values."
+            },
+            {
+              "id": "d",
+              "text": "Yes, because `0x80` is positive as a signed number."
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "`lb` sign-extends `0x80` to `0xFFFFFF80`, which is signed −128. `bge` is signed; −128 is not greater than or equal to zero.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO8.md",
+            "heading": "Befehle und Erweiterung auf Registerbreite"
+          },
+          "difficulty": 5,
+          "concepts": [
+            "Sign extension and zero extension",
+            "Conditional branches"
+          ]
+        },
+        {
+          "id": "era-08-l4-q06",
+          "type": "multi",
+          "prompt": "For `for (int i = a; i < b; ++i)`, the assembler should branch to label `end` when the exit condition is met. Which statements fit the loop pattern? More than one answer may be correct.",
+          "options": [
+            {
+              "id": "a",
+              "text": "After the body, `i` is incremented and execution then branches to the start of the loop."
+            },
+            {
+              "id": "b",
+              "text": "Before the body, `bge i, b, end` can test the negated loop condition."
+            },
+            {
+              "id": "c",
+              "text": "The test `i >= b` must be performed after the increment so that the first iteration can happen."
+            },
+            {
+              "id": "d",
+              "text": "`blt i, b, end` ends the loop exactly when `i < b` is true."
+            }
+          ],
+          "correct": [
+            "a",
+            "b"
+          ],
+          "explanation": "The exit condition is the negation of `i < b`, namely `i >= b`. After the body, the index is incremented and execution branches back to the test.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO8.md",
+            "heading": "Eine for-Schleife in Assembler"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Assembly loops",
+            "Conditional branches"
+          ]
+        },
+        {
+          "id": "era-08-l4-q07",
+          "type": "multi",
+          "prompt": "An RV32 struct contains `char *data` at offset 0 and `unsigned int length` at offset 4. Which statements are correct? More than one answer may be correct.",
+          "options": [
+            {
+              "id": "a",
+              "text": "`sw t1, 4(a0)` can store a computed length value in the `length` field."
+            },
+            {
+              "id": "b",
+              "text": "`lw t0, 0(a0)` can load the pointer `data` from the struct."
+            },
+            {
+              "id": "c",
+              "text": "The length field begins at offset 8."
+            },
+            {
+              "id": "d",
+              "text": "`lbu t0, 0(a0)` loads the complete 32-bit pointer in one step."
+            }
+          ],
+          "correct": [
+            "a",
+            "b"
+          ],
+          "explanation": "In the given layout, both fields occupy four bytes: the pointer is at offset 0 and the length at offset 4. `lbu` loads only one byte, which is not enough to load the full pointer.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO8.md",
+            "heading": "Livecoding: Stringlänge in einem Struct speichern"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Struct layout",
+            "Pointers and dereferencing",
+            "Load and store"
+          ]
+        },
+        {
+          "id": "era-08-l4-q08",
+          "type": "truefalse",
+          "prompt": "For `jalr rd, rs, imm`, according to the address calculation used here, `PC_alt + 4` is written to `rd` and execution jumps to `rs + SignExt(imm)`.",
+          "options": [
+            {
+              "id": "true",
+              "text": "True"
+            },
+            {
+              "id": "false",
+              "text": "False"
+            }
+          ],
+          "correct": [
+            "true"
+          ],
+          "explanation": "`jalr` stores the address of the following instruction in `rd` and calculates the jump target from the register value plus a sign-extended immediate.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO8.md",
+            "heading": null
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Subroutines and register preservation",
+            "RV32 notation"
+          ]
+        },
+        {
+          "id": "era-08-l4-q09",
+          "type": "cloze",
+          "prompt": "For a more distant subroutine, the sequence first uses `___ ra, offset[31:12]` and then `jalr ra, ra, offset[11:0]`.",
+          "options": [
+            {
+              "id": "a",
+              "text": "`lui`"
+            },
+            {
+              "id": "b",
+              "text": "`addi`"
+            },
+            {
+              "id": "c",
+              "text": "`sw`"
+            },
+            {
+              "id": "d",
+              "text": "`auipc`"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "The sequence shown uses `auipc` to form the upper part of the offset relative to the PC; `jalr` then handles the lower part.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO8.md",
+            "heading": "Weiter entfernte Ziele"
+          },
+          "difficulty": 5,
+          "concepts": [
+            "Subroutines and register preservation"
+          ]
+        },
+        {
+          "id": "era-08-l4-q10",
+          "type": "diagram",
+          "prompt": "In the call sequence shown, which step follows directly after the caller's preparation?",
+          "context": {
+            "type": "mermaid",
+            "content": "flowchart TD\n  A[Caller vorbereitet] --> B[Jump and Link]\n  B --> C[Callee arbeitet]\n  C --> D[Callee beendet]\n  D --> E[Ruecksprung und Caller arbeitet weiter]",
+            "caption": "Sequence of a subroutine call"
+          },
+          "options": [
+            {
+              "id": "a",
+              "text": "The caller resumes its work."
+            },
+            {
+              "id": "b",
+              "text": "The callee works."
+            },
+            {
+              "id": "c",
+              "text": "The callee restores registers."
+            },
+            {
+              "id": "d",
+              "text": "Jump and Link stores the return address."
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "After preparing values and parameters, the call is made with Jump and Link; the return address is stored at that point.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO8.md",
+            "heading": "Unterprogramme: sichern, aufrufen, zurückkehren"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Subroutines and register preservation"
+          ]
+        },
+        {
+          "id": "era-08-l4-q11",
+          "type": "diagram",
+          "prompt": "At which step in the sequence shown are the result and the registers to be restored prepared for the return?",
+          "context": {
+            "type": "mermaid",
+            "content": "flowchart TD\n  A[Caller vorbereitet] --> B[Jump and Link]\n  B --> C[Callee arbeitet]\n  C --> D[Callee beendet]\n  D --> E[Ruecksprung und Caller arbeitet weiter]",
+            "caption": "Sequence of a subroutine call"
+          },
+          "options": [
+            {
+              "id": "a",
+              "text": "During the caller's preparation"
+            },
+            {
+              "id": "b",
+              "text": "While the callee is working"
+            },
+            {
+              "id": "c",
+              "text": "When the callee finishes"
+            },
+            {
+              "id": "d",
+              "text": "During Jump and Link"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "When the callee finishes, it stores the result and restores the callee-saved registers it used before returning.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO8.md",
+            "heading": "Unterprogramme: sichern, aufrufen, zurückkehren"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Subroutines and register preservation"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "era-08-l5",
+      "index": 5,
+      "kind": "bonus",
+      "title": "Practice: Bytes, Branches, and Aha Moments",
+      "questions": [
+        {
+          "id": "era-08-l5-q01",
+          "type": "single",
+          "prompt": "You are rendering an image and reading a color channel as an **unsigned** byte. The memory contains `11100000`; the value `224` should end up in the register. Which RV32 instruction loads exactly one byte and zero-extends it?",
+          "options": [
+            {
+              "id": "a",
+              "text": "`lbu`"
+            },
+            {
+              "id": "b",
+              "text": "`lw`"
+            },
+            {
+              "id": "c",
+              "text": "`lh`"
+            },
+            {
+              "id": "d",
+              "text": "`lb`"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "`lbu` loads one byte and zero-extends it, so `11100000` is read as `224`. `lb` interprets the set sign bit as a negative sign.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO8.md",
+            "heading": "Befehle und Erweiterung auf Registerbreite"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Load and store",
+            "Sign extension and zero extension"
+          ]
+        },
+        {
+          "id": "era-08-l5-q02",
+          "type": "single",
+          "prompt": "A network protocol stores a 32-bit field **with the most significant byte first**. At increasing addresses, you see the bytes `12 34 56 78`. Which byte order does this indicate?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Zero extension"
+            },
+            {
+              "id": "b",
+              "text": "Big endian"
+            },
+            {
+              "id": "c",
+              "text": "Sign extension"
+            },
+            {
+              "id": "d",
+              "text": "Little endian"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "With big endian, the most significant byte is at the lowest address. The order described is therefore big endian.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO8.md",
+            "heading": "Little Endian und Big Endian"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Little endian and big endian"
+          ]
+        },
+        {
+          "id": "era-08-l5-q03",
+          "type": "estimate",
+          "prompt": "You are working with RV32: pointers are 32 bits wide and each address refers to one byte. How large is the byte-addressable address space? Use 1 GiB = 2³⁰ bytes.",
+          "options": [],
+          "correct": [],
+          "slider": {
+            "min": 0,
+            "max": 10,
+            "step": 0.1,
+            "answer": 4,
+            "tolerance": 0,
+            "unit": "GiB",
+            "scale": "linear"
+          },
+          "explanation": "A 32-bit pointer can represent 2³² distinct addresses. That gives 2³² ÷ 2³⁰ = 4 GiB of byte-addressable locations.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO8.md",
+            "heading": "Speicherzugriffe: Load und Store"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "RV32 notation",
+            "Load and store"
+          ]
+        },
+        {
+          "id": "era-08-l5-q04",
+          "type": "single",
+          "prompt": "A text API receives the bytes `0x4F 0x4B 0x00 0x58` and should stop at the first zero byte. Which string convention fits?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Pascal string: length stored in a leading byte"
+            },
+            {
+              "id": "b",
+              "text": "Word array: terminated by a four-byte zero word"
+            },
+            {
+              "id": "c",
+              "text": "Fixed-length string: length stored only outside the buffer"
+            },
+            {
+              "id": "d",
+              "text": "C string: terminated by a trailing zero byte"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "A C string ends at the first zero byte, here after the characters `OK`. A Pascal string stores its length at the beginning instead.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO8.md",
+            "heading": "Strings sind Arrays aus Zahlen"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "ASCII and C strings"
+          ]
+        },
+        {
+          "id": "era-08-l5-q05",
+          "type": "single",
+          "prompt": "A game stores scores in an array of 4-byte values. The array starts at `0x1000`; the index starts at 0. At what address is element `a[6]`?",
+          "options": [
+            {
+              "id": "a",
+              "text": "`0x1018`"
+            },
+            {
+              "id": "b",
+              "text": "`0x1014`"
+            },
+            {
+              "id": "c",
+              "text": "`0x1028`"
+            },
+            {
+              "id": "d",
+              "text": "`0x1006`"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "Element 6 is 6 × 4 = 24 bytes past the start. Its address is therefore `0x1000 + 24 = 0x1018`.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO8.md",
+            "heading": "Arrays und Pointerarithmetik"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Arrays and pointer arithmetic",
+            "Pointers and dereferencing"
+          ]
+        },
+        {
+          "id": "era-08-l5-q06",
+          "type": "estimate",
+          "prompt": "A game stores 37 measurements in an RV32 word array. A word occupies 4 bytes. How many bytes does the array itself occupy?",
+          "options": [],
+          "correct": [],
+          "slider": {
+            "min": 20,
+            "max": 340,
+            "step": 4,
+            "answer": 148,
+            "tolerance": 0,
+            "unit": "Byte",
+            "scale": "linear"
+          },
+          "explanation": "Each array element occupies 4 bytes. In total, that is 37 × 4 = 148 bytes.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO8.md",
+            "heading": "Arrays und Pointerarithmetik"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Arrays and pointer arithmetic",
+            "Load and store"
+          ]
+        },
+        {
+          "id": "era-08-l5-q07",
+          "type": "multi",
+          "prompt": "You are building an app with machine code, an immutable label, and a global writable buffer with no specified initial contents. Which mappings fit? Select all correct answers.",
+          "options": [
+            {
+              "id": "a",
+              "text": "Machine code → `.data`"
+            },
+            {
+              "id": "b",
+              "text": "Mutable global settings → `.rodata`"
+            },
+            {
+              "id": "c",
+              "text": "Immutable label → `.rodata`"
+            },
+            {
+              "id": "d",
+              "text": "Uninitialized global buffer → `.bss`"
+            },
+            {
+              "id": "e",
+              "text": "Machine code → `.text`"
+            }
+          ],
+          "correct": [
+            "c",
+            "d",
+            "e"
+          ],
+          "explanation": "`.text` contains executable code, `.rodata` read-only data, and `.bss` uninitialized global data. Therefore, A, B, and C are correct.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO8.md",
+            "heading": "Sections und Speicherlayout"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Sections and memory layout"
+          ]
+        },
+        {
+          "id": "era-08-l5-q08",
+          "type": "estimate",
+          "prompt": "You save five 32-bit registers in succession using one PUSH operation each. With no additional padding, how many bytes do the saved registers occupy altogether?",
+          "options": [],
+          "correct": [],
+          "slider": {
+            "min": 0,
+            "max": 80,
+            "step": 2,
+            "answer": 20,
+            "tolerance": 0,
+            "unit": "Byte",
+            "scale": "linear"
+          },
+          "explanation": "A register is 32 bits, or 4 bytes, wide. Five PUSH operations therefore occupy 5 × 4 = 20 bytes.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO8.md",
+            "heading": "Stack / Keller: PUSH und POP"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Stack: PUSH and POP",
+            "RV32 notation"
+          ]
+        },
+        {
+          "id": "era-08-l5-q09",
+          "type": "single",
+          "prompt": "A game checks `if (lives == 0) game_over();` and should jump to game over only when there are zero lives. Which RISC-V concept represents this decision?",
+          "options": [
+            {
+              "id": "a",
+              "text": "A conditional branch, such as `beq`"
+            },
+            {
+              "id": "b",
+              "text": "A store instruction such as `sw`"
+            },
+            {
+              "id": "c",
+              "text": "Pointer arithmetic for array elements"
+            },
+            {
+              "id": "d",
+              "text": "A load instruction such as `lw`"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "A conditional branch jumps only when its condition is true. Here, `beq` can compare the value of `lives` with zero.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO8.md",
+            "heading": "Bedingte Sprünge"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Conditional branches"
+          ]
+        },
+        {
+          "id": "era-08-l5-q10",
+          "type": "single",
+          "prompt": "A parser processes nested messages recursively. Before another `jal`, the old return address in `ra` and a local value must still be available after returning. Where does it typically save these values for each call?",
+          "options": [
+            {
+              "id": "a",
+              "text": "In one shared global variable for all calls"
+            },
+            {
+              "id": "b",
+              "text": "In the heap, which is automatically cleared for each call"
+            },
+            {
+              "id": "c",
+              "text": "On the stack in a separate call frame"
+            },
+            {
+              "id": "d",
+              "text": "In `.rodata`, because the values should remain unchanged"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "A separate stack frame can save the return address and local values independently for each nested call. Another `jal` writes a new return address to `ra`; the old value must be restored if needed.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO8.md",
+            "heading": "Unterprogramme: sichern, aufrufen, zurückkehren"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Subroutines and register preservation",
+            "Stack: PUSH and POP"
+          ]
+        }
+      ]
+    }
+  ]
+}
