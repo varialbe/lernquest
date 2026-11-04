@@ -2,6 +2,12 @@
 
 > Neue Session? Lies `PLAN.md` und diese Datei. **Quelle der Wahrheit ist das Git-Repo `~/lernquest` auf dem VPS** (gepusht nach `varialbe/lernquest`). Dort laufen git, Builds, Tests und Dienste. Die lokale Kopie unter `C:\Users\Ali Massad\lernquest` ist nur ein Spiegel (`git archive`-Stand), kein Repo. `.env`, `data/` und `CREDENTIALS.local.md` existieren nur auf dem VPS.
 
+## Nachtarbeit 04.11.2026 (im Worktree vorbereitet)
+- Voraussetzungsgraph v2 mit `essential`/`background`/`related`, v1-Lesekompatibilität, Alias-IDs, deterministischer Validierung und manuellen `locked`-Kanten.
+- Lernpfad mit essentieller Hülle, optionalem Hintergrund, topologischer Reihenfolge und eingeklappten gemeisterten Karten; „Kenne ich“ bleibt im Komponenten-State.
+- Pipeline-Kommandos `prereqs-migrate` (gespeicherter Dry-Run, Apply, Resume, Rollback) und `prereqs-eval` mit Gold-Set. Wissenssammlungen und bestehende Graphdateien werden beim Entwickeln nicht verändert.
+- Host-Verifikation: 125 Tests inklusive Git-/Python-Integration grün; Typechecks grün. Review korrigiert optionale Pfadtiefe und kanonische Alias-Zyklen. Aliasbereinigte und rohe ID-Precision/Recall werden getrennt ausgewiesen. Semantische Datenmigration und Deploy werden separat geprüft.
+
 ## 👉 Was du tun musst
 1. ~~Telegram-Chat-ID~~ ✔ erledigt am 31.10. (Chat „Ray“, `pnpm pipeline telegram-setup`, Dienst neu gestartet).
 2. Den Bot-Token hast du im Chat geteilt – wenn du auf Nummer sicher gehen willst: bei @BotFather `/revoke` und den neuen Token in `~/lernquest/.env` (`TELEGRAM_BOT_TOKEN=`) eintragen.
