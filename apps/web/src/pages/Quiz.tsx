@@ -446,7 +446,7 @@ export function Quiz({ levelId, practice, run: spec }: { levelId?: string; pract
         </div>
       </header>
 
-      <main className="mx-auto w-full max-w-xl flex-1 px-4 pb-64 pt-2">
+      <main className="mx-auto w-full max-w-xl flex-1 overflow-x-clip px-4 pb-64 pt-2">
         <AnimatePresence mode="wait">
           <motion.div key={`${q.id}-${queue.length}`} initial={{ x: 40, opacity: 0 }} animate={{ x: 0, opacity: 1 }} exit={{ x: -40, opacity: 0 }} transition={{ duration: 0.22 }}>
             <div className="mb-2 flex items-center gap-2">
