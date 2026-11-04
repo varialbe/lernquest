@@ -7,6 +7,7 @@ import { App } from './App.tsx';
 import { ApiError } from './lib/api.ts';
 import { initAudioLifecycle } from './lib/sound.ts';
 import { restoreTheme } from './lib/theme.ts';
+import { isNative } from './lib/native.ts';
 import { LocaleProvider } from './i18n/index.tsx';
 import './index.css';
 
@@ -28,7 +29,7 @@ restoreTheme();
 initAudioLifecycle();
 
 // Service Worker nur im Web (nicht in der Capacitor-App)
-if (!('Capacitor' in window)) registerSW({ immediate: true });
+if (!isNative) registerSW({ immediate: true });
 
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
