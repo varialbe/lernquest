@@ -43,6 +43,11 @@ describe('voraussetzungen', () => {
     expect(cycled.graph.aliases).toEqual({});
     expect(cycled.dropped.join()).toContain('Alias erzeugt Lernpfad-Zyklus');
     expect(P.hasCanonicalPrereqCycle(cycled.graph.requires, { 'ds-01-k03': 'ds-01-k01' })).toBe(true);
+    const existingAlias = P.buildPrereqsGraph({ ...empty, aliases: { 'ds-01-k03': 'ds-01-k01' } }, u1, {
+      links: [link('ds-01-k01', 'ds-01-k02'), link('ds-01-k02', 'ds-01-k03')],
+    }, [u1]);
+    expect(P.hasCanonicalPrereqCycle(existingAlias.graph.requires, existingAlias.graph.aliases)).toBe(false);
+    expect(existingAlias.dropped.join()).toContain('Alias erzeugt Lernpfad-Zyklus');
   });
 
   it('proposes exact repeated terms as aliases without merging Stack and Stackframe', () => {
