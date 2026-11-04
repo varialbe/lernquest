@@ -153,7 +153,8 @@ export default function Cards() {
     sfx.complete();
     fx.correct(5);
     void qc.invalidateQueries({ queryKey: ['cards'] });
-  }, [done, qc]);
+    void qc.invalidateQueries({ queryKey: ['knowledge', mod] });
+  }, [done, qc, mod]);
 
   const units = useMemo(() => (knowledge?.units ?? []).filter((u) => u.entries.length), [knowledge]);
 

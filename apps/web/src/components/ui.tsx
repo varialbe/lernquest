@@ -146,17 +146,17 @@ function useSwipeToClose(onClose: () => void) {
   return { ref, y, onHandlePointerDown };
 }
 
-export function Modal({ open, onClose, children, title }: { open: boolean; onClose: () => void; children: ReactNode; title?: string }) {
+export function Modal({ open, onClose, children, title, titleText }: { open: boolean; onClose: () => void; children: ReactNode; title?: ReactNode; titleText?: string }) {
   useEffect(() => {
     if (!open) return;
     const h = (e: KeyboardEvent) => e.key === 'Escape' && onClose();
     window.addEventListener('keydown', h);
     return () => window.removeEventListener('keydown', h);
   }, [open, onClose]);
-  return <AnimatePresence>{open && <Sheet onClose={onClose} title={title}>{children}</Sheet>}</AnimatePresence>;
+  return <AnimatePresence>{open && <Sheet onClose={onClose} title={title} titleText={titleText}>{children}</Sheet>}</AnimatePresence>;
 }
 
-function Sheet({ onClose, children, title }: { onClose: () => void; children: ReactNode; title?: string }) {
+function Sheet({ onClose, children, title, titleText }: { onClose: () => void; children: ReactNode; title?: ReactNode; titleText?: string }) {
   const swipe = useSwipeToClose(onClose);
   // Hintergrund wird beim Ziehen heller
   const backdrop = useTransform(swipe.y, [0, 400], [1, 0.2]);
@@ -168,7 +168,7 @@ function Sheet({ onClose, children, title }: { onClose: () => void; children: Re
             style={{ y: swipe.y }}
             role="dialog"
             aria-modal
-            aria-label={title ? plainMath(title) : undefined}
+            aria-label={titleText ?? (typeof title === 'string' ? plainMath(title) : undefined)}
             // safe-area-Abstand zusätzlich zum normalen Innenabstand (sonst klebt der Button unten und sein 3D-Schatten wird abgeschnitten)
             className="relative max-h-[92dvh] w-full overscroll-contain max-w-md overflow-y-auto rounded-t-3xl bg-surface p-5 pb-[calc(1.5rem+env(safe-area-inset-bottom))] shadow-2xl sm:rounded-3xl"
             initial={{ y: 60, opacity: 0.6 }}
@@ -181,7 +181,7 @@ function Sheet({ onClose, children, title }: { onClose: () => void; children: Re
             <div className="-mx-5 -mt-5 mb-1 flex cursor-grab touch-none justify-center pb-2 pt-3 active:cursor-grabbing sm:hidden" onPointerDown={swipe.onHandlePointerDown} aria-hidden>
               <div className="h-1.5 w-12 rounded-full bg-line" />
             </div>
-            {title && <h2 className="mb-3 text-xl font-black"><MathText text={title} /></h2>}
+            {title && <h2 className="mb-3 text-xl font-black">{typeof title === 'string' ? <MathText text={title} /> : title}</h2>}
             {children}
           </motion.div>
         </motion.div>
