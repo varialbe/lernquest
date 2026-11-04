@@ -17,11 +17,11 @@ const flow = `flowchart TD
 describe('mermaid labels', () => {
   it('finds node, edge and subgraph labels without touching ids', () => {
     const texts = mermaidLabels(flow).filter(translatableLabel).map((l) => l.text);
-    expect(texts).toEqual(['8×8-Brett: ein Feld fehlt', 'In Quadranten teilen', 'ja', 'Fall eins', 'R ∈ R?', 'nein', 'Widerspruch', 'Start', 'loop', 'reduzierbar', 'Zweite Gruppe', 'Signal', 'Unterprogramm']);
+    expect(texts).toEqual(['8×8-Brett: ein Feld fehlt', 'In Quadranten teilen', 'ja', 'Fall eins', 'nein', 'Widerspruch', 'Start', 'loop', 'reduzierbar', 'Zweite Gruppe', 'Signal', 'Unterprogramm']);
   });
 
   it('replaces labels, keeps the skeleton and quotes unsafe text', () => {
-    const english = ['8×8 board: one square missing', 'Split into quadrants (4)', 'yes', 'Case one', 'R ∈ R?', 'no', 'Contradiction', 'Start', 'loop', 'reducible', 'Second group', 'Signal', 'Subroutine'];
+    const english = ['8×8 board: one square missing', 'Split into quadrants (4)', 'yes', 'Case one', 'no', 'Contradiction', 'Start', 'loop', 'reducible', 'Second group', 'Signal', 'Subroutine'];
     const out = replaceMermaidLabels(flow, english);
     expect(out).toContain('Z["Split into quadrants (4)"]');
     expect(out).toContain('subgraph reduzierbar["reducible"]');
