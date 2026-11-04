@@ -2,6 +2,8 @@ import './config.ts';
 import { telegramSetup } from './notify.ts';
 import { execute, type Mode } from './run.ts';
 import { watchdog } from './watchdog.ts';
+import { config } from './config.ts';
+import { RateLimitError } from './codex.ts';
 
 const [cmd = 'help', ...rest] = process.argv.slice(2);
 const runIdFlag = rest.indexOf('--run-id');
@@ -17,7 +19,8 @@ if (cmd === 'telegram-setup') {
 }
 if (cmd === 'wissen-check') {
   // Wissenssammlung + Voraussetzungen aktuell und konsistent? (Exit 1 bei Problemen)
-  const { allContentUnits } = await import('./knowledge.ts');
+  const { allContentUnits, readKnowledge } = await import('./knowledge.ts');
+  const { translationStatus } = await import('./translate.ts');
   const { checkKnowledge, knowledgeWarnings } = await import('./prereqs.ts');
   const problems = checkKnowledge(allContentUnits());
   const warnings = knowledgeWarnings(allContentUnits());
@@ -27,6 +30,10 @@ if (cmd === 'wissen-check') {
     for (const x of problems) console.log(`  - ${x}`);
     console.log('→ beheben mit: pnpm pipeline knowledge [unit-id]');
   } else console.log('✓ Wissenssammlung und Voraussetzungen sind für alle Units aktuell.');
+  for (const unit of allContentUnits()) {
+    const state = translationStatus(unit, readKnowledge(unit.id));
+    if (!state.current) console.log(`⚠ ${unit.id}: ${state.reason}`);
+  }
   process.exit(problems.length ? 1 : 0);
 }
 if (cmd === 'prereqs-migrate') {
@@ -47,6 +54,65 @@ if (cmd === 'prereqs-eval') {
   const report = evaluatePrereqs(graphDir);
   console.log(report.text);
   process.exit(0);
+}
+if (cmd === 'translate-check') {
+  const { allContentUnits, readKnowledge } = await import('./knowledge.ts');
+  const { translationStatus } = await import('./translate.ts');
+  const warnings = allContentUnits().flatMap((unit) => {
+    const status = translationStatus(unit, readKnowledge(unit.id));
+    return status.current ? [] : [`${unit.id}: ${status.reason}`];
+  });
+  if (warnings.length) {
+    console.log(`⚠ ${warnings.length} englische Übersetzung(en) fehlen oder sind veraltet:`);
+    for (const warning of warnings) console.log(`  - ${warning}`);
+    console.log('→ nachholen mit: pnpm pipeline translate --all');
+  } else console.log('✓ Alle englischen Übersetzungen sind aktuell und gültig.');
+  process.exit(rest.includes('--strict') && warnings.length ? 1 : 0);
+}
+if (cmd === 'translate') {
+  const { allContentUnits, readKnowledge } = await import('./knowledge.ts');
+  const { findContentFile, translateUnit, translationStatus } = await import('./translate.ts');
+  const all = rest.includes('--all');
+  const force = rest.includes('--force');
+  const ids = rest.filter((arg) => !arg.startsWith('--'));
+  if (!all && !ids.length) {
+    console.error('Verwendung: pnpm pipeline translate <unit-id …> [--force] oder pnpm pipeline translate --all [--force]');
+    process.exit(1);
+  }
+  const units = allContentUnits().filter((unit) => all || ids.includes(unit.id));
+  const missing = ids.filter((id) => !units.some((unit) => unit.id === id));
+  for (const id of missing) console.error(`✗ Unit nicht gefunden: ${id}`);
+  let failed = missing.length;
+  let translated = 0;
+  for (const [index, unit] of units.entries()) {
+    const knowledge = readKnowledge(unit.id);
+    const unitFile = findContentFile(unit);
+    const status = translationStatus(unit, knowledge, unitFile);
+    if (!force && status.current) {
+      console.log(`· ${unit.id}: Übersetzung aktuell`);
+      continue;
+    }
+    if (!knowledge || !unitFile) {
+      console.error(`✗ ${unit.id}: ${!knowledge ? 'deutsche Wissenssammlung fehlt' : 'Unit-Datei fehlt'}`);
+      failed++;
+      continue;
+    }
+    try {
+      const workDir = `${config.dataDir}/work/translate-${unit.id}-${process.pid}-${Date.now()}-${index + 1}`;
+      const result = await translateUnit(unit, knowledge, unitFile, workDir, (message) => console.log(message));
+      console.log(`✓ ${unit.id}: ${result.unitFile} · ${result.knowledgeFile}`);
+      translated++;
+    } catch (error) {
+      console.error(`✗ ${unit.id}: ${(error as Error).message}`);
+      failed++;
+      if (error instanceof RateLimitError) {
+        console.error('Rate limit reached; aborting. Re-run the same command to resume.');
+        break;
+      }
+    }
+  }
+  console.log(`Translation complete: ${translated} written, ${failed} failed.`);
+  process.exit(failed ? 1 : 0);
 }
 if (cmd === 'watchdog') process.exit((await watchdog()) ? 0 : 2);
 if (cmd === 'audit') {
@@ -70,6 +136,9 @@ if (!(cmd in modes)) {
   pnpm pipeline prereqs-migrate --rollback <stamp>  gesicherte Graphen wiederherstellen
   pnpm pipeline prereqs-eval [--graph <dir>]  Graph-Evaluation gegen das Gold-Set
   pnpm pipeline wissen-check        prüfen, ob Wissenssammlung und Voraussetzungen für alle Units aktuell sind
+  pnpm pipeline translate <unit-id …> [--force]  Units und Wissen ins Englische übersetzen
+  pnpm pipeline translate --all [--force]        fehlende/veraltete englische Übersetzungen erzeugen
+  pnpm pipeline translate-check [--strict]      Übersetzungen prüfen (strict: Exit 1 bei Problemen)
   pnpm pipeline audit [unit-id …]  Blind-Test über bestehende Units, Durchgefallene neu generieren (--no-notify: ohne Telegram)
   pnpm pipeline watchdog            prüfen, ob heute ein nächtlicher Lauf stattfand (sonst Warnung)
   pnpm pipeline telegram-setup      einmalig: Chat-ID nach /start an den Bot in .env eintragen`);
