@@ -1,0 +1,2023 @@
+{
+  "schemaVersion": 1,
+  "id": "eip-07",
+  "module": "EIP",
+  "number": 7,
+  "slug": "rekursion-und-suchalgorithmen",
+  "title": "Rekursion und Suchalgorithmen",
+  "summary": "Die Unit führt rekursive Methoden anhand von Summen und Fakultäten ein und erklärt Aufruf, Rückgabe und Call Stack. Danach werden rekursive lineare und binäre Suche verglichen. Dabei stehen Basisfälle, Suchvoraussetzungen, Korrektheit und Laufzeit im Mittelpunkt.",
+  "concepts": [
+    "Rekursion",
+    "Basisfall",
+    "Fortschritt",
+    "Kombination",
+    "Call Stack",
+    "Stack Frame",
+    "Unwinding",
+    "Exception",
+    "Fakultät",
+    "Lineare Suche",
+    "Invariante",
+    "Binäre Suche",
+    "logarithmische Laufzeit"
+  ],
+  "keyFacts": [
+    "Rekursion bedeutet, dass eine Methode sich selbst aufruft, um eine kleinere Version desselben Problems zu lösen.",
+    "Jeder Methodenaufruf hat eigene Parameter und lokale Variablen.",
+    "Eine rekursive Lösung braucht einen Basisfall, Fortschritt in Richtung Basisfall und eine Kombination der Teilergebnisse.",
+    "Für die Summe gilt S(0) = 0 und S(n) = S(n−1) + n für n ≥ 1.",
+    "Bei sum(3) erfolgen die Aufrufe bis sum(0); danach kehren die Aufrufe in umgekehrter Reihenfolge zurück.",
+    "Ein Stack Frame enthält unter anderem Parameter, lokale Variablen und die Stelle, an der nach der Rückkehr weitergearbeitet wird.",
+    "Der Call Stack arbeitet nach LIFO: Der zuletzt gestartete Aufruf kehrt zuerst zurück.",
+    "Bei der Fakultät gilt 0! = 1 und n! = n · (n−1)! für n ≥ 1.",
+    "Die Beispielmethode factorial erlaubt Eingaben von 0 bis 12, weil 13! nicht in einen Java-int passt.",
+    "Lineare Suche prüft Arrayelemente von links nach rechts und gibt den Index des gefundenen Werts zurück.",
+    "Bei der rekursiven linearen Suche liefert der Basisfall am Arrayende −1, wenn der Wert nicht gefunden wurde.",
+    "Vor dem Zugriff auf a[i] muss geprüft werden, ob i == a.length gilt.",
+    "Vor dem Prüfen von a[i] ist bei linearer Suche bekannt, dass kein früherer Index den gesuchten Wert enthält.",
+    "Lineare Suche benötigt im Worst Case O(n) Vergleiche und O(n) zusätzlichen Stack-Speicher.",
+    "Binäre Suche setzt ein aufsteigend sortiertes Array voraus und betrachtet jeweils das mittlere Element des Suchbereichs.",
+    "Bei binärer Suche sind lo und hi inklusive; der geprüfte Index mid wird aus dem nächsten Suchbereich ausgeschlossen.",
+    "Binäre Suche halbiert den Suchbereich ungefähr in jedem Schritt und benötigt O(log n) Elementprüfungen im Worst Case."
+  ],
+  "tags": [],
+  "links": [],
+  "source": {
+    "file": "EIP/01_Vorlesungen/EIP VO7.md",
+    "sha256": "bc984befd7ce7a80a65a7bbbfb39f88cebccfce8ebc65cd1180458f2207ae56e",
+    "commit": "66e00cea2dcaac5fa542db6a427c2514c1452030"
+  },
+  "generator": {
+    "model": "gpt-6-luna",
+    "effort": "xhigh",
+    "reviewEffort": "high",
+    "promptVersion": "v3",
+    "generatedAt": "2026-11-04T20:13:28.083Z",
+    "review": {
+      "checked": 43,
+      "fixed": 4,
+      "removed": 0,
+      "notes": "43 Fragen geprüft. Präzisiert: Indexbezug, fehlende Angaben zur Durchschnittsformel und zur Summenrekursion. Korrigiert: ganzzahlige Mittelwertprüfung im verify-Skript und Syntax/Labelschreibung des Mermaid-Diagramms."
+    }
+  },
+  "levels": [
+    {
+      "id": "eip-07-l1",
+      "index": 1,
+      "kind": "basics",
+      "title": "Grundlagen",
+      "questions": [
+        {
+          "id": "eip-07-l1-q01",
+          "type": "single",
+          "prompt": "Was bedeutet Rekursion bei einer Methode?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Die Methode wird genau einmal ausgeführt und danach gelöscht."
+            },
+            {
+              "id": "b",
+              "text": "Die Methode speichert alle Ergebnisse in einem Array."
+            },
+            {
+              "id": "c",
+              "text": "Die Methode ruft sich selbst auf, um eine kleinere Version desselben Problems zu lösen."
+            },
+            {
+              "id": "d",
+              "text": "Die Methode ruft immer eine andere Methode mit denselben Argumenten auf."
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Bei Rekursion löst eine Methode kleinere Versionen desselben Problems durch Selbstaufrufe.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO7.md",
+            "heading": "1. Rekursion: kleinere Probleme lösen"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Rekursion"
+          ]
+        },
+        {
+          "id": "eip-07-l1-q02",
+          "type": "cloze",
+          "prompt": "Für die Summe von 1 bis n gilt im rekursiven Fall: $S(n)=___+n$.",
+          "options": [
+            {
+              "id": "a",
+              "text": "S(0) + 1"
+            },
+            {
+              "id": "b",
+              "text": "S(n − 1)"
+            },
+            {
+              "id": "c",
+              "text": "S(n + 1)"
+            },
+            {
+              "id": "d",
+              "text": "n · S(n − 1)"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "Der rekursive Aufruf löst die kleinere Summe bis n − 1; anschließend wird n addiert.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO7.md",
+            "heading": "Beispiel: Summe von 1 bis n"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Rekursion",
+            "Fortschritt",
+            "Kombination"
+          ]
+        },
+        {
+          "id": "eip-07-l1-q03",
+          "type": "multi",
+          "prompt": "Wähle alle richtigen Aussagen. Mehrere Antworten sind richtig. Welche drei Bestandteile gehören zur rekursiven Grundstruktur?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Ein Basisfall beantwortet den kleinsten Fall ohne weiteren Aufruf."
+            },
+            {
+              "id": "b",
+              "text": "Ein Cache muss jeden Methodenaufruf dauerhaft speichern."
+            },
+            {
+              "id": "c",
+              "text": "Fortschritt führt jeden Aufruf näher an den Basisfall."
+            },
+            {
+              "id": "d",
+              "text": "Kombination verwendet das Ergebnis des kleineren Problems für das ursprüngliche Problem."
+            }
+          ],
+          "correct": [
+            "a",
+            "c",
+            "d"
+          ],
+          "explanation": "Basisfall, Fortschritt und Kombination bilden zusammen die rekursive Grundstruktur. Ein Cache gehört nicht zu den genannten notwendigen Bestandteilen.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO7.md",
+            "heading": "1. Rekursion: kleinere Probleme lösen"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Basisfall",
+            "Fortschritt",
+            "Kombination"
+          ]
+        },
+        {
+          "id": "eip-07-l1-q04",
+          "type": "truefalse",
+          "prompt": "Jeder rekursive Methodenaufruf besitzt eigene Parameter und lokale Variablen.",
+          "options": [
+            {
+              "id": "true",
+              "text": "Wahr"
+            },
+            {
+              "id": "false",
+              "text": "Falsch"
+            }
+          ],
+          "correct": [
+            "true"
+          ],
+          "explanation": "Für jeden Aufruf wird ein eigener Stack Frame mit eigenen Aufrufdaten angelegt.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO7.md",
+            "heading": "Call Stack und Stack Frames (Folien 303–319)"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Stack Frame",
+            "Call Stack"
+          ]
+        },
+        {
+          "id": "eip-07-l1-q05",
+          "type": "single",
+          "prompt": "In welcher Reihenfolge kehren verschachtelte Methodenaufrufe zurück?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Der zuletzt gestartete Aufruf kehrt zuerst zurück."
+            },
+            {
+              "id": "b",
+              "text": "Der zuerst gestartete Aufruf kehrt zuerst zurück."
+            },
+            {
+              "id": "c",
+              "text": "Alle Aufrufe kehren gleichzeitig zurück."
+            },
+            {
+              "id": "d",
+              "text": "Die Reihenfolge hängt von den Namen der Methoden ab."
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "Der Call Stack arbeitet nach LIFO: Last In, First Out.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO7.md",
+            "heading": "Call Stack und Stack Frames (Folien 303–319)"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Call Stack",
+            "Unwinding"
+          ]
+        },
+        {
+          "id": "eip-07-l1-q06",
+          "type": "cloze",
+          "prompt": "Der Basisfall der Fakultät ist $0! = ___$.",
+          "options": [
+            {
+              "id": "a",
+              "text": "0"
+            },
+            {
+              "id": "b",
+              "text": "n"
+            },
+            {
+              "id": "c",
+              "text": "−1"
+            },
+            {
+              "id": "d",
+              "text": "1"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Die Fakultätsmethode gibt für n == 0 den Wert 1 zurück.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO7.md",
+            "heading": "2. Fakultät / Factorial (Folien 321–332)"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Fakultät",
+            "Basisfall"
+          ]
+        },
+        {
+          "id": "eip-07-l1-q07",
+          "type": "multi",
+          "prompt": "Wähle alle richtigen Aussagen. Mehrere Antworten sind richtig. Was beschreibt das Auslösen einer Exception mit `throw`?",
+          "options": [
+            {
+              "id": "a",
+              "text": "`throw` setzt die Variable `n` automatisch auf 0."
+            },
+            {
+              "id": "b",
+              "text": "`throw` bricht den normalen Kontrollfluss ab."
+            },
+            {
+              "id": "c",
+              "text": "Bleibt die Exception ungefangen, endet der gezeigte Programmablauf mit einem Fehler."
+            },
+            {
+              "id": "d",
+              "text": "`new IllegalArgumentException()` erzeugt ein Exception-Objekt."
+            }
+          ],
+          "correct": [
+            "b",
+            "c",
+            "d"
+          ],
+          "explanation": "Der Ausdruck erzeugt ein Exception-Objekt, und `throw` löst es aus. Ohne `catch` läuft der normale Ablauf nicht weiter.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO7.md",
+            "heading": "Exceptions: ungültige Argumente (Folie 302)"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Exception"
+          ]
+        },
+        {
+          "id": "eip-07-l1-q08",
+          "type": "single",
+          "prompt": "Eine lineare Suche findet den Wert `x` am Index 4. Was gibt sie zurück?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Den Index 4."
+            },
+            {
+              "id": "b",
+              "text": "Den Wert von `x` als Index."
+            },
+            {
+              "id": "c",
+              "text": "Die Arraylänge."
+            },
+            {
+              "id": "d",
+              "text": "Immer −1."
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "Die Methode `find` gibt den Index des gefundenen Werts zurück, nicht den Wert selbst.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO7.md",
+            "heading": "3. Lineare Suche / Linear Search (Folien 333–344)"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Lineare Suche"
+          ]
+        },
+        {
+          "id": "eip-07-l1-q09",
+          "type": "truefalse",
+          "prompt": "Vor der Prüfung von `a[i]` bei der rekursiven linearen Suche ist bekannt, dass kein Wert an einem früheren Index gleich `x` war.",
+          "options": [
+            {
+              "id": "true",
+              "text": "Wahr"
+            },
+            {
+              "id": "false",
+              "text": "Falsch"
+            }
+          ],
+          "correct": [
+            "true"
+          ],
+          "explanation": "Das ist die Invariante der Suche: Alle Indizes von 0 bis i − 1 wurden bereits ohne Treffer geprüft.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO7.md",
+            "heading": "Invariante und Kosten (Folie 344)"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Lineare Suche",
+            "Invariante"
+          ]
+        },
+        {
+          "id": "eip-07-l1-q10-r1",
+          "type": "multi",
+          "prompt": "Gegeben ist die folgende Implementierung einer binären Suche. Wähle alle Aussagen, die für diese Implementierung gelten.",
+          "context": {
+            "type": "code",
+            "content": "public static int find(int[] a, int x) {\n    return find0(a, x, 0, a.length - 1);\n}\n\npublic static int find0(int[] a, int x, int lo, int hi) {\n    if (lo > hi)\n        return -1;\n\n    int mid = (lo + hi) / 2;\n\n    if (a[mid] == x)\n        return mid;\n\n    if (x > a[mid])\n        return find0(a, x, mid + 1, hi);\n\n    return find0(a, x, lo, mid - 1);\n}",
+            "language": "java",
+            "caption": "Implementierung der binären Suche"
+          },
+          "options": [
+            {
+              "id": "a",
+              "text": "`lo` und `hi` bezeichnen inklusive Grenzen des Suchbereichs."
+            },
+            {
+              "id": "b",
+              "text": "Das Array muss aufsteigend sortiert sein."
+            },
+            {
+              "id": "c",
+              "text": "`mid` wird mit ganzzahliger Division berechnet."
+            },
+            {
+              "id": "d",
+              "text": "Bei jedem Schritt wird das gesamte Array erneut von links nach rechts geprüft."
+            }
+          ],
+          "correct": [
+            "a",
+            "b",
+            "c"
+          ],
+          "explanation": "Die Suche vergleicht jeweils nur `a[mid]`. Sie verwirft danach eine Hälfte des Bereichs. `lo` startet bei 0, `hi` bei `a.length - 1`; beide Grenzen sind inklusive. Die Mitte wird mit Java-Ganzzahldivision berechnet.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO7.md",
+            "heading": "Java-Code aus Folie 356"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Binäre Suche",
+            "Sortierung",
+            "Ganzzahldivision",
+            "Suchbereich"
+          ]
+        },
+        {
+          "id": "eip-07-l1-q11",
+          "type": "single",
+          "prompt": "Welche Worst-Case-Laufzeit hat binäre Suche bei einem sortierten Array mit n Elementen?",
+          "options": [
+            {
+              "id": "a",
+              "text": "O(n)"
+            },
+            {
+              "id": "b",
+              "text": "O(n²)"
+            },
+            {
+              "id": "c",
+              "text": "O(1) für jede Eingabe"
+            },
+            {
+              "id": "d",
+              "text": "O(log n)"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Jeder Schritt halbiert ungefähr die Zahl der verbleibenden Kandidaten, daher wächst die Zahl der Prüfungen logarithmisch.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO7.md",
+            "heading": "Warum logarithmisch?"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Binäre Suche",
+            "logarithmische Laufzeit"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "eip-07-l2",
+      "index": 2,
+      "kind": "apply",
+      "title": "Anwenden",
+      "questions": [
+        {
+          "id": "eip-07-l2-q01-r1",
+          "type": "code_output",
+          "prompt": "Was gibt dieses Java-Programm aus?",
+          "context": {
+            "type": "code",
+            "content": "class Main {\n  static int sum(int n) {\n    if (n == 0) return 0;\n    int smaller = sum(n - 1);\n    return smaller + n;\n  }\n  public static void main(String[] args) {\n    System.out.println(sum(3));\n  }\n}",
+            "language": "java",
+            "caption": "Java-Programm"
+          },
+          "options": [
+            {
+              "id": "a",
+              "text": "0"
+            },
+            {
+              "id": "b",
+              "text": "3"
+            },
+            {
+              "id": "c",
+              "text": "6"
+            },
+            {
+              "id": "d",
+              "text": "1"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "`sum(0)` liefert 0. Beim Zurückkehren ergeben sich `sum(1) = 0 + 1 = 1`, `sum(2) = 1 + 2 = 3` und `sum(3) = 3 + 3 = 6`. Diese Zahl wird ausgegeben.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO7.md",
+            "heading": "Java: vollständige Summenmethode"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Rekursion",
+            "Basisfall",
+            "Rekursive Summe"
+          ]
+        },
+        {
+          "id": "eip-07-l2-q02",
+          "type": "calc",
+          "prompt": "Berechne $5!$ mit $0! = 1$ und $n! = n\\cdot(n-1)!$.",
+          "options": [
+            {
+              "id": "a",
+              "text": "120"
+            },
+            {
+              "id": "b",
+              "text": "24"
+            },
+            {
+              "id": "c",
+              "text": "25"
+            },
+            {
+              "id": "d",
+              "text": "60"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "$5! = 5\\cdot4\\cdot3\\cdot2\\cdot1 = 120$. Der Wert 24 ist $4!$, also fehlt dort der Faktor 5.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO7.md",
+            "heading": "2. Fakultät / Factorial (Folien 321–332)"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Fakultät"
+          ]
+        },
+        {
+          "id": "eip-07-l2-q03-r1",
+          "type": "code_output",
+          "prompt": "Was gibt dieser Java-Code aus?",
+          "context": {
+            "type": "code",
+            "content": "class Main {\n  static int factorial(int n) {\n    if (n == 0) return 1;\n    int smaller = factorial(n - 1);\n    return smaller * n;\n  }\n  public static void main(String[] args) {\n    System.out.println(factorial(3));\n  }\n}",
+            "language": "java",
+            "caption": "Java-Programm"
+          },
+          "options": [
+            {
+              "id": "a",
+              "text": "9"
+            },
+            {
+              "id": "b",
+              "text": "3"
+            },
+            {
+              "id": "c",
+              "text": "1"
+            },
+            {
+              "id": "d",
+              "text": "6"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "`factorial(0)` liefert 1. Beim Zurückkehren wird mit 1, dann 2 und dann 3 multipliziert: `1 · 1 · 2 · 3 = 6`.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO7.md",
+            "heading": "Java-Code"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Rekursion",
+            "Fakultät",
+            "Multiplikation beim Zurückkehren"
+          ]
+        },
+        {
+          "id": "eip-07-l2-q04",
+          "type": "single",
+          "prompt": "Das Array lautet `[8, 3, 7, 7]`. Eine lineare Suche prüft von links nach rechts und sucht den Wert 7. Welchen Index liefert sie beim ersten Treffer?",
+          "options": [
+            {
+              "id": "a",
+              "text": "−1"
+            },
+            {
+              "id": "b",
+              "text": "2"
+            },
+            {
+              "id": "c",
+              "text": "3"
+            },
+            {
+              "id": "d",
+              "text": "7"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "Die Indizes beginnen bei 0. Der erste Wert 7 steht an Index 2.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO7.md",
+            "heading": "Rekursiver Java-Code"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Lineare Suche"
+          ]
+        },
+        {
+          "id": "eip-07-l2-q05-r1",
+          "type": "cloze",
+          "prompt": "Für diese rekursive lineare Suche gilt: `find0(a, x, i)` prüft zuerst, ob `i == a.length` ist. Falls nicht, vergleicht sie `a[i]` mit `x`. Bei Ungleichheit ruft sie `find0(a, x, i + 1)` auf. Gegeben sind `a = [8, 4, 6, 9]` und `x = 1`. Bei `find0(a, x, 2)` gilt `a[2] != x`. Der nächste rekursive Aufruf verwendet den Index ___.",
+          "options": [
+            {
+              "id": "a",
+              "text": "1"
+            },
+            {
+              "id": "b",
+              "text": "a.length"
+            },
+            {
+              "id": "c",
+              "text": "3"
+            },
+            {
+              "id": "d",
+              "text": "2"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Der aktuelle Index ist `i = 2`. Bei einem Nichttreffer wird mit `i + 1` weitergesucht, also mit Index 3.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO7.md",
+            "heading": "Rekursiver Java-Code"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Lineare Suche",
+            "Rekursion",
+            "Indexfortschritt"
+          ]
+        },
+        {
+          "id": "eip-07-l2-q06-r1",
+          "type": "code_output",
+          "prompt": "Was gibt dieses Java-Programm aus?",
+          "context": {
+            "type": "code",
+            "content": "class Main {\n  static int find0(int[] a, int x, int i) {\n    if (i == a.length) return -1;\n    if (a[i] == x) return i;\n    return find0(a, x, i + 1);\n  }\n  public static void main(String[] args) {\n    System.out.println(find0(new int[]{4, 9}, 9, 0));\n  }\n}",
+            "language": "java",
+            "caption": "Java-Programm zur linearen Suche"
+          },
+          "options": [
+            {
+              "id": "a",
+              "text": "−1"
+            },
+            {
+              "id": "b",
+              "text": "0"
+            },
+            {
+              "id": "c",
+              "text": "9"
+            },
+            {
+              "id": "d",
+              "text": "1"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Index 0 enthält 4 und ist kein Treffer. Bei Index 1 steht 9; die Methode gibt deshalb den Index 1 zurück.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO7.md",
+            "heading": "Rekursiver Java-Code"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Lineare Suche",
+            "Arrayindex",
+            "Rekursive Rückgabe"
+          ]
+        },
+        {
+          "id": "eip-07-l2-q07",
+          "type": "calc",
+          "prompt": "Binäre Suche auf dem sortierten Array `[-2, 0, 1, 3, 5, 7, 9, 17, 42]` sucht 7. Welchen Index gibt sie zurück?",
+          "options": [
+            {
+              "id": "a",
+              "text": "−1"
+            },
+            {
+              "id": "b",
+              "text": "5"
+            },
+            {
+              "id": "c",
+              "text": "6"
+            },
+            {
+              "id": "d",
+              "text": "7"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "Die Suche prüft zunächst Index 4 mit Wert 5, danach Index 6 mit Wert 9 und schließlich Index 5 mit Wert 7.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO7.md",
+            "heading": "Beispiel: Suche nach 7"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Binäre Suche"
+          ]
+        },
+        {
+          "id": "eip-07-l2-q08",
+          "type": "diagram",
+          "prompt": "Ein aufsteigend sortiertes Array hat an Index 5 den Wert 4; gesucht wird 6. Im Suchbereich gilt `lo = 2`, `hi = 8`. Laut Ablaufdiagramm: Welche Grenzen hat der nächste Suchbereich?",
+          "context": {
+            "type": "mermaid",
+            "content": "flowchart TD\n  S[\"Suchbereich lo bis hi\"] --> E{\"Suchbereich leer?\"}\n  E -- ja --> N[\"return -1: nicht gefunden\"]\n  E -- nein --> M[\"Mitte bestimmen: mid = (lo + hi) / 2\"]\n  M --> F{\"a[mid] gleich x?\"}\n  F -- ja --> R[\"return mid: Index gefunden\"]\n  F -- nein --> G{\"x größer als a[mid]?\"}\n  G -- ja --> RE[\"Rechte Hälfte: lo = mid + 1\"]\n  G -- nein --> LI[\"Linke Hälfte: hi = mid - 1\"]\n  RE --> S\n  LI --> S",
+            "caption": "Ablauf der rekursiven binären Suche"
+          },
+          "options": [
+            {
+              "id": "a",
+              "text": "`lo = 5`, `hi = 8`"
+            },
+            {
+              "id": "b",
+              "text": "`lo = 2`, `hi = 4`"
+            },
+            {
+              "id": "c",
+              "text": "`lo = 6`, `hi = 8`"
+            },
+            {
+              "id": "d",
+              "text": "`lo = 2`, `hi = 5`"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Da 6 größer als der Wert 4 in der Mitte ist, wird rechts weitergesucht. Der geprüfte Index 5 wird ausgeschlossen, also wird `lo` auf 6 gesetzt.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO7.md",
+            "heading": "Java-Code aus Folie 356"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Binäre Suche"
+          ]
+        },
+        {
+          "id": "eip-07-l2-q09",
+          "type": "truefalse",
+          "prompt": "Bei einem leeren Array startet die binäre Suche mit `lo = 0` und `hi = -1`. Wenn sie zuerst `lo > hi` prüft, gibt sie sofort −1 zurück.",
+          "options": [
+            {
+              "id": "true",
+              "text": "Wahr"
+            },
+            {
+              "id": "false",
+              "text": "Falsch"
+            }
+          ],
+          "correct": [
+            "true"
+          ],
+          "explanation": "Für das leere Array ist der Suchbereich sofort leer, denn 0 > −1. Der Basisfall gibt −1 zurück, ohne ein Arrayelement zu lesen.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO7.md",
+            "heading": "Java-Code aus Folie 356"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Binäre Suche",
+            "Basisfall"
+          ]
+        },
+        {
+          "id": "eip-07-l2-q10-r1",
+          "type": "code_output",
+          "prompt": "Was gibt dieses Java-Programm aus?",
+          "context": {
+            "type": "code",
+            "content": "class Main {\n  static int sum(int n) {\n    if (n == 0) return 0;\n    int smaller = sum(n - 1);\n    return smaller + n;\n  }\n  public static void main(String[] args) {\n    System.out.println(sum(0));\n  }\n}",
+            "language": "java",
+            "caption": "Java-Programm"
+          },
+          "options": [
+            {
+              "id": "a",
+              "text": "Eine Exception"
+            },
+            {
+              "id": "b",
+              "text": "0"
+            },
+            {
+              "id": "c",
+              "text": "1"
+            },
+            {
+              "id": "d",
+              "text": "−1"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "Bei `n = 0` greift sofort der Basisfall. `sum(0)` gibt 0 zurück; der rekursive Aufruf wird nicht ausgeführt.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO7.md",
+            "heading": "Java: vollständige Summenmethode"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Rekursion",
+            "Basisfall",
+            "Summenfunktion"
+          ]
+        },
+        {
+          "id": "eip-07-l2-q11",
+          "type": "single",
+          "prompt": "Wie wird bei der Fakultät der Rückgabewert des kleineren Problems kombiniert?",
+          "options": [
+            {
+              "id": "a",
+              "text": "`smaller` wird um n vermindert."
+            },
+            {
+              "id": "b",
+              "text": "`smaller` wird durch n geteilt."
+            },
+            {
+              "id": "c",
+              "text": "`smaller` wird mit n multipliziert."
+            },
+            {
+              "id": "d",
+              "text": "`smaller` wird mit n addiert."
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Die rekursive Definition lautet n! = n · (n−1)!. Daher wird der Rückgabewert mit n multipliziert.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO7.md",
+            "heading": "Java-Code"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Fakultät",
+            "Kombination"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "eip-07-l3",
+      "index": 3,
+      "kind": "deepen",
+      "title": "Vertiefen",
+      "questions": [
+        {
+          "id": "eip-07-l3-q01",
+          "type": "multi",
+          "prompt": "Wähle alle richtigen Aussagen. Mehrere Antworten sind richtig. Was kann bei einer rekursiven Methode ohne erreichbaren Basisfall passieren?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Die Methode gibt dann automatisch 0 zurück."
+            },
+            {
+              "id": "b",
+              "text": "Der Call Stack kann überlaufen."
+            },
+            {
+              "id": "c",
+              "text": "Ein Fortschritt zum Basisfall fehlt möglicherweise."
+            },
+            {
+              "id": "d",
+              "text": "Es können immer weitere Aufrufe entstehen."
+            }
+          ],
+          "correct": [
+            "b",
+            "c",
+            "d"
+          ],
+          "explanation": "Ohne erreichbaren Basisfall endet die Folge der Aufrufe nicht regulär; der Call Stack kann dadurch überlaufen. Eine automatische Rückgabe von 0 gibt es nicht.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO7.md",
+            "heading": "1. Rekursion: kleinere Probleme lösen"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Rekursion",
+            "Basisfall",
+            "Fortschritt"
+          ]
+        },
+        {
+          "id": "eip-07-l3-q02",
+          "type": "truefalse",
+          "prompt": "Ein erreichbarer Basisfall reicht für Terminierung immer aus, auch wenn die rekursiven Aufrufe sich nicht auf ihn zubewegen.",
+          "options": [
+            {
+              "id": "true",
+              "text": "Wahr"
+            },
+            {
+              "id": "false",
+              "text": "Falsch"
+            }
+          ],
+          "correct": [
+            "false"
+          ],
+          "explanation": "Zusätzlich zum Basisfall braucht es Fortschritt: Jeder Aufruf muss dem Basisfall näherkommen.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO7.md",
+            "heading": "1. Rekursion: kleinere Probleme lösen"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Basisfall",
+            "Fortschritt"
+          ]
+        },
+        {
+          "id": "eip-07-l3-q03-r1",
+          "type": "single",
+          "prompt": "Die Methode im Code wird mit `sum(101)` aufgerufen. Es gibt keinen `catch`-Block. Was geschieht?",
+          "context": {
+            "type": "code",
+            "content": "class Main {\n  static int sum(int n) {\n    if (n < 0 || n > 100)\n      throw new IllegalArgumentException();\n    if (n == 0)\n      return 0;\n    int smaller = sum(n - 1);\n    return smaller + n;\n  }\n  public static void main(String[] args) {\n    System.out.println(sum(101));\n  }\n}",
+            "language": "java",
+            "caption": "Summenmethode mit Eingabeprüfung"
+          },
+          "options": [
+            {
+              "id": "a",
+              "text": "Sie ruft `sum(100)` auf und gibt die Summe zurück."
+            },
+            {
+              "id": "b",
+              "text": "Sie löst eine `IllegalArgumentException` aus."
+            },
+            {
+              "id": "c",
+              "text": "Sie gibt 101 zurück."
+            },
+            {
+              "id": "d",
+              "text": "Sie gibt −1 zurück."
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "Der Eingabecheck wirft für Werte unter 0 oder über 100 sofort eine `IllegalArgumentException`. Der rekursive Aufruf findet daher nicht statt.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO7.md",
+            "heading": "Exceptions: ungültige Argumente (Folie 302)"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Exception",
+            "Eingabeprüfung",
+            "Rekursion"
+          ]
+        },
+        {
+          "id": "eip-07-l3-q04-r1",
+          "type": "calc",
+          "prompt": "Für die rekursive Summenfunktion gilt $S(0)=0$ und $S(n)=S(n-1)+n$ für $n\\ge 1$. Ein wartender Aufruf `S(3)` hat soeben `S(2)=3` zurückerhalten. Welchen Wert berechnet `S(3)` anschließend?",
+          "options": [
+            {
+              "id": "a",
+              "text": "9"
+            },
+            {
+              "id": "b",
+              "text": "3"
+            },
+            {
+              "id": "c",
+              "text": "5"
+            },
+            {
+              "id": "d",
+              "text": "6"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Der wartende Aufruf verwendet die Regel `S(3)=S(2)+3`. Mit `S(2)=3` ergibt sich `3+3=6`.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO7.md",
+            "heading": "Aufrufphase und Rückgabephase bei sum(3)"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Rekursion",
+            "Summenfunktion",
+            "Rückgabephase"
+          ]
+        },
+        {
+          "id": "eip-07-l3-q05",
+          "type": "multi",
+          "prompt": "Wähle alle richtigen Aussagen. Mehrere Antworten sind richtig. Welche Aussagen treffen auf die rekursive lineare Suche zu?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Der Endfall muss vor dem Zugriff auf `a[i]` geprüft werden."
+            },
+            {
+              "id": "b",
+              "text": "Bei einem Nichttreffer gibt jeder Aufruf zwingend −1 zurück."
+            },
+            {
+              "id": "c",
+              "text": "Der Endfall `i == a.length` gibt −1 zurück."
+            },
+            {
+              "id": "d",
+              "text": "Bei einem Treffer gibt der aktuelle Aufruf seinen Index zurück."
+            }
+          ],
+          "correct": [
+            "a",
+            "c",
+            "d"
+          ],
+          "explanation": "Die Suche prüft zuerst das Arrayende, dann einen möglichen Treffer und ruft sich sonst mit i + 1 auf. Der Rückgabewert des nächsten Aufrufs wird weitergereicht.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO7.md",
+            "heading": "Rekursiver Java-Code"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Lineare Suche",
+            "Basisfall",
+            "Invariante"
+          ]
+        },
+        {
+          "id": "eip-07-l3-q06",
+          "type": "calc",
+          "prompt": "Ein Wert kommt genau einmal in einem Array mit 9 Elementen vor. Jede Position ist gleich wahrscheinlich. Verwende die Durchschnittsformel $(n+1)/2$: Wie viele Elementvergleiche ergibt sie?",
+          "options": [
+            {
+              "id": "a",
+              "text": "9"
+            },
+            {
+              "id": "b",
+              "text": "5"
+            },
+            {
+              "id": "c",
+              "text": "4"
+            },
+            {
+              "id": "d",
+              "text": "4,5"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "Die durchschnittliche Zahl der Vergleiche ist (n + 1) / 2. Für n = 9 ergibt sich 10 / 2 = 5.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO7.md",
+            "heading": "Invariante und Kosten (Folie 344)"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Lineare Suche"
+          ]
+        },
+        {
+          "id": "eip-07-l3-q07",
+          "type": "truefalse",
+          "prompt": "Im Worst Case benötigt die rekursive lineare Suche zusätzlichen Stack-Speicher der Größenordnung O(n).",
+          "options": [
+            {
+              "id": "true",
+              "text": "Wahr"
+            },
+            {
+              "id": "false",
+              "text": "Falsch"
+            }
+          ],
+          "correct": [
+            "true"
+          ],
+          "explanation": "Im Worst Case bleiben bis zum Ende der Suche linear viele Aufrufe gleichzeitig aktiv.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO7.md",
+            "heading": "Invariante und Kosten (Folie 344)"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Lineare Suche",
+            "Call Stack"
+          ]
+        },
+        {
+          "id": "eip-07-l3-q08",
+          "type": "calc",
+          "prompt": "Für die binäre Suche gilt `mid = (lo + hi) / 2` mit ganzzahliger Division. Was ist `mid` für `lo = 2` und `hi = 7`?",
+          "options": [
+            {
+              "id": "a",
+              "text": "5"
+            },
+            {
+              "id": "b",
+              "text": "3"
+            },
+            {
+              "id": "c",
+              "text": "4"
+            },
+            {
+              "id": "d",
+              "text": "4,5"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "(2 + 7) / 2 = 4,5; ganzzahlige Division verwirft den Nachkommateil und liefert 4.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO7.md",
+            "heading": "Java-Code aus Folie 356"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Binäre Suche"
+          ]
+        },
+        {
+          "id": "eip-07-l3-q09",
+          "type": "single",
+          "prompt": "Warum kann binäre Suche nicht zuverlässig auf einem unsortierten Array entscheiden, welche Hälfte verworfen werden darf?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Weil die Methode in jedem Schritt alle Werte vergleichen muss."
+            },
+            {
+              "id": "b",
+              "text": "Weil binäre Suche nur Arrays mit gerader Länge erlaubt."
+            },
+            {
+              "id": "c",
+              "text": "Weil `mid` bei jedem Array zwingend 0 ist."
+            },
+            {
+              "id": "d",
+              "text": "Weil der Vergleich mit dem Mittelwert bei unsortierten Werten nicht festlegt, in welcher Hälfte der gesuchte Wert liegen kann."
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Die Entscheidung für die linke oder rechte Hälfte beruht auf aufsteigender Sortierung. Ohne sie garantiert der Mittelwert nicht, dass die verworfene Hälfte keinen Treffer enthält.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO7.md",
+            "heading": "4. Binäre Suche / Binary Search (Folien 345–356)"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Binäre Suche"
+          ]
+        },
+        {
+          "id": "eip-07-l3-q10-r1",
+          "type": "multi",
+          "prompt": "Betrachte die folgende Fakultätsmethode. Wähle alle Aussagen, die für diese Methode gelten.",
+          "context": {
+            "type": "code",
+            "content": "public static int factorial(int n) {\n    if (n < 0 || n > 12)\n        throw new IllegalArgumentException();\n\n    if (n == 0)\n        return 1;\n\n    int smaller = factorial(n - 1);\n    return smaller * n;\n}",
+            "language": "java",
+            "caption": "Fakultätsmethode mit Eingabeprüfung"
+          },
+          "options": [
+            {
+              "id": "a",
+              "text": "Der Basisfall gibt für `n = 0` den Wert 1 zurück."
+            },
+            {
+              "id": "b",
+              "text": "Der rekursive Schritt addiert `n` zum kleineren Ergebnis."
+            },
+            {
+              "id": "c",
+              "text": "Die Methode erlaubt `n = 12`, aber nicht `n = 13`."
+            },
+            {
+              "id": "d",
+              "text": "Für `n ≥ 1` gilt `n! = n · (n − 1)!`."
+            }
+          ],
+          "correct": [
+            "a",
+            "c",
+            "d"
+          ],
+          "explanation": "Der Eingabecheck erlaubt Werte von 0 bis 12 einschließlich. Der Basisfall liefert 1; der rekursive Schritt multipliziert das kleinere Ergebnis mit `n`. Das entspricht der Fakultätsregel.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO7.md",
+            "heading": "Java-Code"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Fakultät",
+            "Rekursion",
+            "Basisfall",
+            "Eingabegrenze"
+          ]
+        },
+        {
+          "id": "eip-07-l3-q11",
+          "type": "diagram",
+          "prompt": "Der Aufruf startet bei `sum(3)` und folgt der im Diagramm gezeigten Kette bis zum Basisfall. Welcher Aufruf kehrt als Erster zurück?",
+          "context": {
+            "type": "mermaid",
+            "content": "flowchart TD\n  S3[\"sum(3)\"] --> S2[\"sum(2)\"]\n  S2 --> S1[\"sum(1)\"]\n  S1 --> S0[\"sum(0): Basisfall\"]",
+            "caption": "Aufrufkette bis zum Basisfall"
+          },
+          "options": [
+            {
+              "id": "a",
+              "text": "`sum(3)`"
+            },
+            {
+              "id": "b",
+              "text": "`sum(1)`"
+            },
+            {
+              "id": "c",
+              "text": "`sum(2)`"
+            },
+            {
+              "id": "d",
+              "text": "`sum(0)`"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "`sum(0)` ist der zuletzt gestartete Aufruf und erreicht den Basisfall. Wegen LIFO kehrt er zuerst zurück.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO7.md",
+            "heading": "Aufrufphase und Rückgabephase bei sum(3)"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Call Stack",
+            "Unwinding"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "eip-07-l4",
+      "index": 4,
+      "kind": "boss",
+      "title": "Boss",
+      "questions": [
+        {
+          "id": "eip-07-l4-q01",
+          "type": "multi",
+          "prompt": "Wähle alle richtigen Aussagen. Mehrere Antworten sind richtig. Vergleiche die rekursiven Definitionen für Summe und Fakultät. Welche Aussagen stimmen?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Beide verkleinern das Problem durch einen Aufruf mit n − 1."
+            },
+            {
+              "id": "b",
+              "text": "Bei der Fakultät wird n zum kleineren Ergebnis addiert."
+            },
+            {
+              "id": "c",
+              "text": "Beide prüfen zuerst einen Basisfall."
+            },
+            {
+              "id": "d",
+              "text": "Bei der Summe wird n zum kleineren Ergebnis addiert."
+            }
+          ],
+          "correct": [
+            "a",
+            "c",
+            "d"
+          ],
+          "explanation": "Beide Verfahren lösen zuerst das kleinere Problem mit n − 1. Die Kombination unterscheidet sich: Die Summe addiert n, die Fakultät multipliziert mit n.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO7.md",
+            "heading": "1. Rekursion: kleinere Probleme lösen"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Rekursion",
+            "Kombination",
+            "Fakultät"
+          ]
+        },
+        {
+          "id": "eip-07-l4-q02",
+          "type": "code_output",
+          "prompt": "Eine Methode erhält ein Array und rekursiv eine Zahl n. Sie erhöht bei jedem Aufruf `a[0]` um 1 und ruft sich mit `n - 1` auf, bis n = 0 ist. Was gibt dieser Java-Code aus?",
+          "context": {
+            "type": "code",
+            "content": "class Main {\n  static void increase(int[] a, int n) {\n    if (n == 0) return;\n    a[0] = a[0] + 1;\n    increase(a, n - 1);\n  }\n  public static void main(String[] args) {\n    int[] values = {0};\n    increase(values, 2);\n    System.out.println(values[0]);\n  }\n}",
+            "language": "java"
+          },
+          "options": [
+            {
+              "id": "a",
+              "text": "1"
+            },
+            {
+              "id": "b",
+              "text": "Eine Exception"
+            },
+            {
+              "id": "c",
+              "text": "0"
+            },
+            {
+              "id": "d",
+              "text": "2"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Beim Methodenaufruf wird die Array-Referenz kopiert, sodass die Aufrufe dasselbe Array erreichen. Zwei Aufrufe erhöhen `a[0]` jeweils um 1; die lokalen Parameter der Aufrufe bleiben eigene Werte.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO6.md",
+            "heading": null
+          },
+          "difficulty": 5,
+          "concepts": [
+            "Stack Frame",
+            "Rekursion"
+          ]
+        },
+        {
+          "id": "eip-07-l4-q03",
+          "type": "code_output",
+          "prompt": "Die rekursive lineare Suche prüft zuerst `i == a.length`. Bei `find0(a, 4, 0)` ist `a` leer. Was gibt der folgende Code aus?",
+          "context": {
+            "type": "code",
+            "content": "class Main {\n  static int find0(int[] a, int x, int i) {\n    if (i == a.length) return -1;\n    if (a[i] == x) return i;\n    return find0(a, x, i + 1);\n  }\n  public static void main(String[] args) {\n    System.out.println(find0(new int[]{}, 4, 0));\n  }\n}",
+            "language": "java"
+          },
+          "options": [
+            {
+              "id": "a",
+              "text": "−1"
+            },
+            {
+              "id": "b",
+              "text": "0"
+            },
+            {
+              "id": "c",
+              "text": "Eine Exception wegen `a[0]`"
+            },
+            {
+              "id": "d",
+              "text": "Die Arraylänge 0"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "Für ein leeres Array ist i gleich `a.length`, also greift der Endfall vor jedem Arrayzugriff und liefert −1. Das nutzt zugleich, dass bei einem Array der Länge 0 kein gültiger Elementindex existiert.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO4.md",
+            "heading": null
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Lineare Suche",
+            "Basisfall",
+            "Invariante"
+          ]
+        },
+        {
+          "id": "eip-07-l4-q04",
+          "type": "code_output",
+          "prompt": "Was gibt dieser Java-Code aus?",
+          "context": {
+            "type": "code",
+            "content": "class Main {\n  static int sum(int n) {\n    if (n == 0) return 0;\n    return sum(n - 1) + n;\n  }\n  static int factorial(int n) {\n    if (n == 0) return 1;\n    return factorial(n - 1) * n;\n  }\n  public static void main(String[] args) {\n    System.out.println(sum(3) + factorial(3));\n  }\n}",
+            "language": "java"
+          },
+          "options": [
+            {
+              "id": "a",
+              "text": "3"
+            },
+            {
+              "id": "b",
+              "text": "6"
+            },
+            {
+              "id": "c",
+              "text": "12"
+            },
+            {
+              "id": "d",
+              "text": "9"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Die Summe bis 3 ergibt 6 und die Fakultät von 3 ergibt ebenfalls 6. Das Programm addiert die beiden Rückgabewerte zu 12.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO7.md",
+            "heading": "5. Lerncheck"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Rekursion",
+            "Fakultät",
+            "Unwinding"
+          ]
+        },
+        {
+          "id": "eip-07-l4-q05",
+          "type": "calc",
+          "prompt": "Binäre Suche auf `[2, 4, 6, 8, 10, 12, 14]` sucht 10. Welchen Index gibt sie zurück?",
+          "options": [
+            {
+              "id": "a",
+              "text": "4"
+            },
+            {
+              "id": "b",
+              "text": "3"
+            },
+            {
+              "id": "c",
+              "text": "5"
+            },
+            {
+              "id": "d",
+              "text": "10"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "Die Suche prüft zunächst Index 3 mit Wert 8 und wechselt nach rechts. Im neuen Bereich liegt 10 an Index 4.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO7.md",
+            "heading": "Java-Code aus Folie 356"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Binäre Suche"
+          ]
+        },
+        {
+          "id": "eip-07-l4-q06",
+          "type": "truefalse",
+          "prompt": "Die Fakultätsmethode prüft zuerst, ob `n < 0 || n > 12` gilt. Bei `factorial(13)` wird daher der rekursive Aufruf vermieden und eine `IllegalArgumentException` ausgelöst.",
+          "options": [
+            {
+              "id": "true",
+              "text": "Wahr"
+            },
+            {
+              "id": "false",
+              "text": "Falsch"
+            }
+          ],
+          "correct": [
+            "true"
+          ],
+          "explanation": "13 liegt außerhalb des erlaubten Bereichs 0 bis 12. Die Prüfung löst die Exception aus, bevor ein weiterer Aufruf erfolgt.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO7.md",
+            "heading": "Java-Code"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Fakultät",
+            "Exception"
+          ]
+        },
+        {
+          "id": "eip-07-l4-q07",
+          "type": "calc",
+          "prompt": "Eine lineare Suche findet einen genau einmal vorkommenden Wert in einem Array mit 11 Elementen. Jede Position ist gleich wahrscheinlich. Wie viele Vergleiche ergibt die Durchschnittsformel $(n+1)/2$?",
+          "options": [
+            {
+              "id": "a",
+              "text": "12"
+            },
+            {
+              "id": "b",
+              "text": "5,5"
+            },
+            {
+              "id": "c",
+              "text": "6"
+            },
+            {
+              "id": "d",
+              "text": "11"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Die Formel lautet (n + 1) / 2. Für n = 11 ergibt das 12 / 2 = 6 Vergleiche.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO7.md",
+            "heading": "Invariante und Kosten (Folie 344)"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Lineare Suche"
+          ]
+        },
+        {
+          "id": "eip-07-l4-q08",
+          "type": "calc",
+          "prompt": "Für ein Array mit 1.000 Elementen gibt die Vergleichstabelle maximal 1.000 Prüfungen für lineare Suche und 10 für binäre Suche an. Wie oft so viele Prüfungen hat die lineare Suche im Worst Case?",
+          "context": {
+            "type": "table",
+            "content": "| Suche | Maximale Elementprüfungen |\n|---|---:|\n| Linear | 1.000 |\n| Binär | 10 |",
+            "caption": "Maximale Prüfungen für 1.000 Arrayelemente"
+          },
+          "options": [
+            {
+              "id": "a",
+              "text": "100.000-mal so viele"
+            },
+            {
+              "id": "b",
+              "text": "10-mal so viele"
+            },
+            {
+              "id": "c",
+              "text": "1.000-mal so viele"
+            },
+            {
+              "id": "d",
+              "text": "100-mal so viele"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Das Verhältnis ist 1.000 / 10 = 100. Die Tabelle vergleicht maximale Elementprüfungen im Worst Case.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO7.md",
+            "heading": "Warum logarithmisch?"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Lineare Suche",
+            "Binäre Suche",
+            "logarithmische Laufzeit"
+          ]
+        },
+        {
+          "id": "eip-07-l4-q09",
+          "type": "single",
+          "prompt": "Für das unsortierte Array `[1, 9, 3]` soll der Wert 3 gefunden werden. Welche Suche ist durch ihre beschriebenen Voraussetzungen garantiert anwendbar?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Lineare Suche, weil sie der Reihe nach prüft und keine Sortierung voraussetzt."
+            },
+            {
+              "id": "b",
+              "text": "Binäre Suche, weil der gesuchte Wert kleiner als 9 ist."
+            },
+            {
+              "id": "c",
+              "text": "Beide Suchen, weil sie denselben Rückgabewert verwenden."
+            },
+            {
+              "id": "d",
+              "text": "Keine, weil lineare Suche ein sortiertes Array benötigt."
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "Lineare Suche prüft die Werte von links nach rechts und funktioniert auch bei unsortierten Daten. Binäre Suche setzt aufsteigende Sortierung voraus.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO7.md",
+            "heading": "4. Binäre Suche / Binary Search (Folien 345–356)"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Lineare Suche",
+            "Binäre Suche"
+          ]
+        },
+        {
+          "id": "eip-07-l4-q10",
+          "type": "multi",
+          "prompt": "Wähle alle richtigen Aussagen. Mehrere Antworten sind richtig. Bei der Summe gilt `sum(n) = sum(n - 1) + n` für n > 0 und `sum(0) = 0`. Welche Aussagen zur Aufruf- und Rückgabephase von `sum(4)` stimmen?",
+          "options": [
+            {
+              "id": "a",
+              "text": "`sum(4)` kehrt als letzter der fünf Aufrufe zurück."
+            },
+            {
+              "id": "b",
+              "text": "`sum(0)` kehrt zuerst zurück."
+            },
+            {
+              "id": "c",
+              "text": "`sum(4)` berechnet `smaller` bereits vor dem Aufruf von `sum(3)`."
+            },
+            {
+              "id": "d",
+              "text": "Am tiefsten Punkt sind die fünf Aufrufe `sum(4)` bis `sum(0)` aktiv."
+            }
+          ],
+          "correct": [
+            "a",
+            "b",
+            "d"
+          ],
+          "explanation": "Die Aufrufkette umfasst n = 4, 3, 2, 1 und 0. Der tiefste Aufruf kehrt zuerst zurück; der äußerste wartet bis zuletzt und rechnet erst nach dem Ergebnis von `sum(3)` weiter.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO7.md",
+            "heading": "Call Stack und Stack Frames (Folien 303–319)"
+          },
+          "difficulty": 5,
+          "concepts": [
+            "Call Stack",
+            "Stack Frame",
+            "Unwinding"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "eip-07-l5",
+      "index": 5,
+      "kind": "bonus",
+      "title": "Praxis: Rekursion, Suche & Zahlengefühl",
+      "questions": [
+        {
+          "id": "eip-07-l5-q01",
+          "type": "single",
+          "prompt": "Deine Foto-App sucht ein Bild, indem sie den aktuellen Ordner prüft und dieselbe Suchroutine für jeden Unterordner aufruft – auch für Unterordner von Unterordnern. Welches Konzept steckt dahinter?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Binäre Suche: eine sortierte Ordnerliste halbieren"
+            },
+            {
+              "id": "b",
+              "text": "Rekursion: dieselbe Suche für Unterordner aufrufen"
+            },
+            {
+              "id": "c",
+              "text": "Lineare Suche: einen festen Array der Reihe nach prüfen"
+            },
+            {
+              "id": "d",
+              "text": "Fakultät: Anordnungen multiplizieren"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "Jeder Unterordner ist ein kleineres Teilproblem derselben Suche. Die Routine ruft sich selbst auf, bis sie die Ordnerstruktur abgearbeitet hat.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO7.md",
+            "heading": "1. Rekursion: kleinere Probleme lösen"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Rekursion",
+            "Fortschritt",
+            "Basisfall"
+          ]
+        },
+        {
+          "id": "eip-07-l5-q02",
+          "type": "truefalse",
+          "prompt": "Ein Sudoku-Helfer setzt eine zulässige Zahl in die nächste freie Zelle und ruft denselben Lösungsablauf für das verbleibende Rätsel wieder auf. Wenn alle Zellen korrekt gefüllt sind, endet der Ablauf. Stimmt es, dass er Rekursion mit einem Basisfall nutzt?",
+          "options": [
+            {
+              "id": "true",
+              "text": "Wahr"
+            },
+            {
+              "id": "false",
+              "text": "Falsch"
+            }
+          ],
+          "correct": [
+            "true"
+          ],
+          "explanation": "Der Lösungsablauf ruft sich für das kleinere Restproblem erneut auf. Ein vollständig und korrekt ausgefülltes Sudoku kann als Basisfall dienen; bei einem Widerspruch kann der Helfer eine Wahl zurücknehmen.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO7.md",
+            "heading": "1. Rekursion: kleinere Probleme lösen"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Rekursion",
+            "Basisfall",
+            "Fortschritt"
+          ]
+        },
+        {
+          "id": "eip-07-l5-q03",
+          "type": "estimate",
+          "prompt": "Du durchsuchst ein aufsteigend sortiertes Array mit 1.000.000 Einträgen per binärer Suche. Jeder Schritt prüft die Mitte und verwirft diese sowie eine Hälfte des Suchbereichs. Wie viele Mittenprüfungen sind im ungünstigsten Fall nötig?",
+          "options": [],
+          "correct": [],
+          "slider": {
+            "min": 1,
+            "max": 35,
+            "step": 1,
+            "answer": 20,
+            "tolerance": 1,
+            "unit": "Prüfungen",
+            "scale": "linear"
+          },
+          "explanation": "Nach 19 Halbierungen bleiben höchstens ungefähr `2^19 = 524.288` Kandidaten übrig; nach 20 reichen die Halbierungen für bis zu `2^20 = 1.048.576` Einträge. Daher sind im ungünstigsten Fall 20 Mittenprüfungen nötig.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO7.md",
+            "heading": "Warum logarithmisch?"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Binäre Suche",
+            "logarithmische Laufzeit"
+          ]
+        },
+        {
+          "id": "eip-07-l5-q04",
+          "type": "single",
+          "prompt": "Im Debugger siehst du die Aufrufkette `main → ladeProfil → liesDatei`. `liesDatei` ist gerade fertig. Welche Methode setzt als Nächstes nach ihrem Aufruf fort?",
+          "options": [
+            {
+              "id": "a",
+              "text": "`main`"
+            },
+            {
+              "id": "b",
+              "text": "`ladeProfil`"
+            },
+            {
+              "id": "c",
+              "text": "`liesDatei` startet erneut"
+            },
+            {
+              "id": "d",
+              "text": "Alle drei gleichzeitig"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "Der zuletzt gestartete Aufruf `liesDatei` kehrt zuerst zurück. Danach läuft `ladeProfil` an der Stelle weiter, an der es `liesDatei` aufgerufen hat: Der Call Stack arbeitet nach LIFO.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO7.md",
+            "heading": "Call Stack und Stack Frames (Folien 303–319)"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Call Stack",
+            "Stack Frame",
+            "Unwinding"
+          ]
+        },
+        {
+          "id": "eip-07-l5-q05",
+          "type": "single",
+          "prompt": "Deine Playlist-App sucht die Song-ID `19` in der unsortierten Liste `[42, 7, 19, 31]`. Sie soll die Liste nicht vorher sortieren. Welche Suchstrategie passt?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Binäre Suche: nach der Mitte eine Hälfte verwerfen"
+            },
+            {
+              "id": "b",
+              "text": "Exception: einen ungültigen Wert melden"
+            },
+            {
+              "id": "c",
+              "text": "Lineare Suche: Werte nacheinander prüfen"
+            },
+            {
+              "id": "d",
+              "text": "Fakultät: mögliche Reihenfolgen zählen"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Die lineare Suche kann auch eine unsortierte Liste durchsuchen und prüft Einträge der Reihe nach. Vor dem Treffer an Index 2 sind die früheren Einträge bereits als Nichttreffer ausgeschlossen.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO7.md",
+            "heading": "3. Lineare Suche / Linear Search (Folien 333–344)"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Lineare Suche",
+            "Invariante"
+          ]
+        },
+        {
+          "id": "eip-07-l5-q06",
+          "type": "estimate",
+          "prompt": "Du hast ein Array mit 64 Einträgen. Eine Suche prüft jeden Wert nacheinander von Anfang bis Ende; der gesuchte Wert fehlt. Wie viele Wertprüfungen sind im ungünstigsten Fall nötig?",
+          "options": [],
+          "correct": [],
+          "slider": {
+            "min": 1,
+            "max": 100,
+            "step": 1,
+            "answer": 64,
+            "tolerance": 1,
+            "unit": "Wertprüfungen",
+            "scale": "linear"
+          },
+          "explanation": "Wenn der Wert fehlt, muss die Suche jeden der 64 Einträge prüfen, bevor sie das Arrayende erreicht. Das ist der lineare Worst Case mit `O(n)` Vergleichen.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO7.md",
+            "heading": "Invariante und Kosten (Folie 344)"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Lineare Suche",
+            "Invariante"
+          ]
+        },
+        {
+          "id": "eip-07-l5-q07",
+          "type": "single",
+          "prompt": "Du entwickelst eine Fahrplan-Suche. Die Abfahrtszeiten stehen aufsteigend im Array `[6, 8, 10, 12, 14, 16, 18]`; gesucht ist `14`. Welche Strategie darf nach dem Prüfen der Mitte jeweils eine Hälfte verwerfen?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Exception: eine ungültige Eingabe melden"
+            },
+            {
+              "id": "b",
+              "text": "Lineare Suche: jedes Element einzeln prüfen"
+            },
+            {
+              "id": "c",
+              "text": "Binäre Suche: den sortierten Suchbereich halbieren"
+            },
+            {
+              "id": "d",
+              "text": "Fakultät: mögliche Anordnungen zählen"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Weil die Zeiten aufsteigend sortiert sind, zeigt der Vergleich mit dem mittleren Wert, auf welcher Seite `14` liegen kann. So schrumpft der Suchbereich in jedem Schritt ungefähr auf die Hälfte.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO7.md",
+            "heading": "4. Binäre Suche / Binary Search (Folien 345–356)"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Binäre Suche",
+            "logarithmische Laufzeit"
+          ]
+        },
+        {
+          "id": "eip-07-l5-q08",
+          "type": "estimate",
+          "prompt": "Du hängst sieben verschiedene Fotos in einer Reihe auf; jedes Foto wird genau einmal verwendet. Der Zählweg für die Reihenfolgen ist `7·6·5·4·3·2·1`. Wie viele Reihenfolgen gibt es?",
+          "options": [],
+          "correct": [],
+          "slider": {
+            "min": 1000,
+            "max": 7000,
+            "step": 20,
+            "answer": 5040,
+            "tolerance": 10,
+            "unit": "Reihenfolgen",
+            "scale": "linear"
+          },
+          "explanation": "Für die erste Position gibt es 7 Fotos, für die nächste noch 6 und so weiter. Das Produkt ist `7! = 7·6·5·4·3·2·1 = 5.040`.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO7.md",
+            "heading": "2. Fakultät / Factorial (Folien 321–332)"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Fakultät"
+          ]
+        },
+        {
+          "id": "eip-07-l5-q09",
+          "type": "single",
+          "prompt": "Eine Java-Methode `setRabatt(int prozent)` akzeptiert Werte von 0 bis 100. Ein Bezahlvorgang übergibt `140`; die Methode soll den ungültigen Parameter melden und den normalen Ablauf abbrechen. Welcher Mechanismus passt?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Eine binäre Suche starten"
+            },
+            {
+              "id": "b",
+              "text": "`return -1` als reguläres Ergebnis"
+            },
+            {
+              "id": "c",
+              "text": "`throw new IllegalArgumentException()`"
+            },
+            {
+              "id": "d",
+              "text": "Die Methode rekursiv erneut aufrufen"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Eine `IllegalArgumentException` signalisiert, dass ein Methodenargument außerhalb des erlaubten Bereichs liegt. Mit `throw` wird der normale Ablauf an dieser Stelle abgebrochen.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO7.md",
+            "heading": "Exceptions: ungültige Argumente (Folie 302)"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Exception"
+          ]
+        },
+        {
+          "id": "eip-07-l5-q10",
+          "type": "single",
+          "prompt": "Für eine Uni-Veranstaltung sollen `n` verschiedene Bands alle genau einmal in einer Reihe auftreten. Du möchtest die Zahl aller möglichen Reihenfolgen beschreiben. Welcher Unitbegriff passt?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Binäre Suche"
+            },
+            {
+              "id": "b",
+              "text": "Fakultät"
+            },
+            {
+              "id": "c",
+              "text": "Lineare Suche"
+            },
+            {
+              "id": "d",
+              "text": "Stack Frame"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "Bei der ersten Position gibt es `n` Möglichkeiten, danach `n−1` und so weiter. Das Produkt dieser Auswahlmöglichkeiten ist die Fakultät `n!`.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO7.md",
+            "heading": "2. Fakultät / Factorial (Folien 321–332)"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Fakultät"
+          ]
+        }
+      ]
+    }
+  ]
+}
