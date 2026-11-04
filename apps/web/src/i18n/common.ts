@@ -2,6 +2,7 @@ import { useCallback } from 'react';
 import { useLocale, getDeviceLocale, getLocalePreference, type Locale } from './index.tsx';
 
 export const commonEn = {
+  "Die Google-Anmeldung ist fehlgeschlagen. Bitte versuche es erneut.": "Google sign-in failed. Please try again.",
   "Google-Anmeldung abgelaufen – bitte nochmal.": "Google sign-in expired. Please try again.",
   "oder": "or",
   "Einen Moment …": "One moment…",

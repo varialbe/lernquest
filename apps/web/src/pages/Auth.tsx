@@ -49,6 +49,7 @@ const ErrorBox = ({ msg }: { msg: string | null }) =>
 
 /** „Mit Google …“ – Web: Weiterleitung; iOS-App: Safari + Polling */
 function GoogleButton({ label, onLogin, onError }: { label: string; onLogin: (t: string) => void; onError: (m: string) => void }) {
+  const { locale } = useLocale();
   const ct = useCommonT();
   const { data: cfg } = useConfig();
   const [, navigate] = useLocation();
@@ -61,7 +62,7 @@ function GoogleButton({ label, onLogin, onError }: { label: string; onLogin: (t:
       if (!r) return; // Seite wechselt zu Google
       if (r.status === 'code') onLogin(await exchangeGoogleCode(r.code));
       else if (r.status === 'pending') navigate(`/register?google=${r.pendingId}`);
-      else if (r.status === 'error') onError(r.message);
+      else if (r.status === 'error') onError(locale === 'en' ? ct("Die Google-Anmeldung ist fehlgeschlagen. Bitte versuche es erneut.") : r.message);
       else if (r.status === 'expired') onError(ct("Google-Anmeldung abgelaufen – bitte nochmal."));
     } catch (e) {
       onError((e as Error).message);
@@ -120,6 +121,7 @@ export function Welcome() {
 }
 
 export function Login({ onLogin }: { onLogin: (token: string) => void }) {
+  const { locale } = useLocale();
   const ct = useCommonT();
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
@@ -133,7 +135,7 @@ export function Login({ onLogin }: { onLogin: (token: string) => void }) {
     const p = new URLSearchParams(location.search);
     const code = p.get('oauth');
     const err = p.get('oauthError');
-    if (err) setError(err);
+    if (err) setError(locale === 'en' ? ct("Die Google-Anmeldung ist fehlgeschlagen. Bitte versuche es erneut.") : err);
     if (!code) return;
     history.replaceState(null, '', location.pathname);
     setBusy(true);
