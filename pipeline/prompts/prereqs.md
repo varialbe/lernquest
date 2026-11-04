@@ -7,6 +7,7 @@ Für jeden Zielbegriff entscheidest du, ob ein Kandidat eine echte Voraussetzung
 - `essential`: Ohne das Verständnis von X kann man die Definition oder Idee von Y nicht korrekt nachvollziehen. Prüfe ausdrücklich: „Kann jemand, der X nicht kennt, Y trotzdem verstehen?“ Nur wenn **nein**, essential.
 - `background`: Hilft beim größeren Bild, bei Motivation, Architektur oder Geschichte, ist zum Verstehen von Y aber nicht nötig.
 - `related`: Verwandt, Beispiel, Kontrast oder typische Verwechslungsgefahr. Dies ist **keine Voraussetzung** und muss auch nicht Teil des erweiterten Lernpfads sein.
+- Bewerte die zentrale Begriffsdefinition, nicht jede technische Umsetzung oder jedes Fachwort eines Beispiels. Ein abstrakter Unterprogrammaufruf lässt sich als Aufruf mit anschließender Rückkehr verstehen, ohne konkrete Sprungbefehle, PC-Register oder Rechnerarchitektur zu kennen. Diese Implementierungsdetails sind für diesen Begriff Hintergrund.
 
 ## Begründung `why`
 - Nenne konkret, welcher Teil von X wofür in Y gebraucht wird: „Ein Stackframe liegt innerhalb des Stacks, dessen Zeiger SP verschiebt.“
@@ -14,7 +15,8 @@ Für jeden Zielbegriff entscheidest du, ob ein Kandidat eine echte Voraussetzung
 - Kurz, spezifisch, auf Deutsch, maximal 240 Zeichen. Eine Kante mit schwacher oder generischer Begründung weglassen.
 
 ## Beispiele und Gegenbeispiele
-- **Stackframe** braucht den **Stack** essential: Ohne einen Aufrufstapel kann man nicht verstehen, wovon ein Stackframe ein einzelner Bereich ist. **Stack Pointer** und **Frame Pointer** können für konkrete Stackframe-Abläufe ebenfalls essential sein, wenn die Erklärung diese Register voraussetzt.
+- **Stackframe** braucht den **Stack** essential: Ohne einen Aufrufstapel kann man nicht verstehen, wovon ein Stackframe ein einzelner Bereich ist. Der **Unterprogrammaufruf** erklärt, welchem einzelnen Aufruf der Bereich zugeordnet ist. **Stack Pointer** und **Frame Pointer** beschreiben die Verwaltung und Adressierung; für den allgemeinen Stackframe-Begriff sind sie background, bei einem konkreten Register-/Offset-Verfahren können sie essential sein.
+- Der **Stack** ist als LIFO-Speicherprinzip eigenständig verständlich. Stackframes sind eine Anwendung davon; auch wenn die Stack-Kurzfassung sie erwähnt, braucht Stack nicht umgekehrt Stackframe essential. Entscheide Grundlagen nach ihrer Bedeutung, nicht nach der Reihenfolge der Eintragsnummern.
 - **Von-Neumann-Modell** ist für die Definition eines Stackframes kein Muss. Es ist allenfalls background, weil es ein größeres Rechnerbild liefert.
 - **Program Counter** ist für Stackframe nicht automatisch essential: Er steuert die nächste Befehlsadresse, erklärt aber nicht die Struktur eines Stackframes. Kontrollfluss und Sprünge nur dann essential, wenn die konkrete Zieldefinition sie tatsächlich voraussetzt.
 - Dass ein Begriff in derselben Vorlesung erwähnt wird, eine historische Ursache ist oder später gemeinsam verwendet wird, macht ihn nicht essential.
