@@ -105,6 +105,8 @@ async function translateAsset<T>(opts: {
   log: (message: string) => void;
   runCodex: TranslateFn;
 }): Promise<{ value: T; tokens: number }> {
+  // Diagrams without translatable labels (e.g. only variable names) stay as in the source and are not expected back.
+  opts = { ...opts, fields: opts.fields.filter((field) => !(isMermaidDocument(field.text) && !textMermaidLabels(field.text).length)) };
   const { maskedFields, protectedSpans, basePath, unmask } = maskFields(opts.fields);
   const fieldsJson = JSON.stringify(maskedFields, null, 2);
   const reference = protectedSpans.length ? `\n\nPROTECTED SPANS FOR CONTEXT (copy only their ⟦LQnumber⟧ placeholders unchanged in translations, exactly once and in their source occurrence order; rephrase English around that order and never add delimiters around them):\n${JSON.stringify(protectedSpans.map((text, i) => ({ placeholder: `⟦LQ${i}⟧`, text })))}` : '';

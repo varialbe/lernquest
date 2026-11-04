@@ -110,7 +110,8 @@ function protectedErrors(source: unknown, translated: unknown, fields: Field[]):
     const before = original.get(field.path);
     const after = target.get(field.path);
     if (before == null || after == null) continue;
-    if (protectedTokens(before).join('\n') !== protectedTokens(after).join('\n')) errors.push(`${field.path}: code or mathematical notation changed`);
+    // Same formulas and code spans byte-for-byte; English word order may move them within the sentence.
+    if (!sameProtected(before, after)) errors.push(`${field.path}: code or mathematical notation changed`);
     const markers = (s: string) => s.match(/___/g)?.length ?? 0;
     if (markers(before) !== markers(after)) errors.push(`${field.path}: cloze marker ___ changed`);
     if (!after.trim()) errors.push(`${field.path}: translated field is empty`);
@@ -183,3 +184,6 @@ export function validateKnowledgeTranslation(source: KnowledgeType, raw: unknown
   return [...new Set(errors)];
 }
 
+
+/** Same protected spans (formulas, code, diagram skeletons) as a multiset; order may differ between languages. */
+export const sameProtected = (a: string, b: string) => JSON.stringify(protectedTokens(a).sort()) === JSON.stringify(protectedTokens(b).sort());
