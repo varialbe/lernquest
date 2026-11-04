@@ -1,4 +1,4 @@
-import { currentText } from '../i18n/common.ts';
+import { currentText, currentLocale } from '../i18n/common.ts';
 import { Capacitor } from '@capacitor/core';
 import type { AppUpdateManifest } from '@lernquest/shared';
 
@@ -193,12 +193,13 @@ const RECAP_ID = 120;
  * Wochenrückblick in der iOS-App: lokale Mitteilung am nächsten Sonntag 18 Uhr, Inhalt von GET /api/recap.
  * Wird bei jedem Öffnen neu geplant, der Inhalt ist also der Stand des letzten Öffnens.
  */
-let recapPlanned: { on: boolean; at: number } | null = null;
+let recapPlanned: { on: boolean; at: number; locale: 'de' | 'en' } | null = null;
 export async function scheduleRecap(on: boolean, force = false) {
   if (!isNative) return;
+  const locale = currentLocale();
   // höchstens alle 30 min neu planen (me ändert sich nach jedem Level)
-  if (!force && recapPlanned?.on === on && Date.now() - recapPlanned.at < 30 * 60_000) return;
-  recapPlanned = { on, at: Date.now() };
+  if (!force && recapPlanned?.on === on && recapPlanned.locale === locale && Date.now() - recapPlanned.at < 30 * 60_000) return;
+  recapPlanned = { on, at: Date.now(), locale };
   const { LocalNotifications } = await import('@capacitor/local-notifications');
   await LocalNotifications.cancel({ notifications: [{ id: RECAP_ID }] });
   if (!on || !localRemindersOn()) return;

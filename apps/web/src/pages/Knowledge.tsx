@@ -145,7 +145,7 @@ function PathView({ target, onClose }: { target: string; onClose: () => void }) 
                   {!alreadyKnown && <Markdown inline text={x.e.short} className="mt-1 block text-sm font-semibold text-muted" />}
                   {alreadyKnown && <span className="mt-1 block text-xs font-bold text-muted">{ct("Diese Grundlage ist eingeklappt.")}</span>}
                   {forSteps.length > 0 && (
-                    <p className="mt-1 text-xs font-bold text-primary">{ct("→ verwendet bei")}{plainMath(forSteps.map((f) => f.term).join(', '))}
+                    <p className="mt-1 text-xs font-bold text-primary">{ct("→ verwendet bei")} {plainMath(forSteps.map((f) => f.term).join(', '))}
                       {forSteps[0]!.why && <span className="font-semibold text-muted">: {plainMath(forSteps[0]!.why)}</span>}
                     </p>
                   )}
