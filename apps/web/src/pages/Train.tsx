@@ -1,3 +1,4 @@
+import { usePageT } from '../i18n/pages.ts';
 import { motion } from 'motion/react';
 import { useState, type ReactNode } from 'react';
 import { Link, useLocation } from 'wouter';
@@ -19,17 +20,18 @@ export const LEVEL_COLOR: Record<ConceptMastery['level'], string> = {
 };
 
 export function ConceptBar({ c }: { c: ConceptMastery }) {
+  const t = usePageT();
   return (
-    <Link href={knowledgeHref(c.concept, c.unitId.split('-')[0])} className="block active:opacity-70" aria-label={`${c.concept} in der Wissenssammlung nachschlagen`}>
+    <Link href={knowledgeHref(c.concept, c.unitId.split('-')[0])} className="block active:opacity-70" aria-label={t("{concept} in der Wissenssammlung nachschlagen", {concept: c.concept})}>
       <div className="flex items-baseline justify-between gap-2">
         <MathText text={c.concept} className="min-w-0 truncate font-extrabold" />
         <span className="shrink-0 text-sm font-black tabular-nums" style={{ color: LEVEL_COLOR[c.level] }}>
-          {c.level === 'new' ? 'neu' : `${Math.round(c.score * 100)} %`}
+          {c.level === 'new' ? t("neu") : `${Math.round(c.score * 100)} %`}
         </span>
       </div>
       <ProgressBar value={c.level === 'new' ? 0.04 : Math.max(0.04, c.score)} height={10} color={LEVEL_COLOR[c.level]} className="mt-1" />
       <p className="mt-0.5 truncate text-xs font-bold text-muted">
-        Unit {c.unitNumber} · <MathText text={c.unitTitle} /> · {c.correct}/{c.answered} richtig
+        Unit {c.unitNumber} · <MathText text={c.unitTitle} /> · {t("{correct}/{answered} richtig", {correct: c.correct, answered: c.answered})}
       </p>
     </Link>
   );
@@ -56,6 +58,7 @@ function Section({ icon, title, sub, children, delay, accent }: { icon: string; 
 
 /** Üben-Hub: Wiederholen (Leitner), Schwächen, Klausur-Check, Duelle. */
 export default function Train() {
+  const t = usePageT();
   const { data: me } = useMe();
   const { data: mastery } = useMastery();
   const { data: duels } = useDuels();
@@ -70,7 +73,7 @@ export default function Train() {
   const cards = cardsOverview?.modules.find((m) => m.id === mod);
 
   return (
-    <Page topLeft={<h1 className="text-xl font-black">Üben</h1>}>
+    <Page topLeft={<h1 className="text-xl font-black">{t("Üben")}</h1>}>
       <Segmented
         value={mod}
         onChange={(m) => {
@@ -80,21 +83,21 @@ export default function Train() {
         options={(['DS', 'EIP', 'ERA'] as const).map((m) => ({ value: m, label: m, color: moduleColor(m) }))}
       />
 
-      <Section icon="badge-practice" title="Wiederholen" sub={due ? `${due} Fragen sind heute fällig` : 'Alles wiederholt – stark!'} delay={0} accent="var(--c-error)">
+      <Section icon="badge-practice" title={t("Wiederholen")} sub={due ? t("{count} Fragen sind heute fällig", {count: due}) : t("Alles wiederholt – stark!")} delay={0} accent="var(--c-error)">
         <Button full variant={due ? 'primary' : 'secondary'} disabled={!due} onClick={() => navigate('/practice')}>
-          {due ? 'Wiederholung starten' : 'Nichts fällig'}
+          {due ? t("Wiederholung starten") : t("Nichts fällig")}
         </Button>
       </Section>
 
       <Section
         icon="mascot-book"
-        title="Wissen & Karteikarten"
+        title={t("Wissen & Karteikarten")}
         sub={
           !cards?.total
-            ? 'Alle Begriffe der Vorlesungen – entsteht gerade'
+            ? t("Alle Begriffe der Vorlesungen – entsteht gerade")
             : cards.due
-              ? `${cards.due} Karten fällig · ${cards.mastered} von ${cards.total} gemeistert`
-              : `${cards.total} Begriffe zum Abfragen, Nachschlagen und von Grund auf Erklären`
+              ? t("{due} Karten fällig · {mastered} von {total} gemeistert", {due: cards.due, mastered: cards.mastered, total: cards.total})
+              : t("{count} Begriffe zum Abfragen, Nachschlagen und von Grund auf Erklären", {count: cards.total})
         }
         delay={0.03}
         accent="var(--c-primary)"
@@ -102,17 +105,17 @@ export default function Train() {
         <div className="flex flex-col gap-2">
           <Button full variant={cards?.due ? 'primary' : 'secondary'} disabled={!cards?.total} onClick={() => navigate(`/karten?m=${mod}`)}>
             <Icon name="copy" size={20} />
-            Karteikarten
+            {t("Karteikarten")}
             {!!cards?.due && <Pill className="bg-white/25 text-white">{cards.due}</Pill>}
           </Button>
           <Button full variant="ghost" onClick={() => navigate(`/wissen?m=${mod}`)}>
             <Icon name="book" size={20} />
-            Nachschlagen
+            {t("Nachschlagen")}
           </Button>
         </div>
       </Section>
 
-      <Section icon="item-xp" title="Schwächen" sub="Deine wackeligsten Konzepte gezielt üben" delay={0.05} accent={color}>
+      <Section icon="item-xp" title={t("Schwächen")} sub={t("Deine wackeligsten Konzepte gezielt üben")} delay={0.05} accent={color}>
         {weakest.length ? (
           <div className="space-y-3">
             {weakest.map((c) => (
@@ -120,30 +123,30 @@ export default function Train() {
             ))}
           </div>
         ) : (
-          <p className="text-sm font-semibold text-muted">Spiel ein paar Level in {MODULE_INFO[mod].short} – dann siehst du hier, wo es hakt.</p>
+          <p className="text-sm font-semibold text-muted">{t("Spiel ein paar Level in {module} – dann siehst du hier, wo es hakt.", {module: MODULE_INFO[mod].short})}</p>
         )}
         <div className="mt-4 flex gap-2">
           <Button className="flex-1" disabled={!weakest.length} onClick={() => navigate(`/weak/${mod}`)}>
-            {WEAK.questions} Fragen üben
+            {t("{count} Fragen üben", {count: WEAK.questions})}
           </Button>
           <Link href="/mastery" className="btn3d bg-surface text-primary border-2 border-line shadow-[0_4px_0_var(--c-border)]">
-            Alle
+            {t("Alle")}
           </Link>
         </div>
       </Section>
 
-      <Section icon="badge-boss" title="Klausur-Check" sub={`${EXAM.questions} Fragen aus allen Units · ${Math.round((EXAM.questions * EXAM.secondsPerQuestion) / 60)} Min · Note am Ende`} delay={0.1} accent="var(--c-gold)">
-        <p className="mb-3 text-sm font-semibold text-muted">Kein Feedback zwischendurch – wie in der echten Klausur. Danach siehst du jede falsche Frage mit Lösung.</p>
+      <Section icon="badge-boss" title={t("Klausur-Check")} sub={t("{questions} Fragen aus allen Units · {minutes} Min · Note am Ende", {questions: EXAM.questions, minutes: Math.round((EXAM.questions * EXAM.secondsPerQuestion) / 60)})} delay={0.1} accent="var(--c-gold)">
+        <p className="mb-3 text-sm font-semibold text-muted">{t("Kein Feedback zwischendurch – wie in der echten Klausur. Danach siehst du jede falsche Frage mit Lösung.")}</p>
         <Button full variant="gold" onClick={() => navigate(`/exam/${mod}`)}>
-          {MODULE_INFO[mod].short}-Klausur starten
+          {t("{module}-Klausur starten", {module: MODULE_INFO[mod].short})}
         </Button>
       </Section>
 
-      <Section icon="badge-collector" title="Duelle" sub={`${DUEL.questions} gleiche Fragen, wer mehr richtig hat, gewinnt ${DUEL.winCoins} Coins`} delay={0.15} accent="var(--c-primary)">
+      <Section icon="badge-collector" title={t("Duelle")} sub={t("{questions} gleiche Fragen, wer mehr richtig hat, gewinnt {coins} Coins", {questions: DUEL.questions, coins: DUEL.winCoins})} delay={0.15} accent="var(--c-primary)">
         <Button full variant="secondary" onClick={() => navigate('/duels')}>
           <Icon name="trophy" size={20} />
-          Zu den Duellen
-          {myTurn > 0 && <Pill className="bg-error text-white">{myTurn} warten</Pill>}
+          {t("Zu den Duellen")}
+          {myTurn > 0 && <Pill className="bg-error text-white">{t("{count} warten", {count: myTurn})}</Pill>}
         </Button>
       </Section>
     </Page>

@@ -1,3 +1,4 @@
+import { usePageT } from '../i18n/pages.ts';
 import { useQuery } from '@tanstack/react-query';
 import { motion } from 'motion/react';
 import { useState } from 'react';
@@ -13,6 +14,7 @@ import { moduleColor } from '../lib/theme.ts';
 
 /** Praxis-Bereich: Transfer in die echte Welt + Schätzfragen – je Unit ein Bonus-Level. */
 export default function Praxis() {
+  const t = usePageT();
   const { data, isLoading } = useQuery({ queryKey: ['discover'], queryFn: () => api<DiscoverResponse>('/api/discover'), staleTime: 30_000 });
   const [mod, setMod] = useState<ModuleId>(() => (localStorage.getItem('lq.module') as ModuleId) || 'DS');
   const [, navigate] = useLocation();
@@ -20,14 +22,14 @@ export default function Praxis() {
   const color = moduleColor(mod);
 
   return (
-    <Page topLeft={<h1 className="text-xl font-black">Praxis</h1>}>
+    <Page topLeft={<h1 className="text-xl font-black">{t("Praxis")}</h1>}>
       <div className="relative overflow-hidden rounded-3xl bg-gradient-to-br from-[#ffb347] via-[#ff8a5c] to-[#f25f9c] p-4 text-white shadow-card">
         <div className="absolute -right-8 -top-10 h-32 w-32 rounded-full bg-white/15" />
         <div className="relative flex items-center gap-3">
           <Mascot pose="think" size={84} />
           <div>
-            <p className="text-lg font-black leading-tight">Wo steckt das im echten Leben?</p>
-            <p className="mt-1 text-sm font-bold text-white/90">Alltagsfälle, Aha-Momente und Schätzfragen mit Regler – je Unit ein Bonus-Level.</p>
+            <p className="text-lg font-black leading-tight">{t("Wo steckt das im echten Leben?")}</p>
+            <p className="mt-1 text-sm font-bold text-white/90">{t("Alltagsfälle, Aha-Momente und Schätzfragen mit Regler – je Unit ein Bonus-Level.")}</p>
           </div>
         </div>
       </div>
@@ -47,8 +49,8 @@ export default function Praxis() {
       {module && module.items.length === 0 && (
         <div className="flex flex-col items-center py-10 text-center">
           <Mascot pose="sleep" size={140} />
-          <p className="mt-2 font-black">Noch keine Praxis-Level</p>
-          <p className="max-w-xs text-sm font-semibold text-muted">Sie entstehen automatisch zu jeder neuen Unit.</p>
+          <p className="mt-2 font-black">{t("Noch keine Praxis-Level")}</p>
+          <p className="max-w-xs text-sm font-semibold text-muted">{t("Sie entstehen automatisch zu jeder neuen Unit.")}</p>
         </div>
       )}
 
@@ -74,13 +76,13 @@ export default function Praxis() {
                   <span className="text-xs font-black uppercase tracking-wider" style={{ color: locked ? 'var(--c-muted)' : color }}>
                     Unit {it.unitNumber}
                   </span>
-                  {it.isNew && <Pill className="bg-gold/20 text-gold-dark">Neu</Pill>}
+                  {it.isNew && <Pill className="bg-gold/20 text-gold-dark">{t("Neu")}</Pill>}
                 </div>
                 <p className="truncate font-black"><MathText text={it.unitTitle} /></p>
-                <p className="truncate text-sm font-semibold text-muted">{locked ? 'Erst „Grundlagen“ abschließen' : `${it.title} · ${it.questionCount} Fragen`}</p>
+                <p className="truncate text-sm font-semibold text-muted">{locked ? t("Erst „Grundlagen“ abschließen") : t("{title} · {count} Fragen", {title: it.title, count: it.questionCount})}</p>
               </div>
               {done ? (
-                <div className="flex shrink-0 gap-0.5" aria-label={`${it.stars} von 3 Sternen`}>
+                <div className="flex shrink-0 gap-0.5" aria-label={t("{stars} von 3 Sternen", {stars: it.stars})}>
                   {[1, 2, 3].map((s) => (
                     <Icon key={s} name="star" size={16} weight={1.5} className={s <= it.stars ? 'text-gold' : 'text-locked-dark'} fill="currentColor" />
                   ))}

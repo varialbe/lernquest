@@ -1,3 +1,6 @@
+import { usePageT } from '../i18n/pages.ts';
+import { translateGameText } from '../i18n/catalog.ts';
+import { useLocale } from '../i18n/index.tsx';
 import { motion } from 'motion/react';
 import { useEffect, useState } from 'react';
 import { Link } from 'wouter';
@@ -19,6 +22,7 @@ const TABS = [
 ];
 
 function useCountdown(iso?: string) {
+  const t = usePageT();
   const [now, setNow] = useState(Date.now());
   useEffect(() => {
     const t = setInterval(() => setNow(Date.now()), 60_000);
@@ -28,10 +32,11 @@ function useCountdown(iso?: string) {
   const ms = Math.max(0, Date.parse(iso) - now);
   const d = Math.floor(ms / 86_400_000);
   const h = Math.floor((ms % 86_400_000) / 3_600_000);
-  return d > 0 ? `${d} T ${h} Std` : `${h} Std ${Math.floor((ms % 3_600_000) / 60_000)} Min`;
+  return d > 0 ? t("{days} T {hours} Std", {days: d, hours: h}) : t("{hours} Std {minutes} Min", {hours: h, minutes: Math.floor((ms % 3_600_000) / 60_000)});
 }
 
 function Row({ e, unit }: { e: LeaderboardEntry; unit: string }) {
+  const t = usePageT();
   const medal = e.rank <= 3 ? ['#f5b301', '#a8b3c7', '#cd7f32'][e.rank - 1] : undefined;
   return (
     <Link href={e.me ? '/profile' : `/u/${e.username}`}>
@@ -41,7 +46,7 @@ function Row({ e, unit }: { e: LeaderboardEntry; unit: string }) {
         </span>
         <Avatar pet={e.pet} petStage={e.petStage} frame={e.frame} size={46} name={e.displayName} />
         <div className="min-w-0 flex-1">
-          <p className="truncate font-black">{e.displayName}{e.me && ' (du)'}</p>
+          <p className="truncate font-black">{e.displayName}{e.me && t(' (du)')}</p>
           <p className="truncate text-xs font-bold text-muted">@{e.username}</p>
         </div>
         <span className="shrink-0 font-black tabular-nums">
@@ -53,33 +58,35 @@ function Row({ e, unit }: { e: LeaderboardEntry; unit: string }) {
 }
 
 export default function League() {
+  const t = usePageT();
+  const { locale } = useLocale();
   const [kind, setKind] = useState('league');
   const { data, isLoading } = useLeaderboard(kind);
   const countdown = useCountdown(data?.resetsAt);
   const tier = data?.league ? LEAGUES.indexOf(data.league as (typeof LEAGUES)[number]) : -1;
-  const unit = kind === 'streak' ? 'Tage' : 'XP';
+  const unit = kind === 'streak' ? t('Tage') : 'XP';
 
   return (
-    <Page topLeft={<h1 className="text-xl font-black">Bestenliste</h1>}>
-      <Segmented value={kind} onChange={setKind} options={TABS} />
+    <Page topLeft={<h1 className="text-xl font-black">{t("Bestenliste")}</h1>}>
+      <Segmented value={kind} onChange={setKind} options={TABS.map((tab) => ({ ...tab, label: translateGameText(tab.label, locale) }))} />
       {kind === 'league' && data?.league && (
         <div className="mt-4 flex flex-col items-center text-center">
           <div className="no-scrollbar flex max-w-full gap-2 overflow-x-auto px-2 py-1">
             {LEAGUES.map((l, i) => (
-              <div key={l} className={`flex h-12 w-11 shrink-0 items-center justify-center ${i === tier ? 'scale-125' : 'opacity-40 grayscale'}`} title={l}>
+              <div key={l} className={`flex h-12 w-11 shrink-0 items-center justify-center ${i === tier ? 'scale-125' : 'opacity-40 grayscale'}`} title={translateGameText(l, locale)}>
                 <Icon name="shield" size={40} weight={2} style={{ color: LEAGUE_COLORS[i] }} fill={i <= tier ? LEAGUE_COLORS[i] : 'transparent'} />
               </div>
             ))}
           </div>
-          <h2 className="mt-2 text-2xl font-black">{data.title}</h2>
-          <p className="font-bold text-muted">Die Besten steigen auf · noch {countdown}</p>
+          <h2 className="mt-2 text-2xl font-black">{translateGameText(data.title, locale)}</h2>
+          <p className="font-bold text-muted">{t("Die Besten steigen auf · noch {time}", {time: countdown})}</p>
         </div>
       )}
       {isLoading && <Spinner />}
       {data && data.entries.length <= 1 && kind === 'league' && (
         <div className="mt-6 flex flex-col items-center text-center">
           <Mascot pose="think" size={110} />
-          <p className="max-w-xs font-bold text-muted">Lade Freunde ein, damit ihr euch in der Liga messen könnt!</p>
+          <p className="max-w-xs font-bold text-muted">{t("Lade Freunde ein, damit ihr euch in der Liga messen könnt!")}</p>
         </div>
       )}
       <div className="mt-4 space-y-1">
@@ -89,8 +96,8 @@ export default function League() {
           const showDemote = kind === 'league' && e.zone === 'demote' && prev?.zone !== 'demote';
           return (
             <div key={e.userId}>
-              {showPromote && <div className="my-2 flex items-center gap-2 text-xs font-black uppercase tracking-wider text-success"><span className="h-0.5 flex-1 bg-success/40" />▲ Aufstiegszone<span className="h-0.5 flex-1 bg-success/40" /></div>}
-              {showDemote && <div className="my-2 flex items-center gap-2 text-xs font-black uppercase tracking-wider text-error"><span className="h-0.5 flex-1 bg-error/40" />▼ Abstiegszone<span className="h-0.5 flex-1 bg-error/40" /></div>}
+              {showPromote && <div className="my-2 flex items-center gap-2 text-xs font-black uppercase tracking-wider text-success"><span className="h-0.5 flex-1 bg-success/40" />{t("▲ Aufstiegszone")}<span className="h-0.5 flex-1 bg-success/40" /></div>}
+              {showDemote && <div className="my-2 flex items-center gap-2 text-xs font-black uppercase tracking-wider text-error"><span className="h-0.5 flex-1 bg-error/40" />{t("▼ Abstiegszone")}<span className="h-0.5 flex-1 bg-error/40" /></div>}
               <Row e={e} unit={unit} />
             </div>
           );
