@@ -13,6 +13,7 @@ type Proposal = {
   inputIds: string[];
   raw: RawLinks;
   preview: { requires: Graph['requires']; aliases: Graph['aliases'] };
+  dropped?: string[];
 };
 type MigrationManifest = {
   schemaVersion: 1;
@@ -92,7 +93,7 @@ function reportFor(stamp: string, units: UnitKnowledge[], allModuleUnits: UnitKn
       else if (newLink.why !== oldLink.why) changes.push(`- Begründung aktualisiert: ${key.replace('\0', ' → ')}`);
     }
     for (const key of after.keys()) if (!before.has(key)) changes.push(`- Neu: ${key.replace('\0', ' → ')}`);
-    out.push('### Änderungen', '', ...(changes.length ? changes : ['- Keine']), '', '### Pfadlängen pro Zielbegriff', '');
+    out.push('### Änderungen', '', ...(changes.length ? changes : ['- Keine']), '', '### Deterministische Validierung', '', ...(proposal.dropped?.length ? proposal.dropped.map((reason) => `- ${reason}`) : ['- Keine Vorschläge verworfen.']), '', '### Pfadlängen pro Zielbegriff', '');
     for (const entry of unit.entries) {
       const oldPath = buildLearningPaths(entry.id, viewForGraph(oldGraph, allModuleUnits).entries, oldGraph.aliases);
       const newPath = buildLearningPaths(entry.id, viewForGraph(newGraph, allModuleUnits).entries, newGraph.aliases);
@@ -194,6 +195,7 @@ export async function runPrereqMigration(options: MigrationOptions, classify: Mi
       inputIds: allIds(all.filter((unit) => unit.module === target.module)),
       raw,
       preview: { requires: Object.fromEntries(target.entries.map((entry) => [entry.id, built.graph.requires[entry.id] ?? []])), aliases: built.graph.aliases },
+      dropped: built.dropped,
     };
     json(proposalFile(stamp, target.unitId), proposal);
     proposals.push(proposal);
