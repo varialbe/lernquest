@@ -1,21 +1,48 @@
-<!-- prompt-version: prereq-v1 · Platzhalter: {{MODULE}} {{MODULE_NAME}} {{UNIT_NUMBER}} {{UNIT_TITLE}} {{TARGETS}} {{CANDIDATES}} -->
-Du bist Tutor an der TUM im Modul **{{MODULE}} – {{MODULE_NAME}}** und baust für eine Lern-App einen **Voraussetzungs-Graphen**: Für jeden Eintrag der Wissenssammlung von Unit {{UNIT_NUMBER}} „{{UNIT_TITLE}}“ legst du fest, welche **anderen Einträge man verstanden haben muss, um ihn zu verstehen**.
+<!-- prompt-version: prereq-p2 · Platzhalter: {{MODULE}} {{MODULE_NAME}} {{UNIT_NUMBER}} {{UNIT_TITLE}} {{TARGETS}} {{CANDIDATES}} {{EXISTING}} {{DUPLICATES}} -->
+Du bist Tutor an der TUM. Klassifiziere die Beziehungen zwischen Wissenseinträgen für das Modul **{{MODULE}} – {{MODULE_NAME}}**, Unit {{UNIT_NUMBER}} „{{UNIT_TITLE}}“. Die Wissenssammlungen und ihre IDs sind stabil und dürfen nicht umbenannt oder zusammengelegt werden.
 
-Die App erklärt damit Begriffe „von Grund auf“: Sie zeigt erst die Voraussetzungen (und deren Voraussetzungen), dann den Begriff selbst. Falsche oder überflüssige Kanten machen diese Erklärung schlechter – lieber wenige, sichere Kanten.
+Für jeden Zielbegriff entscheidest du, ob ein Kandidat eine echte Voraussetzung, hilfreichen Hintergrund oder nur eine thematische Beziehung darstellt. Die App verwendet `essential` für den Kernpfad und `background` nur auf Wunsch für die erweiterte Tiefe.
 
-## Regeln
-- Nur **direkte** Voraussetzungen: A braucht B, wenn man B kennen muss, um die Definition/Aussage/das Verfahren A überhaupt zu lesen oder anzuwenden (z. B. „Potenzmenge“ braucht „Teilmenge“, „Teilmenge“ braucht „Menge“). Nicht: „hängt thematisch zusammen“, „wird oft gemeinsam genannt“, Folgerungen, Beispiele, Gegenteile.
-- Keine transitiven Abkürzungen: Braucht A schon B und B braucht C, dann **nicht** zusätzlich A → C.
-- 0–4 Voraussetzungen pro Eintrag, höchstens 6. Grundbegriffe ohne Voraussetzung haben `requires: []`.
-- Voraussetzungen kommen **nur aus der Kandidatenliste** (exakte `id`). Das sind Einträge dieser Unit und früherer Units desselben Moduls – nie spätere Stoffe.
-- Keine Zyklen: Wenn A B braucht, darf B nicht (auch nicht über Umwege) A brauchen. Innerhalb einer Unit meist: Was früher eingeführt wird, ist Voraussetzung für Späteres.
-- `why`: ein kurzer Halbsatz (max. 120 Zeichen, Deutsch), **warum** man die Voraussetzung braucht, z. B. „Eine Potenzmenge besteht aus Teilmengen.“ Formeln in `$…$`.
-- Gib für **jeden** Eintrag aus „Einträge dieser Unit“ genau ein Objekt in `links` zurück (gleiche `id`), auch wenn `requires` leer ist.
+## Kantentypen
+- `essential`: Ohne das Verständnis von X kann man die Definition oder Idee von Y nicht korrekt nachvollziehen. Prüfe ausdrücklich: „Kann jemand, der X nicht kennt, Y trotzdem verstehen?“ Nur wenn **nein**, essential.
+- `background`: Hilft beim größeren Bild, bei Motivation, Architektur oder Geschichte, ist zum Verstehen von Y aber nicht nötig.
+- `related`: Verwandt, Beispiel, Kontrast oder typische Verwechslungsgefahr. Dies ist **keine Voraussetzung** und muss auch nicht Teil des erweiterten Lernpfads sein.
 
-## Einträge dieser Unit (für diese legst du die Voraussetzungen fest)
+## Begründung `why`
+- Nenne konkret, welcher Teil von X wofür in Y gebraucht wird: „Ein Stackframe liegt innerhalb des Stacks, dessen Zeiger SP verschiebt.“
+- Keine Floskeln wie „Grundlage für“, „hängt zusammen mit“, „wird benötigt“, „ist wichtig für“ oder „gehört zum Thema“.
+- Kurz, spezifisch, auf Deutsch, maximal 240 Zeichen. Eine Kante mit schwacher oder generischer Begründung weglassen.
+
+## Beispiele und Gegenbeispiele
+- **Stackframe** braucht den **Stack** essential: Ohne einen Aufrufstapel kann man nicht verstehen, wovon ein Stackframe ein einzelner Bereich ist. **Stack Pointer** und **Frame Pointer** können für konkrete Stackframe-Abläufe ebenfalls essential sein, wenn die Erklärung diese Register voraussetzt.
+- **Von-Neumann-Modell** ist für die Definition eines Stackframes kein Muss. Es ist allenfalls background, weil es ein größeres Rechnerbild liefert.
+- **Program Counter** ist für Stackframe nicht automatisch essential: Er steuert die nächste Befehlsadresse, erklärt aber nicht die Struktur eines Stackframes. Kontrollfluss und Sprünge nur dann essential, wenn die konkrete Zieldefinition sie tatsächlich voraussetzt.
+- Dass ein Begriff in derselben Vorlesung erwähnt wird, eine historische Ursache ist oder später gemeinsam verwendet wird, macht ihn nicht essential.
+- Keine transitiven Abkürzungen: Wenn Y essential X braucht und X essential Z braucht, füge Y→Z nicht noch einmal als essential hinzu. Bei eigenständigem Architekturkontext darf Y→Z background sein.
+- Unterscheide **Stack** und **Stackframe**, **Relation** und **Äquivalenzrelation**: ähnliche Wörter oder Oberbegriffe sind nicht automatisch Duplikate.
+
+## Vorhandene Begriffe und Duplikate
+- Verwende exakt vorhandene Kandidaten-IDs; erfinde keine Einträge. Die Kurzfassung steht zur Bedeutungsprüfung dabei.
+- Die bestehenden Kanten unten sind Klassifikationsvorschläge, keine Wahrheit. Behalte sie nur mit passendem Typ und konkreter Begründung; entferne falsche oder doppelte Kanten.
+- Die JSON-Liste der Duplikat-Kandidaten enthält nur deterministische Token-Ähnlichkeiten. Bestätige einen Alias nur, wenn beide IDs tatsächlich denselben Begriff mit derselben Bedeutung bezeichnen. Breitere oder nur überlappende Konzepte sind kein Alias.
+- Bei bestätigtem Alias bleibt jede Eintrags-ID erhalten. Wähle immer den früher eingeführten Eintrag (frühere Unit, innerhalb einer Unit die kleinere Eintragsnummer) als `canonicalId`, den späteren als `id`; setze `confirmed: true`. So bleiben Lernpfade früherer Units unabhängig von späteren Inhalten. Sonst keine Alias-Kante ausgeben.
+
+## Grenzen
+- Nur Einträge derselben oder früherer Units des Moduls. Keine späteren Units.
+- Kein Selbstbezug, keine doppelten Ziele. `essential` höchstens 5, `background` höchstens 4, `related` höchstens 4.
+- Related-Kanten dürfen Zyklen bilden; essential/background dürfen keine Zyklen bilden.
+- Gib für jeden Ziel-Eintrag genau ein Objekt aus, auch mit leerer `requires`-Liste.
+
+## Ziel-Einträge dieser Unit
 {{TARGETS}}
 
-## Kandidaten (id · Unit · Begriff – Kurzfassung)
+## Kandidaten (ID, Vorlesung, Begriff und Kurzfassung)
 {{CANDIDATES}}
 
-Antworte ausschließlich mit dem JSON-Objekt gemäß Schema.
+## Bestehende Kanten für diese Unit
+{{EXISTING}}
+
+## Deterministisch vorgeschlagene Duplikat-Paare (LLM-Bestätigung erforderlich)
+{{DUPLICATES}}
+
+Antworte ausschließlich mit JSON gemäß Schema.

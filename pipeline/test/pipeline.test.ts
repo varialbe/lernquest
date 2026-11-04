@@ -34,10 +34,10 @@ if (schema.includes('prereq')) {
   const targets = input.split('## Kandidaten')[0];
   const ids = [...targets.matchAll(/- \`([a-z]+-\\d{2}-k\\d{2})\`/g)].map((m) => m[1]);
   const links = ids.map((id, i) => ({ id, requires: [
-    ...(i > 0 ? [{ id: ids[i - 1], why: 'Baut darauf auf.' }] : [{ id: ids[ids.length - 1], why: 'Zyklus!' }]),
-    { id, why: 'selbst' }, { id: 'xx-99-k01', why: 'gibt es nicht' },
+    ...(i > 0 ? [{ id: ids[i - 1], type: 'essential', why: 'Die vorherige Definition wird hier direkt verwendet.' }] : [{ id: ids[ids.length - 1], type: 'essential', why: 'Der Zyklus wird hier absichtlich erzeugt.' }]),
+    { id, type: 'essential', why: 'Diese Definition verweist absichtlich auf sich selbst.' }, { id: 'xx-99-k01', type: 'essential', why: 'Dieser Eintrag existiert hier absichtlich nicht.' },
   ] }));
-  fs.writeFileSync(out, JSON.stringify({ links }));
+  fs.writeFileSync(out, JSON.stringify({ links, aliases: [] }));
   process.exit(0);
 }
 if (schema.includes('knowledge')) {
@@ -164,7 +164,11 @@ describe('pipeline', () => {
     expect(sh(lq, 'log', '-1', '--format=%s')).toContain('wissen: DS Vorlesung 1');
     // Voraussetzungen: Kette k01 ← k02 ← k03; Selbstbezug, unbekannte ID und der Zyklus k01 → k03 fliegen raus
     const g = JSON.parse(readFileSync(join(lq, 'wissen/ds/_voraussetzungen.json'), 'utf8'));
-    expect(g.requires).toEqual({ 'ds-01-k01': [], 'ds-01-k02': [{ id: 'ds-01-k01', why: 'Baut darauf auf.' }], 'ds-01-k03': [{ id: 'ds-01-k02', why: 'Baut darauf auf.' }] });
+    expect(g).toMatchObject({ schemaVersion: 2, requires: {
+      'ds-01-k01': [],
+      'ds-01-k02': [{ id: 'ds-01-k01', type: 'essential', why: 'Die vorherige Definition wird hier direkt verwendet.', legacy: false, locked: false }],
+      'ds-01-k03': [{ id: 'ds-01-k02', type: 'essential', why: 'Die vorherige Definition wird hier direkt verwendet.', legacy: false, locked: false }],
+    } });
     expect(g.units['ds-01'].knowledgeAt).toBe(k.generator.generatedAt);
     expect(sh(lq, 'show', '--name-only', '--format=', 'HEAD')).toContain('wissen/ds/_voraussetzungen.json');
   });
