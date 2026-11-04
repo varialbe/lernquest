@@ -1,5 +1,6 @@
 import { Unit, type Unit as UnitType } from './quiz.ts';
 import { UnitKnowledge, type UnitKnowledge as KnowledgeType } from './knowledge.ts';
+import { mermaidSkeleton } from './mermaid.ts';
 
 export type TranslationField = { path: string; text: string };
 type Field = TranslationField;
@@ -26,9 +27,13 @@ export function unitTranslationFields(unit: UnitType): Field[] {
       q.concepts.forEach((v, ci) => add(fields, `levels.${li}.questions.${qi}.concepts.${ci}`, v));
       if (q.context) {
         add(fields, `levels.${li}.questions.${qi}.context.caption`, q.context.caption);
-        // Mermaid and source code are deliberately copied from the original without LLM editing.
-        if (q.context.type === 'table') add(fields, `levels.${li}.questions.${qi}.context.content`, q.context.content);
-        q.context.frames?.forEach((frame, fi) => add(fields, `levels.${li}.questions.${qi}.context.frames.${fi}.caption`, frame.caption));
+        // Source code is copied byte-for-byte. Mermaid diagrams are translatable fields, but the
+        // pipeline only sends their labels to the model; the validator checks the label-free skeleton.
+        if (q.context.type === 'table' || q.context.type === 'mermaid') add(fields, `levels.${li}.questions.${qi}.context.content`, q.context.content);
+        q.context.frames?.forEach((frame, fi) => {
+          add(fields, `levels.${li}.questions.${qi}.context.frames.${fi}.caption`, frame.caption);
+          if (q.context!.type === 'mermaid') add(fields, `levels.${li}.questions.${qi}.context.frames.${fi}.content`, frame.content);
+        });
       }
     });
   });
@@ -57,7 +62,9 @@ export function protectedTokens(text: string): string[] {
   for (const match of text.matchAll(re)) {
     const token = match[0];
     if (!token.startsWith('$')) {
-      tokens.push(`code:${token}`);
+      // Mermaid diagrams may have translated labels; their structure must stay identical.
+      const mermaid = /^(`{3,})mermaid[^\n]*\n([\s\S]*?)\1$/.exec(token);
+      tokens.push(mermaid ? `mermaid:${mermaidSkeleton(mermaid[2]!)}` : `code:${token}`);
       continue;
     }
     tokens.push(`math:${replaceTextArguments(token)}`);
@@ -146,9 +153,11 @@ export function validateUnitTranslation(source: UnitType, raw: unknown): string[
     if (!same(q.source, other.source)) errors.push(`${path}.source changed`);
     if (q.concepts.length !== other.concepts.length) errors.push(`${path}.concepts count changed`);
     if (q.context?.type !== other.context?.type || q.context?.language !== other.context?.language || q.context?.frames?.length !== other.context?.frames?.length) errors.push(`${path}.context structure changed`);
-    if (q.context && other.context && q.context.type !== 'table' && q.context.content !== other.context.content) errors.push(`${path}.context code changed`);
+    const diagram = q.context?.type === 'mermaid';
+    const sameCode = (a: string, b: string | undefined) => (diagram ? b != null && mermaidSkeleton(a) === mermaidSkeleton(b) : a === b);
+    if (q.context && other.context && q.context.type !== 'table' && !sameCode(q.context.content, other.context.content)) errors.push(`${path}.context.content: ${diagram ? 'diagram structure' : 'context code'} changed`);
     if (q.context?.frames && other.context?.frames) q.context.frames.forEach((frame, fi) => {
-      if (frame.content !== other.context!.frames![fi]?.content) errors.push(`${path}.context.frames.${fi}.content changed`);
+      if (!sameCode(frame.content, other.context!.frames![fi]?.content)) errors.push(`${path}.context.frames.${fi}.content: ${diagram ? 'diagram structure' : 'content'} changed`);
     });
   }));
   errors.push(...protectedErrors(source, translated, unitTranslationFields(source)));

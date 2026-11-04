@@ -3,6 +3,8 @@ Repair the English text fields using the source and deterministic validation err
 
 Copy every backtick span and dollar-delimited formula from SOURCE TEXT FIELDS byte-for-byte, including German words and punctuation inside them. Do not add new backticks or dollar spans. Natural prose outside those spans must be English. Preserve all numeric facts. Protected spans and placeholders must appear exactly once each, in the SAME OCCURRENCE ORDER as the source; rephrase the English clauses as needed to keep that order.
 
+Paths ending in `#m<number>` are flowchart diagram labels: return a short English label only, without brackets, quotes or arrows.
+
 VALIDATION ERRORS:
 {{ERRORS}}
 

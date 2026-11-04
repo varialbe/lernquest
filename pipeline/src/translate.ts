@@ -1,6 +1,7 @@
 import { createHash } from 'node:crypto';
 import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
 import { basename, dirname, join } from 'node:path';
+import { isMermaidDocument, replaceTextMermaidLabels, textMermaidLabels } from '@lernquest/shared';
 import { KnowledgeGraph, Unit, UnitKnowledge, unitTranslationFields, knowledgeTranslationFields, validateUnitTranslation, validateKnowledgeTranslation, protectedTokens, type Unit as UnitType, type UnitKnowledge as KnowledgeType } from '@lernquest/shared';
 export { unitTranslationFields, knowledgeTranslationFields, validateUnitTranslation, validateKnowledgeTranslation, protectedTokens } from '@lernquest/shared';
 import { codexJson, type CodexOptions, type CodexResult } from './codex.ts';
@@ -52,6 +53,49 @@ function applyFields<T>(source: T, expected: Field[], raw: unknown): { value: T;
   return { value: out, errors };
 }
 
+/**
+ * Prepare text fields for a model call.
+ * Models occasionally drop delimiters even when instructed to copy formulas.
+ * Placeholders preserve complete protected spans; the final validator still checks bytes.
+ * Mermaid diagrams: only their visible labels are sent as extra fields `<path>#m<k>`; the
+ * diagram source itself is never edited by the model and is reassembled deterministically.
+ * `fillMissing`: label changes also apply when the model omitted the surrounding text field (proofreading returns only changed fields).
+ */
+export function maskFields(fields: Field[], options: { fillMissing?: boolean } = {}) {
+  const protectedSpans: string[] = [];
+  const mask = (text: string) => text.replace(/```[\s\S]*?```|`[^`\n]*`|\$\$[\s\S]*?\$\$|(?<!\\)\$(?!\$)[^$\n]+(?<!\\)\$/g, (span) => `⟦LQ${protectedSpans.push(span) - 1}⟧`);
+  const diagramLabels = new Map(fields.map((field) => [field.path, textMermaidLabels(field.text)]));
+  const maskedFields = fields.flatMap((field) => {
+    const labels = diagramLabels.get(field.path)!.map((text, k) => ({ path: `${field.path}#m${k}`, text: mask(text) }));
+    return isMermaidDocument(field.text) ? labels : [{ ...field, text: mask(field.text) }, ...labels];
+  });
+  const basePath = (path: string) => path.replace(/#m\d+$/, '');
+  const unmask = (raw: unknown): unknown => {
+    const response = raw as Partial<FieldResponse> | null;
+    if (!response || !Array.isArray(response.translations)) return raw;
+    const restore = (text: string) => text.replace(/⟦LQ(\d+)⟧/g, (marker, index: string) => protectedSpans[Number(index)] ?? marker);
+    const items = response.translations.map((field) => typeof field?.text === 'string' ? { ...field, text: restore(field.text) } : field);
+    const labelTexts = new Map<string, string>();
+    for (const item of items) if (typeof item?.path === 'string' && /#m\d+$/.test(item.path) && typeof item.text === 'string') labelTexts.set(item.path, item.text);
+    const out: unknown[] = items.filter((item) => !(typeof item?.path === 'string' && /#m\d+$/.test(item.path)));
+    for (const field of fields) {
+      const labels = diagramLabels.get(field.path)!;
+      if (!labels.length || !labels.some((_, k) => labelTexts.has(`${field.path}#m${k}`))) continue;
+      const translated = labels.map((source, k) => labelTexts.get(`${field.path}#m${k}`) ?? source);
+      if (isMermaidDocument(field.text)) out.push({ path: field.path, text: replaceTextMermaidLabels(field.text, translated) });
+      else {
+        let item = out.find((entry) => (entry as Field)?.path === field.path) as Field | undefined;
+        if (!item && options.fillMissing) out.push((item = { path: field.path, text: field.text }));
+        if (item) {
+          try { item.text = replaceTextMermaidLabels(item.text, translated); } catch { /* validator reports the changed diagram */ }
+        }
+      }
+    }
+    return { ...response, translations: out };
+  };
+  return { maskedFields, protectedSpans, basePath, unmask };
+}
+
 async function translateAsset<T>(opts: {
   kind: 'unit' | 'knowledge' | 'prereqs';
   source: T;
@@ -61,15 +105,7 @@ async function translateAsset<T>(opts: {
   log: (message: string) => void;
   runCodex: TranslateFn;
 }): Promise<{ value: T; tokens: number }> {
-  // Models occasionally drop delimiters even when instructed to copy formulas.
-  // Placeholders preserve complete protected spans; the final validator still checks bytes.
-  const protectedSpans: string[] = [];
-  const maskedFields = opts.fields.map((field) => ({ ...field, text: field.text.replace(/```[\s\S]*?```|`[^`\n]*`|\$\$[\s\S]*?\$\$|(?<!\\)\$(?!\$)[^$\n]+(?<!\\)\$/g, (span) => `⟦LQ${protectedSpans.push(span) - 1}⟧`) }));
-  const unmask = (raw: unknown): unknown => {
-    const response = raw as Partial<FieldResponse> | null;
-    if (!response || !Array.isArray(response.translations)) return raw;
-    return { ...response, translations: response.translations.map((field) => typeof field?.text === 'string' ? { ...field, text: field.text.replace(/⟦LQ(\d+)⟧/g, (marker, index: string) => protectedSpans[Number(index)] ?? marker) } : field) };
-  };
+  const { maskedFields, protectedSpans, basePath, unmask } = maskFields(opts.fields);
   const fieldsJson = JSON.stringify(maskedFields, null, 2);
   const reference = protectedSpans.length ? `\n\nPROTECTED SPANS FOR CONTEXT (copy only their ⟦LQnumber⟧ placeholders unchanged in translations, exactly once and in their source occurrence order; rephrase English around that order and never add delimiters around them):\n${JSON.stringify(protectedSpans.map((text, i) => ({ placeholder: `⟦LQ${i}⟧`, text })))}` : '';
   const makePrompt = (name: string, vars: Record<string, string>) => fill(template(name), vars);
@@ -94,7 +130,7 @@ async function translateAsset<T>(opts: {
   const repairFields = rejected.length && errors.every((error) => rejected.some((field) => error.startsWith(`${field.path}:`) || error === `missing path: ${field.path}`)) ? rejected : opts.fields;
   const previous = (firstData as FieldResponse)?.translations ?? [];
   const repairPaths = new Set(repairFields.map((field) => field.path));
-  const second = await ask(2, makePrompt('repair-translation.md', { ERRORS: errors.map((e) => `- ${e}`).join('\n'), FIELDS: JSON.stringify(maskedFields.filter((field) => repairPaths.has(field.path)), null, 2), CANDIDATE: JSON.stringify(previous.filter((field) => repairPaths.has(field.path)), null, 2) }));
+  const second = await ask(2, makePrompt('repair-translation.md', { ERRORS: errors.map((e) => `- ${e}`).join('\n'), FIELDS: JSON.stringify(maskedFields.filter((field) => repairPaths.has(basePath(field.path))), null, 2), CANDIDATE: JSON.stringify(previous.filter((field) => repairPaths.has(field.path)), null, 2) }));
   const repaired = unmask(second.data) as Partial<FieldResponse> | null;
   const repairedCheck = applyFields(opts.source, repairFields, repaired);
   const merged = { translations: [...previous.filter((field) => !repairPaths.has(field.path)), ...(repaired?.translations ?? [])] };

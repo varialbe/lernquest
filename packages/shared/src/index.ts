@@ -5,3 +5,4 @@ export * from './knowledge.ts';
 export * from './study.ts';
 export * from './prereqs.ts';
 export * from './translation.ts';
+export * from './mermaid.ts';

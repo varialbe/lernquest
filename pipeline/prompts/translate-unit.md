@@ -7,5 +7,9 @@ Return every supplied path exactly once, in the same order, as `{ "translations"
 
 All text in `prompt`, options, and explanations must remain solvable without access to the lecture. Keep course content faithful; translate labels and prose while leaving formulas and code intact. The deterministic checker will reject any change to IDs, answer keys, order, code, formulas, or slider values.
 
+Paths ending in `#m<number>` are visible labels of a flowchart diagram (node text, edge text or subgraph title). Translate them into short English labels with the same meaning; keep variable names, symbols, numbers, register names and code identifiers unchanged and do not add brackets, quotes or arrows. Labels such as `init`, `cond`, `loop`, `Start` or `Stop` that are already English stay as they are.
+
+Use correct English spelling, grammar and punctuation. If the German source contains a typo, translate the intended meaning without copying the typo.
+
 TEXT FIELDS:
 {{FIELDS}}

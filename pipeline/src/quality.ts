@@ -7,6 +7,7 @@ import { codexJson } from './codex.ts';
 import { config } from './config.ts';
 import { FENCE, fill, formatHeadings, normalizeQuestion, template, type RawQuestion } from './generate.ts';
 import type { Heading } from './obsidian.ts';
+import { questionFormatProblems } from './lint.ts';
 
 /**
  * Qualitäts-Tor nach der Generierung:
@@ -174,6 +175,8 @@ export async function qualityGate(
     const v = verifyQuestion(q, raws.get(q.prompt));
     if (v.status === 'ok') report.verified++;
     if (v.status === 'fail') failures.set(q.id, v.reason);
+    const format = questionFormatProblems(q);
+    if (format.length) failures.set(q.id, [failures.get(q.id), `Formatierung kaputt (so in der App nicht darstellbar): ${format.join('; ')}`].filter(Boolean).join('; '));
   }
   // 2. Blind-Test
   log(`  → Blind-Test ${unit.id}: ${all.length} Fragen (effort ${config.codexBlindEffort})`);
@@ -209,6 +212,11 @@ export async function qualityGate(
       const v = verifyQuestion(n.question, rq);
       if (v.status === 'fail') {
         still.push({ ...p, q: n.question, reason: v.reason });
+        continue;
+      }
+      const format = questionFormatProblems(n.question);
+      if (format.length) {
+        still.push({ ...p, q: n.question, reason: `Formatierung kaputt: ${format.join('; ')}` });
         continue;
       }
       candidates.push({ p, q: n.question });
