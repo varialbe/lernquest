@@ -1,0 +1,1994 @@
+{
+  "schemaVersion": 1,
+  "id": "ds-08",
+  "module": "DS",
+  "number": 8,
+  "slug": "relationen-komposition-erreichbarkeit",
+  "title": "Relations, Composition, and Reachability",
+  "summary": "This unit covers binary relations, their matrices, and the composition of directed steps. It connects powers of relations with paths, explains reachability on finite sets, and practices the properties of endorelations.",
+  "concepts": [
+    "Binary relation",
+    "Endorelation",
+    "Relation matrix",
+    "Converse relation",
+    "Relational product",
+    "Boolean matrix multiplication",
+    "Power of a relation",
+    "Paths and path length",
+    "Reachability",
+    "Reflexivity and irreflexivity",
+    "Symmetry and antisymmetry",
+    "Transitivity and asymmetry",
+    "Relational composition with join and projection"
+  ],
+  "keyFacts": [
+    "A binary relation from A to B is a subset of A×B; an endorelation has the form R⊆A×A.",
+    "In a relation matrix, a row represents the source element and a column represents the target element; 1 indicates an included pair.",
+    "The size of a relation matrix depends on the numbers of source and target elements and need not be square.",
+    "The converse relation swaps the entries in every pair; when the enumerations are swapped accordingly, its matrix is transposed.",
+    "The enumerations of the sets determine the row and column order.",
+    "In the relational product RS, R is applied first and then S; a shared intermediate value must be the target of an R-step and the start of an S-step.",
+    "The relational product is a set of source-target pairs; the Cartesian product forms pairs of pairs.",
+    "Boolean matrix multiplication uses AND for an intermediate value and OR across possible intermediate values; it does not count matching paths.",
+    "The product is associative, identity relations are neutral elements, and the product distributes over union on both sides.",
+    "The empty relation is an annihilator for the relational product; the product is monotone with respect to inclusion.",
+    "In general, the product does not distribute over intersection, because the two products may use different intermediate values.",
+    "R^k describes reachability in exactly k steps; R^{≤k} allows 0 to k steps, and R^{<k} allows 0 to k−1 steps.",
+    "R^0 is the identity relation; therefore, R^{≤0} contains exactly the identity relation, and R^{<0} is empty.",
+    "A path of length k has k edges and k+1 node entries; repeated nodes are allowed.",
+    "A pair belongs to R^k exactly when there is a path of length k between its nodes.",
+    "On a finite, nonempty node set with n nodes, accumulated reachability stabilizes: R^{<n}=R^{<k} for k≥n.",
+    "Reflexivity requires every self-loop, while irreflexivity forbids every self-loop; a mixed diagonal satisfies neither property.",
+    "Symmetry requires a reverse arrow for every arrow; antisymmetry allows self-loops but no arrows in both directions between distinct nodes.",
+    "Asymmetry excludes self-loops and reverse arrows and is equivalent to irreflexivity plus antisymmetry.",
+    "Transitivity requires a direct arrow whenever there are two consecutive R-steps; formally, RR⊆R."
+  ],
+  "tags": [],
+  "links": [],
+  "source": {
+    "file": "DS/01_Vorlesungen/Diskrete Strukturen VO8.md",
+    "sha256": "6b1df999b94e697e78bece0ede89717b83d5829d61cfe838d959ee7a30982cc4",
+    "commit": "11fc2e408cfff33a1a8c3bd358d07de5beb8bf2a"
+  },
+  "generator": {
+    "model": "gpt-6-luna",
+    "effort": "xhigh",
+    "reviewEffort": "high",
+    "promptVersion": "v3",
+    "generatedAt": "2026-11-05T23:11:16.053Z",
+    "review": {
+      "checked": 44,
+      "fixed": 4,
+      "removed": 0,
+      "notes": "Korrigiert: boolesches Matrixprodukt (Antwort b statt a), |R^{<2}| (5 statt 6) und zwei Quellenangaben auf VO8 präzisiert. Übrige Antworten, Distraktoren, Rechenwege, Diagramme und Verify-Skripte geprüft."
+    }
+  },
+  "levels": [
+    {
+      "id": "ds-08-l1",
+      "index": 1,
+      "kind": "basics",
+      "title": "Fundamentals",
+      "questions": [
+        {
+          "id": "ds-08-l1-q01",
+          "type": "single",
+          "prompt": "Which condition defines a binary relation from $A$ to $B$?",
+          "options": [
+            {
+              "id": "a",
+              "text": "A subset of $A∪B$"
+            },
+            {
+              "id": "b",
+              "text": "A subset of $A×B$"
+            },
+            {
+              "id": "c",
+              "text": "A function from $A$ to $B$"
+            },
+            {
+              "id": "d",
+              "text": "A subset of $B×B$"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "A binary relation consists of ordered pairs whose first entry comes from A and whose second entry comes from B. It need not be a function.",
+          "source": {
+            "file": "DS/01_Vorlesungen/Diskrete Strukturen VO8.md",
+            "heading": "1. Binäre Relationen und ihre Darstellung"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Binary relation"
+          ]
+        },
+        {
+          "id": "ds-08-l1-q02",
+          "type": "truefalse",
+          "prompt": "An endorelation on $A$ is a relation $R⊆A×A$.",
+          "options": [
+            {
+              "id": "true",
+              "text": "True"
+            },
+            {
+              "id": "false",
+              "text": "False"
+            }
+          ],
+          "correct": [
+            "true"
+          ],
+          "explanation": "For an endorelation, the source and target sets are the same; both are A.",
+          "source": {
+            "file": "DS/01_Vorlesungen/Diskrete Strukturen VO8.md",
+            "heading": "1. Binäre Relationen und ihre Darstellung"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Endorelation"
+          ]
+        },
+        {
+          "id": "ds-08-l1-q03",
+          "type": "cloze",
+          "prompt": "In the 0/1 matrix of a relation, the row represents the ___ and the column represents the target element.",
+          "options": [
+            {
+              "id": "a",
+              "text": "entire relation"
+            },
+            {
+              "id": "b",
+              "text": "last element in the enumeration"
+            },
+            {
+              "id": "c",
+              "text": "intermediate element"
+            },
+            {
+              "id": "d",
+              "text": "source element"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "The entry in row i and column j encodes whether the pair consisting of the i-th source element and the j-th target element belongs to the relation.",
+          "source": {
+            "file": "DS/01_Vorlesungen/Diskrete Strukturen VO8.md",
+            "heading": "2. Endliche Relationen als 0/1-Matrizen"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Relation matrix"
+          ]
+        },
+        {
+          "id": "ds-08-l1-q04",
+          "type": "calc",
+          "prompt": "For the enumerations $A=(p,q)$ and $B=(x,y)$, a relation has the matrix $\\begin{pmatrix}1&1\\\\1&0\\end{pmatrix}$. Which pair does **not** belong to the relation?",
+          "options": [
+            {
+              "id": "a",
+              "text": "$(p,x)$"
+            },
+            {
+              "id": "b",
+              "text": "$(p,y)$"
+            },
+            {
+              "id": "c",
+              "text": "$(q,x)$"
+            },
+            {
+              "id": "d",
+              "text": "$(q,y)$"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Row q and column y contain 0. The other three entries are 1 and encode included pairs.",
+          "source": {
+            "file": "DS/01_Vorlesungen/Diskrete Strukturen VO8.md",
+            "heading": "Kleines Ablesebeispiel"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Relation matrix"
+          ]
+        },
+        {
+          "id": "ds-08-l1-q05",
+          "type": "single",
+          "prompt": "What happens to a pair $(a,b)$ when the converse relation is formed?",
+          "options": [
+            {
+              "id": "a",
+              "text": "It is removed if $a≠b$"
+            },
+            {
+              "id": "b",
+              "text": "It becomes $(a,a)$"
+            },
+            {
+              "id": "c",
+              "text": "It becomes $(b,b)$"
+            },
+            {
+              "id": "d",
+              "text": "It becomes $(b,a)$"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "The converse relation swaps the two entries in every pair. For matrices, this corresponds to transposition, provided the enumerations are swapped accordingly.",
+          "source": {
+            "file": "DS/01_Vorlesungen/Diskrete Strukturen VO8.md",
+            "heading": "Umgekehrte Relation = transponierte Matrix"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Converse relation"
+          ]
+        },
+        {
+          "id": "ds-08-l1-q06",
+          "type": "multi",
+          "prompt": "Which statements about the relational product $RS$ are true? Select all that apply; more than one may be correct.",
+          "options": [
+            {
+              "id": "a",
+              "text": "It is enough for the two pairs to share any entry."
+            },
+            {
+              "id": "b",
+              "text": "A single matching intermediate value is enough for a pair to belong to the product."
+            },
+            {
+              "id": "c",
+              "text": "A shared intermediate value is the target of an R-step and the start of an S-step."
+            },
+            {
+              "id": "d",
+              "text": "The product contains source-target pairs."
+            }
+          ],
+          "correct": [
+            "b",
+            "c",
+            "d"
+          ],
+          "explanation": "For RS, the same intermediate value must connect both steps. An arbitrary shared entry is not enough, and a single possible intermediate value suffices.",
+          "source": {
+            "file": "DS/01_Vorlesungen/Diskrete Strukturen VO8.md",
+            "heading": "3. Relationales Produkt: zwei Schritte zusammensetzen"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Relational product"
+          ]
+        },
+        {
+          "id": "ds-08-l1-q07",
+          "type": "truefalse",
+          "prompt": "The Cartesian product $R×S$ requires a shared intermediate value between a pair from R and a pair from S.",
+          "options": [
+            {
+              "id": "true",
+              "text": "True"
+            },
+            {
+              "id": "false",
+              "text": "False"
+            }
+          ],
+          "correct": [
+            "false"
+          ],
+          "explanation": "The Cartesian product combines pairs into pairs of pairs without requiring a shared intermediate value. That condition belongs to the relational product.",
+          "source": {
+            "file": "DS/01_Vorlesungen/Diskrete Strukturen VO8.md",
+            "heading": "Kein kartesisches Produkt"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Relational product"
+          ]
+        },
+        {
+          "id": "ds-08-l1-q08",
+          "type": "cloze",
+          "prompt": "For every endorelation $R$ on $A$, $R^0=___$ holds.",
+          "options": [
+            {
+              "id": "a",
+              "text": "$A×A$"
+            },
+            {
+              "id": "b",
+              "text": "$R$"
+            },
+            {
+              "id": "c",
+              "text": "$\\operatorname{Id}_A$"
+            },
+            {
+              "id": "d",
+              "text": "$∅$"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "The zeroth power is the identity relation. It leaves every node unchanged and represents paths of length zero.",
+          "source": {
+            "file": "DS/01_Vorlesungen/Diskrete Strukturen VO8.md",
+            "heading": "7. k-faches Produkt: exakt, höchstens oder weniger Schritte?"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Power of a relation"
+          ]
+        },
+        {
+          "id": "ds-08-l1-q09",
+          "type": "single",
+          "prompt": "A path contains 6 node entries. What is its length?",
+          "options": [
+            {
+              "id": "a",
+              "text": "7"
+            },
+            {
+              "id": "b",
+              "text": "6"
+            },
+            {
+              "id": "c",
+              "text": "12"
+            },
+            {
+              "id": "d",
+              "text": "5"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Path length counts edges. With 6 node entries, there are 5 consecutive steps between them.",
+          "source": {
+            "file": "DS/01_Vorlesungen/Diskrete Strukturen VO8.md",
+            "heading": "8. Erreichbarkeit und Pfade"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Paths and path length"
+          ]
+        },
+        {
+          "id": "ds-08-l1-q10-r1",
+          "type": "multi",
+          "prompt": "Let $R\\subseteq A\\times A$ be an endorelation. Its matrix uses the same enumeration of $A$ for rows and columns; the entry in row $x$ and column $y$ is $1$ exactly when $(x,y)\\in R$. Reflexive means: for every $x\\in A$, $(x,x)\\in R$. Irreflexive means: for every $x\\in A$, $(x,x)\\notin R$. Which statements are true? Select all that apply.",
+          "options": [
+            {
+              "id": "a",
+              "text": "$R$ is reflexive exactly when every entry on the main diagonal is $1$. Entries outside the diagonal can be arbitrary."
+            },
+            {
+              "id": "b",
+              "text": "If the main diagonal contains both zeros and ones, $R$ is both reflexive and irreflexive."
+            },
+            {
+              "id": "c",
+              "text": "An entry $1$ at the diagonal position $(x,x)$ means that $R$ contains the self-loop $(x,x)$."
+            },
+            {
+              "id": "d",
+              "text": "$R$ is irreflexive exactly when every entry on the main diagonal is $0$. Entries outside the diagonal can be arbitrary."
+            }
+          ],
+          "correct": [
+            "a",
+            "c",
+            "d"
+          ],
+          "explanation": "Reflexivity requires a self-loop at every node, so every entry on the main diagonal is 1. Irreflexivity forbids every self-loop, so those entries are all 0. A mixed diagonal satisfies neither condition. For an endorelation, a diagonal entry $1$ indicates exactly one self-loop.",
+          "source": {
+            "file": "DS/01_Vorlesungen/Diskrete Strukturen VO8.md",
+            "heading": "Reflexiv oder irreflexiv?"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Endorelation",
+            "Reflexivity",
+            "Irreflexivity",
+            "Main diagonal"
+          ]
+        },
+        {
+          "id": "ds-08-l1-q11",
+          "type": "diagram",
+          "prompt": "Which statement follows from the path shown, if R is applied first and then S in the relational product?",
+          "context": {
+            "type": "mermaid",
+            "content": "flowchart LR\n    A[\"a Start\"] -->|R| X[\"x Intermediate value\"]\n    X -->|S| D[\"d Target\"]",
+            "caption": "Two directed steps with a shared intermediate value"
+          },
+          "options": [
+            {
+              "id": "a",
+              "text": "$(a,d)∈SR$ must hold"
+            },
+            {
+              "id": "b",
+              "text": "$(a,d)$ cannot belong to the product"
+            },
+            {
+              "id": "c",
+              "text": "$(a,d)∈RS$"
+            },
+            {
+              "id": "d",
+              "text": "$(d,a)∈RS$"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "The arrow from a to x is an R-step, and the arrow from x to d is an S-step. Thus, x is a shared intermediate value for $(a,d)∈RS$.",
+          "source": {
+            "file": "DS/01_Vorlesungen/Diskrete Strukturen VO8.md",
+            "heading": "3. Relationales Produkt: zwei Schritte zusammensetzen"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Relational product"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ds-08-l2",
+      "index": 2,
+      "kind": "apply",
+      "title": "Apply",
+      "questions": [
+        {
+          "id": "ds-08-l2-q01",
+          "type": "calc",
+          "prompt": "Suppose $R=\\{(u,x),(u,y),(v,y),(w,z)\\}$ and $S=\\{(x,p),(y,p),(y,q)\\}$. Which pairs does $RS$ contain?",
+          "options": [
+            {
+              "id": "a",
+              "text": "$(u,p),(u,q),(v,p),(v,q),(w,z)$"
+            },
+            {
+              "id": "b",
+              "text": "$(u,p),(v,p),(w,z)$"
+            },
+            {
+              "id": "c",
+              "text": "$(u,p),(u,q),(v,p),(v,q)$"
+            },
+            {
+              "id": "d",
+              "text": "$(u,x),(u,y),(v,y)$"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "From u, the R-intermediate values x and y lead to p and q, respectively. From v, y leads to p and q. From w, there is no S-step after z.",
+          "source": {
+            "file": "DS/01_Vorlesungen/Diskrete Strukturen VO8.md",
+            "heading": "Formale Definition (Folie 89 (113))"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Relational product"
+          ]
+        },
+        {
+          "id": "ds-08-l2-q02",
+          "type": "calc",
+          "prompt": "For $R$ and $S$, suppose the matrices have row and column orders $(u,v)$ and $(x,y)$ and $(p,q)$, respectively, and are given by $M_R=\\begin{pmatrix}1&1\\\\0&1\\end{pmatrix}$ and $M_S=\\begin{pmatrix}0&1\\\\1&0\\end{pmatrix}$. What matrix results from the Boolean multiplication $M_RM_S$?",
+          "options": [
+            {
+              "id": "a",
+              "text": "$\\begin{pmatrix}1&1\\\\1&0\\end{pmatrix}$"
+            },
+            {
+              "id": "b",
+              "text": "$\\begin{pmatrix}1&0\\\\1&0\\end{pmatrix}$"
+            },
+            {
+              "id": "c",
+              "text": "$\\begin{pmatrix}1&0\\\\0&1\\end{pmatrix}$"
+            },
+            {
+              "id": "d",
+              "text": "$\\begin{pmatrix}0&1\\\\0&1\\end{pmatrix}$"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "For each result entry, take the AND over the intermediate values and then the OR. The first row gives $(1,1)$, and the second gives $(1,0)$; ordinary sums are not used.",
+          "source": {
+            "file": "DS/01_Vorlesungen/Diskrete Strukturen VO8.md",
+            "heading": "5. Produkte mit Matrizen berechnen"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Boolean matrix multiplication"
+          ]
+        },
+        {
+          "id": "ds-08-l2-q03",
+          "type": "diagram",
+          "prompt": "Which set describes the relational product of taking the R-steps and then the S-steps?",
+          "context": {
+            "type": "mermaid",
+            "content": "flowchart LR\n    U[\"u\"] -->|R| X[\"x\"]\n    U -->|R| Y[\"y\"]\n    X -->|S| P[\"p\"]\n    Y -->|S| Q[\"q\"]",
+            "caption": "Two possible intermediate values and their S-targets"
+          },
+          "options": [
+            {
+              "id": "a",
+              "text": "$\\{(u,p),(u,q)\\}$"
+            },
+            {
+              "id": "b",
+              "text": "$\\{(x,p),(y,q)\\}$"
+            },
+            {
+              "id": "c",
+              "text": "$\\{(u,x),(u,y)\\}$"
+            },
+            {
+              "id": "d",
+              "text": "$\\{(u,p)\\}$"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "From u, R leads to x and y. From x, S leads to p, and from y, S leads to q. The product stores only the start and target, namely $(u,p)$ and $(u,q)$.",
+          "source": {
+            "file": "DS/01_Vorlesungen/Diskrete Strukturen VO8.md",
+            "heading": "3. Relationales Produkt: zwei Schritte zusammensetzen"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Relational product"
+          ]
+        },
+        {
+          "id": "ds-08-l2-q04",
+          "type": "single",
+          "prompt": "Which statement describes $R^2$ for an endorelation $R$?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Reachability in exactly one R-step"
+            },
+            {
+              "id": "b",
+              "text": "Reachability in at most two R-steps"
+            },
+            {
+              "id": "c",
+              "text": "All pairs missing from R"
+            },
+            {
+              "id": "d",
+              "text": "Reachability in exactly two R-steps"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "The power R² is the product RR and describes exactly two consecutive R-steps. For at most two steps, also take the union of R⁰, R¹, and R².",
+          "source": {
+            "file": "DS/01_Vorlesungen/Diskrete Strukturen VO8.md",
+            "heading": "7. k-faches Produkt: exakt, höchstens oder weniger Schritte?"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Power of a relation",
+            "Paths and path length"
+          ]
+        },
+        {
+          "id": "ds-08-l2-q05",
+          "type": "calc",
+          "prompt": "On $A=\\{u,v,w\\}$, let $R=\\{(u,v),(v,w)\\}$. How many pairs does $R^{<2}$ contain?",
+          "options": [
+            {
+              "id": "a",
+              "text": "7"
+            },
+            {
+              "id": "b",
+              "text": "8"
+            },
+            {
+              "id": "c",
+              "text": "5"
+            },
+            {
+              "id": "d",
+              "text": "6"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "$R^{<2}=R⁰∪R¹$. $R⁰$ contains the three identity pairs, and $R¹$ contains the two given pairs; these five pairs are distinct. By definition, $R^{<2}$ means lengths 0 to 1, not length 2.",
+          "source": {
+            "file": "DS/01_Vorlesungen/Diskrete Strukturen VO8.md",
+            "heading": "Höchstens bzw. weniger als k Schritte"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Power of a relation",
+            "Reachability"
+          ]
+        },
+        {
+          "id": "ds-08-l2-q06",
+          "type": "truefalse",
+          "prompt": "On $A=\\{1,2\\}$, let $R=\\{(1,1),(2,2),(1,2)\\}$. This relation is reflexive.",
+          "options": [
+            {
+              "id": "true",
+              "text": "True"
+            },
+            {
+              "id": "false",
+              "text": "False"
+            }
+          ],
+          "correct": [
+            "true"
+          ],
+          "explanation": "A relation on A is reflexive if it contains all identity pairs. Here, both $(1,1)$ and $(2,2)$ are included.",
+          "source": {
+            "file": "DS/01_Vorlesungen/Diskrete Strukturen VO8.md",
+            "heading": "Reflexiv oder irreflexiv?"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Reflexivity and irreflexivity"
+          ]
+        },
+        {
+          "id": "ds-08-l2-q07",
+          "type": "multi",
+          "prompt": "On $A=\\{a,b\\}$, let $R=\\{(a,a),(b,b),(a,b)\\}$. Which properties does $R$ have? Select all that apply; more than one may be correct.",
+          "options": [
+            {
+              "id": "a",
+              "text": "antisymmetric"
+            },
+            {
+              "id": "b",
+              "text": "transitive"
+            },
+            {
+              "id": "c",
+              "text": "reflexive"
+            },
+            {
+              "id": "d",
+              "text": "symmetric"
+            }
+          ],
+          "correct": [
+            "a",
+            "b",
+            "c"
+          ],
+          "explanation": "Both self-loops are present, so R is reflexive. There is no reverse arrow $(b,a)$, so R is neither symmetric nor antisymmetric. Compositions involving the self-loops or $(a,b)$ yield only pairs already included, so R is transitive.",
+          "source": {
+            "file": "DS/01_Vorlesungen/Diskrete Strukturen VO8.md",
+            "heading": "10. Eigenschaften von Endorelationen"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Reflexivity and irreflexivity",
+            "Symmetry and antisymmetry",
+            "Transitivity and asymmetry"
+          ]
+        },
+        {
+          "id": "ds-08-l2-q08",
+          "type": "cloze",
+          "prompt": "Let $|A|=n$ for a finite, nonempty node set. Every reachable connection can already be represented by a path of length less than ___.",
+          "options": [
+            {
+              "id": "a",
+              "text": "$n$"
+            },
+            {
+              "id": "b",
+              "text": "$2n$"
+            },
+            {
+              "id": "c",
+              "text": "$n-1$"
+            },
+            {
+              "id": "d",
+              "text": "$n+1$"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "A shortest path cannot repeat a node. With n nodes, it therefore has at most n−1 edges, so its length is less than n.",
+          "source": {
+            "file": "DS/01_Vorlesungen/Diskrete Strukturen VO8.md",
+            "heading": "9. Erreichbarkeit auf einer endlichen Menge"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Reachability",
+            "Paths and path length"
+          ]
+        },
+        {
+          "id": "ds-08-l2-q09",
+          "type": "single",
+          "prompt": "Which relation leaves $R$ unchanged under the relational product?",
+          "options": [
+            {
+              "id": "a",
+              "text": "The empty relation"
+            },
+            {
+              "id": "b",
+              "text": "The relation $A×A$"
+            },
+            {
+              "id": "c",
+              "text": "The converse relation $R^\\top$"
+            },
+            {
+              "id": "d",
+              "text": "The appropriate identity relation on the target or source set"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "An identity step does not change the current value. Thus, for compatible sets, IdₐR=R=RIdᵦ.",
+          "source": {
+            "file": "DS/01_Vorlesungen/Diskrete Strukturen VO8.md",
+            "heading": "Linkes und rechtes neutrales Element"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Relational product"
+          ]
+        },
+        {
+          "id": "ds-08-l2-q10",
+          "type": "calc",
+          "prompt": "Let $R=\\{(a,x),(b,y)\\}$. What set is the converse relation $R^\\top$?",
+          "options": [
+            {
+              "id": "a",
+              "text": "$\\{(a,a),(b,b)\\}$"
+            },
+            {
+              "id": "b",
+              "text": "$\\{(x,a),(y,b)\\}$"
+            },
+            {
+              "id": "c",
+              "text": "$\\{(x,b),(y,a)\\}$"
+            },
+            {
+              "id": "d",
+              "text": "$\\{(a,x),(b,y)\\}$"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "In each ordered pair, the source and target are swapped: $(a,x)$ becomes $(x,a)$, and $(b,y)$ becomes $(y,b)$.",
+          "source": {
+            "file": "DS/01_Vorlesungen/Diskrete Strukturen VO8.md",
+            "heading": "Umgekehrte Relation = transponierte Matrix"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Converse relation"
+          ]
+        },
+        {
+          "id": "ds-08-l2-q11",
+          "type": "truefalse",
+          "prompt": "For compatible relations, $(R_1∪R_2)S=(R_1S)∪(R_2S)$ holds.",
+          "options": [
+            {
+              "id": "true",
+              "text": "True"
+            },
+            {
+              "id": "false",
+              "text": "False"
+            }
+          ],
+          "correct": [
+            "true"
+          ],
+          "explanation": "A first step from a union comes from R₁ or R₂. Therefore, the result is the union of the two products; the same distributive law also holds with a fixed left factor.",
+          "source": {
+            "file": "DS/01_Vorlesungen/Diskrete Strukturen VO8.md",
+            "heading": "Distributivität über Vereinigung: beide Seiten"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Relational product"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ds-08-l3",
+      "index": 3,
+      "kind": "deepen",
+      "title": "Explore Further",
+      "questions": [
+        {
+          "id": "ds-08-l3-q01",
+          "type": "multi",
+          "prompt": "Which statements correctly distinguish antisymmetry from asymmetry? Select all that apply; more than one may be correct.",
+          "options": [
+            {
+              "id": "a",
+              "text": "Under asymmetry, there cannot be arrows in both directions between distinct nodes."
+            },
+            {
+              "id": "b",
+              "text": "An antisymmetric relation may contain self-loops."
+            },
+            {
+              "id": "c",
+              "text": "Every antisymmetric relation is asymmetric."
+            },
+            {
+              "id": "d",
+              "text": "An asymmetric relation is irreflexive."
+            }
+          ],
+          "correct": [
+            "a",
+            "b",
+            "d"
+          ],
+          "explanation": "Asymmetry forbids both self-loops and reverse arrows, and therefore implies antisymmetry. Antisymmetry alone forbids only arrows in both directions between distinct nodes; self-loops are still allowed.",
+          "source": {
+            "file": "DS/01_Vorlesungen/Diskrete Strukturen VO8.md",
+            "heading": "Antisymmetrisch"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Symmetry and antisymmetry",
+            "Transitivity and asymmetry"
+          ]
+        },
+        {
+          "id": "ds-08-l3-q02",
+          "type": "single",
+          "prompt": "Suppose $R=\\{(0,1),(0,2)\\}$, $S_1=\\{(1,3)\\}$, and $S_2=\\{(2,3)\\}$. Which statement is correct?",
+          "options": [
+            {
+              "id": "a",
+              "text": "$R(S_1∩S_2)=∅$, but $RS_1∩RS_2=\\{(0,3)\\}$."
+            },
+            {
+              "id": "b",
+              "text": "$R(S_1∩S_2)=RS_1∩RS_2=∅$."
+            },
+            {
+              "id": "c",
+              "text": "$R(S_1∩S_2)=\\{(0,3)\\}$ and $RS_1∩RS_2=\\{(0,3)\\}$."
+            },
+            {
+              "id": "d",
+              "text": "$R(S_1∩S_2)=\\{(0,3)\\}$, but $RS_1∩RS_2=∅$."
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "S₁ and S₂ have no pair in common, so their intersection is empty and R(S₁∩S₂) is also empty. However, both individual products contain $(0,3)$, even though they use different intermediate values.",
+          "source": {
+            "file": "DS/01_Vorlesungen/Diskrete Strukturen VO8.md",
+            "heading": "Keine allgemeine Distributivität über Schnitt"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Relational product"
+          ]
+        },
+        {
+          "id": "ds-08-l3-q03",
+          "type": "calc",
+          "prompt": "On $\\{0,1,2\\}$, let $R=\\{(0,1)\\}$ and $S=\\{(1,2)\\}$. What follows for the two product orders?",
+          "options": [
+            {
+              "id": "a",
+              "text": "$RS=∅$ and $SR=\\{(0,2)\\}$"
+            },
+            {
+              "id": "b",
+              "text": "$RS=\\{(0,2)\\}$ and $SR=∅$"
+            },
+            {
+              "id": "c",
+              "text": "$RS=SR=∅$"
+            },
+            {
+              "id": "d",
+              "text": "$RS=SR=\\{(0,2)\\}$"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "For RS, the R-step goes from 0 to 1, and the S-step goes from 1 to 2. For SR, there is no suitable S-step that can be followed by an R-step.",
+          "source": {
+            "file": "DS/01_Vorlesungen/Diskrete Strukturen VO8.md",
+            "heading": "Warum nicht kommutativ?"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Relational product"
+          ]
+        },
+        {
+          "id": "ds-08-l3-q04",
+          "type": "truefalse",
+          "prompt": "If $R_1⊆R_2$ and $S_1⊆S_2$, then $R_1S_1⊆R_2S_2$.",
+          "options": [
+            {
+              "id": "true",
+              "text": "True"
+            },
+            {
+              "id": "false",
+              "text": "False"
+            }
+          ],
+          "correct": [
+            "true"
+          ],
+          "explanation": "Every two-step path with an R₁-step and an S₁-step remains possible when both relations are extended with additional pairs. Only additional paths can arise.",
+          "source": {
+            "file": "DS/01_Vorlesungen/Diskrete Strukturen VO8.md",
+            "heading": "Monotonie"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Relational product"
+          ]
+        },
+        {
+          "id": "ds-08-l3-q05-r1",
+          "type": "cloze",
+          "prompt": "Let $R\\subseteq A\\times A$ be an endorelation and $k\\in\\mathbb{N}_0$. We have $R^0=\\operatorname{Id}_A$, and $R^n$ describes exactly $n$ consecutive steps using $R$. Define $R^{\\le k}:=\\bigcup_{i=0}^{k}R^i$. In one step using $\\operatorname{Id}_A\\cup R$, you can either take an edge from $R$ or stay at the same node. Which power completes the equation? $R^{\\le k}=(\\operatorname{Id}_A\\cup R)^{___}$.",
+          "options": [
+            {
+              "id": "a",
+              "text": "$0$"
+            },
+            {
+              "id": "b",
+              "text": "$k-1$"
+            },
+            {
+              "id": "c",
+              "text": "$k+1$"
+            },
+            {
+              "id": "d",
+              "text": "$k$"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "A path of at most $k$ steps using $R$ can be extended, using steps from $\\operatorname{Id}_A$, to exactly $k$ steps using $\\operatorname{Id}_A\\cup R$. Conversely, such a path contains at most $k$ genuine $R$-steps. Therefore, the exponent is $k$.",
+          "source": {
+            "file": "DS/01_Vorlesungen/Diskrete Strukturen VO8.md",
+            "heading": "„Auf der Stelle treten“"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Powers of a relation",
+            "Reachability in at most k steps",
+            "Identity relation"
+          ]
+        },
+        {
+          "id": "ds-08-l3-q06",
+          "type": "multi",
+          "prompt": "Which statements about the powers $R^k$, $R^{≤k}$, and $R^{<k}$ are true? Select all that apply; more than one may be correct.",
+          "options": [
+            {
+              "id": "a",
+              "text": "$R^k$ denotes exactly k steps."
+            },
+            {
+              "id": "b",
+              "text": "$R^{≤k}$ allows lengths from 0 to k."
+            },
+            {
+              "id": "c",
+              "text": "$R^{<k}$ also allows paths of length k."
+            },
+            {
+              "id": "d",
+              "text": "$R^{<0}=∅$."
+            },
+            {
+              "id": "e",
+              "text": "$R^{≤0}=\\operatorname{Id}_A$."
+            }
+          ],
+          "correct": [
+            "a",
+            "b",
+            "d",
+            "e"
+          ],
+          "explanation": "The notation distinguishes exactly k steps, at most k steps, and fewer than k steps. For k=0, at most zero steps includes only R⁰=Idₐ; fewer than zero steps allows no path lengths.",
+          "source": {
+            "file": "DS/01_Vorlesungen/Diskrete Strukturen VO8.md",
+            "heading": "Höchstens bzw. weniger als k Schritte"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Power of a relation",
+            "Reachability"
+          ]
+        },
+        {
+          "id": "ds-08-l3-q07",
+          "type": "single",
+          "prompt": "Which condition is equivalent to an endorelation $R$ being transitive?",
+          "options": [
+            {
+              "id": "a",
+              "text": "$R∩R^\\top=∅$"
+            },
+            {
+              "id": "b",
+              "text": "$R^\\top=R$"
+            },
+            {
+              "id": "c",
+              "text": "$RR⊆R$"
+            },
+            {
+              "id": "d",
+              "text": "$RR=∅$"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Transitivity requires a direct edge from the start to the target of every two-step path in R. This is exactly what RR⊆R expresses.",
+          "source": {
+            "file": "DS/01_Vorlesungen/Diskrete Strukturen VO8.md",
+            "heading": "Transitiv"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Transitivity and asymmetry"
+          ]
+        },
+        {
+          "id": "ds-08-l3-q08",
+          "type": "calc",
+          "prompt": "On $A=\\{a,b,c\\}$, let $R=\\{(a,b),(b,c),(c,c)\\}$. Which pairs does $R^2$ contain?",
+          "options": [
+            {
+              "id": "a",
+              "text": "$\\{(a,c),(b,c),(c,c)\\}$"
+            },
+            {
+              "id": "b",
+              "text": "$\\{(a,c)\\}$"
+            },
+            {
+              "id": "c",
+              "text": "$\\{(a,b),(b,c),(c,c)\\}$"
+            },
+            {
+              "id": "d",
+              "text": "$\\{(a,a),(b,b),(c,c)\\}$"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "The two-step paths are a→b→c, b→c→c, and c→c→c. R² stores their endpoints and includes each pair only once.",
+          "source": {
+            "file": "DS/01_Vorlesungen/Diskrete Strukturen VO8.md",
+            "heading": "5. Produkte mit Matrizen berechnen"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Power of a relation",
+            "Paths and path length"
+          ]
+        },
+        {
+          "id": "ds-08-l3-q09",
+          "type": "diagram",
+          "prompt": "In the diagram, the path $1→2→3→2→4$ goes from 1 to 4. If the repeated segment between the two occurrences of 2 is removed, which valid shorter path results?",
+          "context": {
+            "type": "mermaid",
+            "content": "flowchart LR\n    N1[\"1\"] --> N2[\"2\"]\n    N2 --> N3[\"3\"]\n    N3 --> N2\n    N2 --> N4[\"4\"]",
+            "caption": "A path with a repeated node"
+          },
+          "options": [
+            {
+              "id": "a",
+              "text": "$1→4$, length 1"
+            },
+            {
+              "id": "b",
+              "text": "$1→3→4$, length 2"
+            },
+            {
+              "id": "c",
+              "text": "$1→2→3→4$, length 3"
+            },
+            {
+              "id": "d",
+              "text": "$1→2→4$, length 2"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Node 2 occurs twice. Since both occurrences denote the same node, the cycle 2→3→2 can be removed; the edge 2→4 can still be followed.",
+          "source": {
+            "file": "DS/01_Vorlesungen/Diskrete Strukturen VO8.md",
+            "heading": "9. Erreichbarkeit auf einer endlichen Menge"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Paths and path length",
+            "Reachability"
+          ]
+        },
+        {
+          "id": "ds-08-l3-q10",
+          "type": "truefalse",
+          "prompt": "In Boolean matrix multiplication, a result entry is set to 2 if there are two matching intermediate values.",
+          "options": [
+            {
+              "id": "true",
+              "text": "True"
+            },
+            {
+              "id": "false",
+              "text": "False"
+            }
+          ],
+          "correct": [
+            "false"
+          ],
+          "explanation": "The entries remain 0 or 1. The maximum of the AND-products only indicates whether at least one matching intermediate value exists; it does not count them.",
+          "source": {
+            "file": "DS/01_Vorlesungen/Diskrete Strukturen VO8.md",
+            "heading": "5. Produkte mit Matrizen berechnen"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Boolean matrix multiplication"
+          ]
+        },
+        {
+          "id": "ds-08-l3-q11",
+          "type": "multi",
+          "prompt": "Which statements about the relational product are generally true? Select all that apply; more than one may be correct.",
+          "options": [
+            {
+              "id": "a",
+              "text": "It is associative, provided the relations can be composed compatibly."
+            },
+            {
+              "id": "b",
+              "text": "An empty relation as a factor makes the product empty."
+            },
+            {
+              "id": "c",
+              "text": "It is always commutative."
+            },
+            {
+              "id": "d",
+              "text": "It distributes over union on both sides."
+            }
+          ],
+          "correct": [
+            "a",
+            "b",
+            "d"
+          ],
+          "explanation": "Regrouping does not change the order of the steps, but swapping the factors is generally not allowed. The empty relation is an annihilator; union distributes on both sides.",
+          "source": {
+            "file": "DS/01_Vorlesungen/Diskrete Strukturen VO8.md",
+            "heading": "6. Rechenregeln für das relationale Produkt"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Relational product"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ds-08-l4",
+      "index": 4,
+      "kind": "boss",
+      "title": "Boss",
+      "questions": [
+        {
+          "id": "ds-08-l4-q01",
+          "type": "calc",
+          "prompt": "Let $R=\\{(a,x),(b,y)\\}$ and $S=\\{(x,c),(y,c)\\}$. A join on the second component of R equaling the first component of S yields $(a,x,x,c)$ and $(b,y,y,c)$. What does projection onto positions 1 and 4 produce?",
+          "options": [
+            {
+              "id": "a",
+              "text": "$\\{(a,x),(b,y)\\}$"
+            },
+            {
+              "id": "b",
+              "text": "$\\{(a,x,x,c),(b,y,y,c)\\}$"
+            },
+            {
+              "id": "c",
+              "text": "$\\{(a,c),(b,c)\\}$"
+            },
+            {
+              "id": "d",
+              "text": "$\\{(x,c),(y,c)\\}$"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "The join places the two steps side by side, including their intermediate values. Projection onto positions 1 and 4 removes the intermediate values and leaves the source-target pairs.",
+          "source": {
+            "file": "DS/01_Vorlesungen/Diskrete Strukturen VO8.md",
+            "heading": "Formale Definition (Folie 89 (113))"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Relational composition with join and projection",
+            "Relational product"
+          ]
+        },
+        {
+          "id": "ds-08-l4-q02",
+          "type": "calc",
+          "prompt": "In a directed graph, the edges $1→2$, $2→3$, and $3→1$ are present. The sequence $(1,2,3,1,2)$ follows the arrow directions. What is the length of this path?",
+          "options": [
+            {
+              "id": "a",
+              "text": "3"
+            },
+            {
+              "id": "b",
+              "text": "4"
+            },
+            {
+              "id": "c",
+              "text": "5"
+            },
+            {
+              "id": "d",
+              "text": "6"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "The sequence has five node entries and therefore four edges. Under the course definition of paths, nodes may be repeated.",
+          "source": {
+            "file": "DS/01_Vorlesungen/Diskrete Strukturen VO8.md",
+            "heading": "8. Erreichbarkeit und Pfade"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Paths and path length"
+          ]
+        },
+        {
+          "id": "ds-08-l4-q03",
+          "type": "multi",
+          "prompt": "Suppose $R=\\{(s,x),(s,y)\\}$ and $S=\\{(x,t),(y,t)\\}$. Which statements about the product are true? Select all that apply; more than one may be correct.",
+          "options": [
+            {
+              "id": "a",
+              "text": "There are two two-step paths from s to t."
+            },
+            {
+              "id": "b",
+              "text": "The product contains two separate copies of $(s,t)$."
+            },
+            {
+              "id": "c",
+              "text": "The product stores both complete paths, including their intermediate nodes."
+            },
+            {
+              "id": "d",
+              "text": "As a relation, $RS=\\{(s,t)\\}$."
+            }
+          ],
+          "correct": [
+            "a",
+            "d"
+          ],
+          "explanation": "There are paths through x and through y. Relations are sets of pairs, so both paths produce the same single source-target pair, not two copies or complete paths.",
+          "source": {
+            "file": "DS/01_Vorlesungen/Diskrete Strukturen VO8.md",
+            "heading": "5. Produkte mit Matrizen berechnen"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Relational product",
+            "Paths and path length",
+            "Relational composition with join and projection"
+          ]
+        },
+        {
+          "id": "ds-08-l4-q04",
+          "type": "calc",
+          "prompt": "On $A=\\{0,1,2\\}$, let $R=\\{(0,1),(1,2)\\}$. How many pairs does $R^{≤2}$ contain?",
+          "options": [
+            {
+              "id": "a",
+              "text": "7"
+            },
+            {
+              "id": "b",
+              "text": "8"
+            },
+            {
+              "id": "c",
+              "text": "5"
+            },
+            {
+              "id": "d",
+              "text": "6"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "R⁰ contains three self-loops, R¹ contains the two given pairs, and R² contains the pair $(0,2)$. These six pairs are distinct.",
+          "source": {
+            "file": "DS/01_Vorlesungen/Diskrete Strukturen VO8.md",
+            "heading": "Höchstens bzw. weniger als k Schritte"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Power of a relation",
+            "Reachability"
+          ]
+        },
+        {
+          "id": "ds-08-l4-q05",
+          "type": "multi",
+          "prompt": "On $A=\\{1,2\\}$, let $R=\\{(1,1),(2,2),(1,2)\\}$. Which properties does R have? Select all that apply; more than one may be correct.",
+          "options": [
+            {
+              "id": "a",
+              "text": "reflexive"
+            },
+            {
+              "id": "b",
+              "text": "symmetric"
+            },
+            {
+              "id": "c",
+              "text": "antisymmetric"
+            },
+            {
+              "id": "d",
+              "text": "asymmetric"
+            },
+            {
+              "id": "e",
+              "text": "transitive"
+            }
+          ],
+          "correct": [
+            "a",
+            "c",
+            "e"
+          ],
+          "explanation": "The two self-loops make R reflexive. The reverse arrow $(2,1)$ is missing, so R is not symmetric but is antisymmetric. Every two-step sequence yields pairs already in R; because of the self-loops, R is not asymmetric.",
+          "source": {
+            "file": "DS/01_Vorlesungen/Diskrete Strukturen VO8.md",
+            "heading": "10. Eigenschaften von Endorelationen"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Reflexivity and irreflexivity",
+            "Symmetry and antisymmetry",
+            "Transitivity and asymmetry"
+          ]
+        },
+        {
+          "id": "ds-08-l4-q06",
+          "type": "diagram",
+          "prompt": "Which connection belongs to $RS$ (R first, then S), but not to $SR$?",
+          "context": {
+            "type": "mermaid",
+            "content": "flowchart LR\n    A[\"a\"] -->|R| B[\"b\"]\n    B -->|S| C[\"c\"]\n    A -->|S| C\n    C -->|R| A",
+            "caption": "Same nodes, different orders of relation steps"
+          },
+          "options": [
+            {
+              "id": "a",
+              "text": "$(a,a)$"
+            },
+            {
+              "id": "b",
+              "text": "$(c,a)$"
+            },
+            {
+              "id": "c",
+              "text": "$(a,c)$"
+            },
+            {
+              "id": "d",
+              "text": "$(b,b)$"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "For RS, the path goes from a to b via R and then from b to c via S, producing $(a,c)$. For SR, the path goes from a to c via S and then from there to a via R, producing $(a,a)$ instead.",
+          "source": {
+            "file": "DS/01_Vorlesungen/Diskrete Strukturen VO8.md",
+            "heading": "Warum nicht kommutativ?"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Relational product"
+          ]
+        },
+        {
+          "id": "ds-08-l4-q07",
+          "type": "calc",
+          "prompt": "On $A=\\{a,b,c\\}$, let $R=\\{(a,b),(b,c)\\}$. Which single additional pair makes R transitive without adding any other pairs?",
+          "options": [
+            {
+              "id": "a",
+              "text": "$(a,c)$"
+            },
+            {
+              "id": "b",
+              "text": "$(c,b)$"
+            },
+            {
+              "id": "c",
+              "text": "$(b,a)$"
+            },
+            {
+              "id": "d",
+              "text": "$(a,a)$"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "Given $(a,b)$ and $(b,c)$, transitivity requires $(a,c)$ to be included. Adding this pair accounts for the only two-step composition.",
+          "source": {
+            "file": "DS/01_Vorlesungen/Diskrete Strukturen VO8.md",
+            "heading": "Transitiv"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Transitivity and asymmetry"
+          ]
+        },
+        {
+          "id": "ds-08-l4-q08",
+          "type": "truefalse",
+          "prompt": "For a finite, nonempty node set with $n$ nodes, $R^{<n}=R^{<k}$ holds for every $k≥n$.",
+          "options": [
+            {
+              "id": "true",
+              "text": "True"
+            },
+            {
+              "id": "false",
+              "text": "False"
+            }
+          ],
+          "correct": [
+            "true"
+          ],
+          "explanation": "A reachable source-target connection has a shortest path with no repeated nodes. Its length is therefore less than n; allowing additional lengths from n onward adds no new pairs.",
+          "source": {
+            "file": "DS/01_Vorlesungen/Diskrete Strukturen VO8.md",
+            "heading": "9. Erreichbarkeit auf einer endlichen Menge"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Reachability",
+            "Paths and path length"
+          ]
+        },
+        {
+          "id": "ds-08-l4-q09-r1",
+          "type": "single",
+          "prompt": "An endorelation $R\\subseteq A\\times A$ is represented as a 0/1 matrix: rows are source elements and columns are target elements. The table shows its matrix for the enumeration $(1,2,3)$ used for rows and columns. The relation stays the same, but the enumeration changes to $(3,1,2)$. Which matrix now represents $R$? In the options, slashes separate the rows.",
+          "context": {
+            "type": "table",
+            "content": "| Source \\\\ Target | 1 | 2 | 3 |\n|---|---:|---:|---:|\n| 1 | 1 | 1 | 0 |\n| 2 | 0 | 0 | 1 |\n| 3 | 1 | 0 | 0 |",
+            "caption": "Matrix of R for the enumeration (1, 2, 3) used for rows and columns."
+          },
+          "options": [
+            {
+              "id": "a",
+              "text": "New matrix: 0 1 1 / 1 0 0 / 0 1 0"
+            },
+            {
+              "id": "b",
+              "text": "New matrix: 1 0 0 / 1 1 0 / 0 0 1"
+            },
+            {
+              "id": "c",
+              "text": "New matrix: 1 1 0 / 0 0 1 / 1 0 0"
+            },
+            {
+              "id": "d",
+              "text": "New matrix: 0 1 0 / 0 1 1 / 1 0 0"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Because the same enumeration is used for rows and columns, both must be reordered. In the new order $(3,1,2)$, take the old third, then the old first, and finally the old second row and column. This gives the matrix in option c.",
+          "source": {
+            "file": "DS/01_Vorlesungen/Diskrete Strukturen VO8.md",
+            "heading": "Die Aufzählungen bestimmen die Zeilen- und Spaltenreihenfolge"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Relation matrix",
+            "Endorelation",
+            "Row and column order"
+          ]
+        },
+        {
+          "id": "ds-08-l4-q10",
+          "type": "multi",
+          "prompt": "Which rules apply to compatible relational products? Select all that apply; more than one may be correct.",
+          "options": [
+            {
+              "id": "a",
+              "text": "The product is generally commutative."
+            },
+            {
+              "id": "b",
+              "text": "The product always distributes over intersection."
+            },
+            {
+              "id": "c",
+              "text": "Identity relations are neutral elements."
+            },
+            {
+              "id": "d",
+              "text": "The product is associative."
+            },
+            {
+              "id": "e",
+              "text": "The product distributes over union on both sides."
+            }
+          ],
+          "correct": [
+            "c",
+            "d",
+            "e"
+          ],
+          "explanation": "Associativity, neutral identity relations, and both distributive laws over union hold. In general, the product is neither commutative nor distributive over intersection.",
+          "source": {
+            "file": "DS/01_Vorlesungen/Diskrete Strukturen VO8.md",
+            "heading": "6. Rechenregeln für das relationale Produkt"
+          },
+          "difficulty": 5,
+          "concepts": [
+            "Relational product"
+          ]
+        },
+        {
+          "id": "ds-08-l4-q11",
+          "type": "single",
+          "prompt": "Let $A$ be nonempty and $R=∅$ the empty relation on A. Which property does R **not** have?",
+          "options": [
+            {
+              "id": "a",
+              "text": "symmetric"
+            },
+            {
+              "id": "b",
+              "text": "irreflexive"
+            },
+            {
+              "id": "c",
+              "text": "transitive"
+            },
+            {
+              "id": "d",
+              "text": "reflexive"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Reflexivity requires a self-loop for every element, and the empty relation has none. The conditions for irreflexivity, symmetry, and transitivity hold because there are no included pairs or two-step paths.",
+          "source": {
+            "file": "DS/01_Vorlesungen/Diskrete Strukturen VO8.md",
+            "heading": "Beispielübersicht (Folie 97 (128))"
+          },
+          "difficulty": 5,
+          "concepts": [
+            "Reflexivity and irreflexivity",
+            "Symmetry and antisymmetry",
+            "Transitivity and asymmetry"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ds-08-l5",
+      "index": 5,
+      "kind": "bonus",
+      "title": "Practice: Connections Everywhere",
+      "questions": [
+        {
+          "id": "ds-08-l5-q01",
+          "type": "single",
+          "prompt": "In a route-planning app, you are not checking for the fastest connection, only whether you can get from one stop to another with any number of transfers. Which concept answers this question?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Reflexivity"
+            },
+            {
+              "id": "b",
+              "text": "Converse relation"
+            },
+            {
+              "id": "c",
+              "text": "Symmetry"
+            },
+            {
+              "id": "d",
+              "text": "Reachability"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Reachability asks whether there is a path from the start to the target. The number of transfers is not fixed.",
+          "source": {
+            "file": "DS/01_Vorlesungen/Diskrete Strukturen VO8.md",
+            "heading": "8. Erreichbarkeit und Pfade"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Reachability",
+            "Paths and path length"
+          ]
+        },
+        {
+          "id": "ds-08-l5-q02",
+          "type": "single",
+          "prompt": "A database links orders to customers by matching `Bestellung.kunden_id` with `Kunde.id`, then outputs the order number and customer name. Which concept does this illustrate?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Reflexivity"
+            },
+            {
+              "id": "b",
+              "text": "Cartesian product without matching"
+            },
+            {
+              "id": "c",
+              "text": "Converse relation"
+            },
+            {
+              "id": "d",
+              "text": "Relational composition via a shared intermediate value"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "The customer ID is the shared intermediate value: an order leads to a customer, after which the desired source and target information is output. This is relational composition with join and projection.",
+          "source": {
+            "file": "DS/01_Vorlesungen/Diskrete Strukturen VO8.md",
+            "heading": "3. Relationales Produkt: zwei Schritte zusammensetzen"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Relational product",
+            "Relational composition with join and projection"
+          ]
+        },
+        {
+          "id": "ds-08-l5-q03",
+          "type": "estimate",
+          "prompt": "You store a relation matrix from 9 origin stations to 6 destination stations. Each 0/1 cell requires exactly one bit; row and column labels are not counted. How many bits does the matrix require?",
+          "options": [],
+          "correct": [],
+          "slider": {
+            "min": 0,
+            "max": 160,
+            "step": 1,
+            "answer": 54,
+            "tolerance": 0,
+            "unit": "Bit",
+            "scale": "linear"
+          },
+          "explanation": "The matrix has 9 rows and 6 columns, so it has 9·6 = 54 entries. At one bit per entry, that is 54 bits.",
+          "source": {
+            "file": "DS/01_Vorlesungen/Diskrete Strukturen VO8.md",
+            "heading": "2. Endliche Relationen als 0/1-Matrizen"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Relation matrix",
+            "Binary relation"
+          ]
+        },
+        {
+          "id": "ds-08-l5-q04",
+          "type": "single",
+          "prompt": "An app records which users have installed which apps. Users and apps are different sets. What is true of the relation matrix?",
+          "options": [
+            {
+              "id": "a",
+              "text": "It is always square."
+            },
+            {
+              "id": "b",
+              "text": "It is valid only if each person has installed exactly one app."
+            },
+            {
+              "id": "c",
+              "text": "It can be rectangular: users form the rows, and apps form the columns."
+            },
+            {
+              "id": "d",
+              "text": "Its entries count the possible installation paths."
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Rows represent source elements and columns represent target elements. If the sets have different sizes, the matrix is rectangular.",
+          "source": {
+            "file": "DS/01_Vorlesungen/Diskrete Strukturen VO8.md",
+            "heading": "2. Endliche Relationen als 0/1-Matrizen"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Binary relation",
+            "Relation matrix"
+          ]
+        },
+        {
+          "id": "ds-08-l5-q05",
+          "type": "truefalse",
+          "prompt": "A contacts app includes a pair only if both people have saved each other. Is this relation symmetric?",
+          "options": [
+            {
+              "id": "true",
+              "text": "True"
+            },
+            {
+              "id": "false",
+              "text": "False"
+            }
+          ],
+          "correct": [
+            "true"
+          ],
+          "explanation": "If A and B have saved each other, the condition also holds in the reverse direction: B and A satisfy the same condition. That is exactly what symmetry means.",
+          "source": {
+            "file": "DS/01_Vorlesungen/Diskrete Strukturen VO8.md",
+            "heading": "Symmetrisch"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Symmetry",
+            "Endorelation"
+          ]
+        },
+        {
+          "id": "ds-08-l5-q06",
+          "type": "estimate",
+          "prompt": "A network has 12 routers. Self-connections do not count, and each connection has a direction. What is the maximum number of distinct direct connections?",
+          "options": [],
+          "correct": [],
+          "slider": {
+            "min": 0,
+            "max": 300,
+            "step": 1,
+            "answer": 132,
+            "tolerance": 0,
+            "unit": "connections",
+            "scale": "linear"
+          },
+          "explanation": "Each of the 12 routers can point to 11 other routers. Thus, there are 12·11 = 132 possible directed connections.",
+          "source": {
+            "file": "DS/01_Vorlesungen/Diskrete Strukturen VO8.md",
+            "heading": "1. Binäre Relationen und ihre Darstellung"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Binary relation",
+            "Endorelation"
+          ]
+        },
+        {
+          "id": "ds-08-l5-q07",
+          "type": "single",
+          "prompt": "You model permitted game moves as a relation R between game states. Here, R^k means the k-fold composition of R with itself. Which expression describes states reachable after exactly three moves?",
+          "options": [
+            {
+              "id": "a",
+              "text": "R^3"
+            },
+            {
+              "id": "b",
+              "text": "R^{≤3}"
+            },
+            {
+              "id": "c",
+              "text": "R^{<3}"
+            },
+            {
+              "id": "d",
+              "text": "R^0"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "R^3 composes three game moves in sequence. R^{≤3} would also allow zero, one, or two moves.",
+          "source": {
+            "file": "DS/01_Vorlesungen/Diskrete Strukturen VO8.md",
+            "heading": "7. k-faches Produkt: exakt, höchstens oder weniger Schritte?"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Power of a relation",
+            "Paths and path length"
+          ]
+        },
+        {
+          "id": "ds-08-l5-q08",
+          "type": "estimate",
+          "prompt": "In a network with 8 stations, another station is reachable from the start. At most how many edges does a shortest path require?",
+          "options": [],
+          "correct": [],
+          "slider": {
+            "min": 1,
+            "max": 20,
+            "step": 1,
+            "answer": 7,
+            "tolerance": 0,
+            "unit": "edges",
+            "scale": "linear"
+          },
+          "explanation": "A shortest path does not repeat a node; otherwise, a detour could be removed. With 8 stations, it can therefore have at most 7 edges.",
+          "source": {
+            "file": "DS/01_Vorlesungen/Diskrete Strukturen VO8.md",
+            "heading": "9. Erreichbarkeit auf einer endlichen Menge"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Reachability",
+            "Paths and path length"
+          ]
+        },
+        {
+          "id": "ds-08-l5-q09",
+          "type": "single",
+          "prompt": "A network program multiplies 0/1 matrices using Boolean multiplication to check two-link connections. What does a 1 in the result cell for a source-target pair mean?",
+          "options": [
+            {
+              "id": "a",
+              "text": "The number of two-link paths is shown in the cell."
+            },
+            {
+              "id": "b",
+              "text": "There is exactly one two-link path."
+            },
+            {
+              "id": "c",
+              "text": "There is at least one suitable intermediate router; multiple paths are still recorded as 1."
+            },
+            {
+              "id": "d",
+              "text": "There is a direct link, but no intermediate router."
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "For an intermediate router, the two edges are combined with AND; possible intermediate routers are combined with OR. Boolean multiplication shows whether a path exists; it does not count paths.",
+          "source": {
+            "file": "DS/01_Vorlesungen/Diskrete Strukturen VO8.md",
+            "heading": "5. Produkte mit Matrizen berechnen"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Boolean matrix multiplication",
+            "Relational product"
+          ]
+        },
+        {
+          "id": "ds-08-l5-q10",
+          "type": "single",
+          "prompt": "A build tool should satisfy this rule: if project A requires project B and B requires project C, the relation must also include the connection from A to C. Which property describes this rule?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Transitivity"
+            },
+            {
+              "id": "b",
+              "text": "Reflexivity"
+            },
+            {
+              "id": "c",
+              "text": "Symmetry"
+            },
+            {
+              "id": "d",
+              "text": "Irreflexivity"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "Transitivity requires that two consecutive steps A→B and B→C imply the direct connection A→C.",
+          "source": {
+            "file": "DS/01_Vorlesungen/Diskrete Strukturen VO8.md",
+            "heading": "Transitiv"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Transitivity",
+            "Relational product"
+          ]
+        }
+      ]
+    }
+  ]
+}
