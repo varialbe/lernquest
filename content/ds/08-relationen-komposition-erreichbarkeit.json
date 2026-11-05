@@ -1,0 +1,1994 @@
+{
+  "schemaVersion": 1,
+  "id": "ds-08",
+  "module": "DS",
+  "number": 8,
+  "slug": "relationen-komposition-erreichbarkeit",
+  "title": "Relationen, Komposition und Erreichbarkeit",
+  "summary": "Die Unit behandelt binäre Relationen, ihre Matrizen und das Zusammensetzen gerichteter Schritte. Sie führt relationale Potenzen mit Pfaden zusammen, erklärt Erreichbarkeit auf endlichen Mengen und übt die Eigenschaften von Endorelationen.",
+  "concepts": [
+    "Binäre Relation",
+    "Endorelation",
+    "Relationsmatrix",
+    "Umkehrrelation",
+    "Relationales Produkt",
+    "Boolesche Matrixmultiplikation",
+    "Relationpotenz",
+    "Pfade und Pfadlänge",
+    "Erreichbarkeit",
+    "Reflexivität und Irreflexivität",
+    "Symmetrie und Antisymmetrie",
+    "Transitivität und Asymmetrie",
+    "Relationale Komposition mit Join und Projektion"
+  ],
+  "keyFacts": [
+    "Eine binäre Relation von A nach B ist eine Teilmenge von A×B; eine Endorelation hat die Form R⊆A×A.",
+    "In einer Relationsmatrix bezeichnet eine Zeile das Ausgangselement und eine Spalte das Zielelement; 1 steht für ein enthaltenes Paar.",
+    "Die Größe der Relationsmatrix hängt von den Anzahlen der Ausgangs- und Zielelemente ab und muss nicht quadratisch sein.",
+    "Die Umkehrrelation vertauscht die Einträge jedes Paares; bei passend vertauschten Aufzählungen wird ihre Matrix transponiert.",
+    "Die Aufzählungen der Mengen legen die Zeilen- und Spaltenreihenfolge fest.",
+    "Beim relationalen Produkt RS wird zuerst R und dann S ausgeführt; ein gemeinsamer Zwischenwert muss Ziel eines R-Schritts und Start eines S-Schritts sein.",
+    "Das relationale Produkt ist eine Menge von Start-Ziel-Paaren; das kartesische Produkt bildet dagegen Paare aus Paaren.",
+    "Boolesche Matrixmultiplikation verwendet UND für einen Zwischenwert und ODER über mögliche Zwischenwerte; sie zählt passende Wege nicht.",
+    "Das Produkt ist assoziativ, hat Identitätsrelationen als neutrale Elemente und verteilt sich beidseitig über Vereinigung.",
+    "Die leere Relation ist ein Annihilator des relationalen Produkts; das Produkt ist monoton bezüglich Inklusion.",
+    "Das Produkt verteilt sich im Allgemeinen nicht über Schnitt, weil die beiden Produkte unterschiedliche Zwischenwerte verwenden können.",
+    "R^k beschreibt Erreichbarkeit in genau k Schritten; R^{≤k} erlaubt 0 bis k und R^{<k} erlaubt 0 bis k−1 Schritte.",
+    "R^0 ist die Identitätsrelation; daher enthält R^{≤0} genau die Identität und R^{<0} ist leer.",
+    "Ein Pfad der Länge k hat k Kanten und k+1 Knoteneinträge; wiederholte Knoten sind erlaubt.",
+    "Ein Paar liegt genau dann in R^k, wenn es einen Pfad der Länge k zwischen seinen Knoten gibt.",
+    "Auf einer endlichen, nichtleeren Knotenmenge mit n Knoten stabilisiert die gesammelte Erreichbarkeit: R^{<n}=R^{<k} für k≥n.",
+    "Reflexivität verlangt alle Schleifen, Irreflexivität verbietet alle Schleifen; eine gemischte Diagonale erfüllt keine der beiden Eigenschaften.",
+    "Symmetrie verlangt den Rückpfeil zu jedem Pfeil; Antisymmetrie erlaubt Schleifen, aber keine gegenläufigen Pfeile zwischen verschiedenen Knoten.",
+    "Asymmetrie schließt Schleifen und Rückpfeile aus und ist gleichbedeutend mit Irreflexivität plus Antisymmetrie.",
+    "Transitivität verlangt, dass auf zwei aufeinanderfolgenden R-Schritten auch der direkte Pfeil liegt; formal gilt RR⊆R."
+  ],
+  "tags": [],
+  "links": [],
+  "source": {
+    "file": "DS/01_Vorlesungen/Diskrete Strukturen VO8.md",
+    "sha256": "6b1df999b94e697e78bece0ede89717b83d5829d61cfe838d959ee7a30982cc4",
+    "commit": "11fc2e408cfff33a1a8c3bd358d07de5beb8bf2a"
+  },
+  "generator": {
+    "model": "gpt-6-luna",
+    "effort": "xhigh",
+    "reviewEffort": "high",
+    "promptVersion": "v3",
+    "generatedAt": "2026-11-05T23:11:16.053Z",
+    "review": {
+      "checked": 44,
+      "fixed": 4,
+      "removed": 0,
+      "notes": "Korrigiert: boolesches Matrixprodukt (Antwort b statt a), |R^{<2}| (5 statt 6) und zwei Quellenangaben auf VO8 präzisiert. Übrige Antworten, Distraktoren, Rechenwege, Diagramme und Verify-Skripte geprüft."
+    }
+  },
+  "levels": [
+    {
+      "id": "ds-08-l1",
+      "index": 1,
+      "kind": "basics",
+      "title": "Grundlagen",
+      "questions": [
+        {
+          "id": "ds-08-l1-q01",
+          "type": "single",
+          "prompt": "Welche Bedingung definiert eine binäre Relation von $A$ nach $B$?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Eine Teilmenge von $A∪B$"
+            },
+            {
+              "id": "b",
+              "text": "Eine Teilmenge von $A×B$"
+            },
+            {
+              "id": "c",
+              "text": "Eine Funktion von $A$ nach $B$"
+            },
+            {
+              "id": "d",
+              "text": "Eine Teilmenge von $B×B$"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "Eine binäre Relation besteht aus geordneten Paaren mit erstem Eintrag aus A und zweitem Eintrag aus B. Sie muss keine Funktion sein.",
+          "source": {
+            "file": "DS/01_Vorlesungen/Diskrete Strukturen VO8.md",
+            "heading": "1. Binäre Relationen und ihre Darstellung"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Binäre Relation"
+          ]
+        },
+        {
+          "id": "ds-08-l1-q02",
+          "type": "truefalse",
+          "prompt": "Eine Endorelation auf $A$ ist eine Relation $R⊆A×A$.",
+          "options": [
+            {
+              "id": "true",
+              "text": "Wahr"
+            },
+            {
+              "id": "false",
+              "text": "Falsch"
+            }
+          ],
+          "correct": [
+            "true"
+          ],
+          "explanation": "Bei einer Endorelation stimmen Ausgangs- und Zielmenge überein; beide sind A.",
+          "source": {
+            "file": "DS/01_Vorlesungen/Diskrete Strukturen VO8.md",
+            "heading": "1. Binäre Relationen und ihre Darstellung"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Endorelation"
+          ]
+        },
+        {
+          "id": "ds-08-l1-q03",
+          "type": "cloze",
+          "prompt": "In der 0/1-Matrix einer Relation steht die Zeile für das ___ und die Spalte für das Zielelement.",
+          "options": [
+            {
+              "id": "a",
+              "text": "gesamte Relationsmenge"
+            },
+            {
+              "id": "b",
+              "text": "letzte Element der Aufzählung"
+            },
+            {
+              "id": "c",
+              "text": "Zwischenelement"
+            },
+            {
+              "id": "d",
+              "text": "Ausgangselement"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Der Eintrag in Zeile i und Spalte j codiert, ob das Paar aus dem i-ten Ausgangselement und dem j-ten Zielelement zur Relation gehört.",
+          "source": {
+            "file": "DS/01_Vorlesungen/Diskrete Strukturen VO8.md",
+            "heading": "2. Endliche Relationen als 0/1-Matrizen"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Relationsmatrix"
+          ]
+        },
+        {
+          "id": "ds-08-l1-q04",
+          "type": "calc",
+          "prompt": "Für die Aufzählungen $A=(p,q)$ und $B=(x,y)$ hat eine Relation die Matrix $\\begin{pmatrix}1&1\\\\1&0\\end{pmatrix}$. Welches Paar gehört **nicht** zur Relation?",
+          "options": [
+            {
+              "id": "a",
+              "text": "$(p,x)$"
+            },
+            {
+              "id": "b",
+              "text": "$(p,y)$"
+            },
+            {
+              "id": "c",
+              "text": "$(q,x)$"
+            },
+            {
+              "id": "d",
+              "text": "$(q,y)$"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Zeile q und Spalte y enthalten die 0. Die übrigen drei Einträge sind 1 und codieren enthaltene Paare.",
+          "source": {
+            "file": "DS/01_Vorlesungen/Diskrete Strukturen VO8.md",
+            "heading": "Kleines Ablesebeispiel"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Relationsmatrix"
+          ]
+        },
+        {
+          "id": "ds-08-l1-q05",
+          "type": "single",
+          "prompt": "Was geschieht mit einem Paar $(a,b)$, wenn die Umkehrrelation gebildet wird?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Es wird entfernt, falls $a≠b$"
+            },
+            {
+              "id": "b",
+              "text": "Es wird zu $(a,a)$"
+            },
+            {
+              "id": "c",
+              "text": "Es wird zu $(b,b)$"
+            },
+            {
+              "id": "d",
+              "text": "Es wird zu $(b,a)$"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Die Umkehrrelation vertauscht in jedem Paar die beiden Einträge. Bei Matrizen entspricht das einer Transposition, sofern die Aufzählungen passend vertauscht werden.",
+          "source": {
+            "file": "DS/01_Vorlesungen/Diskrete Strukturen VO8.md",
+            "heading": "Umgekehrte Relation = transponierte Matrix"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Umkehrrelation"
+          ]
+        },
+        {
+          "id": "ds-08-l1-q06",
+          "type": "multi",
+          "prompt": "Welche Aussagen über das relationale Produkt $RS$ stimmen? Wähle alle richtigen Aussagen; mehrere können richtig sein.",
+          "options": [
+            {
+              "id": "a",
+              "text": "Es genügt, dass die beiden Paare irgendeinen Eintrag gemeinsam haben."
+            },
+            {
+              "id": "b",
+              "text": "Ein einziger passender Zwischenwert genügt, damit ein Paar zum Produkt gehört."
+            },
+            {
+              "id": "c",
+              "text": "Ein gemeinsamer Zwischenwert ist Ziel eines R-Schritts und Start eines S-Schritts."
+            },
+            {
+              "id": "d",
+              "text": "Das Produkt enthält Start-Ziel-Paare."
+            }
+          ],
+          "correct": [
+            "b",
+            "c",
+            "d"
+          ],
+          "explanation": "Für RS muss derselbe Zwischenwert beide Schritte verbinden. Ein beliebig gemeinsamer Eintrag reicht nicht, und bereits ein möglicher Zwischenwert genügt.",
+          "source": {
+            "file": "DS/01_Vorlesungen/Diskrete Strukturen VO8.md",
+            "heading": "3. Relationales Produkt: zwei Schritte zusammensetzen"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Relationales Produkt"
+          ]
+        },
+        {
+          "id": "ds-08-l1-q07",
+          "type": "truefalse",
+          "prompt": "Das kartesische Produkt $R×S$ verlangt einen gemeinsamen Zwischenwert zwischen einem Paar aus R und einem Paar aus S.",
+          "options": [
+            {
+              "id": "true",
+              "text": "Wahr"
+            },
+            {
+              "id": "false",
+              "text": "Falsch"
+            }
+          ],
+          "correct": [
+            "false"
+          ],
+          "explanation": "Das kartesische Produkt kombiniert Paare zu Paaren aus Paaren, ohne einen gemeinsamen Zwischenwert zu verlangen. Diese Bedingung gehört zum relationalen Produkt.",
+          "source": {
+            "file": "DS/01_Vorlesungen/Diskrete Strukturen VO8.md",
+            "heading": "Kein kartesisches Produkt"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Relationales Produkt"
+          ]
+        },
+        {
+          "id": "ds-08-l1-q08",
+          "type": "cloze",
+          "prompt": "Für jede Endorelation $R$ auf $A$ gilt $R^0=___$.",
+          "options": [
+            {
+              "id": "a",
+              "text": "$A×A$"
+            },
+            {
+              "id": "b",
+              "text": "$R$"
+            },
+            {
+              "id": "c",
+              "text": "$\\operatorname{Id}_A$"
+            },
+            {
+              "id": "d",
+              "text": "$∅$"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Die nullte Potenz ist die Identitätsrelation. Sie lässt jeden Knoten unverändert und repräsentiert Wege der Länge null.",
+          "source": {
+            "file": "DS/01_Vorlesungen/Diskrete Strukturen VO8.md",
+            "heading": "7. k-faches Produkt: exakt, höchstens oder weniger Schritte?"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Relationpotenz"
+          ]
+        },
+        {
+          "id": "ds-08-l1-q09",
+          "type": "single",
+          "prompt": "Ein Pfad enthält 6 Knoteneinträge. Welche Länge hat er?",
+          "options": [
+            {
+              "id": "a",
+              "text": "7"
+            },
+            {
+              "id": "b",
+              "text": "6"
+            },
+            {
+              "id": "c",
+              "text": "12"
+            },
+            {
+              "id": "d",
+              "text": "5"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Die Pfadlänge zählt Kanten. Bei 6 Knoteneinträgen liegen 5 aufeinanderfolgende Schritte dazwischen.",
+          "source": {
+            "file": "DS/01_Vorlesungen/Diskrete Strukturen VO8.md",
+            "heading": "8. Erreichbarkeit und Pfade"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Pfade und Pfadlänge"
+          ]
+        },
+        {
+          "id": "ds-08-l1-q10-r1",
+          "type": "multi",
+          "prompt": "Sei $R\\subseteq A\\times A$ eine Endorelation. Ihre Matrix verwendet dieselbe Aufzählung von $A$ für Zeilen und Spalten; der Eintrag in Zeile $x$ und Spalte $y$ ist genau dann $1$, wenn $(x,y)\\in R$. Reflexiv bedeutet: Für jedes $x\\in A$ gilt $(x,x)\\in R$. Irreflexiv bedeutet: Für jedes $x\\in A$ gilt $(x,x)\\notin R$. Welche Aussagen stimmen? Wähle alle richtigen Aussagen.",
+          "options": [
+            {
+              "id": "a",
+              "text": "$R$ ist reflexiv genau dann, wenn jeder Eintrag auf der Hauptdiagonale $1$ ist. Einträge außerhalb der Diagonale können beliebig sein."
+            },
+            {
+              "id": "b",
+              "text": "Wenn die Hauptdiagonale sowohl Nullen als auch Einsen enthält, ist $R$ zugleich reflexiv und irreflexiv."
+            },
+            {
+              "id": "c",
+              "text": "Ein Eintrag $1$ an der Diagonalstelle $(x,x)$ bedeutet, dass $R$ die Schleife $(x,x)$ enthält."
+            },
+            {
+              "id": "d",
+              "text": "$R$ ist irreflexiv genau dann, wenn jeder Eintrag auf der Hauptdiagonale $0$ ist. Einträge außerhalb der Diagonale können beliebig sein."
+            }
+          ],
+          "correct": [
+            "a",
+            "c",
+            "d"
+          ],
+          "explanation": "Reflexivität verlangt eine Schleife an jedem Knoten, also lauter Einsen auf der Hauptdiagonale. Irreflexivität verbietet jede Schleife, also stehen dort nur Nullen. Eine gemischte Diagonale erfüllt keine der beiden Bedingungen. Bei einer Endorelation zeigt ein Diagonaleintrag $1$ genau eine Schleife an.",
+          "source": {
+            "file": "DS/01_Vorlesungen/Diskrete Strukturen VO8.md",
+            "heading": "Reflexiv oder irreflexiv?"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Endorelation",
+            "Reflexivität",
+            "Irreflexivität",
+            "Hauptdiagonale"
+          ]
+        },
+        {
+          "id": "ds-08-l1-q11",
+          "type": "diagram",
+          "prompt": "Welche Aussage folgt aus dem gezeigten Weg, wenn beim relationalen Produkt zuerst R und dann S ausgeführt wird?",
+          "context": {
+            "type": "mermaid",
+            "content": "flowchart LR\n    A[\"a Start\"] -->|R| X[\"x Zwischenwert\"]\n    X -->|S| D[\"d Ziel\"]",
+            "caption": "Zwei gerichtete Schritte mit gemeinsamem Zwischenwert"
+          },
+          "options": [
+            {
+              "id": "a",
+              "text": "$(a,d)∈SR$ muss gelten"
+            },
+            {
+              "id": "b",
+              "text": "$(a,d)$ kann nicht im Produkt liegen"
+            },
+            {
+              "id": "c",
+              "text": "$(a,d)∈RS$"
+            },
+            {
+              "id": "d",
+              "text": "$(d,a)∈RS$"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Der Pfeil von a nach x ist ein R-Schritt und der Pfeil von x nach d ein S-Schritt. Damit ist x ein gemeinsamer Zwischenwert für $(a,d)∈RS$.",
+          "source": {
+            "file": "DS/01_Vorlesungen/Diskrete Strukturen VO8.md",
+            "heading": "3. Relationales Produkt: zwei Schritte zusammensetzen"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Relationales Produkt"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ds-08-l2",
+      "index": 2,
+      "kind": "apply",
+      "title": "Anwenden",
+      "questions": [
+        {
+          "id": "ds-08-l2-q01",
+          "type": "calc",
+          "prompt": "Es gelten $R=\\{(u,x),(u,y),(v,y),(w,z)\\}$ und $S=\\{(x,p),(y,p),(y,q)\\}$. Welche Paare enthält $RS$?",
+          "options": [
+            {
+              "id": "a",
+              "text": "$(u,p),(u,q),(v,p),(v,q),(w,z)$"
+            },
+            {
+              "id": "b",
+              "text": "$(u,p),(v,p),(w,z)$"
+            },
+            {
+              "id": "c",
+              "text": "$(u,p),(u,q),(v,p),(v,q)$"
+            },
+            {
+              "id": "d",
+              "text": "$(u,x),(u,y),(v,y)$"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Von u führen die R-Zwischenwerte x und y nach p beziehungsweise q. Von v führt y nach p und q. Von w führt z kein S-Schritt weiter.",
+          "source": {
+            "file": "DS/01_Vorlesungen/Diskrete Strukturen VO8.md",
+            "heading": "Formale Definition (Folie 89 (113))"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Relationales Produkt"
+          ]
+        },
+        {
+          "id": "ds-08-l2-q02",
+          "type": "calc",
+          "prompt": "Für $R$ und $S$ seien die Matrizen mit Zeilen und Spalten in der Reihenfolge $(u,v)$ beziehungsweise $(x,y)$ und $(p,q)$ gegeben: $M_R=\\begin{pmatrix}1&1\\\\0&1\\end{pmatrix}$ und $M_S=\\begin{pmatrix}0&1\\\\1&0\\end{pmatrix}$. Welche Matrix ergibt die boolesche Multiplikation $M_RM_S$?",
+          "options": [
+            {
+              "id": "a",
+              "text": "$\\begin{pmatrix}1&1\\\\1&0\\end{pmatrix}$"
+            },
+            {
+              "id": "b",
+              "text": "$\\begin{pmatrix}1&0\\\\1&0\\end{pmatrix}$"
+            },
+            {
+              "id": "c",
+              "text": "$\\begin{pmatrix}1&0\\\\0&1\\end{pmatrix}$"
+            },
+            {
+              "id": "d",
+              "text": "$\\begin{pmatrix}0&1\\\\0&1\\end{pmatrix}$"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "Für jeden Ergebniseintrag wird über Zwischenwerte ein UND gebildet und anschließend ein ODER genommen. Die erste Zeile ergibt $(1,1)$, die zweite $(1,0)$; es werden keine gewöhnlichen Summen verwendet.",
+          "source": {
+            "file": "DS/01_Vorlesungen/Diskrete Strukturen VO8.md",
+            "heading": "5. Produkte mit Matrizen berechnen"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Boolesche Matrixmultiplikation"
+          ]
+        },
+        {
+          "id": "ds-08-l2-q03",
+          "type": "diagram",
+          "prompt": "Welche Menge beschreibt das relationale Produkt aus den R-Schritten und danach den S-Schritten?",
+          "context": {
+            "type": "mermaid",
+            "content": "flowchart LR\n    U[\"u\"] -->|R| X[\"x\"]\n    U -->|R| Y[\"y\"]\n    X -->|S| P[\"p\"]\n    Y -->|S| Q[\"q\"]",
+            "caption": "Zwei mögliche Zwischenwerte und ihre S-Ziele"
+          },
+          "options": [
+            {
+              "id": "a",
+              "text": "$\\{(u,p),(u,q)\\}$"
+            },
+            {
+              "id": "b",
+              "text": "$\\{(x,p),(y,q)\\}$"
+            },
+            {
+              "id": "c",
+              "text": "$\\{(u,x),(u,y)\\}$"
+            },
+            {
+              "id": "d",
+              "text": "$\\{(u,p)\\}$"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "Von u führt R nach x und y. Von x führt S nach p und von y nach q. Das Produkt speichert nur Start und Ziel, also $(u,p)$ und $(u,q)$.",
+          "source": {
+            "file": "DS/01_Vorlesungen/Diskrete Strukturen VO8.md",
+            "heading": "3. Relationales Produkt: zwei Schritte zusammensetzen"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Relationales Produkt"
+          ]
+        },
+        {
+          "id": "ds-08-l2-q04",
+          "type": "single",
+          "prompt": "Welche Aussage beschreibt $R^2$ für eine Endorelation $R$?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Erreichbarkeit in genau einem R-Schritt"
+            },
+            {
+              "id": "b",
+              "text": "Erreichbarkeit in höchstens zwei R-Schritten"
+            },
+            {
+              "id": "c",
+              "text": "Alle Paare, die in R fehlen"
+            },
+            {
+              "id": "d",
+              "text": "Erreichbarkeit in genau zwei R-Schritten"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Die Potenz R² ist das Produkt RR und beschreibt genau zwei aufeinanderfolgende R-Schritte. Für höchstens zwei Schritte wird zusätzlich über R⁰, R¹ und R² vereinigt.",
+          "source": {
+            "file": "DS/01_Vorlesungen/Diskrete Strukturen VO8.md",
+            "heading": "7. k-faches Produkt: exakt, höchstens oder weniger Schritte?"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Relationpotenz",
+            "Pfade und Pfadlänge"
+          ]
+        },
+        {
+          "id": "ds-08-l2-q05",
+          "type": "calc",
+          "prompt": "Auf $A=\\{u,v,w\\}$ sei $R=\\{(u,v),(v,w)\\}$. Wie viele Paare enthält $R^{<2}$?",
+          "options": [
+            {
+              "id": "a",
+              "text": "7"
+            },
+            {
+              "id": "b",
+              "text": "8"
+            },
+            {
+              "id": "c",
+              "text": "5"
+            },
+            {
+              "id": "d",
+              "text": "6"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "$R^{<2}=R⁰∪R¹$. $R⁰$ enthält die drei Identitätspaare und $R¹$ die zwei angegebenen Paare; diese fünf Paare sind verschieden. Nach der Definition bedeutet $R^{<2}$ Längen 0 bis 1, nicht Länge 2.",
+          "source": {
+            "file": "DS/01_Vorlesungen/Diskrete Strukturen VO8.md",
+            "heading": "Höchstens bzw. weniger als k Schritte"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Relationpotenz",
+            "Erreichbarkeit"
+          ]
+        },
+        {
+          "id": "ds-08-l2-q06",
+          "type": "truefalse",
+          "prompt": "Auf $A=\\{1,2\\}$ sei $R=\\{(1,1),(2,2),(1,2)\\}$. Diese Relation ist reflexiv.",
+          "options": [
+            {
+              "id": "true",
+              "text": "Wahr"
+            },
+            {
+              "id": "false",
+              "text": "Falsch"
+            }
+          ],
+          "correct": [
+            "true"
+          ],
+          "explanation": "Eine Relation auf A ist reflexiv, wenn alle Identitätspaare enthalten sind. Hier sind sowohl $(1,1)$ als auch $(2,2)$ enthalten.",
+          "source": {
+            "file": "DS/01_Vorlesungen/Diskrete Strukturen VO8.md",
+            "heading": "Reflexiv oder irreflexiv?"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Reflexivität und Irreflexivität"
+          ]
+        },
+        {
+          "id": "ds-08-l2-q07",
+          "type": "multi",
+          "prompt": "Auf $A=\\{a,b\\}$ sei $R=\\{(a,a),(b,b),(a,b)\\}$. Welche Eigenschaften hat $R$? Wähle alle richtigen Aussagen; mehrere können richtig sein.",
+          "options": [
+            {
+              "id": "a",
+              "text": "antisymmetrisch"
+            },
+            {
+              "id": "b",
+              "text": "transitiv"
+            },
+            {
+              "id": "c",
+              "text": "reflexiv"
+            },
+            {
+              "id": "d",
+              "text": "symmetrisch"
+            }
+          ],
+          "correct": [
+            "a",
+            "b",
+            "c"
+          ],
+          "explanation": "Beide Schleifen liegen vor, also ist R reflexiv. Es gibt keinen Rückpfeil $(b,a)$, daher ist R nicht symmetrisch und antisymmetrisch. Die Verkettungen mit den Schleifen oder $(a,b)$ liefern nur bereits enthaltene Paare, also ist R transitiv.",
+          "source": {
+            "file": "DS/01_Vorlesungen/Diskrete Strukturen VO8.md",
+            "heading": "10. Eigenschaften von Endorelationen"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Reflexivität und Irreflexivität",
+            "Symmetrie und Antisymmetrie",
+            "Transitivität und Asymmetrie"
+          ]
+        },
+        {
+          "id": "ds-08-l2-q08",
+          "type": "cloze",
+          "prompt": "Sei $|A|=n$ für eine endliche, nichtleere Knotenmenge. Jede erreichbare Verbindung ist bereits durch einen Pfad mit Länge kleiner als ___ .",
+          "options": [
+            {
+              "id": "a",
+              "text": "$n$"
+            },
+            {
+              "id": "b",
+              "text": "$2n$"
+            },
+            {
+              "id": "c",
+              "text": "$n-1$"
+            },
+            {
+              "id": "d",
+              "text": "$n+1$"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "Ein kürzester Pfad kann keinen Knoten wiederholen. Bei n Knoten hat er daher höchstens n−1 Kanten, also Länge kleiner als n.",
+          "source": {
+            "file": "DS/01_Vorlesungen/Diskrete Strukturen VO8.md",
+            "heading": "9. Erreichbarkeit auf einer endlichen Menge"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Erreichbarkeit",
+            "Pfade und Pfadlänge"
+          ]
+        },
+        {
+          "id": "ds-08-l2-q09",
+          "type": "single",
+          "prompt": "Welche Relation lässt $R$ beim relationalen Produkt unverändert?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Die leere Relation"
+            },
+            {
+              "id": "b",
+              "text": "Die Relation $A×A$"
+            },
+            {
+              "id": "c",
+              "text": "Die Umkehrrelation $R^\\top$"
+            },
+            {
+              "id": "d",
+              "text": "Die passende Identitätsrelation auf der Ziel- oder Ausgangsmenge"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Ein Identitätsschritt ändert den aktuellen Wert nicht. Deshalb gilt für passende Mengen IdₐR=R=RIdᵦ.",
+          "source": {
+            "file": "DS/01_Vorlesungen/Diskrete Strukturen VO8.md",
+            "heading": "Linkes und rechtes neutrales Element"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Relationales Produkt"
+          ]
+        },
+        {
+          "id": "ds-08-l2-q10",
+          "type": "calc",
+          "prompt": "Sei $R=\\{(a,x),(b,y)\\}$. Welche Menge ist die Umkehrrelation $R^\\top$?",
+          "options": [
+            {
+              "id": "a",
+              "text": "$\\{(a,a),(b,b)\\}$"
+            },
+            {
+              "id": "b",
+              "text": "$\\{(x,a),(y,b)\\}$"
+            },
+            {
+              "id": "c",
+              "text": "$\\{(x,b),(y,a)\\}$"
+            },
+            {
+              "id": "d",
+              "text": "$\\{(a,x),(b,y)\\}$"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "In jedem geordneten Paar werden Ausgang und Ziel vertauscht: aus $(a,x)$ wird $(x,a)$ und aus $(b,y)$ wird $(y,b)$.",
+          "source": {
+            "file": "DS/01_Vorlesungen/Diskrete Strukturen VO8.md",
+            "heading": "Umgekehrte Relation = transponierte Matrix"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Umkehrrelation"
+          ]
+        },
+        {
+          "id": "ds-08-l2-q11",
+          "type": "truefalse",
+          "prompt": "Für passend verkettbare Relationen gilt $(R_1∪R_2)S=(R_1S)∪(R_2S)$.",
+          "options": [
+            {
+              "id": "true",
+              "text": "Wahr"
+            },
+            {
+              "id": "false",
+              "text": "Falsch"
+            }
+          ],
+          "correct": [
+            "true"
+          ],
+          "explanation": "Ein erster Schritt aus einer Vereinigung stammt aus R₁ oder R₂. Daher entsteht das Ergebnis aus der Vereinigung der beiden Produkte; dieselbe Distributivität gilt auch mit festem linken Faktor.",
+          "source": {
+            "file": "DS/01_Vorlesungen/Diskrete Strukturen VO8.md",
+            "heading": "Distributivität über Vereinigung: beide Seiten"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Relationales Produkt"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ds-08-l3",
+      "index": 3,
+      "kind": "deepen",
+      "title": "Vertiefen",
+      "questions": [
+        {
+          "id": "ds-08-l3-q01",
+          "type": "multi",
+          "prompt": "Welche Aussagen unterscheiden Antisymmetrie und Asymmetrie korrekt? Wähle alle richtigen Aussagen; mehrere können richtig sein.",
+          "options": [
+            {
+              "id": "a",
+              "text": "Bei Asymmetrie kann es zwischen verschiedenen Knoten keinen Pfeil in beide Richtungen geben."
+            },
+            {
+              "id": "b",
+              "text": "Eine antisymmetrische Relation darf Schleifen enthalten."
+            },
+            {
+              "id": "c",
+              "text": "Jede antisymmetrische Relation ist asymmetrisch."
+            },
+            {
+              "id": "d",
+              "text": "Eine asymmetrische Relation ist irreflexiv."
+            }
+          ],
+          "correct": [
+            "a",
+            "b",
+            "d"
+          ],
+          "explanation": "Asymmetrie verbietet sowohl Schleifen als auch Rückpfeile und impliziert damit Antisymmetrie. Antisymmetrie allein verbietet nur gegenläufige Pfeile zwischen verschiedenen Knoten; Schleifen bleiben erlaubt.",
+          "source": {
+            "file": "DS/01_Vorlesungen/Diskrete Strukturen VO8.md",
+            "heading": "Antisymmetrisch"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Symmetrie und Antisymmetrie",
+            "Transitivität und Asymmetrie"
+          ]
+        },
+        {
+          "id": "ds-08-l3-q02",
+          "type": "single",
+          "prompt": "Es gelten $R=\\{(0,1),(0,2)\\}$, $S_1=\\{(1,3)\\}$ und $S_2=\\{(2,3)\\}$. Welche Aussage ist richtig?",
+          "options": [
+            {
+              "id": "a",
+              "text": "$R(S_1∩S_2)=∅$, aber $RS_1∩RS_2=\\{(0,3)\\}$."
+            },
+            {
+              "id": "b",
+              "text": "$R(S_1∩S_2)=RS_1∩RS_2=∅$."
+            },
+            {
+              "id": "c",
+              "text": "$R(S_1∩S_2)=\\{(0,3)\\}$ und $RS_1∩RS_2=\\{(0,3)\\}$."
+            },
+            {
+              "id": "d",
+              "text": "$R(S_1∩S_2)=\\{(0,3)\\}$, aber $RS_1∩RS_2=∅$."
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "S₁ und S₂ haben kein gemeinsames Paar, also ist ihr Schnitt leer und auch R(S₁∩S₂) leer. Beide einzelnen Produkte enthalten jedoch $(0,3)$, obwohl sie dafür verschiedene Zwischenwerte nutzen.",
+          "source": {
+            "file": "DS/01_Vorlesungen/Diskrete Strukturen VO8.md",
+            "heading": "Keine allgemeine Distributivität über Schnitt"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Relationales Produkt"
+          ]
+        },
+        {
+          "id": "ds-08-l3-q03",
+          "type": "calc",
+          "prompt": "Auf $\\{0,1,2\\}$ seien $R=\\{(0,1)\\}$ und $S=\\{(1,2)\\}$. Welche Aussage ergibt sich für die beiden Produktreihenfolgen?",
+          "options": [
+            {
+              "id": "a",
+              "text": "$RS=∅$ und $SR=\\{(0,2)\\}$"
+            },
+            {
+              "id": "b",
+              "text": "$RS=\\{(0,2)\\}$ und $SR=∅$"
+            },
+            {
+              "id": "c",
+              "text": "$RS=SR=∅$"
+            },
+            {
+              "id": "d",
+              "text": "$RS=SR=\\{(0,2)\\}$"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "Für RS führt der R-Schritt von 0 nach 1 und der S-Schritt von 1 nach 2. Für SR gibt es keinen passenden S-Schritt, der vor R beginnen kann.",
+          "source": {
+            "file": "DS/01_Vorlesungen/Diskrete Strukturen VO8.md",
+            "heading": "Warum nicht kommutativ?"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Relationales Produkt"
+          ]
+        },
+        {
+          "id": "ds-08-l3-q04",
+          "type": "truefalse",
+          "prompt": "Wenn $R_1⊆R_2$ und $S_1⊆S_2$, dann gilt $R_1S_1⊆R_2S_2$.",
+          "options": [
+            {
+              "id": "true",
+              "text": "Wahr"
+            },
+            {
+              "id": "false",
+              "text": "Falsch"
+            }
+          ],
+          "correct": [
+            "true"
+          ],
+          "explanation": "Jeder Zweischrittweg mit einem R₁-Schritt und einem S₁-Schritt bleibt möglich, wenn beide Relationen um weitere Paare erweitert werden. Es können nur zusätzliche Wege hinzukommen.",
+          "source": {
+            "file": "DS/01_Vorlesungen/Diskrete Strukturen VO8.md",
+            "heading": "Monotonie"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Relationales Produkt"
+          ]
+        },
+        {
+          "id": "ds-08-l3-q05-r1",
+          "type": "cloze",
+          "prompt": "Sei $R\\subseteq A\\times A$ eine Endorelation und $k\\in\\mathbb{N}_0$. Es gilt $R^0=\\operatorname{Id}_A$, und $R^n$ beschreibt genau $n$ aufeinanderfolgende Schritte aus $R$. Definiere $R^{\\le k}:=\\bigcup_{i=0}^{k}R^i$. In einem Schritt aus $\\operatorname{Id}_A\\cup R$ kann man entweder eine Kante aus $R$ nehmen oder am selben Knoten bleiben. Welche Potenz ergänzt die Gleichung? $R^{\\le k}=(\\operatorname{Id}_A\\cup R)^{___}$.",
+          "options": [
+            {
+              "id": "a",
+              "text": "$0$"
+            },
+            {
+              "id": "b",
+              "text": "$k-1$"
+            },
+            {
+              "id": "c",
+              "text": "$k+1$"
+            },
+            {
+              "id": "d",
+              "text": "$k$"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Ein Weg mit höchstens $k$ Schritten aus $R$ lässt sich durch Schritte aus $\\operatorname{Id}_A$ auf genau $k$ Schritte aus $\\operatorname{Id}_A\\cup R$ auffüllen. Umgekehrt enthält ein solcher Weg höchstens $k$ echte $R$-Schritte. Daher ist der Exponent $k$.",
+          "source": {
+            "file": "DS/01_Vorlesungen/Diskrete Strukturen VO8.md",
+            "heading": "„Auf der Stelle treten“"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Relationale Potenzen",
+            "Erreichbarkeit mit höchstens k Schritten",
+            "Identitätsrelation"
+          ]
+        },
+        {
+          "id": "ds-08-l3-q06",
+          "type": "multi",
+          "prompt": "Welche Aussagen zu den Potenzen $R^k$, $R^{≤k}$ und $R^{<k}$ stimmen? Wähle alle richtigen Aussagen; mehrere können richtig sein.",
+          "options": [
+            {
+              "id": "a",
+              "text": "$R^k$ steht für genau k Schritte."
+            },
+            {
+              "id": "b",
+              "text": "$R^{≤k}$ erlaubt Längen von 0 bis k."
+            },
+            {
+              "id": "c",
+              "text": "$R^{<k}$ erlaubt auch Wege der Länge k."
+            },
+            {
+              "id": "d",
+              "text": "$R^{<0}=∅$."
+            },
+            {
+              "id": "e",
+              "text": "$R^{≤0}=\\operatorname{Id}_A$."
+            }
+          ],
+          "correct": [
+            "a",
+            "b",
+            "d",
+            "e"
+          ],
+          "explanation": "Die Schreibweise unterscheidet exakte, höchstens und weniger als k Schritte. Für k=0 enthält höchstens null Schritte nur R⁰=Idₐ; weniger als null Schritte lässt keine Länge zu.",
+          "source": {
+            "file": "DS/01_Vorlesungen/Diskrete Strukturen VO8.md",
+            "heading": "Höchstens bzw. weniger als k Schritte"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Relationpotenz",
+            "Erreichbarkeit"
+          ]
+        },
+        {
+          "id": "ds-08-l3-q07",
+          "type": "single",
+          "prompt": "Welche Bedingung ist äquivalent dazu, dass eine Endorelation $R$ transitiv ist?",
+          "options": [
+            {
+              "id": "a",
+              "text": "$R∩R^\\top=∅$"
+            },
+            {
+              "id": "b",
+              "text": "$R^\\top=R$"
+            },
+            {
+              "id": "c",
+              "text": "$RR⊆R$"
+            },
+            {
+              "id": "d",
+              "text": "$RR=∅$"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Transitivität verlangt für jeden Zweischrittweg in R auch die direkte Kante zwischen Start und Ziel. Genau das drückt RR⊆R aus.",
+          "source": {
+            "file": "DS/01_Vorlesungen/Diskrete Strukturen VO8.md",
+            "heading": "Transitiv"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Transitivität und Asymmetrie"
+          ]
+        },
+        {
+          "id": "ds-08-l3-q08",
+          "type": "calc",
+          "prompt": "Auf $A=\\{a,b,c\\}$ sei $R=\\{(a,b),(b,c),(c,c)\\}$. Welche Paare enthält $R^2$?",
+          "options": [
+            {
+              "id": "a",
+              "text": "$\\{(a,c),(b,c),(c,c)\\}$"
+            },
+            {
+              "id": "b",
+              "text": "$\\{(a,c)\\}$"
+            },
+            {
+              "id": "c",
+              "text": "$\\{(a,b),(b,c),(c,c)\\}$"
+            },
+            {
+              "id": "d",
+              "text": "$\\{(a,a),(b,b),(c,c)\\}$"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "Die Zweischrittwege sind a→b→c, b→c→c und c→c→c. R² speichert ihre Endpunkte und enthält jedes Paar nur einmal.",
+          "source": {
+            "file": "DS/01_Vorlesungen/Diskrete Strukturen VO8.md",
+            "heading": "5. Produkte mit Matrizen berechnen"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Relationpotenz",
+            "Pfade und Pfadlänge"
+          ]
+        },
+        {
+          "id": "ds-08-l3-q09",
+          "type": "diagram",
+          "prompt": "Im Diagramm führt der Weg $1→2→3→2→4$ von 1 nach 4. Wenn der wiederholte Abschnitt zwischen den beiden Vorkommen von 2 entfernt wird, welcher gültige kürzere Pfad entsteht?",
+          "context": {
+            "type": "mermaid",
+            "content": "flowchart LR\n    N1[\"1\"] --> N2[\"2\"]\n    N2 --> N3[\"3\"]\n    N3 --> N2\n    N2 --> N4[\"4\"]",
+            "caption": "Ein Pfad mit wiederholtem Knoten"
+          },
+          "options": [
+            {
+              "id": "a",
+              "text": "$1→4$, Länge 1"
+            },
+            {
+              "id": "b",
+              "text": "$1→3→4$, Länge 2"
+            },
+            {
+              "id": "c",
+              "text": "$1→2→3→4$, Länge 3"
+            },
+            {
+              "id": "d",
+              "text": "$1→2→4$, Länge 2"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Der Knoten 2 tritt zweimal auf. Weil beide Vorkommen denselben Knoten bezeichnen, kann der Zyklus 2→3→2 entfernt werden; die Kante 2→4 bleibt anschließbar.",
+          "source": {
+            "file": "DS/01_Vorlesungen/Diskrete Strukturen VO8.md",
+            "heading": "9. Erreichbarkeit auf einer endlichen Menge"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Pfade und Pfadlänge",
+            "Erreichbarkeit"
+          ]
+        },
+        {
+          "id": "ds-08-l3-q10",
+          "type": "truefalse",
+          "prompt": "Bei der booleschen Matrixmultiplikation wird ein Ergebniseintrag auf 2 gesetzt, wenn es zwei passende Zwischenwerte gibt.",
+          "options": [
+            {
+              "id": "true",
+              "text": "Wahr"
+            },
+            {
+              "id": "false",
+              "text": "Falsch"
+            }
+          ],
+          "correct": [
+            "false"
+          ],
+          "explanation": "Die Einträge bleiben 0 oder 1. Das Maximum über die UND-Produkte zeigt nur, ob mindestens ein passender Zwischenwert existiert; es zählt sie nicht.",
+          "source": {
+            "file": "DS/01_Vorlesungen/Diskrete Strukturen VO8.md",
+            "heading": "5. Produkte mit Matrizen berechnen"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Boolesche Matrixmultiplikation"
+          ]
+        },
+        {
+          "id": "ds-08-l3-q11",
+          "type": "multi",
+          "prompt": "Welche Aussagen über das relationale Produkt sind allgemein richtig? Wähle alle richtigen Aussagen; mehrere können richtig sein.",
+          "options": [
+            {
+              "id": "a",
+              "text": "Es ist assoziativ, sofern die Relationen passend verkettbar sind."
+            },
+            {
+              "id": "b",
+              "text": "Eine leere Relation als Faktor macht das Produkt leer."
+            },
+            {
+              "id": "c",
+              "text": "Es ist immer kommutativ."
+            },
+            {
+              "id": "d",
+              "text": "Es verteilt sich beidseitig über Vereinigung."
+            }
+          ],
+          "correct": [
+            "a",
+            "b",
+            "d"
+          ],
+          "explanation": "Umklammern ändert die Reihenfolge der Schritte nicht, aber Vertauschen der Faktoren ist im Allgemeinen nicht erlaubt. Die leere Relation ist ein Annihilator; Vereinigung verteilt sich auf beiden Seiten.",
+          "source": {
+            "file": "DS/01_Vorlesungen/Diskrete Strukturen VO8.md",
+            "heading": "6. Rechenregeln für das relationale Produkt"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Relationales Produkt"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ds-08-l4",
+      "index": 4,
+      "kind": "boss",
+      "title": "Boss",
+      "questions": [
+        {
+          "id": "ds-08-l4-q01",
+          "type": "calc",
+          "prompt": "Seien $R=\\{(a,x),(b,y)\\}$ und $S=\\{(x,c),(y,c)\\}$. Ein Join über zweite R-Komponente gleich erster S-Komponente liefert $(a,x,x,c)$ und $(b,y,y,c)$. Was ergibt die Projektion auf Position 1 und 4?",
+          "options": [
+            {
+              "id": "a",
+              "text": "$\\{(a,x),(b,y)\\}$"
+            },
+            {
+              "id": "b",
+              "text": "$\\{(a,x,x,c),(b,y,y,c)\\}$"
+            },
+            {
+              "id": "c",
+              "text": "$\\{(a,c),(b,c)\\}$"
+            },
+            {
+              "id": "d",
+              "text": "$\\{(x,c),(y,c)\\}$"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Der Join stellt die beiden Schritte samt Zwischenwerten nebeneinander. Die Projektion auf die Positionen 1 und 4 entfernt die Zwischenwerte und lässt die Start-Ziel-Paare übrig.",
+          "source": {
+            "file": "DS/01_Vorlesungen/Diskrete Strukturen VO8.md",
+            "heading": "Formale Definition (Folie 89 (113))"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Relationale Komposition mit Join und Projektion",
+            "Relationales Produkt"
+          ]
+        },
+        {
+          "id": "ds-08-l4-q02",
+          "type": "calc",
+          "prompt": "In einem gerichteten Graphen sind die Kanten $1→2$, $2→3$ und $3→1$ vorhanden. Die Folge $(1,2,3,1,2)$ folgt den Pfeilrichtungen. Welche Länge hat dieser Pfad?",
+          "options": [
+            {
+              "id": "a",
+              "text": "3"
+            },
+            {
+              "id": "b",
+              "text": "4"
+            },
+            {
+              "id": "c",
+              "text": "5"
+            },
+            {
+              "id": "d",
+              "text": "6"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "Die Folge hat fünf Knoteneinträge und damit vier Kanten. Wiederholte Knoten sind in der Kursdefinition von Pfaden erlaubt.",
+          "source": {
+            "file": "DS/01_Vorlesungen/Diskrete Strukturen VO8.md",
+            "heading": "8. Erreichbarkeit und Pfade"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Pfade und Pfadlänge"
+          ]
+        },
+        {
+          "id": "ds-08-l4-q03",
+          "type": "multi",
+          "prompt": "Es gelten $R=\\{(s,x),(s,y)\\}$ und $S=\\{(x,t),(y,t)\\}$. Welche Aussagen über das Produkt stimmen? Wähle alle richtigen Aussagen; mehrere können richtig sein.",
+          "options": [
+            {
+              "id": "a",
+              "text": "Es gibt zwei Zweischrittwege von s nach t."
+            },
+            {
+              "id": "b",
+              "text": "Das Produkt enthält zwei getrennte Kopien von $(s,t)$."
+            },
+            {
+              "id": "c",
+              "text": "Das Produkt speichert beide vollständigen Pfade samt Zwischenknoten."
+            },
+            {
+              "id": "d",
+              "text": "Als Relation ist $RS=\\{(s,t)\\}$."
+            }
+          ],
+          "correct": [
+            "a",
+            "d"
+          ],
+          "explanation": "Es gibt die Wege über x und über y. Relationen sind Mengen von Paaren; beide Wege erzeugen deshalb dasselbe einzelne Start-Ziel-Paar, nicht zwei Kopien oder vollständige Pfade.",
+          "source": {
+            "file": "DS/01_Vorlesungen/Diskrete Strukturen VO8.md",
+            "heading": "5. Produkte mit Matrizen berechnen"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Relationales Produkt",
+            "Pfade und Pfadlänge",
+            "Relationale Komposition mit Join und Projektion"
+          ]
+        },
+        {
+          "id": "ds-08-l4-q04",
+          "type": "calc",
+          "prompt": "Auf $A=\\{0,1,2\\}$ sei $R=\\{(0,1),(1,2)\\}$. Wie viele Paare enthält $R^{≤2}$?",
+          "options": [
+            {
+              "id": "a",
+              "text": "7"
+            },
+            {
+              "id": "b",
+              "text": "8"
+            },
+            {
+              "id": "c",
+              "text": "5"
+            },
+            {
+              "id": "d",
+              "text": "6"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "R⁰ enthält drei Schleifen, R¹ die zwei angegebenen Paare und R² das Paar $(0,2)$. Diese sechs Paare sind verschieden.",
+          "source": {
+            "file": "DS/01_Vorlesungen/Diskrete Strukturen VO8.md",
+            "heading": "Höchstens bzw. weniger als k Schritte"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Relationpotenz",
+            "Erreichbarkeit"
+          ]
+        },
+        {
+          "id": "ds-08-l4-q05",
+          "type": "multi",
+          "prompt": "Auf $A=\\{1,2\\}$ sei $R=\\{(1,1),(2,2),(1,2)\\}$. Welche Eigenschaften besitzt R? Wähle alle richtigen Aussagen; mehrere können richtig sein.",
+          "options": [
+            {
+              "id": "a",
+              "text": "reflexiv"
+            },
+            {
+              "id": "b",
+              "text": "symmetrisch"
+            },
+            {
+              "id": "c",
+              "text": "antisymmetrisch"
+            },
+            {
+              "id": "d",
+              "text": "asymmetrisch"
+            },
+            {
+              "id": "e",
+              "text": "transitiv"
+            }
+          ],
+          "correct": [
+            "a",
+            "c",
+            "e"
+          ],
+          "explanation": "Die beiden Schleifen machen R reflexiv. Es fehlt der Rückpfeil $(2,1)$, sodass R nicht symmetrisch, aber antisymmetrisch ist. Alle Zweischrittfolgen liefern Paare, die bereits in R liegen; wegen der Schleifen ist R nicht asymmetrisch.",
+          "source": {
+            "file": "DS/01_Vorlesungen/Diskrete Strukturen VO8.md",
+            "heading": "10. Eigenschaften von Endorelationen"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Reflexivität und Irreflexivität",
+            "Symmetrie und Antisymmetrie",
+            "Transitivität und Asymmetrie"
+          ]
+        },
+        {
+          "id": "ds-08-l4-q06",
+          "type": "diagram",
+          "prompt": "Welche Verbindung gehört zu $RS$ (zuerst R, dann S), aber nicht zu $SR$?",
+          "context": {
+            "type": "mermaid",
+            "content": "flowchart LR\n    A[\"a\"] -->|R| B[\"b\"]\n    B -->|S| C[\"c\"]\n    A -->|S| C\n    C -->|R| A",
+            "caption": "Gleiche Knoten, unterschiedliche Reihenfolge der Relationenschritte"
+          },
+          "options": [
+            {
+              "id": "a",
+              "text": "$(a,a)$"
+            },
+            {
+              "id": "b",
+              "text": "$(c,a)$"
+            },
+            {
+              "id": "c",
+              "text": "$(a,c)$"
+            },
+            {
+              "id": "d",
+              "text": "$(b,b)$"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Für RS führt der Weg a→b über R und danach b→c über S, also entsteht $(a,c)$. Für SR führt a über S nach c und von dort über R nach a, also entsteht stattdessen $(a,a)$.",
+          "source": {
+            "file": "DS/01_Vorlesungen/Diskrete Strukturen VO8.md",
+            "heading": "Warum nicht kommutativ?"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Relationales Produkt"
+          ]
+        },
+        {
+          "id": "ds-08-l4-q07",
+          "type": "calc",
+          "prompt": "Auf $A=\\{a,b,c\\}$ sei $R=\\{(a,b),(b,c)\\}$. Welche einzelne Paarergänzung macht R transitiv, ohne andere Paare hinzuzufügen?",
+          "options": [
+            {
+              "id": "a",
+              "text": "$(a,c)$"
+            },
+            {
+              "id": "b",
+              "text": "$(c,b)$"
+            },
+            {
+              "id": "c",
+              "text": "$(b,a)$"
+            },
+            {
+              "id": "d",
+              "text": "$(a,a)$"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "Aus $(a,b)$ und $(b,c)$ folgt für Transitivität, dass $(a,c)$ enthalten sein muss. Mit dieser Ergänzung ist die einzige Zweischrittverkettung abgedeckt.",
+          "source": {
+            "file": "DS/01_Vorlesungen/Diskrete Strukturen VO8.md",
+            "heading": "Transitiv"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Transitivität und Asymmetrie"
+          ]
+        },
+        {
+          "id": "ds-08-l4-q08",
+          "type": "truefalse",
+          "prompt": "Für eine endliche, nichtleere Knotenmenge mit $n$ Knoten gilt $R^{<n}=R^{<k}$ für jedes $k≥n$.",
+          "options": [
+            {
+              "id": "true",
+              "text": "Wahr"
+            },
+            {
+              "id": "false",
+              "text": "Falsch"
+            }
+          ],
+          "correct": [
+            "true"
+          ],
+          "explanation": "Ein erreichbarer Start-Ziel-Zusammenhang hat einen kürzesten Pfad ohne wiederholte Knoten. Seine Länge ist daher kleiner als n; zusätzliche erlaubte Längen ab n erzeugen keine neuen Paare.",
+          "source": {
+            "file": "DS/01_Vorlesungen/Diskrete Strukturen VO8.md",
+            "heading": "9. Erreichbarkeit auf einer endlichen Menge"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Erreichbarkeit",
+            "Pfade und Pfadlänge"
+          ]
+        },
+        {
+          "id": "ds-08-l4-q09-r1",
+          "type": "single",
+          "prompt": "Eine Endorelation $R\\subseteq A\\times A$ wird als 0/1-Matrix dargestellt: Zeilen sind Ausgangselemente, Spalten Zielelemente. Die Tabelle zeigt ihre Matrix bei der Aufzählung $(1,2,3)$ für Zeilen und Spalten. Die Relation bleibt gleich, aber die Aufzählung wird zu $(3,1,2)$ geändert. Welche Matrix beschreibt $R$ dann? In den Optionen trennen Schrägstriche die Zeilen.",
+          "context": {
+            "type": "table",
+            "content": "| Ausgang \\ Ziel | 1 | 2 | 3 |\n|---|---:|---:|---:|\n| 1 | 1 | 1 | 0 |\n| 2 | 0 | 0 | 1 |\n| 3 | 1 | 0 | 0 |",
+            "caption": "Matrix von R bei der Aufzählung (1, 2, 3) für Zeilen und Spalten."
+          },
+          "options": [
+            {
+              "id": "a",
+              "text": "Neue Matrix: 0 1 1 / 1 0 0 / 0 1 0"
+            },
+            {
+              "id": "b",
+              "text": "Neue Matrix: 1 0 0 / 1 1 0 / 0 0 1"
+            },
+            {
+              "id": "c",
+              "text": "Neue Matrix: 1 1 0 / 0 0 1 / 1 0 0"
+            },
+            {
+              "id": "d",
+              "text": "Neue Matrix: 0 1 0 / 0 1 1 / 1 0 0"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Da dieselbe Aufzählung für Zeilen und Spalten gilt, müssen beide umgeordnet werden. Bei der neuen Reihenfolge $(3,1,2)$ werden zuerst die alte dritte, dann die alte erste und schließlich die alte zweite Zeile und Spalte genommen. Das ergibt die Matrix in Option c.",
+          "source": {
+            "file": "DS/01_Vorlesungen/Diskrete Strukturen VO8.md",
+            "heading": "Die Aufzählungen bestimmen die Zeilen- und Spaltenreihenfolge"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Relationsmatrix",
+            "Endorelation",
+            "Zeilen- und Spaltenreihenfolge"
+          ]
+        },
+        {
+          "id": "ds-08-l4-q10",
+          "type": "multi",
+          "prompt": "Welche Rechenregeln gelten für passend verkettbare Relationen? Wähle alle richtigen Aussagen; mehrere können richtig sein.",
+          "options": [
+            {
+              "id": "a",
+              "text": "Das Produkt ist allgemein kommutativ."
+            },
+            {
+              "id": "b",
+              "text": "Das Produkt verteilt sich stets über Schnitt."
+            },
+            {
+              "id": "c",
+              "text": "Identitätsrelationen sind neutrale Elemente."
+            },
+            {
+              "id": "d",
+              "text": "Das Produkt ist assoziativ."
+            },
+            {
+              "id": "e",
+              "text": "Das Produkt verteilt sich beidseitig über Vereinigung."
+            }
+          ],
+          "correct": [
+            "c",
+            "d",
+            "e"
+          ],
+          "explanation": "Assoziativität, neutrale Identitätsrelationen und beide Distributivgesetze über Vereinigung gelten. Im Allgemeinen weder kommutiert das Produkt noch verteilt es sich über Schnitt.",
+          "source": {
+            "file": "DS/01_Vorlesungen/Diskrete Strukturen VO8.md",
+            "heading": "6. Rechenregeln für das relationale Produkt"
+          },
+          "difficulty": 5,
+          "concepts": [
+            "Relationales Produkt"
+          ]
+        },
+        {
+          "id": "ds-08-l4-q11",
+          "type": "single",
+          "prompt": "Sei $A$ nichtleer und $R=∅$ die leere Relation auf A. Welche Eigenschaft hat R **nicht**?",
+          "options": [
+            {
+              "id": "a",
+              "text": "symmetrisch"
+            },
+            {
+              "id": "b",
+              "text": "irreflexiv"
+            },
+            {
+              "id": "c",
+              "text": "transitiv"
+            },
+            {
+              "id": "d",
+              "text": "reflexiv"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Reflexivität verlangt für jedes Element eine Schleife, die in der leeren Relation fehlt. Die Bedingungen für Irreflexivität, Symmetrie und Transitivität sind erfüllt, weil es keine enthaltenen Paare oder Zweischrittwege gibt.",
+          "source": {
+            "file": "DS/01_Vorlesungen/Diskrete Strukturen VO8.md",
+            "heading": "Beispielübersicht (Folie 97 (128))"
+          },
+          "difficulty": 5,
+          "concepts": [
+            "Reflexivität und Irreflexivität",
+            "Symmetrie und Antisymmetrie",
+            "Transitivität und Asymmetrie"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ds-08-l5",
+      "index": 5,
+      "kind": "bonus",
+      "title": "Praxis: Verbindungen überall",
+      "questions": [
+        {
+          "id": "ds-08-l5-q01",
+          "type": "single",
+          "prompt": "Du prüfst in einer Fahrplan-App nicht die schnellste Verbindung, sondern nur, ob du mit beliebig vielen Umstiegen von einer Haltestelle zu einer anderen kommst. Welches Konzept beantwortet das?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Reflexivität"
+            },
+            {
+              "id": "b",
+              "text": "Umkehrrelation"
+            },
+            {
+              "id": "c",
+              "text": "Symmetrie"
+            },
+            {
+              "id": "d",
+              "text": "Erreichbarkeit"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Erreichbarkeit fragt, ob es einen Pfad vom Start zum Ziel gibt. Die Anzahl der Umstiege ist dabei nicht fest vorgegeben.",
+          "source": {
+            "file": "DS/01_Vorlesungen/Diskrete Strukturen VO8.md",
+            "heading": "8. Erreichbarkeit und Pfade"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Erreichbarkeit",
+            "Pfade und Pfadlänge"
+          ]
+        },
+        {
+          "id": "ds-08-l5-q02",
+          "type": "single",
+          "prompt": "Eine Datenbank verbindet Bestellungen mit Kund:innen, indem sie `Bestellung.kunden_id` an `Kunde.id` anpasst und danach Bestellnummer und Kundennamen ausgibt. Welches Konzept steckt dahinter?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Reflexivität"
+            },
+            {
+              "id": "b",
+              "text": "Kartesisches Produkt ohne Abgleich"
+            },
+            {
+              "id": "c",
+              "text": "Umkehrrelation"
+            },
+            {
+              "id": "d",
+              "text": "Relationale Komposition über einen gemeinsamen Zwischenwert"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Die Kunden-ID ist der gemeinsame Zwischenwert: Eine Bestellung führt zu einem Kunden, danach werden die gewünschten Anfangs- und Zielinformationen ausgegeben. Das entspricht relationaler Komposition mit Join und Projektion.",
+          "source": {
+            "file": "DS/01_Vorlesungen/Diskrete Strukturen VO8.md",
+            "heading": "3. Relationales Produkt: zwei Schritte zusammensetzen"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Relationales Produkt",
+            "Relationale Komposition mit Join und Projektion"
+          ]
+        },
+        {
+          "id": "ds-08-l5-q03",
+          "type": "estimate",
+          "prompt": "Du speicherst eine Relationsmatrix von 9 Startstationen zu 6 Zielstationen. Jedes 0/1-Feld braucht genau ein Bit; Zeilen- und Spaltennamen zählen nicht mit. Wie viele Bits braucht die Matrix?",
+          "options": [],
+          "correct": [],
+          "slider": {
+            "min": 0,
+            "max": 160,
+            "step": 1,
+            "answer": 54,
+            "tolerance": 0,
+            "unit": "Bit",
+            "scale": "linear"
+          },
+          "explanation": "Die Matrix hat 9 Zeilen und 6 Spalten, also 9·6 = 54 Einträge. Bei einem Bit pro Eintrag sind das 54 Bit.",
+          "source": {
+            "file": "DS/01_Vorlesungen/Diskrete Strukturen VO8.md",
+            "heading": "2. Endliche Relationen als 0/1-Matrizen"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Relationsmatrix",
+            "Binäre Relation"
+          ]
+        },
+        {
+          "id": "ds-08-l5-q04",
+          "type": "single",
+          "prompt": "Eine App hält fest, welche Nutzer:innen welche Apps installiert haben. Nutzer:innen und Apps sind verschiedene Mengen. Was gilt für die Relationsmatrix?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Sie ist immer quadratisch."
+            },
+            {
+              "id": "b",
+              "text": "Sie ist nur dann gültig, wenn jede Person genau eine App installiert hat."
+            },
+            {
+              "id": "c",
+              "text": "Sie kann rechteckig sein: Nutzer:innen bilden die Zeilen, Apps die Spalten."
+            },
+            {
+              "id": "d",
+              "text": "Ihre Einträge zählen die möglichen Installationswege."
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Die Zeilen stehen für Ausgangselemente und die Spalten für Zielelemente. Bei verschieden großen Mengen ist die Matrix rechteckig.",
+          "source": {
+            "file": "DS/01_Vorlesungen/Diskrete Strukturen VO8.md",
+            "heading": "2. Endliche Relationen als 0/1-Matrizen"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Binäre Relation",
+            "Relationsmatrix"
+          ]
+        },
+        {
+          "id": "ds-08-l5-q05",
+          "type": "truefalse",
+          "prompt": "Eine Kontakt-App trägt ein Paar nur dann ein, wenn beide Personen einander gespeichert haben. Stimmt es, dass diese Relation symmetrisch ist?",
+          "options": [
+            {
+              "id": "true",
+              "text": "Wahr"
+            },
+            {
+              "id": "false",
+              "text": "Falsch"
+            }
+          ],
+          "correct": [
+            "true"
+          ],
+          "explanation": "Wenn A und B einander gespeichert haben, gilt das auch in umgekehrter Richtung: B und A erfüllen dieselbe Bedingung. Genau das bedeutet Symmetrie.",
+          "source": {
+            "file": "DS/01_Vorlesungen/Diskrete Strukturen VO8.md",
+            "heading": "Symmetrisch"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Symmetrie",
+            "Endorelation"
+          ]
+        },
+        {
+          "id": "ds-08-l5-q06",
+          "type": "estimate",
+          "prompt": "Ein Netzwerk hat 12 Router. Selbstverbindungen zählen nicht, und jede Verbindung hat eine Richtung. Wie viele verschiedene direkte Verbindungen sind höchstens möglich?",
+          "options": [],
+          "correct": [],
+          "slider": {
+            "min": 0,
+            "max": 300,
+            "step": 1,
+            "answer": 132,
+            "tolerance": 0,
+            "unit": "Verbindungen",
+            "scale": "linear"
+          },
+          "explanation": "Jeder der 12 Router kann zu 11 anderen Routern zeigen. Damit gibt es 12·11 = 132 mögliche gerichtete Verbindungen.",
+          "source": {
+            "file": "DS/01_Vorlesungen/Diskrete Strukturen VO8.md",
+            "heading": "1. Binäre Relationen und ihre Darstellung"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Binäre Relation",
+            "Endorelation"
+          ]
+        },
+        {
+          "id": "ds-08-l5-q07",
+          "type": "single",
+          "prompt": "Du modellierst erlaubte Spielzüge als Relation R zwischen Spielzuständen. Dabei bedeutet R^k die k-fache Komposition von R mit sich selbst. Welcher Ausdruck beschreibt Zustände, die nach genau drei Zügen erreichbar sind?",
+          "options": [
+            {
+              "id": "a",
+              "text": "R^3"
+            },
+            {
+              "id": "b",
+              "text": "R^{≤3}"
+            },
+            {
+              "id": "c",
+              "text": "R^{<3}"
+            },
+            {
+              "id": "d",
+              "text": "R^0"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "R^3 setzt drei Spielzüge hintereinander zusammen. R^{≤3} würde auch null, einen oder zwei Züge erlauben.",
+          "source": {
+            "file": "DS/01_Vorlesungen/Diskrete Strukturen VO8.md",
+            "heading": "7. k-faches Produkt: exakt, höchstens oder weniger Schritte?"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Relationpotenz",
+            "Pfade und Pfadlänge"
+          ]
+        },
+        {
+          "id": "ds-08-l5-q08",
+          "type": "estimate",
+          "prompt": "In einem Netz mit 8 Stationen ist eine andere Station vom Start aus erreichbar. Wie viele Kanten braucht ein kürzester Weg höchstens?",
+          "options": [],
+          "correct": [],
+          "slider": {
+            "min": 1,
+            "max": 20,
+            "step": 1,
+            "answer": 7,
+            "tolerance": 0,
+            "unit": "Kanten",
+            "scale": "linear"
+          },
+          "explanation": "Ein kürzester Weg wiederholt keinen Knoten, sonst ließe sich ein Umweg entfernen. Bei 8 Stationen kann er daher höchstens 7 Kanten haben.",
+          "source": {
+            "file": "DS/01_Vorlesungen/Diskrete Strukturen VO8.md",
+            "heading": "9. Erreichbarkeit auf einer endlichen Menge"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Erreichbarkeit",
+            "Pfade und Pfadlänge"
+          ]
+        },
+        {
+          "id": "ds-08-l5-q09",
+          "type": "single",
+          "prompt": "Ein Netzwerkprogramm multipliziert 0/1-Matrizen boolesch, um Zwei-Link-Verbindungen zu prüfen. Was bedeutet eine 1 im Ergebnisfeld für ein Start-Ziel-Paar?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Die Zahl der Zwei-Link-Wege steht im Feld."
+            },
+            {
+              "id": "b",
+              "text": "Es gibt genau einen Zwei-Link-Weg."
+            },
+            {
+              "id": "c",
+              "text": "Es gibt mindestens einen passenden Zwischenrouter; mehrere Wege werden trotzdem nur als 1 notiert."
+            },
+            {
+              "id": "d",
+              "text": "Es gibt einen direkten Link, aber keinen Zwischenrouter."
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Für einen Zwischenrouter werden die beiden Kanten mit UND verknüpft; über mögliche Zwischenrouter wird mit ODER verknüpft. Die boolesche Multiplikation zeigt, ob ein Weg existiert, sie zählt ihn nicht.",
+          "source": {
+            "file": "DS/01_Vorlesungen/Diskrete Strukturen VO8.md",
+            "heading": "5. Produkte mit Matrizen berechnen"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Boolesche Matrixmultiplikation",
+            "Relationales Produkt"
+          ]
+        },
+        {
+          "id": "ds-08-l5-q10",
+          "type": "single",
+          "prompt": "Ein Build-Tool soll folgende Regel erfüllen: Wenn Projekt A Projekt B benötigt und B Projekt C benötigt, muss auch der Zusammenhang A nach C in der Relation enthalten sein. Welche Eigenschaft beschreibt diese Regel?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Transitivität"
+            },
+            {
+              "id": "b",
+              "text": "Reflexivität"
+            },
+            {
+              "id": "c",
+              "text": "Symmetrie"
+            },
+            {
+              "id": "d",
+              "text": "Irreflexivität"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "Transitivität verlangt: Aus zwei aufeinanderfolgenden Schritten A→B und B→C muss der direkte Zusammenhang A→C folgen.",
+          "source": {
+            "file": "DS/01_Vorlesungen/Diskrete Strukturen VO8.md",
+            "heading": "Transitiv"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Transitivität",
+            "Relationales Produkt"
+          ]
+        }
+      ]
+    }
+  ]
+}
