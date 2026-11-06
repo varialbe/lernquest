@@ -1,0 +1,505 @@
+{
+  "schemaVersion": 1,
+  "unitId": "era-11",
+  "module": "ERA",
+  "unitNumber": 11,
+  "unitTitle": "Calling Convention und Rekursion",
+  "sourceSha": "724bfb7fa6cfb066ebf2673b4808fbb4d273f8eec07ca6e2f9ffddabd446ebf6",
+  "overview": "Die Unit behandelt die RISC-V Calling Convention für Argumente, Rückgabewerte, Registererhalt und Stackausrichtung. An Beispielen zu 64- und 128-Bit-Werten, Stackframes sowie normaler und endrekursiver Fakultät wird gezeigt, wie Funktionen Werte über Aufrufe hinweg korrekt erhalten und weitergeben.",
+  "entries": [
+    {
+      "id": "era-11-k01",
+      "term": "Calling Convention",
+      "kind": "definition",
+      "short": "Die Calling Convention ist der Vertrag, der festlegt, wie Funktionen Argumente, Rückgabewerte und Registerwerte bei Aufrufen behandeln.",
+      "explanation": "Sie bestimmt, welche Register Argumente und Ergebnisse enthalten, wer Registerwerte sichern muss, wie zusätzliche oder große Argumente übergeben werden und wie der Stack ausgerichtet bleibt. Wenn Caller und Callee denselben Vertrag einhalten, können sie korrekt zusammenarbeiten.",
+      "example": "Ein Caller legt das erste 32-Bit-Argument in `a0`; der Callee liest es dort und gibt einen 32-Bit-Rückgabewert ebenfalls in `a0` zurück.",
+      "pitfalls": [
+        "Die Calling Convention regelt mehr als die Wahl der Argumentregister: Dazu gehören auch Registererhalt, Stack und Rückgabe."
+      ],
+      "related": [
+        "RISC-V ABI",
+        "Caller und Callee",
+        "Unterprogrammaufruf"
+      ],
+      "heading": "1. Calling Convention: gemeinsame Regeln für Aufrufe"
+    },
+    {
+      "id": "era-11-k02",
+      "term": "RISC-V ABI",
+      "kind": "definition",
+      "short": "Die RISC-V ABI legt Regeln für die kompatible Zusammenarbeit von Binärprogrammen und Funktionen fest.",
+      "explanation": "ABI steht für Application Binary Interface. Dazu gehört die Calling Convention mit Regeln für Register, Argumente, Rückgabewerte und Stack; eine ABI kann darüber hinaus weitere Festlegungen für Binärdateien enthalten. Die in dieser Unit behandelte Calling Convention ist Teil der RISC-V ABI.",
+      "example": null,
+      "pitfalls": [
+        "ABI und Calling Convention sind nicht gleichbedeutend: Die Calling Convention ist ein Teil der ABI."
+      ],
+      "related": [
+        "Calling Convention",
+        "RISC-V"
+      ],
+      "heading": "1. Calling Convention: gemeinsame Regeln für Aufrufe"
+    },
+    {
+      "id": "era-11-k03",
+      "term": "Caller und Callee",
+      "kind": "definition",
+      "short": "Der Caller ruft eine Funktion auf, und der Callee ist die aufgerufene Funktion.",
+      "explanation": "Diese Rollen gelten jeweils für einen bestimmten Aufruf. Ruft `main` die Funktion `f` auf, ist `main` der Caller und `f` der Callee; ruft `f` danach `g` auf, ist `f` bei diesem zweiten Aufruf selbst der Caller. Der Caller bereitet die Übergabe vor, und der Callee führt die Funktion gemäß Calling Convention aus.",
+      "example": "`main` übergibt `f` ein Argument in `a0`; `f` gibt sein Ergebnis in `a0` an `main` zurück.",
+      "pitfalls": [
+        "Caller und Callee sind Rollen pro Aufruf und keine festen Eigenschaften einer Funktion."
+      ],
+      "related": [
+        "Calling Convention",
+        "Rückgabewerte"
+      ],
+      "heading": "Caller und Callee"
+    },
+    {
+      "id": "era-11-k04",
+      "term": "Caller-saved-Register",
+      "kind": "definition",
+      "short": "Ein Caller-saved-Register darf der Callee verändern, und der Caller sichert einen alten Wert selbst, falls er ihn nach dem Aufruf noch braucht.",
+      "explanation": "In der hier behandelten RV32-Konvention gehören `ra`, `t0–t6` und `a0–a7` zu den Caller-saved-Registern. Der Caller sichert nur die Werte, die nach dem Aufruf weiter gebraucht werden. Der Callee darf diese Register für Argumente, Ergebnisse oder temporäre Werte verwenden.",
+      "example": "Wenn `t0` vor `call f` einen später benötigten Wert enthält, kann der Caller ihn im Stackframe sichern und nach der Rückkehr wieder laden.",
+      "pitfalls": [
+        "Ein Caller-saved-Register ist nach einem Aufruf nicht automatisch unverändert.",
+        "Der Caller muss nicht jeden Wert sichern, sondern nur die später noch benötigten Werte."
+      ],
+      "related": [
+        "Callee-saved-Register",
+        "Rücksprungadresse `ra`",
+        "Stackframe"
+      ],
+      "heading": "2. Register: Wer sichert was?"
+    },
+    {
+      "id": "era-11-k05",
+      "term": "Callee-saved-Register",
+      "kind": "definition",
+      "short": "Verändert der Callee ein Callee-saved-Register, muss er dessen alten Wert sichern und vor der Rückkehr wiederherstellen.",
+      "explanation": "In der behandelten RV32-Konvention müssen `sp` und `s0–s11` erhalten bleiben. Ein Callee muss ein solches Register nicht sichern, wenn er es nicht verändert. Dadurch kann der Caller Werte über den Aufruf hinweg in einem `s`-Register behalten.",
+      "example": "Wenn `f` `s1` verändert, speichert `f` den ursprünglichen Wert im Prolog und lädt ihn vor der Rückkehr im Epilog wieder.",
+      "pitfalls": [
+        "Callee-saved bedeutet nicht, dass das Register während der Funktion unverändert bleiben muss; der alte Wert muss bei der Rückkehr wiederhergestellt sein."
+      ],
+      "related": [
+        "Caller-saved-Register",
+        "Stackframe",
+        "Prolog und Epilog"
+      ],
+      "heading": "2. Register: Wer sichert was?"
+    },
+    {
+      "id": "era-11-k06",
+      "term": "Rücksprungadresse `ra`",
+      "kind": "definition",
+      "short": "`ra` enthält die Adresse, an der die aufrufende Funktion nach dem Ende des aktuellen Aufrufs fortsetzt.",
+      "explanation": "Ein `call` legt die Fortsetzungsadresse in `ra` ab. In der hier behandelten Konvention ist `ra` caller-saved und darf durch einen weiteren Aufruf überschrieben werden. Eine Funktion, die danach noch zu ihrem Caller zurückkehren muss, sichert deshalb ihre bisherige Rücksprungadresse.",
+      "example": "Wenn `f` von `main` aufgerufen wird und anschließend `g` aufruft, sichert `f` zunächst das `ra`, das zurück zu `main` führt.",
+      "pitfalls": [
+        "Ein weiteres `call` überschreibt den bisherigen Inhalt von `ra`.",
+        "Die Rücksprungadresse zum Caller von `f` und die Rücksprungadresse nach einem Aufruf von `g` sind verschieden."
+      ],
+      "related": [
+        "Caller-saved-Register",
+        "Verschachtelte Aufrufe und `ra`",
+        "Stackframe"
+      ],
+      "heading": "2. Register: Wer sichert was?"
+    },
+    {
+      "id": "era-11-k07",
+      "term": "Verschachtelte Aufrufe und `ra`",
+      "kind": "method",
+      "short": "Eine Funktion sichert ihr `ra`, bevor sie selbst eine weitere Funktion aufruft und danach noch zurückkehren muss.",
+      "explanation": "Jeder `call` schreibt eine neue Rücksprungadresse in `ra`. Damit die ursprüngliche Rückkehradresse nicht verloren geht, speichert die Funktion sie in ihrem Stackframe und stellt sie vor dem eigenen `ret` wieder her.\n\n1. Beim Eintritt die eigene Rücksprungadresse sichern.\n2. Die weitere Funktion mit `call` aufrufen.\n3. Nach deren Rückkehr das gesicherte `ra` laden und mit `ret` zum eigenen Caller zurückkehren.",
+      "example": "Wenn `f` `g` aufruft, kehrt `g` zuerst zu `f` zurück. Danach lädt `f` das zuvor gesicherte `ra` und kehrt zu `main` zurück.",
+      "pitfalls": [
+        "Beim Aufruf von `g` bleibt `ra` nicht automatisch die Rücksprungadresse nach `main`."
+      ],
+      "related": [
+        "Rücksprungadresse `ra`",
+        "Caller-saved-Register",
+        "Stackframe"
+      ],
+      "heading": "2. Register: Wer sichert was?"
+    },
+    {
+      "id": "era-11-k08",
+      "term": "Registerargumente",
+      "kind": "definition",
+      "short": "In RV32 werden die ersten Argumente soweit möglich in `a0–a7` übergeben.",
+      "explanation": "Ein 32-Bit-Wert oder kleiner belegt ein Argumentregister; die Register werden aufsteigend ab `a0` verwendet. Größere Werte können mehrere Register beanspruchen, und Werte über 64 Bit werden in den gezeigten Beispielen über einen Pointer übergeben. Deshalb reichen acht Argumentregister nicht zwangsläufig für acht beliebig große Argumente.",
+      "example": "Bei einer Funktion mit drei 32-Bit-Argumenten stehen diese beim Eintritt in `a0`, `a1` und `a2`.",
+      "pitfalls": [
+        "Die Zahl der Argumentregister entspricht nicht immer der Zahl der übertragbaren Argumente, weil ein großes Argument mehrere Register belegen kann."
+      ],
+      "related": [
+        "Stackargumente",
+        "64-Bit-Argument in RV32",
+        "Übergabe großer Argumente per Pointer"
+      ],
+      "heading": "Argumente in Registern"
+    },
+    {
+      "id": "era-11-k09",
+      "term": "Erweiterung kleiner Argumente in RV32",
+      "kind": "concept",
+      "short": "Ein Argument kleiner als 32 Bit wird auf 32 Bit erweitert, bei signed-Typen mit Sign-Extension und bei unsigned-Typen mit Zero-Extension.",
+      "explanation": "Bei der Sign-Extension wird das Vorzeichenbit nach links fortgesetzt; bei der Zero-Extension werden die zusätzlichen oberen Bits mit Nullen gefüllt. Die Erweiterung bewahrt die signed- beziehungsweise unsigned-Interpretation des Werts bei der Übergabe in einem 32-Bit-Register.",
+      "example": "Ein `signed char` mit Bitmuster `11111111` wird zu 32 Einsen erweitert; ein `unsigned char` mit demselben Muster wird zu `00000000 00000000 00000000 11111111`.",
+      "pitfalls": [
+        "Dasselbe Bitmuster kann nach der Erweiterung einen anderen Wert darstellen, je nachdem, ob der Typ signed oder unsigned ist.",
+        "Bei einem nicht festgelegten `char` muss bekannt sein, ob er signed oder unsigned behandelt wird."
+      ],
+      "related": [
+        "Registerargumente",
+        "Sign Extension und Zero Extension",
+        "Wortbreite und Interpretation"
+      ],
+      "heading": "Argumente in Registern"
+    },
+    {
+      "id": "era-11-k10",
+      "term": "64-Bit-Argument in RV32",
+      "kind": "notation",
+      "short": "Ein 64-Bit-Argument wird in zwei 32-Bit-Argumentregistern übergeben, wobei das Register mit der kleineren Nummer die unteren Bits enthält.",
+      "explanation": "Die 64 Bits werden in ein unteres und ein oberes 32-Bit-Wort geteilt. Bei Übergabe als erstem Argument liegen die unteren Bits in `a0` und die oberen Bits in `a1`. Die Registerfolge beschreibt die Aufteilung eines Werts und nicht zwei getrennte Argumente.",
+      "example": "Für `0x1122334455667788` enthält `a0` `0x55667788` und `a1` `0x11223344`.",
+      "pitfalls": [
+        "Die obere Worthälfte gehört in das Register mit der größeren Nummer."
+      ],
+      "related": [
+        "Registerargumente",
+        "Rückgabewerte",
+        "Mehrwortaddition"
+      ],
+      "heading": "Argumente in Registern"
+    },
+    {
+      "id": "era-11-k11",
+      "term": "Übergabe großer Argumente per Pointer",
+      "kind": "concept",
+      "short": "Ein Argument größer als 64 Bit wird in den gezeigten RV32-Beispielen über einen Pointer auf seinen Speicherbereich übergeben.",
+      "explanation": "Der Wert passt nicht in die vorgesehenen Argumentregister, deshalb übergibt der Caller seine Adresse. Der Callee lädt die benötigten Wörter über diesen Pointer. Bei einem Struct-Parameter kann der C-Code weiterhin einen Wert als Parameter zeigen, obwohl die Maschinenebene eine Adresse übergibt.",
+      "example": "Ein 128-Bit-Struct kann in `a1` durch einen Pointer auf seine 16 Byte dargestellt werden.",
+      "pitfalls": [
+        "Ein übergebener Pointer ist eine Adresse und nicht der große Wert selbst."
+      ],
+      "related": [
+        "Pointerparameter",
+        "Registerargumente",
+        "Ergebnis-Pointer"
+      ],
+      "heading": "Argumente in Registern"
+    },
+    {
+      "id": "era-11-k12",
+      "term": "Stackargumente",
+      "kind": "definition",
+      "short": "Argumente, für die die Argumentregister nicht ausreichen, werden über Speicherplätze auf dem Stack übergeben.",
+      "explanation": "Beim Eintritt in den Callee liegt das erste Stackargument an `0(sp)`; weitere Stackargumente folgen an höheren Adressen. Jeder Stackparameter belegt mindestens 4 Byte, auch wenn sein Datentyp kleiner ist. Ein 64-Bit-Wert auf dem Stack beginnt an einer 8-Byte-aligned Adresse.",
+      "example": "Bei zehn `short`-Argumenten stehen die ersten acht auf 32 Bit erweitert in `a0–a7`; das neunte liegt bei `0(sp)` und das zehnte bei `4(sp)`.",
+      "pitfalls": [
+        "Die Offsets `0(sp)` und `4(sp)` beziehen sich auf `sp` beim Eintritt in den Callee; nach einer Frame-Reservierung ändern sich die Offsets relativ zum neuen `sp`."
+      ],
+      "related": [
+        "Registerargumente",
+        "Stackausrichtung",
+        "Stack Pointer"
+      ],
+      "heading": "Zusätzliche Argumente auf dem Stack"
+    },
+    {
+      "id": "era-11-k13",
+      "term": "Stackausrichtung",
+      "kind": "theorem",
+      "short": "Der Stackpointer bleibt auf einer 16-Byte-Grenze ausgerichtet, sodass `sp mod 16 = 0` gilt.",
+      "explanation": "Ist `sp` bereits ausgerichtet, muss eine reservierte Framegröße ein Vielfaches von 16 Byte sein, damit die Ausrichtung erhalten bleibt. Ein Frame darf deshalb ungenutzten Füllplatz enthalten. Der Stack wächst dabei zu kleineren Adressen.",
+      "example": "Ein Frame von 16 oder 32 Byte erhält die Ausrichtung; ein Frame von 12 Byte würde sie bei ausgerichtetem Eintritts-`sp` verletzen.",
+      "pitfalls": [
+        "Nur den tatsächlich verwendeten Speicher zu reservieren kann die Ausrichtung brechen, wenn die Framegröße kein Vielfaches von 16 ist."
+      ],
+      "related": [
+        "Stackargumente",
+        "Stackframe",
+        "Stack Pointer"
+      ],
+      "heading": "Feste Regel: immer 16-Byte-aligned"
+    },
+    {
+      "id": "era-11-k14",
+      "term": "Rückgabewerte",
+      "kind": "concept",
+      "short": "Ein Rückgabewert wird so übergeben, wie derselbe Wert als erstes Argument übergeben würde.",
+      "explanation": "In RV32 steht ein 32-Bit-Ergebnis in `a0`; bei einem 64-Bit-Ergebnis enthalten `a0` und `a1` das untere und obere 32-Bit-Wort. Ein Ergebnis größer als 64 Bit wird in den gezeigten Beispielen über einen Speicherbereich zurückgegeben, dessen Adresse der Caller bereitstellt.",
+      "example": "Ein `uint64_t`-Ergebnis wird mit den unteren 32 Bit in `a0` und den oberen 32 Bit in `a1` zurückgegeben.",
+      "pitfalls": [
+        "Ein 64-Bit-Ergebnis in RV32 passt nicht vollständig in `a0`."
+      ],
+      "related": [
+        "64-Bit-Argument in RV32",
+        "Ergebnis-Pointer",
+        "Registerargumente"
+      ],
+      "heading": "Rückgabe wie das erste Argument"
+    },
+    {
+      "id": "era-11-k15",
+      "term": "Ergebnis-Pointer",
+      "kind": "definition",
+      "short": "Für ein Ergebnis von mehr als 64 Bit reserviert der Caller einen Ergebnisbereich und übergibt dessen Adresse in `a0`.",
+      "explanation": "Der Pointer ist ein zusätzlicher, versteckter Parameter der Maschinenübergabe: Zu Beginn enthält `a0` die Adresse, an die der Callee das Ergebnis schreibt. Die folgenden expliziten Argumente rücken dadurch in die nächsten Argumentregister. So kann die Funktion ein Ergebnis zurückgeben, das nicht in `a0` und `a1` passt.",
+      "example": "Bei `add_uint128_val(a, b)` zeigt `a0` auf den 16-Byte-Ergebnisbereich, während `a1` und `a2` auf die beiden Eingabewerte zeigen.",
+      "pitfalls": [
+        "Beim Eintritt enthält `a0` die Adresse des Ergebnisbereichs und nicht die ersten Ergebnisbits."
+      ],
+      "related": [
+        "Rückgabewerte",
+        "Pointerparameter",
+        "Stackframe"
+      ],
+      "heading": "Rückgabe wie das erste Argument"
+    },
+    {
+      "id": "era-11-k16",
+      "term": "Beispiel `mul_64`: 32-Bit-Faktoren, 64-Bit-Produkt",
+      "kind": "example",
+      "short": "`mul_64` multipliziert zwei 32-Bit-Faktoren und gibt das 64-Bit-Produkt in `a0/a1` zurück.",
+      "explanation": "Beim Eintritt liegen die Faktoren in `a0` und `a1`. `mul` berechnet die unteren 32 Bits des Produkts, und `mulhu` berechnet die oberen 32 Bits einer unsigned Multiplikation. Der gezeigte Code legt das untere Produkt zunächst in `a2` ab, damit beide Faktoren für `mulhu` erhalten bleiben.",
+      "example": "Für `uint64_t mul_64(uint32_t a, uint32_t b)` enthält `a0` nach der Rückkehr das untere und `a1` das obere 32-Bit-Wort des Produkts.",
+      "pitfalls": [
+        "Die unteren Produktbits dürfen nicht vor `mulhu` einen der noch benötigten Faktoren überschreiben."
+      ],
+      "related": [
+        "Rückgabewerte",
+        "64-Bit-Argument in RV32",
+        "Registerargumente"
+      ],
+      "heading": "Beispiel: 32-Bit-Faktoren, 64-Bit-Produkt"
+    },
+    {
+      "id": "era-11-k17",
+      "term": "Pointerparameter",
+      "kind": "definition",
+      "short": "Ein Pointerparameter übergibt die Adresse eines Speicherbereichs, auf den die Funktion lesend oder schreibend zugreifen kann.",
+      "explanation": "Bei den großen Struct-Parametern zeigt der Pointer auf die Eingabedaten; der Callee lädt deren Wörter anhand der Adresse und von Offsets. Ein Ergebnis-Pointer zeigt dagegen auf Speicher, in den der Callee das Ergebnis schreibt. So können große Werte auf der Maschinenebene verarbeitet werden.",
+      "example": "Wenn `a1` auf einen 16-Byte-Struct zeigt, liest `lw a3, 0(a1)` dessen erstes 32-Bit-Wort.",
+      "pitfalls": [
+        "Die Adresse des Structs und der Inhalt des Structs sind verschiedene Dinge.",
+        "Ein Pointerparameter auf Maschinenebene bedeutet nicht zwingend, dass die C-Funktionssignatur explizit einen Pointer enthält."
+      ],
+      "related": [
+        "Übergabe großer Argumente per Pointer",
+        "Ergebnis-Pointer",
+        "Pointer und Dereferenzierung"
+      ],
+      "heading": "Warum Pointer, obwohl im C-Code Werte stehen?"
+    },
+    {
+      "id": "era-11-k18",
+      "term": "`uint128_t`-Speicherlayout",
+      "kind": "notation",
+      "short": "Der gezeigte 128-Bit-Struct besteht aus den 64-Bit-Feldern `lo` und `hi`, die auf RV32 in vier 32-Bit-Wörter zerlegt werden.",
+      "explanation": "Der Struct ist als zwei `uint64_t`-Felder definiert: zuerst `lo`, dann `hi`. Im gezeigten little-endian Layout liegen die Wörter an den Offsets 0, 4, 8 und 12; die niedrigeren Bits eines Felds liegen am kleineren Offset. Die Offsets ermöglichen es dem Assembler, einzelne Wörter mit `lw` zu laden und mit `sw` zu speichern.",
+      "example": "`0(a1)` und `4(a1)` sind die unteren und oberen 32 Bits von `lo`; `8(a1)` und `12(a1)` sind die unteren und oberen 32 Bits von `hi`.",
+      "pitfalls": [
+        "Die Reihenfolge der Felder `lo` und `hi` ist nicht dasselbe wie die Reihenfolge der 32-Bit-Wörter innerhalb jedes Felds."
+      ],
+      "related": [
+        "Pointerparameter",
+        "Mehrwortaddition",
+        "Little Endian und Big Endian"
+      ],
+      "heading": "5. 128-Bit-Beispiel: Pointer, Speicherlayout und Ergebnisbereich"
+    },
+    {
+      "id": "era-11-k19",
+      "term": "Mehrwortaddition",
+      "kind": "method",
+      "short": "Eine Mehrwortaddition zerlegt einen größeren Wert in kleinere Wörter und berücksichtigt Überträge zwischen diesen Wörtern.",
+      "explanation": "Die gezeigte Addition verarbeitet die beiden 64-Bit-Felder `lo` und `hi` jeweils als zwei 32-Bit-Wörter. Nach der Addition der unteren Wörter wird ein Übertrag in das obere Wort desselben 64-Bit-Felds addiert.\n\n1. Die Wörter der beiden Operanden laden.\n2. Die unteren 32-Bit-Wörter addieren und den Übertrag bestimmen.\n3. Die oberen 32-Bit-Wörter addieren und den jeweiligen Übertrag einbeziehen.\n4. Die vier Ergebniswörter in den Ergebnisbereich schreiben.",
+      "example": "`0xFFFFFFFF + 0x00000001` ergibt ein unteres Wort `0x00000000` und einen Übertrag `1` in das obere Wort.",
+      "pitfalls": [
+        "Die gezeigte Funktion addiert `lo` und `hi` getrennt; ein Übertrag aus dem gesamten 64-Bit-Feld `lo` in das Feld `hi` fehlt."
+      ],
+      "related": [
+        "`uint128_t`-Speicherlayout",
+        "Übertrag mit `sltu`",
+        "Übertrag und Ausleihen"
+      ],
+      "heading": "5. 128-Bit-Beispiel: Pointer, Speicherlayout und Ergebnisbereich"
+    },
+    {
+      "id": "era-11-k20",
+      "term": "Übertrag mit `sltu`",
+      "kind": "method",
+      "short": "`sltu` kann nach der Addition zweier 32-Bit-Wörter den Übertrag als `0` oder `1` bestimmen.",
+      "explanation": "Nach einer Addition modulo $2^{32}$ ist das Ergebnis kleiner als ein Summand, wenn bei der Addition ein Übertrag aus dem 32-Bit-Wort entstanden ist. Ein unsigned Vergleich mit `sltu` liefert dann `1`, sonst `0`; dieser Wert wird zum nächsthöheren Wort addiert. Im gezeigten Code wird damit der Übertrag innerhalb eines 64-Bit-Felds behandelt.",
+      "example": "Nach `0xFFFFFFFF + 0x00000001` ist das gespeicherte Ergebnis `0x00000000`; weil es unsigned kleiner als `0x00000001` ist, liefert der Vergleich `1`.",
+      "pitfalls": [
+        "`sltu` prüft unsigned; ein signed Vergleich ist für diesen Übertragstest nicht austauschbar.",
+        "Der Übertrag vom Feld `lo` zum Feld `hi` wird dadurch nicht automatisch berechnet."
+      ],
+      "related": [
+        "Mehrwortaddition",
+        "Unsigned-Interpretation"
+      ],
+      "heading": "5. 128-Bit-Beispiel: Pointer, Speicherlayout und Ergebnisbereich"
+    },
+    {
+      "id": "era-11-k21",
+      "term": "Stackframe",
+      "kind": "definition",
+      "short": "Ein Stackframe ist der Stackbereich, den ein aktiver Funktionsaufruf für gesicherte Register, lokale Werte und gegebenenfalls einen Ergebnisbereich reserviert.",
+      "explanation": "Ein Frame hält Daten fest, die ein Aufruf während weiterer Aufrufe noch benötigt. Dazu können `ra`, Argumente oder Zwischenwerte gehören; nach der Rückkehr gibt die Funktion ihren Frame wieder frei. Die Framegröße muss so gewählt sein, dass die 16-Byte-Ausrichtung des Stacks erhalten bleibt.",
+      "example": "Der gezeigte `show_alloc_on_stack`-Frame reserviert 32 Byte, sichert `ra` und legt den 16-Byte-Ergebnisbereich bei den Offsets 8 bis 23 an.",
+      "pitfalls": [
+        "Ein eigener Frame ist nicht für jede Funktion nötig; er wird gebraucht, wenn Werte gesichert oder lokaler Stackplatz reserviert werden muss.",
+        "Ein Frame kann Füllplatz enthalten, damit `sp` aligned bleibt."
+      ],
+      "related": [
+        "Stackausrichtung",
+        "Rücksprungadresse `ra`",
+        "Rekursion",
+        "Stackframes"
+      ],
+      "heading": "6. Rekursion in RISC-V"
+    },
+    {
+      "id": "era-11-k22",
+      "term": "Rekursion",
+      "kind": "definition",
+      "short": "Rekursion liegt vor, wenn eine Funktion sich selbst direkt oder über andere Funktionen aufruft.",
+      "explanation": "Jeder aktive rekursive Aufruf ist ein eigener Funktionsaufruf und folgt der Calling Convention. Werte und Rücksprungadressen, die nach einem tieferen Aufruf noch gebraucht werden, müssen getrennt erhalten bleiben; typischerweise erhält jeder aktive Aufruf dafür einen eigenen Stackframe. Die Rückkehr löst die Aufrufe in umgekehrter Reihenfolge auf.",
+      "example": "Bei `fac(3)` folgen die Aufrufe `fac(2)`, `fac(1)` und `fac(0)`; danach kehren sie der Reihe nach zurück.",
+      "pitfalls": [
+        "Wenn ein rekursiver Aufruf ein Register überschreiben darf, darf ein noch benötigter Wert nicht ungesichert darin verbleiben."
+      ],
+      "related": [
+        "Stackframe",
+        "Rücksprungadresse `ra`",
+        "Fakultät durch normale Rekursion",
+        "Endrekursion"
+      ],
+      "heading": "6. Rekursion in RISC-V"
+    },
+    {
+      "id": "era-11-k23",
+      "term": "Sicherung von Rekursionszustand",
+      "kind": "method",
+      "short": "Jeder aktive rekursive Aufruf sichert die Werte, die nach dem nächsten Aufruf noch für seine eigene Fortsetzung gebraucht werden.",
+      "explanation": "Dazu gehören die eigene Rücksprungadresse, benötigte Parameter oder Zwischenwerte sowie veränderte Callee-saved-Register. Der Stack trennt die Werte der einzelnen Aufrufebenen, sodass ein tieferer Aufruf sie nicht überschreibt.\n\n1. Benötigte Werte vor dem rekursiven Aufruf im eigenen Frame sichern.\n2. Den rekursiven Aufruf ausführen.\n3. Nach dessen Rückkehr die gesicherten Werte laden und die ausstehende Arbeit erledigen.",
+      "example": "Bei `fac(n) = n * fac(n-1)` sichert jeder Aufruf sein ursprüngliches `n`, weil es nach der Rückkehr noch für die Multiplikation benötigt wird.",
+      "pitfalls": [
+        "Das Argumentregister `a0` enthält nach dem Unteraufruf dessen Rückgabewert und nicht mehr das ursprüngliche `n`."
+      ],
+      "related": [
+        "Rekursion",
+        "Stackframe",
+        "Caller-saved-Register",
+        "Rücksprungadresse `ra`"
+      ],
+      "heading": "6. Rekursion in RISC-V"
+    },
+    {
+      "id": "era-11-k24",
+      "term": "Push, Pop und Framepointer",
+      "kind": "concept",
+      "short": "Push sichert einen Wert auf dem Stack, Pop stellt ihn wieder her, und ein Framepointer kann eine feste Bezugadresse innerhalb des Frames liefern.",
+      "explanation": "Bei der gezeigten RV32-Arbeit wird Push typischerweise durch das Reservieren von Stackplatz und anschließendes `sw` umgesetzt; Pop lädt den Wert mit `lw` und gibt danach den Platz frei. Ein Framepointer hält eine stabile Adresse für Zugriffe auf Frameinhalte, auch wenn sich `sp` ändert. Wird `s0` dafür verwendet und verändert, muss sein alter Wert als Callee-saved-Register gesichert werden.",
+      "example": "Ein Frame kann mit `addi sp, sp, -16` angelegt, ein Wert mit `sw ra, 12(sp)` gesichert und später durch Laden und `addi sp, sp, 16` wieder abgebaut werden.",
+      "pitfalls": [
+        "Die Ausrichtung von `sp` muss auch beim Reservieren und Freigeben von Speicher erhalten bleiben.",
+        "Ein Framepointer ist in den gezeigten einfachen Fakultätsbeispielen nicht erforderlich."
+      ],
+      "related": [
+        "Stackframe",
+        "Stackausrichtung",
+        "Callee-saved-Register",
+        "Stack: PUSH und POP"
+      ],
+      "heading": "Rückblick: Push, Pop und Framepointer"
+    },
+    {
+      "id": "era-11-k25",
+      "term": "Fakultät durch normale Rekursion",
+      "kind": "example",
+      "short": "Die normale rekursive Fakultät ruft `fac(n−1)` auf und multipliziert dessen Ergebnis nach der Rückkehr mit `n`.",
+      "explanation": "Für nichtnegative ganze Zahlen gilt `fac(0) = 1` und `fac(n) = n · fac(n−1)` für `n > 0`. Jeder nichttriviale Aufruf sichert sein ursprüngliches `n` und `ra`, ruft `fac(n−1)` auf und multipliziert anschließend das zurückgegebene Ergebnis mit dem gesicherten `n`. Die Rechnung nach der Rückkehr macht diese Form nicht endrekursiv.",
+      "example": "Bei `fac(3)` liefert `fac(0)` zuerst `1`; beim Zurückkehren entstehen `1 · 1 = 1`, `2 · 1 = 2` und `3 · 2 = 6`.",
+      "pitfalls": [
+        "Ohne Sicherung des ursprünglichen `n` ist der Faktor nach dem rekursiven Aufruf nicht mehr verfügbar.",
+        "Die gezeigte Implementierung behandelt negative Eingaben und signed-32-Bit-Überlauf nicht."
+      ],
+      "related": [
+        "Rekursion",
+        "Sicherung von Rekursionszustand",
+        "Endrekursion",
+        "Rücksprungadresse `ra`"
+      ],
+      "heading": "Ergänztes Beispiel: einfache rekursive Fakultät"
+    },
+    {
+      "id": "era-11-k26",
+      "term": "Endrekursion",
+      "kind": "definition",
+      "short": "Eine Funktion ist endrekursiv, wenn der rekursive Aufruf ihr letzter Arbeitsschritt ist und danach keine weitere Berechnung mit seinem Ergebnis folgt.",
+      "explanation": "Bei der Fakultät wird das bisherige Produkt vor dem nächsten Aufruf aktualisiert und als Akkumulatorargument weitergegeben. Die normale Form `n * fac(n-1)` ist nicht endrekursiv, weil die Multiplikation nach der Rückkehr stattfindet. Ein endrekursiver Aufruf kann als Tail Call umgesetzt werden, wenn die Calling Convention eingehalten wird.",
+      "example": "`factorial(n, acc)` gibt bei `n == 0` `acc` zurück und ruft sonst `factorial(n-1, n*acc)` auf.",
+      "pitfalls": [
+        "Ein rekursiver Aufruf wird nicht allein dadurch endrekursiv, dass er am Ende eines Ausdrucks steht; nach seiner Rückkehr darf keine Arbeit mehr ausstehen."
+      ],
+      "related": [
+        "Rekursion",
+        "Akkumulator `acc`",
+        "Tail Call `tail`",
+        "Fakultät durch normale Rekursion"
+      ],
+      "heading": "7. Endrekursion / Tail Recursion"
+    },
+    {
+      "id": "era-11-k27",
+      "term": "Akkumulator `acc`",
+      "kind": "definition",
+      "short": "Ein Akkumulator speichert ein Zwischenergebnis und wird bei jedem endrekursiven Schritt aktualisiert weitergegeben.",
+      "explanation": "In der endrekursiven Fakultät steht `acc` für das bisherige Produkt. Er startet mit `1`, wird vor dem nächsten Aufruf mit `n` multipliziert und enthält beim Basisfall das fertige Ergebnis. Dadurch muss nach dem rekursiven Aufruf keine Multiplikation mehr ausgeführt werden.",
+      "example": "Der Ablauf für `3!` ist `factorial(3,1) → factorial(2,3) → factorial(1,6) → factorial(0,6)`.",
+      "pitfalls": [
+        "Für die Fakultät muss der Startwert `1` sein, weil er das neutrale Element der Multiplikation ist."
+      ],
+      "related": [
+        "Endrekursion",
+        "Tail Call `tail`"
+      ],
+      "heading": "7. Endrekursion / Tail Recursion"
+    },
+    {
+      "id": "era-11-k28",
+      "term": "Tail Call `tail`",
+      "kind": "notation",
+      "short": "`tail` übergibt die Kontrolle an die nächste Funktion und erhält dabei die Rücksprungadresse des ursprünglichen Callers.",
+      "explanation": "Ein Tail Call passt, wenn die aktuelle Funktion nach dem Aufruf nichts mehr tun muss. Im gezeigten endrekursiven Fakultätsbeispiel werden die aktualisierten Argumente weitergegeben und kein neuer Stackframe benötigt, sodass der Stack mit den rekursiven Schritten nicht wächst. Ein zuvor angelegter eigener Frame und veränderte Callee-saved-Register müssen vor dem Tail Call wiederhergestellt werden.",
+      "example": "In `factorial` aktualisiert der Code `a0` und `a1` und führt dann `tail factorial` aus; der Basisfall beendet die ursprüngliche Aufrufkette mit `ret`.",
+      "pitfalls": [
+        "Ein `call` lässt die aktuelle Funktion nach der Rückkehr fortsetzen; `tail` ist nur passend, wenn keine weitere Arbeit mehr aussteht.",
+        "Einen normalen Fakultätsaufruf darf man nicht einfach durch `tail` ersetzen, weil dadurch die Multiplikation nach der Rückkehr verloren ginge."
+      ],
+      "related": [
+        "Endrekursion",
+        "Akkumulator `acc`",
+        "Rücksprungadresse `ra`",
+        "Stackframe"
+      ],
+      "heading": "RISC-V-Code aus dem Bild"
+    }
+  ],
+  "generator": {
+    "model": "gpt-6-luna",
+    "effort": "xhigh",
+    "promptVersion": "k1",
+    "generatedAt": "2026-11-06T23:23:51.495Z"
+  }
+}
