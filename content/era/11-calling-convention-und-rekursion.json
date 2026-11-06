@@ -1,0 +1,1982 @@
+{
+  "schemaVersion": 1,
+  "id": "era-11",
+  "module": "ERA",
+  "number": 11,
+  "slug": "calling-convention-und-rekursion",
+  "title": "Calling Convention und Rekursion",
+  "summary": "Die RISC-V Calling Convention legt fest, wie Funktionen Argumente, Rückgabewerte und Registerwerte über Aufrufe hinweg behandeln. An Beispielen zu Stackframes, großen Datentypen und Fakultät lernst du, verschachtelte Aufrufe und Rekursion korrekt umzusetzen.",
+  "concepts": [
+    "Calling Convention",
+    "RISC-V ABI",
+    "Caller und Callee",
+    "Caller-saved und Callee-saved",
+    "Rücksprungadresse",
+    "Registerargumente",
+    "Stackargumente",
+    "Stackausrichtung",
+    "Rückgabewerte",
+    "Ergebnis-Pointer",
+    "Stackframe",
+    "Pointerparameter",
+    "Mehrwortaddition",
+    "Rekursion",
+    "Endrekursion"
+  ],
+  "keyFacts": [
+    "Die Calling Convention ist ein Vertrag für Funktionsaufrufe und Teil der RISC-V ABI.",
+    "Der Caller ruft eine Funktion auf; der Callee ist die aufgerufene Funktion.",
+    "Caller-saved-Register darf ein Callee verändern; der Caller sichert benötigte alte Werte vor dem Aufruf.",
+    "Verändert ein Callee ein Callee-saved-Register, muss er dessen alten Wert sichern und vor der Rückkehr wiederherstellen.",
+    "Zu den Caller-saved-Registern gehören ra, t0–t6 und a0–a7; sp und s0–s11 müssen erhalten bleiben.",
+    "Ein weiterer call überschreibt ra. Eine Funktion, die danach noch zurückkehren muss, sichert ihre bisherige Rücksprungadresse.",
+    "In RV32 wird ein Wert kleiner als 32 Bit auf 32 Bit erweitert: signed mit Sign-Extension, unsigned mit Zero-Extension.",
+    "Ein 64-Bit-Argument belegt zwei a-Register; die unteren Bits liegen im Register mit der kleineren Nummer.",
+    "Argumente größer als 64 Bit werden über einen Pointer übergeben.",
+    "Wenn a0–a7 nicht ausreichen, liegen weitere Stackargumente ab 0(sp); jeder belegt mindestens 4 Byte.",
+    "Der Stack bleibt 16-Byte-aligned. Bei bereits ausgerichtetem sp müssen reservierte Framegrößen Vielfache von 16 Byte sein.",
+    "Rückgabewerte werden wie das erste Argument übergeben: ein 32-Bit-Wert in a0, ein 64-Bit-Wert in a0/a1.",
+    "Für ein 128-Bit-Ergebnis reserviert der Caller Speicher und übergibt dessen Adresse in a0.",
+    "Jeder aktive rekursive Aufruf braucht eigene Stackdaten für Werte und Rücksprungadressen, die nach einem weiteren Aufruf noch gebraucht werden.",
+    "Bei normaler Fakultätsrekursion wird nach der Rückkehr multipliziert; bei Endrekursion wird das Zwischenergebnis als Akkumulator weitergegeben.",
+    "Ein Tail Call erhält die Rücksprungadresse des ursprünglichen Callers und benötigt im gezeigten Beispiel keinen neuen Stackframe.",
+    "Die gezeigte 128-Bit-Addition behandelt Überträge zwischen 32-Bit-Wörtern innerhalb eines 64-Bit-Feldes, aber keinen Übertrag vom Feld lo zum Feld hi."
+  ],
+  "tags": [],
+  "links": [],
+  "source": {
+    "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO11.md",
+    "sha256": "724bfb7fa6cfb066ebf2673b4808fbb4d273f8eec07ca6e2f9ffddabd446ebf6",
+    "commit": "416394a2483995efcb3d70b64616069b78202c4b"
+  },
+  "generator": {
+    "model": "gpt-6-luna",
+    "effort": "xhigh",
+    "reviewEffort": "high",
+    "promptVersion": "v3",
+    "generatedAt": "2026-11-06T23:12:13.829Z",
+    "review": {
+      "checked": 44,
+      "fixed": 2,
+      "removed": 0,
+      "notes": "Alle 44 Fragen geprüft. Zwei Fragen wurden selbsttragend gemacht: Die 128-Bit-Addition benennt nun ihre Übertragsregeln; die Rückgabe aus show_alloc_on_stack enthält die nötige Speicherlayout-Information."
+    }
+  },
+  "levels": [
+    {
+      "id": "era-11-l1",
+      "index": 1,
+      "kind": "basics",
+      "title": "Grundlagen",
+      "questions": [
+        {
+          "id": "era-11-l1-q01",
+          "type": "single",
+          "prompt": "Wofür steht die Abkürzung ABI?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Application Binary Interface"
+            },
+            {
+              "id": "b",
+              "text": "Application Buffer Interrupt"
+            },
+            {
+              "id": "c",
+              "text": "Assembler Branch Index"
+            },
+            {
+              "id": "d",
+              "text": "Address Base Instruction"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "ABI steht für Application Binary Interface. Die RISC-V ABI legt unter anderem die Regeln der Calling Convention fest.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO11.md",
+            "heading": "1. Calling Convention: gemeinsame Regeln für Aufrufe"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "RISC-V ABI",
+            "Calling Convention"
+          ]
+        },
+        {
+          "id": "era-11-l1-q02",
+          "type": "multi",
+          "prompt": "Welche Aussagen zur Calling Convention treffen zu? Wähle alle richtigen Aussagen; mehrere können richtig sein.",
+          "options": [
+            {
+              "id": "a",
+              "text": "Sie regelt auch Registerverantwortung und Stackausrichtung."
+            },
+            {
+              "id": "b",
+              "text": "Der Caller ruft eine Funktion auf; der Callee ist die aufgerufene Funktion."
+            },
+            {
+              "id": "c",
+              "text": "Sie legt fest, welche Maschinenbefehle die ISA enthält."
+            },
+            {
+              "id": "d",
+              "text": "Sie bestimmt die Byte-Reihenfolge im Speicher."
+            },
+            {
+              "id": "e",
+              "text": "Sie legt fest, welche Register Argumente und Rückgabewerte enthalten."
+            }
+          ],
+          "correct": [
+            "a",
+            "b",
+            "e"
+          ],
+          "explanation": "Die Calling Convention koordiniert Argumente, Rückgabewerte, Registerverantwortung und Stackregeln. Befehlssatz und Byte-Reihenfolge sind andere Architekturmerkmale.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO11.md",
+            "heading": "1. Calling Convention: gemeinsame Regeln für Aufrufe"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Calling Convention",
+            "Caller und Callee",
+            "RISC-V ABI"
+          ]
+        },
+        {
+          "id": "era-11-l1-q03",
+          "type": "multi",
+          "prompt": "Welche Registergruppen sind Caller-saved? Wähle alle richtigen Aussagen; mehrere können richtig sein.",
+          "options": [
+            {
+              "id": "a",
+              "text": "ra und t0–t6"
+            },
+            {
+              "id": "b",
+              "text": "a0–a7"
+            },
+            {
+              "id": "c",
+              "text": "sp"
+            },
+            {
+              "id": "d",
+              "text": "s0–s11"
+            }
+          ],
+          "correct": [
+            "a",
+            "b"
+          ],
+          "explanation": "ra, t0–t6 und a0–a7 sind Caller-saved. sp und s0–s11 müssen erhalten bleiben.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO11.md",
+            "heading": "2. Register: Wer sichert was?"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Caller-saved und Callee-saved",
+            "Rücksprungadresse"
+          ]
+        },
+        {
+          "id": "era-11-l1-q04",
+          "type": "truefalse",
+          "prompt": "Ein Callee muss jedes s-Register sichern, auch wenn er es gar nicht verändert.",
+          "options": [
+            {
+              "id": "true",
+              "text": "Wahr"
+            },
+            {
+              "id": "false",
+              "text": "Falsch"
+            }
+          ],
+          "correct": [
+            "false"
+          ],
+          "explanation": "Der Callee muss ein Callee-saved-Register nur sichern, wenn er es verändert. Unveränderte Register brauchen keine Sicherung.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO11.md",
+            "heading": "2. Register: Wer sichert was?"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Caller-saved und Callee-saved"
+          ]
+        },
+        {
+          "id": "era-11-l1-q05",
+          "type": "cloze",
+          "prompt": "Ein weiterer `call` überschreibt die Rücksprungadresse in `___`.",
+          "options": [
+            {
+              "id": "a",
+              "text": "`sp`"
+            },
+            {
+              "id": "b",
+              "text": "`s0`"
+            },
+            {
+              "id": "c",
+              "text": "`x0`"
+            },
+            {
+              "id": "d",
+              "text": "`ra`"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "`call` legt die neue Fortsetzungsadresse in ra ab. Soll die bisherige Rücksprungadresse später noch verwendet werden, muss sie vorher gesichert werden.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO11.md",
+            "heading": "2. Register: Wer sichert was?"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Rücksprungadresse",
+            "Caller-saved und Callee-saved"
+          ]
+        },
+        {
+          "id": "era-11-l1-q06",
+          "type": "cloze",
+          "prompt": "Ein unsigned Wert mit weniger als 32 Bit wird in RV32 durch ___ auf 32 Bit erweitert.",
+          "options": [
+            {
+              "id": "a",
+              "text": "Sign-Extension"
+            },
+            {
+              "id": "b",
+              "text": "Bitrotation"
+            },
+            {
+              "id": "c",
+              "text": "Vorzeichenumkehr"
+            },
+            {
+              "id": "d",
+              "text": "Zero-Extension"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Bei einem unsigned Wert werden links Nullen ergänzt. Bei einem signed Wert wird stattdessen das Vorzeichenbit fortgesetzt.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO11.md",
+            "heading": "Argumente in Registern"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Registerargumente"
+          ]
+        },
+        {
+          "id": "era-11-l1-q07",
+          "type": "single",
+          "prompt": "Wie wird ein 64-Bit-Argument in RV32 über Register übergeben?",
+          "options": [
+            {
+              "id": "a",
+              "text": "In einem a-Register; die oberen Bits werden verworfen."
+            },
+            {
+              "id": "b",
+              "text": "In zwei a-Registern; die unteren Bits stehen im Register mit der kleineren Nummer."
+            },
+            {
+              "id": "c",
+              "text": "In zwei s-Registern; die oberen Bits stehen im Register mit der kleineren Nummer."
+            },
+            {
+              "id": "d",
+              "text": "Immer ausschließlich auf dem Stack."
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "Ein 64-Bit-Wert belegt zwei 32-Bit-Argumentregister. Das Register mit der kleineren Nummer enthält den unteren Teil.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO11.md",
+            "heading": "Argumente in Registern"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Registerargumente"
+          ]
+        },
+        {
+          "id": "era-11-l1-q08",
+          "type": "single",
+          "prompt": "Wie wird in der hier verwendeten RV32 Calling Convention ein Argument mit mehr als 64 Bit übergeben?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Über das Nullregister `x0`"
+            },
+            {
+              "id": "b",
+              "text": "Als Immediate im `call`-Befehl"
+            },
+            {
+              "id": "c",
+              "text": "Über einen Pointer auf den Wert"
+            },
+            {
+              "id": "d",
+              "text": "Immer als drei aufeinanderfolgende a-Register"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Werte größer als 64 Bit werden über eine Adresse übergeben. Der Callee kann über diesen Pointer auf den Wert zugreifen.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO11.md",
+            "heading": "Argumente in Registern"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Registerargumente",
+            "Pointerparameter"
+          ]
+        },
+        {
+          "id": "era-11-l1-q09",
+          "type": "single",
+          "prompt": "Wo liegt beim Eintritt in den Callee das erste Stackargument?",
+          "options": [
+            {
+              "id": "a",
+              "text": "An `-4(sp)`"
+            },
+            {
+              "id": "b",
+              "text": "In `a7`"
+            },
+            {
+              "id": "c",
+              "text": "An `0(sp)`"
+            },
+            {
+              "id": "d",
+              "text": "An `0(ra)`"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Das erste Stackargument liegt beim Funktionseintritt an 0(sp). Weitere Stackargumente liegen an höheren Adressen.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO11.md",
+            "heading": "Zusätzliche Argumente auf dem Stack"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Stackargumente"
+          ]
+        },
+        {
+          "id": "era-11-l1-q10",
+          "type": "truefalse",
+          "prompt": "Bei ausgerichtetem Stack muss `sp mod 16 = 0` gelten.",
+          "options": [
+            {
+              "id": "true",
+              "text": "Wahr"
+            },
+            {
+              "id": "false",
+              "text": "Falsch"
+            }
+          ],
+          "correct": [
+            "true"
+          ],
+          "explanation": "Die feste Regel lautet, den Stack 16-Byte-aligned zu halten. Deshalb ist der Rest von sp bei Division durch 16 gleich null.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO11.md",
+            "heading": "Feste Regel: immer 16-Byte-aligned"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Stackausrichtung"
+          ]
+        },
+        {
+          "id": "era-11-l1-q11",
+          "type": "single",
+          "prompt": "Wie gibt ein Callee in RV32 einen 128-Bit-Wert zurück?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Der Caller reserviert 16 Byte und übergibt die Adresse in `a0`."
+            },
+            {
+              "id": "b",
+              "text": "Der Callee gibt den Wert ausschließlich über `sp` zurück."
+            },
+            {
+              "id": "c",
+              "text": "Der Caller übergibt die Adresse in `ra`."
+            },
+            {
+              "id": "d",
+              "text": "Der Callee legt den gesamten Wert in `a0` ab."
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "Ein 128-Bit-Wert passt nicht in die Rückgaberegister. Der Caller stellt einen Speicherbereich bereit und übergibt dessen Pointer in a0.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO11.md",
+            "heading": "Rückgabe wie das erste Argument"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Rückgabewerte",
+            "Ergebnis-Pointer"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "era-11-l2",
+      "index": 2,
+      "kind": "apply",
+      "title": "Anwenden",
+      "questions": [
+        {
+          "id": "era-11-l2-q01",
+          "type": "diagram",
+          "prompt": "Welche Kante im Diagramm zeigt die Rückgabe der Funktion `f` an `main`?",
+          "context": {
+            "type": "mermaid",
+            "content": "flowchart LR\n  C[\"Caller: main\"] -->|\"call: Argumente\"| F[\"Callee: f\"]\n  F -->|\"ret: Ergebnis\"| C",
+            "caption": "Aufruf und Rückgabe zwischen Caller und Callee"
+          },
+          "options": [
+            {
+              "id": "a",
+              "text": "Die Kante `f` → `main` mit `call`"
+            },
+            {
+              "id": "b",
+              "text": "Die Kante `main` → `f` mit `ret`"
+            },
+            {
+              "id": "c",
+              "text": "Die Kante `main` → `f` mit `call`"
+            },
+            {
+              "id": "d",
+              "text": "Die Kante `f` → `main` mit `ret`"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "main ruft f mit `call` auf. Wenn f fertig ist, führt die Rückgabe mit `ret` zurück zu main.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO11.md",
+            "heading": "Caller und Callee"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Caller und Callee"
+          ]
+        },
+        {
+          "id": "era-11-l2-q02",
+          "type": "calc",
+          "prompt": "Der 64-Bit-Wert `0x1122334455667788` wird als erstes Argument in RV32 übergeben. Welche Werte stehen danach in `a0` und `a1`?",
+          "options": [
+            {
+              "id": "a",
+              "text": "`a0 = 0x55667788`, `a1 = 0x11223344`"
+            },
+            {
+              "id": "b",
+              "text": "`a0 = 0x11223344`, `a1 = 0x55667788`"
+            },
+            {
+              "id": "c",
+              "text": "`a0 = 0x55667788`, `a1 = 0x00000000`"
+            },
+            {
+              "id": "d",
+              "text": "`a0 = 0x00000000`, `a1 = 0x11223344`"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "Die unteren 32 Bit sind `0x55667788` und kommen in das Register mit der kleineren Nummer, `a0`. Die oberen 32 Bit kommen in `a1`.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO11.md",
+            "heading": "Argumente in Registern"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Registerargumente"
+          ]
+        },
+        {
+          "id": "era-11-l2-q03",
+          "type": "calc",
+          "prompt": "Ein signed 8-Bit-Wert hat das Bitmuster `11110110`. Welche 32-Bit-Darstellung entsteht bei Sign-Extension?",
+          "options": [
+            {
+              "id": "a",
+              "text": "`11110110 00000000 00000000 00000000`"
+            },
+            {
+              "id": "b",
+              "text": "`00000000 00000000 00000000 11110110`"
+            },
+            {
+              "id": "c",
+              "text": "`00000000 00000000 00000000 00001010`"
+            },
+            {
+              "id": "d",
+              "text": "`11111111 11111111 11111111 11110110`"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Das höchste Bit des 8-Bit-Musters ist 1. Bei Sign-Extension wird dieses Vorzeichenbit nach links fortgesetzt; die unteren acht Bits bleiben unverändert.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO11.md",
+            "heading": "Argumente in Registern"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Registerargumente"
+          ]
+        },
+        {
+          "id": "era-11-l2-q04",
+          "type": "calc",
+          "prompt": "Ein bereits ausgerichteter Stack braucht 20 Byte für lokale Daten. Auf welche Framegröße wird aufgerundet, damit `sp` weiterhin 16-Byte-aligned ist?",
+          "options": [
+            {
+              "id": "a",
+              "text": "16 Byte"
+            },
+            {
+              "id": "b",
+              "text": "48 Byte"
+            },
+            {
+              "id": "c",
+              "text": "32 Byte"
+            },
+            {
+              "id": "d",
+              "text": "24 Byte"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Die Framegröße muss ein Vielfaches von 16 sein und mindestens 20 Byte fassen. Das kleinste passende Vielfache ist 32 Byte.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO11.md",
+            "heading": "Feste Regel: immer 16-Byte-aligned"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Stackausrichtung",
+            "Stackframe"
+          ]
+        },
+        {
+          "id": "era-11-l2-q05",
+          "type": "single",
+          "prompt": "Der Caller braucht den bisherigen Wert von `t3` auch nach dem Aufruf einer Funktion. Was muss er tun?",
+          "options": [
+            {
+              "id": "a",
+              "text": "`t3` in `ra` umbenennen"
+            },
+            {
+              "id": "b",
+              "text": "`t3` vor dem Aufruf sichern"
+            },
+            {
+              "id": "c",
+              "text": "Den Callee verpflichten, `t3` immer zu erhalten"
+            },
+            {
+              "id": "d",
+              "text": "`t3` nach dem Aufruf aus `x0` wiederherstellen"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "`t3` ist Caller-saved. Der Caller sichert seinen alten Wert vor dem Aufruf, falls er ihn später noch braucht.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO11.md",
+            "heading": "Warum gibt es beide Arten?"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Caller-saved und Callee-saved"
+          ]
+        },
+        {
+          "id": "era-11-l2-q06",
+          "type": "single",
+          "prompt": "Eine RV32-Funktion erhält zehn `short`-Argumente. Wo liegt das zehnte Argument beim Funktionseintritt, wenn die ersten acht in `a0` bis `a7` übergeben werden?",
+          "options": [
+            {
+              "id": "a",
+              "text": "In `a7`"
+            },
+            {
+              "id": "b",
+              "text": "An `8(sp)`"
+            },
+            {
+              "id": "c",
+              "text": "An `0(sp)`"
+            },
+            {
+              "id": "d",
+              "text": "An `4(sp)`"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Das neunte Argument liegt an 0(sp), das zehnte an 4(sp). Jedes Stackargument belegt mindestens vier Byte.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO11.md",
+            "heading": "Zusätzliche Argumente auf dem Stack"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Stackargumente"
+          ]
+        },
+        {
+          "id": "era-11-l2-q07",
+          "type": "truefalse",
+          "prompt": "In `addi a0, sp, 8` wird der Wert aus dem Speicher an `sp + 8` nach `a0` geladen.",
+          "context": {
+            "type": "code",
+            "content": "addi a0, sp, 8",
+            "language": "asm",
+            "caption": "Adressberechnung für den Ergebnisbereich"
+          },
+          "options": [
+            {
+              "id": "true",
+              "text": "Wahr"
+            },
+            {
+              "id": "false",
+              "text": "Falsch"
+            }
+          ],
+          "correct": [
+            "false"
+          ],
+          "explanation": "`addi` addiert eine Konstante zu einem Registerwert. Der Befehl berechnet hier eine Adresse; ein Load aus dem Speicher würde einen Ladebefehl benötigen.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO11.md",
+            "heading": "Assembler:"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Pointerparameter"
+          ]
+        },
+        {
+          "id": "era-11-l2-q08",
+          "type": "single",
+          "prompt": "Eine Funktion gibt in RV32 einen 64-Bit-Wert zurück. Wo liegen die beiden Teile?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Gesamter Wert in `ra`"
+            },
+            {
+              "id": "b",
+              "text": "Beide Teile ausschließlich auf dem Stack"
+            },
+            {
+              "id": "c",
+              "text": "Untere 32 Bit in `a1`, obere 32 Bit in `a0`"
+            },
+            {
+              "id": "d",
+              "text": "Untere 32 Bit in `a0`, obere 32 Bit in `a1`"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Die Rückgabe folgt der Regel für das erste Argument: Die unteren Bits kommen in das Register mit der kleineren Nummer, a0.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO11.md",
+            "heading": "Rückgabe wie das erste Argument"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Rückgabewerte"
+          ]
+        },
+        {
+          "id": "era-11-l2-q09",
+          "type": "code_output",
+          "prompt": "Welchen Rückgabewert hat der Aufruf `factorial(4, 1)`?",
+          "context": {
+            "type": "code",
+            "content": "int factorial(int n, int acc) {\n    if (n == 0) {\n        return acc;\n    }\n    return factorial(n - 1, n * acc);\n}",
+            "language": "c",
+            "caption": "Endrekursive Fakultät mit Akkumulator"
+          },
+          "options": [
+            {
+              "id": "a",
+              "text": "24"
+            },
+            {
+              "id": "b",
+              "text": "12"
+            },
+            {
+              "id": "c",
+              "text": "120"
+            },
+            {
+              "id": "d",
+              "text": "5"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "Der Akkumulator wird vor jedem nächsten Aufruf mit n multipliziert: (4,1) → (3,4) → (2,12) → (1,24) → (0,24). Bei n = 0 wird acc zurückgegeben.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO11.md",
+            "heading": "C-Code aus dem Bild"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Endrekursion"
+          ]
+        },
+        {
+          "id": "era-11-l2-q10",
+          "type": "calc",
+          "prompt": "In der normalen rekursiven Fakultätsfunktion reserviert jeder Aufruf mit `n > 0` einen 16-Byte-Frame; der Basisfall `n = 0` reserviert keinen. Wie viele Frames sind bei `fac(3)` gleichzeitig aktiv?",
+          "options": [
+            {
+              "id": "a",
+              "text": "3"
+            },
+            {
+              "id": "b",
+              "text": "2"
+            },
+            {
+              "id": "c",
+              "text": "1"
+            },
+            {
+              "id": "d",
+              "text": "4"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "`fac(3)`, `fac(2)` und `fac(1)` reservieren jeweils einen Frame. `fac(0)` ist der Basisfall und reserviert keinen.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO11.md",
+            "heading": "Ergänztes Beispiel: einfache rekursive Fakultät"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Rekursion",
+            "Stackframe"
+          ]
+        },
+        {
+          "id": "era-11-l2-q11",
+          "type": "multi",
+          "prompt": "Ein 16-Byte-Struct besteht auf RV32 aus den Feldern `lo` und `hi`, die jeweils 64 Bit groß sind. Bei 4-Byte-Wörtern und dem Layout `lo` ab Offset 0, `hi` ab Offset 8: Welche Zuordnungen stimmen? Wähle alle richtigen Aussagen; mehrere können richtig sein.",
+          "options": [
+            {
+              "id": "a",
+              "text": "Offset 0 enthält die unteren 32 Bit von `lo`."
+            },
+            {
+              "id": "b",
+              "text": "Offset 4 enthält die oberen 32 Bit von `lo`."
+            },
+            {
+              "id": "c",
+              "text": "Offset 8 enthält die unteren 32 Bit von `hi`."
+            },
+            {
+              "id": "d",
+              "text": "Offset 12 enthält die unteren 32 Bit von `hi`."
+            }
+          ],
+          "correct": [
+            "a",
+            "b",
+            "c"
+          ],
+          "explanation": "Jedes 64-Bit-Feld besteht aus zwei 32-Bit-Wörtern. `hi` beginnt bei Offset 8, daher liegen seine unteren und oberen Wörter bei 8 und 12.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO11.md",
+            "heading": "Warum Pointer, obwohl im C-Code Werte stehen?"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Pointerparameter",
+            "Mehrwortaddition"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "era-11-l3",
+      "index": 3,
+      "kind": "deepen",
+      "title": "Vertiefen",
+      "questions": [
+        {
+          "id": "era-11-l3-q01",
+          "type": "multi",
+          "prompt": "Welche Aussagen beschreiben den Unterschied zwischen normaler Rekursion und Endrekursion? Wähle alle richtigen Aussagen; mehrere können richtig sein.",
+          "options": [
+            {
+              "id": "a",
+              "text": "Bei normaler Fakultätsrekursion wird nach der Rückkehr noch mit dem ursprünglichen n multipliziert."
+            },
+            {
+              "id": "b",
+              "text": "Bei der endrekursiven Fakultät wird das bisherige Produkt als `acc` weitergegeben."
+            },
+            {
+              "id": "c",
+              "text": "Normale Fakultätsrekursion kann immer ohne gespeicherte Zwischenwerte auskommen."
+            },
+            {
+              "id": "d",
+              "text": "Bei Endrekursion ist der rekursive Aufruf der letzte Schritt der Funktion."
+            }
+          ],
+          "correct": [
+            "a",
+            "b",
+            "d"
+          ],
+          "explanation": "Die normale Variante muss nach dem Unteraufruf noch multiplizieren und braucht deshalb den ursprünglichen Wert. Die Endrekursion erledigt die Multiplikation vor dem nächsten Aufruf und gibt den Akkumulator mit.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO11.md",
+            "heading": "7. Endrekursion / Tail Recursion"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Rekursion",
+            "Endrekursion"
+          ]
+        },
+        {
+          "id": "era-11-l3-q02",
+          "type": "truefalse",
+          "prompt": "In der normalen Fakultätsfunktion kann `call fac` einfach durch `tail fac` ersetzt werden, ohne die Funktion sonst zu ändern.",
+          "options": [
+            {
+              "id": "true",
+              "text": "Wahr"
+            },
+            {
+              "id": "false",
+              "text": "Falsch"
+            }
+          ],
+          "correct": [
+            "false"
+          ],
+          "explanation": "Nach dem normalen rekursiven Aufruf muss noch mit dem ursprünglichen n multipliziert werden. Ein Tail Call würde diese ausstehende Arbeit überspringen.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO11.md",
+            "heading": "Voraussetzungen der Fakultätsbeispiele"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Rekursion",
+            "Endrekursion"
+          ]
+        },
+        {
+          "id": "era-11-l3-q03",
+          "type": "single",
+          "prompt": "Funktion `f` wird von `main` aufgerufen und ruft danach selbst `g` auf. `f` muss nach der Rückkehr aus `g` noch zu `main` zurückkehren. Was muss `f` vor `call g` tun?",
+          "options": [
+            {
+              "id": "a",
+              "text": "`sp` in `x0` kopieren"
+            },
+            {
+              "id": "b",
+              "text": "Die bisherige Rücksprungadresse aus `ra` sichern"
+            },
+            {
+              "id": "c",
+              "text": "Das Register `ra` dauerhaft unverändert lassen"
+            },
+            {
+              "id": "d",
+              "text": "Die Rücksprungadresse von `g` in `a0` berechnen"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "`call g` überschreibt ra mit der Rücksprungadresse nach `f`. Daher muss `f` seine frühere Adresse zurück nach `main` vorher sichern.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO11.md",
+            "heading": "Was passiert mit      bei mehreren Aufrufen?"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Rücksprungadresse",
+            "Stackframe"
+          ]
+        },
+        {
+          "id": "era-11-l3-q04",
+          "type": "multi",
+          "prompt": "Welche Aussagen zur Registerverantwortung stimmen? Wähle alle richtigen Aussagen; mehrere können richtig sein.",
+          "options": [
+            {
+              "id": "a",
+              "text": "Ein Callee stellt ein von ihm verändertes `s`-Register vor der Rückkehr wieder her."
+            },
+            {
+              "id": "b",
+              "text": "Der Callee muss jedes `t`-Register sichern, auch wenn er es nicht verändert."
+            },
+            {
+              "id": "c",
+              "text": "Der Callee stellt den ursprünglichen Wert von `sp` wieder her."
+            },
+            {
+              "id": "d",
+              "text": "Der Caller sichert einen Caller-saved-Wert, falls er ihn nach dem Aufruf noch braucht."
+            }
+          ],
+          "correct": [
+            "a",
+            "c",
+            "d"
+          ],
+          "explanation": "Caller-saved-Werte sichert der Caller nur bei weiterem Bedarf. Der Callee erhält sp und veränderte s-Register; unveränderte Register brauchen keine Sicherung.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO11.md",
+            "heading": "2. Register: Wer sichert was?"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Caller-saved und Callee-saved",
+            "Stackframe"
+          ]
+        },
+        {
+          "id": "era-11-l3-q05",
+          "type": "truefalse",
+          "prompt": "Wenn `sp` vor der Reservierung eines Frames durch 16 teilbar ist, erhält eine Framegröße von 24 Byte die 16-Byte-Ausrichtung.",
+          "options": [
+            {
+              "id": "true",
+              "text": "Wahr"
+            },
+            {
+              "id": "false",
+              "text": "Falsch"
+            }
+          ],
+          "correct": [
+            "false"
+          ],
+          "explanation": "24 ist kein Vielfaches von 16. Eine Framegröße von 24 Byte würde bei ausgerichtetem sp die Ausrichtung aufheben.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO11.md",
+            "heading": "Feste Regel: immer 16-Byte-aligned"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Stackausrichtung"
+          ]
+        },
+        {
+          "id": "era-11-l3-q06",
+          "type": "multi",
+          "prompt": "Eine 128-Bit-Struct enthält die getrennten 64-Bit-Felder `lo` und `hi`, jeweils aus zwei 32-Bit-Wörtern. Bei der Addition werden Überträge zwischen den beiden Wörtern jedes Feldes mit `sltu` erkannt und zum oberen Wort addiert; ein Übertrag vom Feld `lo` zum Feld `hi` wird nicht übertragen. Welche Aussagen treffen zu? Wähle alle richtigen Aussagen; mehrere können richtig sein.",
+          "options": [
+            {
+              "id": "a",
+              "text": "Die beiden 64-Bit-Felder `lo` und `hi` werden unabhängig voneinander addiert."
+            },
+            {
+              "id": "b",
+              "text": "Der erkannte Übertrag wird zum oberen 32-Bit-Wort des jeweiligen Feldes addiert."
+            },
+            {
+              "id": "c",
+              "text": "Ein Übertrag vom gesamten Feld `lo` zum Feld `hi` wird ebenfalls addiert."
+            },
+            {
+              "id": "d",
+              "text": "`sltu` kann den Übertrag von einem unteren 32-Bit-Wort in das obere Wort desselben 64-Bit-Feldes erkennen."
+            }
+          ],
+          "correct": [
+            "a",
+            "b",
+            "d"
+          ],
+          "explanation": "Die Addition berücksichtigt Überträge zwischen den zwei 32-Bit-Wörtern eines 64-Bit-Feldes. Ein Übertrag vom ganzen Feld lo zum Feld hi fehlt jedoch.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO11.md",
+            "heading": "Assembler:"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Mehrwortaddition"
+          ]
+        },
+        {
+          "id": "era-11-l3-q07",
+          "type": "single",
+          "prompt": "`add_uint128_val` erhält einen Pointer auf den Ergebnisbereich in `a0`. In welchen Registern liegen beim Funktionseintritt die Pointer auf die beiden Eingabe-Structs?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Beide Pointer liegen auf dem Stack"
+            },
+            {
+              "id": "b",
+              "text": "Pointer auf `a` in `a2`, Pointer auf `b` in `a3`"
+            },
+            {
+              "id": "c",
+              "text": "Pointer auf `a` in `a0`, Pointer auf `b` in `a1`"
+            },
+            {
+              "id": "d",
+              "text": "Pointer auf `a` in `a1`, Pointer auf `b` in `a2`"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Der versteckte Ergebnis-Pointer belegt a0. Die Eingabe-Pointer folgen in a1 und a2.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO11.md",
+            "heading": "Warum Pointer, obwohl im C-Code Werte stehen?"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Ergebnis-Pointer",
+            "Pointerparameter"
+          ]
+        },
+        {
+          "id": "era-11-l3-q08",
+          "type": "truefalse",
+          "prompt": "Im Fakultätscode wird `t0` vor dem rekursiven Aufruf gesichert, weil der Callee `t0` erhalten muss.",
+          "options": [
+            {
+              "id": "true",
+              "text": "Wahr"
+            },
+            {
+              "id": "false",
+              "text": "Falsch"
+            }
+          ],
+          "correct": [
+            "false"
+          ],
+          "explanation": "`t0` ist Caller-saved, aber der Code lädt den ursprünglichen Wert erst nach der Rückkehr aus dem Stack. Daher muss er nicht über den Aufruf hinweg in t0 erhalten bleiben.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO11.md",
+            "heading": "Ergänztes Beispiel: einfache rekursive Fakultät"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Caller-saved und Callee-saved",
+            "Rekursion"
+          ]
+        },
+        {
+          "id": "era-11-l3-q09",
+          "type": "single",
+          "prompt": "Ein Callee erhält Stackargumente bei `0(sp)` und `4(sp)`. Er reserviert anschließend 16 Byte für seinen Frame. Wo liegt das erste Stackargument relativ zum neuen `sp`?",
+          "options": [
+            {
+              "id": "a",
+              "text": "An `0(sp)`"
+            },
+            {
+              "id": "b",
+              "text": "An `-16(sp)`"
+            },
+            {
+              "id": "c",
+              "text": "An `16(sp)`"
+            },
+            {
+              "id": "d",
+              "text": "An `4(sp)`"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Das Stackargument bleibt an seiner ursprünglichen Speicheradresse. Weil der neue sp um 16 Byte kleiner ist, liegt die alte Adresse nun bei 16(sp).",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO11.md",
+            "heading": "Zusätzliche Argumente auf dem Stack"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Stackargumente",
+            "Stackframe"
+          ]
+        },
+        {
+          "id": "era-11-l3-q10",
+          "type": "cloze",
+          "prompt": "Hat eine Funktion vor einem Tail Call einen eigenen Frame angelegt oder Callee-saved-Register verändert, muss sie diese Werte ___ dem Tail Call wiederherstellen.",
+          "options": [
+            {
+              "id": "a",
+              "text": "nach"
+            },
+            {
+              "id": "b",
+              "text": "vor"
+            },
+            {
+              "id": "c",
+              "text": "niemals nach"
+            },
+            {
+              "id": "d",
+              "text": "nur während"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "Ein Tail Call beendet die aktuelle Funktion ohne normale Rückkehr. Deshalb müssen Frame und veränderte Callee-saved-Register vorher wiederhergestellt sein.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO11.md",
+            "heading": "RISC-V-Code aus dem Bild"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Endrekursion",
+            "Stackframe",
+            "Caller-saved und Callee-saved"
+          ]
+        },
+        {
+          "id": "era-11-l3-q11",
+          "type": "diagram",
+          "prompt": "Bei der normalen Rekursion kehrt `fac(0)` zuerst zurück. Welche Funktion erhält diesen Rückgabewert als erste?",
+          "context": {
+            "type": "mermaid",
+            "content": "flowchart LR\n  M[\"main\"] --> F3[\"fac(3)\"]\n  F3 --> F2[\"fac(2)\"]\n  F2 --> F1[\"fac(1)\"]\n  F1 --> F0[\"fac(0)\"]\n  F0 -.-> F1\n  F1 -.-> F2\n  F2 -.-> F3\n  F3 -.-> M",
+            "caption": "Aufrufkette und Rückkehrreihenfolge"
+          },
+          "options": [
+            {
+              "id": "a",
+              "text": "`fac(1)`"
+            },
+            {
+              "id": "b",
+              "text": "`fac(2)`"
+            },
+            {
+              "id": "c",
+              "text": "`fac(3)`"
+            },
+            {
+              "id": "d",
+              "text": "`main`"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "fac(1) hat fac(0) direkt aufgerufen und wartet auf dessen Ergebnis. Erst danach kehrt der Wert über fac(2) und fac(3) zu main zurück.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO11.md",
+            "heading": "Ergänztes Beispiel: einfache rekursive Fakultät"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Rekursion",
+            "Stackframe"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "era-11-l4",
+      "index": 4,
+      "kind": "boss",
+      "title": "Boss",
+      "questions": [
+        {
+          "id": "era-11-l4-q01",
+          "type": "single",
+          "prompt": "`main` ruft `f` auf; anschließend ruft `f` mit `jal` die Funktion `g` auf. `f` soll nach `g` weiterarbeiten und später zu `main` zurückkehren. Welche Aktion sichert diese Rückkehr zuverlässig?",
+          "options": [
+            {
+              "id": "a",
+              "text": "`f` lässt `ra` ungesichert, weil `jal` den alten Wert erhält."
+            },
+            {
+              "id": "b",
+              "text": "`main` legt die Rücksprungadresse von `f` in `x0` ab."
+            },
+            {
+              "id": "c",
+              "text": "`g` muss den alten Wert von `ra` erraten."
+            },
+            {
+              "id": "d",
+              "text": "`f` sichert die beim Eintritt erhaltene Rücksprungadresse vor dem Aufruf von `g`."
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "`jal` schreibt eine neue Rücksprungadresse in ra. Deshalb muss f die Adresse zurück zu main vor dem eigenen verschachtelten Aufruf sichern.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO6.md",
+            "heading": null
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Rücksprungadresse",
+            "Caller-saved und Callee-saved",
+            "Stackframe"
+          ]
+        },
+        {
+          "id": "era-11-l4-q02",
+          "type": "single",
+          "prompt": "Ein Ergebnis-Pointer in `a0` zeigt auf Speicher. Danach wird `sw a3, 0(a0)` ausgeführt. Was bewirkt der Store?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Er schreibt die unteren 32 Bit aus `a3` an die Adresse in `a0`."
+            },
+            {
+              "id": "b",
+              "text": "Er lädt ein 32-Bit-Wort aus der Adresse in `a0` nach `a3`."
+            },
+            {
+              "id": "c",
+              "text": "Er berechnet die Adresse in `a0`, ohne Speicher zu verändern."
+            },
+            {
+              "id": "d",
+              "text": "Er schreibt den Wert von `a0` in das Register `a3`."
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "`sw` speichert ein Wort aus dem Quellregister an der effektiven Adresse. Hier ist das die Adresse in a0 plus Offset 0.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO8.md",
+            "heading": null
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Pointerparameter",
+            "Ergebnis-Pointer"
+          ]
+        },
+        {
+          "id": "era-11-l4-q03",
+          "type": "single",
+          "prompt": "Eine Funktion reserviert einen 16-Byte-Frame und hat `ra` darin gesichert. Welche Reihenfolge gibt den Frame korrekt frei und kehrt anschließend zurück?",
+          "options": [
+            {
+              "id": "a",
+              "text": "`ret`, `ra` laden, `sp` um 16 erhöhen"
+            },
+            {
+              "id": "b",
+              "text": "`ra` löschen, `sp` um 16 verringern, `ret`"
+            },
+            {
+              "id": "c",
+              "text": "`ra` laden, `sp` um 16 erhöhen, `ret`"
+            },
+            {
+              "id": "d",
+              "text": "`sp` um 16 erhöhen, `ra` laden, `ret`"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Vor der Rückkehr wird die gesicherte Rücksprungadresse geladen. Dann wird der Frame freigegeben und `ret` springt zur gespeicherten Adresse.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO11.md",
+            "heading": "Ergänztes Beispiel: einfache rekursive Fakultät"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Stackframe",
+            "Rücksprungadresse",
+            "Stackausrichtung"
+          ]
+        },
+        {
+          "id": "era-11-l4-q04",
+          "type": "calc",
+          "prompt": "Eine Funktion multipliziert die unsigned 32-Bit-Werte `0xFFFFFFFF` und `0x00000002`. Welche beiden 32-Bit-Teile liefern `mul` und `mulhu` für das 64-Bit-Produkt?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Untere `0xFFFFFFFE`, obere `0x00000001`"
+            },
+            {
+              "id": "b",
+              "text": "Untere `0x00000001`, obere `0xFFFFFFFE`"
+            },
+            {
+              "id": "c",
+              "text": "Untere `0xFFFFFFFF`, obere `0x00000002`"
+            },
+            {
+              "id": "d",
+              "text": "Untere `0xFFFFFFFE`, obere `0x00000000`"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "Das Produkt ist `0x1FFFFFFFE`. Die unteren 32 Bit sind `0xFFFFFFFE`, der obere Teil ist `0x00000001`.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO11.md",
+            "heading": "Beispiel: 32-Bit-Faktoren, 64-Bit-Produkt"
+          },
+          "difficulty": 5,
+          "concepts": [
+            "Rückgabewerte",
+            "Registerargumente"
+          ]
+        },
+        {
+          "id": "era-11-l4-q05",
+          "type": "calc",
+          "prompt": "Eine 128-Bit-Struct-Addition berechnet `res.lo = a.lo + b.lo` und `res.hi = a.hi + b.hi` getrennt, ohne Übertrag von `lo` nach `hi`. Es gilt `a.lo = 0xFFFFFFFFFFFFFFFF`, `b.lo = 1`, `a.hi = 3`, `b.hi = 4`. Welche Werte entstehen?",
+          "options": [
+            {
+              "id": "a",
+              "text": "`res.lo = 0xFFFFFFFFFFFFFFFF`, `res.hi = 7`"
+            },
+            {
+              "id": "b",
+              "text": "`res.lo = 1`, `res.hi = 7`"
+            },
+            {
+              "id": "c",
+              "text": "`res.lo = 0`, `res.hi = 8`"
+            },
+            {
+              "id": "d",
+              "text": "`res.lo = 0`, `res.hi = 7`"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Die Summe von lo läuft modulo 64 Bit auf 0 über. Da kein feldübergreifender Übertrag addiert wird, bleibt hi bei `3 + 4 = 7`.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO11.md",
+            "heading": "C-Code"
+          },
+          "difficulty": 5,
+          "concepts": [
+            "Mehrwortaddition"
+          ]
+        },
+        {
+          "id": "era-11-l4-q06",
+          "type": "truefalse",
+          "prompt": "Der gezeigte Tail Call in der endrekursiven Fakultät vermeidet, dass der Stack bei jedem rekursiven Schritt weiter wächst; die Anzahl der Schritte bleibt trotzdem gleich.",
+          "options": [
+            {
+              "id": "true",
+              "text": "Wahr"
+            },
+            {
+              "id": "false",
+              "text": "Falsch"
+            }
+          ],
+          "correct": [
+            "true"
+          ],
+          "explanation": "Der Tail Call erhält die ursprüngliche Rücksprungadresse und startet keinen neuen Frame für jeden Schritt. Die Funktion führt weiterhin für jedes n einen Schritt aus.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO11.md",
+            "heading": "RISC-V-Code aus dem Bild"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Endrekursion",
+            "Stackframe"
+          ]
+        },
+        {
+          "id": "era-11-l4-q07",
+          "type": "calc",
+          "prompt": "Die endrekursive Fakultät startet mit `n = 4` und `acc = 2`. Welchen Wert liefert sie?",
+          "options": [
+            {
+              "id": "a",
+              "text": "10"
+            },
+            {
+              "id": "b",
+              "text": "48"
+            },
+            {
+              "id": "c",
+              "text": "120"
+            },
+            {
+              "id": "d",
+              "text": "24"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "Der Akkumulator entwickelt sich von 2 über 8, 24 und 48 weiter. Bei n = 0 wird 48 zurückgegeben.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO11.md",
+            "heading": "C-Code aus dem Bild"
+          },
+          "difficulty": 5,
+          "concepts": [
+            "Endrekursion"
+          ]
+        },
+        {
+          "id": "era-11-l4-q08",
+          "type": "single",
+          "prompt": "`show_alloc_on_stack` übergibt einen 16-Byte-Ergebnisbereich ab `8(sp)` an `add_uint128_val`. Der Ergebnisbereich beginnt bei Offset 8; `res.lo` belegt die ersten 8 Byte des Structs. Danach gibt `show_alloc_on_stack` nur `res.lo` zurück. Welche Rückgaberegister werden dafür geladen?",
+          "options": [
+            {
+              "id": "a",
+              "text": "`a0` aus `16(sp)` und `a1` aus `20(sp)`"
+            },
+            {
+              "id": "b",
+              "text": "`a0` aus `0(sp)` und `a1` aus `4(sp)`"
+            },
+            {
+              "id": "c",
+              "text": "`a0` aus `8(sp)` und `a1` aus `12(sp)`"
+            },
+            {
+              "id": "d",
+              "text": "`a0` aus `24(sp)` und `a1` aus `28(sp)`"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Der Ergebnisbereich beginnt bei Offset 8. `res.lo` belegt dessen erste acht Byte, also die Wörter bei 8 und 12; sie werden als 64-Bit-Rückgabe in a0/a1 geladen.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO11.md",
+            "heading": "Assembler:"
+          },
+          "difficulty": 5,
+          "concepts": [
+            "Ergebnis-Pointer",
+            "Rückgabewerte",
+            "Stackframe"
+          ]
+        },
+        {
+          "id": "era-11-l4-q09",
+          "type": "multi",
+          "prompt": "Eine RV32-Funktion erhält zehn signed `short`-Argumente. Welche Aussagen zu den Argumenten 9 und 10 stimmen? Wähle alle richtigen Aussagen; mehrere können richtig sein.",
+          "options": [
+            {
+              "id": "a",
+              "text": "Das neunte Argument beginnt bei `0(sp)`."
+            },
+            {
+              "id": "b",
+              "text": "Das zehnte Argument beginnt bei `4(sp)`."
+            },
+            {
+              "id": "c",
+              "text": "Das zehnte Argument wird in `a7` übergeben."
+            },
+            {
+              "id": "d",
+              "text": "Ein signed Wert unter 32 Bit wird mit Sign-Extension auf 32 Bit erweitert."
+            },
+            {
+              "id": "e",
+              "text": "Jedes Stackargument belegt genau 2 Byte, weil `short` 2 Byte groß ist."
+            }
+          ],
+          "correct": [
+            "a",
+            "b",
+            "d"
+          ],
+          "explanation": "Die ersten acht Argumente verwenden a0–a7. Die Stackargumente beginnen bei 0(sp), belegen mindestens vier Byte, und kleinere signed Werte werden sign-erweitert.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO11.md",
+            "heading": "Zusätzliche Argumente auf dem Stack"
+          },
+          "difficulty": 5,
+          "concepts": [
+            "Stackargumente",
+            "Registerargumente"
+          ]
+        },
+        {
+          "id": "era-11-l4-q10",
+          "type": "multi",
+          "prompt": "`fac(3)` ist in der normalen rekursiven Fakultätsfunktion gerade aus `fac(2)` zurückgekehrt. Welche Aussagen helfen `fac(3)`, korrekt weiterzurechnen? Wähle alle richtigen Aussagen; mehrere können richtig sein.",
+          "options": [
+            {
+              "id": "a",
+              "text": "Der ursprüngliche Wert `n = 3` muss für die Multiplikation erhalten sein."
+            },
+            {
+              "id": "b",
+              "text": "Die Multiplikation `3 × 2` ergibt 6."
+            },
+            {
+              "id": "c",
+              "text": "`a0` enthält jetzt das Ergebnis von `fac(2)`, also 2."
+            },
+            {
+              "id": "d",
+              "text": "Nach dem Aufruf bleibt `a0` garantiert beim ursprünglichen Argument 3."
+            }
+          ],
+          "correct": [
+            "a",
+            "b",
+            "c"
+          ],
+          "explanation": "Der rekursive Aufruf überschreibt a0 mit seinem Ergebnis. Deshalb muss fac(3) sein ursprüngliches n gesichert haben, um anschließend 3 mit 2 zu multiplizieren.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO11.md",
+            "heading": "Ergänztes Beispiel: einfache rekursive Fakultät"
+          },
+          "difficulty": 5,
+          "concepts": [
+            "Rekursion",
+            "Caller-saved und Callee-saved",
+            "Stackframe"
+          ]
+        },
+        {
+          "id": "era-11-l4-q11",
+          "type": "calc",
+          "prompt": "Bei `fac(5)` reserviert jeder Aufruf mit `n > 0` genau 16 Byte; der Basisfall reserviert keinen Frame. Wie viel Stackplatz ist für die fünf gleichzeitig aktiven Frames reserviert?",
+          "options": [
+            {
+              "id": "a",
+              "text": "64 Byte"
+            },
+            {
+              "id": "b",
+              "text": "16 Byte"
+            },
+            {
+              "id": "c",
+              "text": "96 Byte"
+            },
+            {
+              "id": "d",
+              "text": "80 Byte"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Die Aufrufe für n = 5, 4, 3, 2 und 1 reservieren je 16 Byte. Zusammen sind das 5 × 16 = 80 Byte.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO11.md",
+            "heading": "Ergänztes Beispiel: einfache rekursive Fakultät"
+          },
+          "difficulty": 5,
+          "concepts": [
+            "Rekursion",
+            "Stackframe",
+            "Stackausrichtung"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "era-11-l5",
+      "index": 5,
+      "kind": "bonus",
+      "title": "Praxis: Wenn Funktionen zusammenarbeiten",
+      "questions": [
+        {
+          "id": "era-11-l5-q01",
+          "type": "single",
+          "prompt": "Du schreibst ein RISC-V-Plugin, das eine separat kompilierte Bibliothek aufruft. Beide Seiten müssen wissen, wo Argumente und Rückgabewerte liegen und wer Registerwerte sichert. Welcher Vertrag sorgt dafür?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Ein TLS-Verschlüsselungsverfahren"
+            },
+            {
+              "id": "b",
+              "text": "Ein Datenbankindex"
+            },
+            {
+              "id": "c",
+              "text": "Ein Bildkompressionsformat"
+            },
+            {
+              "id": "d",
+              "text": "Die Calling Convention der RISC-V ABI"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Die Calling Convention legt fest, wie Funktionen miteinander kommunizieren. Sie ermöglicht, dass unabhängig entwickelte RISC-V-Programme Argumente, Rückgabewerte und Register nach denselben Regeln behandeln.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO11.md",
+            "heading": "1. Calling Convention: gemeinsame Regeln für Aufrufe"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Calling Convention",
+            "RISC-V ABI"
+          ]
+        },
+        {
+          "id": "era-11-l5-q02",
+          "type": "single",
+          "prompt": "Deine RV32-App hält einen Pixelwert in `t0`, ruft eine Filterfunktion auf und braucht den alten Wert danach noch. `t0` ist caller-saved. Was sollte die App tun?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Nichts: Caller-saved-Register werden automatisch wiederhergestellt"
+            },
+            {
+              "id": "b",
+              "text": "Darauf vertrauen, dass der Callee `t0` immer unverändert lässt"
+            },
+            {
+              "id": "c",
+              "text": "Den Wert vor dem Aufruf selbst sichern, zum Beispiel im Stack"
+            },
+            {
+              "id": "d",
+              "text": "Den Wert in `ra` verschieben"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Ein Callee darf `t0` überschreiben. Wenn der Caller den bisherigen Pixelwert nach dem Aufruf noch braucht, muss er ihn vorher selbst sichern.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO11.md",
+            "heading": "2. Register: Wer sichert was?"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Caller",
+            "Caller-saved"
+          ]
+        },
+        {
+          "id": "era-11-l5-q03",
+          "type": "estimate",
+          "prompt": "Eine RISC-V-Funktion liefert ein 128-Bit-Ergebnis über einen reservierten Speicherbereich zurück. Wie groß ist der Ergebnisbereich in Byte?",
+          "options": [],
+          "correct": [],
+          "slider": {
+            "min": 4,
+            "max": 36,
+            "step": 4,
+            "answer": 16,
+            "tolerance": 0,
+            "unit": "Byte",
+            "scale": "linear"
+          },
+          "explanation": "Ein Byte enthält 8 Bit. Daher sind $128 / 8 = 16$ Byte für das Ergebnis nötig.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO11.md",
+            "heading": "Rückgabe wie das erste Argument"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Rückgabewerte",
+            "Ergebnis-Pointer"
+          ]
+        },
+        {
+          "id": "era-11-l5-q04",
+          "type": "single",
+          "prompt": "Eine Datenbank-Hilfsfunktion verwendet `s2` für eine lokale Schleifenvariable. `s2` ist callee-saved. Was muss die Funktion für ihren Caller tun?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Den alten Wert von `s2` sichern und vor der Rückkehr wiederherstellen"
+            },
+            {
+              "id": "b",
+              "text": "Den alten Wert nur dann sichern, wenn der Caller es nachträglich verlangt"
+            },
+            {
+              "id": "c",
+              "text": "Den alten Wert von `s2` löschen, damit der Caller ihn neu berechnet"
+            },
+            {
+              "id": "d",
+              "text": "`s2` nach der Rückkehr im Callee weiterverwenden"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "Ein Callee darf ein callee-saved-Register verwenden, muss aber dessen alten Wert erhalten. So sieht der Caller nach der Rückkehr weiterhin seinen ursprünglichen Wert in `s2`.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO11.md",
+            "heading": "2. Register: Wer sichert was?"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Callee",
+            "Callee-saved"
+          ]
+        },
+        {
+          "id": "era-11-l5-q05",
+          "type": "estimate",
+          "prompt": "Auf RV32 stehen acht Argumentregister bereit: `a0` bis `a7`. Ein 64-Bit-Argument belegt zwei Register. Wie viele vollständige 64-Bit-Argumente passen hinein, wenn keine weiteren Argumente mitgegeben werden?",
+          "options": [],
+          "correct": [],
+          "slider": {
+            "min": 1,
+            "max": 8,
+            "step": 1,
+            "answer": 4,
+            "tolerance": 0,
+            "unit": "Argumente",
+            "scale": "linear"
+          },
+          "explanation": "Jedes Argument nutzt zwei der acht Register. Es passen also $8 / 2 = 4$ vollständige 64-Bit-Argumente hinein.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO11.md",
+            "heading": "Argumente in Registern"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Registerargumente",
+            "RV32"
+          ]
+        },
+        {
+          "id": "era-11-l5-q06",
+          "type": "single",
+          "prompt": "Ein RV32-Programm ruft eine Routine mit zehn `short`-Argumenten auf. Die ersten acht Argumente werden jeweils erweitert in `a0`–`a7` übergeben. Jedes weitere Argument belegt beim Funktionseintritt genau einen 4-Byte-Stackplatz, ohne zusätzliche Lücken. Wo liegen das 9. und 10. Argument relativ zum `sp` beim Eintritt?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Das 9. bei `0(sp)`, das 10. bei `4(sp)`"
+            },
+            {
+              "id": "b",
+              "text": "Beide zusätzlich in `a0` und `a1`"
+            },
+            {
+              "id": "c",
+              "text": "Das 9. bei `4(sp)`, das 10. bei `8(sp)`"
+            },
+            {
+              "id": "d",
+              "text": "Das 9. in `ra`, das 10. bei `0(sp)`"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "Wenn die acht Argumentregister nicht reichen, liegen weitere Argumente beim Funktionseintritt auf dem Stack. Unter der angegebenen Annahme beginnt das erste Stackargument bei `0(sp)`; das nächste liegt an der höheren Adresse `4(sp)`.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO11.md",
+            "heading": "3. Argumente übergeben"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Registerargumente",
+            "Stackargumente"
+          ]
+        },
+        {
+          "id": "era-11-l5-q07",
+          "type": "estimate",
+          "prompt": "Eine normale rekursive Fakultätsfunktion berechnet `fac(5)`. Jeder Aufruf mit $n > 0$ reserviert einen 16-Byte-Stackframe; `fac(0)` reserviert keinen. Wie viele Byte belegen die Funktionsframes gleichzeitig am größten?",
+          "options": [],
+          "correct": [],
+          "slider": {
+            "min": 16,
+            "max": 160,
+            "step": 16,
+            "answer": 80,
+            "tolerance": 0,
+            "unit": "Byte",
+            "scale": "linear"
+          },
+          "explanation": "Die Aufrufe `fac(5)` bis `fac(1)` benötigen je einen Frame, während `fac(0)` keinen anlegt. Am tiefsten Punkt sind $5 \\times 16 = 80$ Byte belegt.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO11.md",
+            "heading": "Ergänztes Beispiel: einfache rekursive Fakultät"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Rekursion",
+            "Stackframe"
+          ]
+        },
+        {
+          "id": "era-11-l5-q08",
+          "type": "single",
+          "prompt": "Ein Videocodec ruft auf RV32 eine Funktion auf, die ein 128-Bit-Metadaten-Struct zurückgibt. Der Caller reserviert dafür einen 16-Byte-Ergebnisbereich und übergibt dessen Adresse in `a0`. Was macht der Callee mit dieser Adresse?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Er schreibt das Ergebnis in den Speicherbereich, auf den `a0` zeigt"
+            },
+            {
+              "id": "b",
+              "text": "Er überschreibt den Ergebnisbereich mit der Rücksprungadresse"
+            },
+            {
+              "id": "c",
+              "text": "Er legt die Adresse erst nach der Rückkehr in `a1` ab"
+            },
+            {
+              "id": "d",
+              "text": "Er gibt alle 128 Bit direkt in `a0` zurück"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "Ein einzelnes 32-Bit-Register kann das 128-Bit-Ergebnis nicht aufnehmen. Bei diesem Rückgabemuster zeigt `a0` auf den vom Caller reservierten Bereich, in den der Callee das Ergebnis schreibt.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO11.md",
+            "heading": "Rückgabe wie das erste Argument"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Ergebnis-Pointer",
+            "Rückgabewerte"
+          ]
+        },
+        {
+          "id": "era-11-l5-q09",
+          "type": "estimate",
+          "prompt": "Vor dem Aufruf ist `sp` 16-Byte-ausgerichtet. Ein Stackframe muss `ra` und vier 32-Bit-Werte speichern; die Framegröße muss ein Vielfaches von 16 Byte sein. Wie viele Byte muss der Frame mindestens groß sein?",
+          "options": [],
+          "correct": [],
+          "slider": {
+            "min": 8,
+            "max": 64,
+            "step": 8,
+            "answer": 32,
+            "tolerance": 0,
+            "unit": "Byte",
+            "scale": "linear"
+          },
+          "explanation": "Die fünf gespeicherten Wörter brauchen zusammen $5 \\times 4 = 20$ Byte. Auf das nächste Vielfache von 16 aufgerundet ergibt das einen Frame von 32 Byte.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO11.md",
+            "heading": "Feste Regel: immer 16-Byte-aligned"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Stackausrichtung",
+            "Stackframe"
+          ]
+        },
+        {
+          "id": "era-11-l5-q10",
+          "type": "truefalse",
+          "prompt": "Du optimierst eine rekursive Routine für ein eingebettetes Gerät. Sie aktualisiert vor dem Selbstaufruf einen Akkumulator, gibt direkt das Ergebnis dieses Aufrufs zurück und hat keine weitere Arbeit danach. Es gibt keinen eigenen Stackframe und kein verändertes callee-saved-Register wiederherzustellen. Stimmt das: Ein Tail Call kann den nächsten Schritt ausführen und dabei die ursprüngliche Rücksprungadresse erhalten?",
+          "options": [
+            {
+              "id": "true",
+              "text": "Wahr"
+            },
+            {
+              "id": "false",
+              "text": "Falsch"
+            }
+          ],
+          "correct": [
+            "true"
+          ],
+          "explanation": "Bei einem Tail Call ist der rekursive Aufruf der letzte Schritt. Wenn kein Stackframe oder callee-saved-Register wiederherzustellen ist, kann die Routine mit den aktualisierten Argumenten weitermachen und dabei die Rücksprungadresse ihres ursprünglichen Callers erhalten.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO11.md",
+            "heading": "7. Endrekursion / Tail Recursion"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Endrekursion",
+            "Tail Call"
+          ]
+        }
+      ]
+    }
+  ]
+}
