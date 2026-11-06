@@ -1,0 +1,1982 @@
+{
+  "schemaVersion": 1,
+  "id": "era-11",
+  "module": "ERA",
+  "number": 11,
+  "slug": "calling-convention-und-rekursion",
+  "title": "Calling Convention (Aufrufkonvention) and Recursion (Rekursion)",
+  "summary": "The RISC-V calling convention specifies how functions handle arguments, return values, and register contents across calls. Through examples involving stack frames (Stackframes), large data types, and factorial (Fakultät), you will learn to implement nested calls and recursion correctly.",
+  "concepts": [
+    "Calling convention",
+    "RISC-V ABI",
+    "Caller and callee (Caller und Callee)",
+    "Caller-saved and callee-saved registers (Caller-saved und Callee-saved)",
+    "Return address (Rücksprungadresse)",
+    "Register arguments (Registerargumente)",
+    "Stack arguments (Stackargumente)",
+    "Stack alignment (Stackausrichtung)",
+    "Return values (Rückgabewerte)",
+    "Result pointer (Ergebnis-Pointer)",
+    "Stack frame (Stackframe)",
+    "Pointer parameters (Pointerparameter)",
+    "Multiword addition (Mehrwortaddition)",
+    "Recursion",
+    "Tail recursion (Endrekursion)"
+  ],
+  "keyFacts": [
+    "The calling convention is a contract for function calls and part of the RISC-V ABI.",
+    "The caller invokes a function; the callee is the function being called.",
+    "A callee may modify caller-saved registers; the caller saves any old values it still needs before the call.",
+    "If a callee modifies a callee-saved register, it must save its old value and restore it before returning.",
+    "Caller-saved registers include ra, t0–t6, and a0–a7; sp and s0–s11 must be preserved.",
+    "Another call overwrites ra. A function that still needs to return afterward saves its current return address.",
+    "In RV32, a value smaller than 32 bits is extended to 32 bits: signed values use sign extension, and unsigned values use zero extension.",
+    "A 64-bit argument occupies two a registers; the lower bits go in the register with the lower number.",
+    "Arguments larger than 64 bits are passed via a pointer.",
+    "If a0–a7 are insufficient, additional stack arguments start at 0(sp); each occupies at least 4 bytes.",
+    "The stack remains 16-byte aligned. If sp is already aligned, the reserved frame size must be a multiple of 16 bytes.",
+    "Return values are passed like the first argument: a 32-bit value in a0, and a 64-bit value in a0/a1.",
+    "For a 128-bit result, the caller reserves memory and passes its address in a0.",
+    "Each active recursive call needs its own stack data for values and return addresses that are still needed after another call.",
+    "In ordinary factorial recursion, multiplication happens after the call returns; in tail recursion, the intermediate result is passed along as an accumulator.",
+    "A tail call preserves the original caller's return address and, in the example shown, needs no new stack frame.",
+    "The 128-bit addition shown handles carries between 32-bit words within a 64-bit field, but not a carry from the lo field to the hi field."
+  ],
+  "tags": [],
+  "links": [],
+  "source": {
+    "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO11.md",
+    "sha256": "724bfb7fa6cfb066ebf2673b4808fbb4d273f8eec07ca6e2f9ffddabd446ebf6",
+    "commit": "416394a2483995efcb3d70b64616069b78202c4b"
+  },
+  "generator": {
+    "model": "gpt-6-luna",
+    "effort": "xhigh",
+    "reviewEffort": "high",
+    "promptVersion": "v3",
+    "generatedAt": "2026-11-06T23:12:13.829Z",
+    "review": {
+      "checked": 44,
+      "fixed": 2,
+      "removed": 0,
+      "notes": "Alle 44 Fragen geprüft. Zwei Fragen wurden selbsttragend gemacht: Die 128-Bit-Addition benennt nun ihre Übertragsregeln; die Rückgabe aus show_alloc_on_stack enthält die nötige Speicherlayout-Information."
+    }
+  },
+  "levels": [
+    {
+      "id": "era-11-l1",
+      "index": 1,
+      "kind": "basics",
+      "title": "Foundations",
+      "questions": [
+        {
+          "id": "era-11-l1-q01",
+          "type": "single",
+          "prompt": "What does the abbreviation ABI stand for?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Application Binary Interface"
+            },
+            {
+              "id": "b",
+              "text": "Application Buffer Interrupt"
+            },
+            {
+              "id": "c",
+              "text": "Assembler Branch Index"
+            },
+            {
+              "id": "d",
+              "text": "Address Base Instruction"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "ABI stands for Application Binary Interface. Among other things, the RISC-V ABI defines the rules of the calling convention.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO11.md",
+            "heading": "1. Calling Convention: gemeinsame Regeln für Aufrufe"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "RISC-V ABI",
+            "Calling convention"
+          ]
+        },
+        {
+          "id": "era-11-l1-q02",
+          "type": "multi",
+          "prompt": "Which statements about the calling convention are correct? Select all that apply; more than one may be correct.",
+          "options": [
+            {
+              "id": "a",
+              "text": "It also governs register responsibilities and stack alignment."
+            },
+            {
+              "id": "b",
+              "text": "The caller invokes a function; the callee is the function being called."
+            },
+            {
+              "id": "c",
+              "text": "It specifies which machine instructions the ISA contains."
+            },
+            {
+              "id": "d",
+              "text": "It determines byte order in memory."
+            },
+            {
+              "id": "e",
+              "text": "It specifies which registers hold arguments and return values."
+            }
+          ],
+          "correct": [
+            "a",
+            "b",
+            "e"
+          ],
+          "explanation": "The calling convention coordinates arguments, return values, register responsibilities, and stack rules. The instruction set and byte order are other architectural features.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO11.md",
+            "heading": "1. Calling Convention: gemeinsame Regeln für Aufrufe"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Calling convention",
+            "Caller and callee",
+            "RISC-V ABI"
+          ]
+        },
+        {
+          "id": "era-11-l1-q03",
+          "type": "multi",
+          "prompt": "Which register groups are caller-saved? Select all that apply; more than one may be correct.",
+          "options": [
+            {
+              "id": "a",
+              "text": "ra and t0–t6"
+            },
+            {
+              "id": "b",
+              "text": "a0–a7"
+            },
+            {
+              "id": "c",
+              "text": "sp"
+            },
+            {
+              "id": "d",
+              "text": "s0–s11"
+            }
+          ],
+          "correct": [
+            "a",
+            "b"
+          ],
+          "explanation": "ra, t0–t6, and a0–a7 are caller-saved. sp and s0–s11 must be preserved.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO11.md",
+            "heading": "2. Register: Wer sichert was?"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Caller-saved and callee-saved registers",
+            "Return address"
+          ]
+        },
+        {
+          "id": "era-11-l1-q04",
+          "type": "truefalse",
+          "prompt": "A callee must save every s register, even if it does not modify it.",
+          "options": [
+            {
+              "id": "true",
+              "text": "True"
+            },
+            {
+              "id": "false",
+              "text": "False"
+            }
+          ],
+          "correct": [
+            "false"
+          ],
+          "explanation": "A callee only needs to save a callee-saved register if it modifies it. Unmodified registers do not need to be saved.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO11.md",
+            "heading": "2. Register: Wer sichert was?"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Caller-saved and callee-saved registers"
+          ]
+        },
+        {
+          "id": "era-11-l1-q05",
+          "type": "cloze",
+          "prompt": "Another `call` overwrites the return address in `___`.",
+          "options": [
+            {
+              "id": "a",
+              "text": "`sp`"
+            },
+            {
+              "id": "b",
+              "text": "`s0`"
+            },
+            {
+              "id": "c",
+              "text": "`x0`"
+            },
+            {
+              "id": "d",
+              "text": "`ra`"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "`call` places the new continuation address in ra. If the previous return address will be needed later, it must be saved first.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO11.md",
+            "heading": "2. Register: Wer sichert was?"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Return address",
+            "Caller-saved and callee-saved registers"
+          ]
+        },
+        {
+          "id": "era-11-l1-q06",
+          "type": "cloze",
+          "prompt": "In RV32, an unsigned value with fewer than 32 bits is extended to 32 bits by ___.",
+          "options": [
+            {
+              "id": "a",
+              "text": "Sign extension"
+            },
+            {
+              "id": "b",
+              "text": "Bit rotation"
+            },
+            {
+              "id": "c",
+              "text": "Sign inversion"
+            },
+            {
+              "id": "d",
+              "text": "Zero extension"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "For an unsigned value, zeros are added on the left. For a signed value, the sign bit is extended instead.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO11.md",
+            "heading": "Argumente in Registern"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Register arguments"
+          ]
+        },
+        {
+          "id": "era-11-l1-q07",
+          "type": "single",
+          "prompt": "How is a 64-bit argument passed in RV32 using registers?",
+          "options": [
+            {
+              "id": "a",
+              "text": "In one a register; the upper bits are discarded."
+            },
+            {
+              "id": "b",
+              "text": "In two a registers; the lower bits are in the register with the lower number."
+            },
+            {
+              "id": "c",
+              "text": "In two s registers; the upper bits are in the register with the lower number."
+            },
+            {
+              "id": "d",
+              "text": "Always exclusively on the stack."
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "A 64-bit value occupies two 32-bit argument registers. The register with the lower number holds the lower part.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO11.md",
+            "heading": "Argumente in Registern"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Register arguments"
+          ]
+        },
+        {
+          "id": "era-11-l1-q08",
+          "type": "single",
+          "prompt": "How is an argument larger than 64 bits passed in the RV32 calling convention used here?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Through the zero register `x0`"
+            },
+            {
+              "id": "b",
+              "text": "As an immediate in the `call` instruction"
+            },
+            {
+              "id": "c",
+              "text": "Through a pointer to the value"
+            },
+            {
+              "id": "d",
+              "text": "Always in three consecutive a registers"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Values larger than 64 bits are passed by address. The callee can access the value through this pointer.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO11.md",
+            "heading": "Argumente in Registern"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Register arguments",
+            "Pointer parameters"
+          ]
+        },
+        {
+          "id": "era-11-l1-q09",
+          "type": "single",
+          "prompt": "Where is the first stack argument when the callee is entered?",
+          "options": [
+            {
+              "id": "a",
+              "text": "At `-4(sp)`"
+            },
+            {
+              "id": "b",
+              "text": "In `a7`"
+            },
+            {
+              "id": "c",
+              "text": "At `0(sp)`"
+            },
+            {
+              "id": "d",
+              "text": "At `0(ra)`"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "At function entry, the first stack argument is at 0(sp). Further stack arguments are at higher addresses.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO11.md",
+            "heading": "Zusätzliche Argumente auf dem Stack"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Stack arguments"
+          ]
+        },
+        {
+          "id": "era-11-l1-q10",
+          "type": "truefalse",
+          "prompt": "With an aligned stack, `sp mod 16 = 0` must hold.",
+          "options": [
+            {
+              "id": "true",
+              "text": "True"
+            },
+            {
+              "id": "false",
+              "text": "False"
+            }
+          ],
+          "correct": [
+            "true"
+          ],
+          "explanation": "The fixed rule is to keep the stack 16-byte aligned. Therefore, the remainder when sp is divided by 16 is zero.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO11.md",
+            "heading": "Feste Regel: immer 16-Byte-aligned"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Stack alignment"
+          ]
+        },
+        {
+          "id": "era-11-l1-q11",
+          "type": "single",
+          "prompt": "How does a callee return a 128-bit value in RV32?",
+          "options": [
+            {
+              "id": "a",
+              "text": "The caller reserves 16 bytes and passes the address in `a0`."
+            },
+            {
+              "id": "b",
+              "text": "The callee returns the value exclusively through `sp`."
+            },
+            {
+              "id": "c",
+              "text": "The caller passes the address in `ra`."
+            },
+            {
+              "id": "d",
+              "text": "The callee places the entire value in `a0`."
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "A 128-bit value does not fit in the return registers. The caller provides a memory region and passes its pointer in a0.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO11.md",
+            "heading": "Rückgabe wie das erste Argument"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Return values",
+            "Result pointer"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "era-11-l2",
+      "index": 2,
+      "kind": "apply",
+      "title": "Apply",
+      "questions": [
+        {
+          "id": "era-11-l2-q01",
+          "type": "diagram",
+          "prompt": "Which edge in the diagram shows the return from function `f` to `main`?",
+          "context": {
+            "type": "mermaid",
+            "content": "flowchart LR\n  C[\"Caller: main\"] -->|\"call: arguments\"| F[\"Callee: f\"]\n  F -->|\"ret: result\"| C",
+            "caption": "Call and return between caller and callee"
+          },
+          "options": [
+            {
+              "id": "a",
+              "text": "The edge `f` → `main` labeled `call`"
+            },
+            {
+              "id": "b",
+              "text": "The edge `main` → `f` labeled `ret`"
+            },
+            {
+              "id": "c",
+              "text": "The edge `main` → `f` labeled `call`"
+            },
+            {
+              "id": "d",
+              "text": "The edge `f` → `main` labeled `ret`"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "main calls f with `call`. When f finishes, the return via `ret` goes back to main.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO11.md",
+            "heading": "Caller und Callee"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Caller and callee"
+          ]
+        },
+        {
+          "id": "era-11-l2-q02",
+          "type": "calc",
+          "prompt": "The 64-bit value `0x1122334455667788` is passed as the first argument in RV32. What values are then in `a0` and `a1`?",
+          "options": [
+            {
+              "id": "a",
+              "text": "`a0 = 0x55667788`, `a1 = 0x11223344`"
+            },
+            {
+              "id": "b",
+              "text": "`a0 = 0x11223344`, `a1 = 0x55667788`"
+            },
+            {
+              "id": "c",
+              "text": "`a0 = 0x55667788`, `a1 = 0x00000000`"
+            },
+            {
+              "id": "d",
+              "text": "`a0 = 0x00000000`, `a1 = 0x11223344`"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "The lower 32 bits are `0x55667788` and go in the register with the lower number, `a0`. The upper 32 bits go in `a1`.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO11.md",
+            "heading": "Argumente in Registern"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Register arguments"
+          ]
+        },
+        {
+          "id": "era-11-l2-q03",
+          "type": "calc",
+          "prompt": "A signed 8-bit value has the bit pattern `11110110`. What 32-bit representation results from sign extension?",
+          "options": [
+            {
+              "id": "a",
+              "text": "`11110110 00000000 00000000 00000000`"
+            },
+            {
+              "id": "b",
+              "text": "`00000000 00000000 00000000 11110110`"
+            },
+            {
+              "id": "c",
+              "text": "`00000000 00000000 00000000 00001010`"
+            },
+            {
+              "id": "d",
+              "text": "`11111111 11111111 11111111 11110110`"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "The most significant bit of the 8-bit pattern is 1. With sign extension, this sign bit is extended to the left; the lower eight bits remain unchanged.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO11.md",
+            "heading": "Argumente in Registern"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Register arguments"
+          ]
+        },
+        {
+          "id": "era-11-l2-q04",
+          "type": "calc",
+          "prompt": "An already aligned stack needs 20 bytes for local data. What frame size should it be rounded up to so that `sp` remains 16-byte aligned?",
+          "options": [
+            {
+              "id": "a",
+              "text": "16 bytes"
+            },
+            {
+              "id": "b",
+              "text": "48 bytes"
+            },
+            {
+              "id": "c",
+              "text": "32 bytes"
+            },
+            {
+              "id": "d",
+              "text": "24 bytes"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "The frame size must be a multiple of 16 and hold at least 20 bytes. The smallest suitable multiple is 32 bytes.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO11.md",
+            "heading": "Feste Regel: immer 16-Byte-aligned"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Stack alignment",
+            "Stack frame"
+          ]
+        },
+        {
+          "id": "era-11-l2-q05",
+          "type": "single",
+          "prompt": "The caller needs the current value of `t3` after calling a function. What should it do?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Rename `t3` to `ra`"
+            },
+            {
+              "id": "b",
+              "text": "Save `t3` before the call"
+            },
+            {
+              "id": "c",
+              "text": "Require the callee to always preserve `t3`"
+            },
+            {
+              "id": "d",
+              "text": "Restore `t3` from `x0` after the call"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "`t3` is caller-saved. If the caller still needs its old value later, it saves it before the call.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO11.md",
+            "heading": "Warum gibt es beide Arten?"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Caller-saved and callee-saved registers"
+          ]
+        },
+        {
+          "id": "era-11-l2-q06",
+          "type": "single",
+          "prompt": "An RV32 function receives ten `short` arguments. Where is the tenth argument at function entry if the first eight are passed in `a0` through `a7`?",
+          "options": [
+            {
+              "id": "a",
+              "text": "In `a7`"
+            },
+            {
+              "id": "b",
+              "text": "At `8(sp)`"
+            },
+            {
+              "id": "c",
+              "text": "At `0(sp)`"
+            },
+            {
+              "id": "d",
+              "text": "At `4(sp)`"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "The ninth argument is at 0(sp), and the tenth is at 4(sp). Each stack argument occupies at least four bytes.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO11.md",
+            "heading": "Zusätzliche Argumente auf dem Stack"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Stack arguments"
+          ]
+        },
+        {
+          "id": "era-11-l2-q07",
+          "type": "truefalse",
+          "prompt": "In `addi a0, sp, 8`, the value from memory at `sp + 8` is loaded into `a0`.",
+          "context": {
+            "type": "code",
+            "content": "addi a0, sp, 8",
+            "language": "asm",
+            "caption": "Address calculation for the result area"
+          },
+          "options": [
+            {
+              "id": "true",
+              "text": "True"
+            },
+            {
+              "id": "false",
+              "text": "False"
+            }
+          ],
+          "correct": [
+            "false"
+          ],
+          "explanation": "`addi` adds a constant to a register value. Here, the instruction computes an address; loading from memory would require a load instruction.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO11.md",
+            "heading": "Assembler:"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Pointer parameters"
+          ]
+        },
+        {
+          "id": "era-11-l2-q08",
+          "type": "single",
+          "prompt": "A function returns a 64-bit value in RV32. Where are the two parts?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Entire value in `ra`"
+            },
+            {
+              "id": "b",
+              "text": "Both parts exclusively on the stack"
+            },
+            {
+              "id": "c",
+              "text": "Lower 32 bits in `a1`, upper 32 bits in `a0`"
+            },
+            {
+              "id": "d",
+              "text": "Lower 32 bits in `a0`, upper 32 bits in `a1`"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "The return value follows the rule for the first argument: the lower bits go in the register with the lower number, a0.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO11.md",
+            "heading": "Rückgabe wie das erste Argument"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Return values"
+          ]
+        },
+        {
+          "id": "era-11-l2-q09",
+          "type": "code_output",
+          "prompt": "What value does the call `factorial(4, 1)` return?",
+          "context": {
+            "type": "code",
+            "content": "int factorial(int n, int acc) {\n    if (n == 0) {\n        return acc;\n    }\n    return factorial(n - 1, n * acc);\n}",
+            "language": "c",
+            "caption": "Tail-recursive factorial with an accumulator"
+          },
+          "options": [
+            {
+              "id": "a",
+              "text": "24"
+            },
+            {
+              "id": "b",
+              "text": "12"
+            },
+            {
+              "id": "c",
+              "text": "120"
+            },
+            {
+              "id": "d",
+              "text": "5"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "Before each next call, the accumulator is multiplied by n: (4,1) → (3,4) → (2,12) → (1,24) → (0,24). When n = 0, acc is returned.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO11.md",
+            "heading": "C-Code aus dem Bild"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Tail recursion"
+          ]
+        },
+        {
+          "id": "era-11-l2-q10",
+          "type": "calc",
+          "prompt": "In the ordinary recursive factorial function, each call with `n > 0` reserves a 16-byte frame; the base case `n = 0` reserves none. How many frames are active simultaneously during `fac(3)`?",
+          "options": [
+            {
+              "id": "a",
+              "text": "3"
+            },
+            {
+              "id": "b",
+              "text": "2"
+            },
+            {
+              "id": "c",
+              "text": "1"
+            },
+            {
+              "id": "d",
+              "text": "4"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "`fac(3)`, `fac(2)`, and `fac(1)` each reserve a frame. `fac(0)` is the base case and reserves none.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO11.md",
+            "heading": "Ergänztes Beispiel: einfache rekursive Fakultät"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Recursion",
+            "Stack frame"
+          ]
+        },
+        {
+          "id": "era-11-l2-q11",
+          "type": "multi",
+          "prompt": "On RV32, a 16-byte struct consists of the fields `lo` and `hi`, each 64 bits in size. With 4-byte words and the layout `lo` starting at offset 0 and `hi` starting at offset 8, which mappings are correct? Select all that apply; more than one may be correct.",
+          "options": [
+            {
+              "id": "a",
+              "text": "Offset 0 contains the lower 32 bits of `lo`."
+            },
+            {
+              "id": "b",
+              "text": "Offset 4 contains the upper 32 bits of `lo`."
+            },
+            {
+              "id": "c",
+              "text": "Offset 8 contains the lower 32 bits of `hi`."
+            },
+            {
+              "id": "d",
+              "text": "Offset 12 contains the lower 32 bits of `hi`."
+            }
+          ],
+          "correct": [
+            "a",
+            "b",
+            "c"
+          ],
+          "explanation": "Each 64-bit field consists of two 32-bit words. `hi` starts at offset 8, so its lower and upper words are at offsets 8 and 12.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO11.md",
+            "heading": "Warum Pointer, obwohl im C-Code Werte stehen?"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Pointer parameters",
+            "Multiword addition"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "era-11-l3",
+      "index": 3,
+      "kind": "deepen",
+      "title": "Explore further",
+      "questions": [
+        {
+          "id": "era-11-l3-q01",
+          "type": "multi",
+          "prompt": "Which statements describe the difference between ordinary recursion and tail recursion? Select all that apply; more than one may be correct.",
+          "options": [
+            {
+              "id": "a",
+              "text": "With ordinary factorial recursion, multiplication by the original n happens after the call returns."
+            },
+            {
+              "id": "b",
+              "text": "With tail-recursive factorial, the current product is passed along as `acc`."
+            },
+            {
+              "id": "c",
+              "text": "Ordinary factorial recursion can always run without storing intermediate values."
+            },
+            {
+              "id": "d",
+              "text": "In tail recursion, the recursive call is the function's final step."
+            }
+          ],
+          "correct": [
+            "a",
+            "b",
+            "d"
+          ],
+          "explanation": "The ordinary version still has to multiply after the recursive call and therefore needs the original value. Tail recursion performs the multiplication before the next call and passes along the accumulator.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO11.md",
+            "heading": "7. Endrekursion / Tail Recursion"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Recursion",
+            "Tail recursion"
+          ]
+        },
+        {
+          "id": "era-11-l3-q02",
+          "type": "truefalse",
+          "prompt": "In the ordinary factorial function, `call fac` can be replaced directly by `tail fac` without changing anything else in the function.",
+          "options": [
+            {
+              "id": "true",
+              "text": "True"
+            },
+            {
+              "id": "false",
+              "text": "False"
+            }
+          ],
+          "correct": [
+            "false"
+          ],
+          "explanation": "After the ordinary recursive call, the function still has to multiply by the original n. A tail call would skip this pending work.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO11.md",
+            "heading": "Voraussetzungen der Fakultätsbeispiele"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Recursion",
+            "Tail recursion"
+          ]
+        },
+        {
+          "id": "era-11-l3-q03",
+          "type": "single",
+          "prompt": "Function `f` is called by `main` and then calls `g` itself. After `g` returns, `f` still has to return to `main`. What must `f` do before `call g`?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Copy `sp` to `x0`"
+            },
+            {
+              "id": "b",
+              "text": "Save the current return address from `ra`"
+            },
+            {
+              "id": "c",
+              "text": "Keep register `ra` permanently unchanged"
+            },
+            {
+              "id": "d",
+              "text": "Calculate `g`'s return address in `a0`"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "`call g` overwrites ra with the return address after `f`. Therefore, `f` must first save its earlier address back to `main`.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO11.md",
+            "heading": "Was passiert mit      bei mehreren Aufrufen?"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Return address",
+            "Stack frame"
+          ]
+        },
+        {
+          "id": "era-11-l3-q04",
+          "type": "multi",
+          "prompt": "Which statements about register responsibilities are correct? Select all that apply; more than one may be correct.",
+          "options": [
+            {
+              "id": "a",
+              "text": "A callee restores any modified `s` register before returning."
+            },
+            {
+              "id": "b",
+              "text": "A callee must save every `t` register, even if it does not modify it."
+            },
+            {
+              "id": "c",
+              "text": "The callee restores the original value of `sp`."
+            },
+            {
+              "id": "d",
+              "text": "The caller saves a caller-saved value if it still needs it after the call."
+            }
+          ],
+          "correct": [
+            "a",
+            "c",
+            "d"
+          ],
+          "explanation": "The caller saves caller-saved values only if it still needs them. The callee preserves sp and any s registers it modifies; unmodified registers need not be saved.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO11.md",
+            "heading": "2. Register: Wer sichert was?"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Caller-saved and callee-saved registers",
+            "Stack frame"
+          ]
+        },
+        {
+          "id": "era-11-l3-q05",
+          "type": "truefalse",
+          "prompt": "If `sp` is divisible by 16 before a frame is allocated, a frame size of 24 bytes preserves 16-byte alignment.",
+          "options": [
+            {
+              "id": "true",
+              "text": "True"
+            },
+            {
+              "id": "false",
+              "text": "False"
+            }
+          ],
+          "correct": [
+            "false"
+          ],
+          "explanation": "24 is not a multiple of 16. A 24-byte frame would break the alignment if sp were aligned beforehand.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO11.md",
+            "heading": "Feste Regel: immer 16-Byte-aligned"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Stack alignment"
+          ]
+        },
+        {
+          "id": "era-11-l3-q06",
+          "type": "multi",
+          "prompt": "A 128-bit struct contains the separate 64-bit fields `lo` and `hi`, each made up of two 32-bit words. During addition, carries between the two words of each field are detected with `sltu` and added to the upper word; a carry from field `lo` to field `hi` is not propagated. Which statements are correct? Select all that apply; more than one may be correct.",
+          "options": [
+            {
+              "id": "a",
+              "text": "The two 64-bit fields `lo` and `hi` are added independently."
+            },
+            {
+              "id": "b",
+              "text": "The detected carry is added to the upper 32-bit word of the corresponding field."
+            },
+            {
+              "id": "c",
+              "text": "A carry from the entire field `lo` to field `hi` is also added."
+            },
+            {
+              "id": "d",
+              "text": "`sltu` can detect a carry from a lower 32-bit word to the upper word of the same 64-bit field."
+            }
+          ],
+          "correct": [
+            "a",
+            "b",
+            "d"
+          ],
+          "explanation": "The addition accounts for carries between the two 32-bit words of a 64-bit field. However, it omits a carry from the entire lo field to the hi field.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO11.md",
+            "heading": "Assembler:"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Multiword addition"
+          ]
+        },
+        {
+          "id": "era-11-l3-q07",
+          "type": "single",
+          "prompt": "`add_uint128_val` receives a pointer to the result area in `a0`. Which registers hold the pointers to the two input structs when the function is entered?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Both pointers are on the stack"
+            },
+            {
+              "id": "b",
+              "text": "Pointer to `a` in `a2`, pointer to `b` in `a3`"
+            },
+            {
+              "id": "c",
+              "text": "Pointer to `a` in `a0`, pointer to `b` in `a1`"
+            },
+            {
+              "id": "d",
+              "text": "Pointer to `a` in `a1`, pointer to `b` in `a2`"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "The hidden result pointer occupies a0. The input pointers follow in a1 and a2.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO11.md",
+            "heading": "Warum Pointer, obwohl im C-Code Werte stehen?"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Result pointer",
+            "Pointer parameters"
+          ]
+        },
+        {
+          "id": "era-11-l3-q08",
+          "type": "truefalse",
+          "prompt": "In the factorial code, `t0` is saved before the recursive call because the callee must preserve `t0`.",
+          "options": [
+            {
+              "id": "true",
+              "text": "True"
+            },
+            {
+              "id": "false",
+              "text": "False"
+            }
+          ],
+          "correct": [
+            "false"
+          ],
+          "explanation": "`t0` is caller-saved, but the code loads the original value from the stack only after returning. Therefore, it does not need to remain in t0 across the call.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO11.md",
+            "heading": "Ergänztes Beispiel: einfache rekursive Fakultät"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Caller-saved and callee-saved registers",
+            "Recursion"
+          ]
+        },
+        {
+          "id": "era-11-l3-q09",
+          "type": "single",
+          "prompt": "A callee receives stack arguments at `0(sp)` and `4(sp)`. It then reserves 16 bytes for its frame. Where is the first stack argument relative to the new `sp`?",
+          "options": [
+            {
+              "id": "a",
+              "text": "At `0(sp)`"
+            },
+            {
+              "id": "b",
+              "text": "At `-16(sp)`"
+            },
+            {
+              "id": "c",
+              "text": "At `16(sp)`"
+            },
+            {
+              "id": "d",
+              "text": "At `4(sp)`"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "The stack argument remains at its original memory address. Because the new sp is 16 bytes lower, the old address is now at 16(sp).",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO11.md",
+            "heading": "Zusätzliche Argumente auf dem Stack"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Stack arguments",
+            "Stack frame"
+          ]
+        },
+        {
+          "id": "era-11-l3-q10",
+          "type": "cloze",
+          "prompt": "If a function allocated its own frame or modified callee-saved registers before a tail call, it must restore these values ___ the tail call.",
+          "options": [
+            {
+              "id": "a",
+              "text": "after"
+            },
+            {
+              "id": "b",
+              "text": "before"
+            },
+            {
+              "id": "c",
+              "text": "never after"
+            },
+            {
+              "id": "d",
+              "text": "only during"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "A tail call ends the current function without a normal return. Therefore, the frame and any modified callee-saved registers must be restored beforehand.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO11.md",
+            "heading": "RISC-V-Code aus dem Bild"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Tail recursion",
+            "Stack frame",
+            "Caller-saved and callee-saved registers"
+          ]
+        },
+        {
+          "id": "era-11-l3-q11",
+          "type": "diagram",
+          "prompt": "With ordinary recursion, `fac(0)` returns first. Which function receives this return value first?",
+          "context": {
+            "type": "mermaid",
+            "content": "flowchart LR\n  M[\"main\"] --> F3[\"fac(3)\"]\n  F3 --> F2[\"fac(2)\"]\n  F2 --> F1[\"fac(1)\"]\n  F1 --> F0[\"fac(0)\"]\n  F0 -.-> F1\n  F1 -.-> F2\n  F2 -.-> F3\n  F3 -.-> M",
+            "caption": "Call chain and return order"
+          },
+          "options": [
+            {
+              "id": "a",
+              "text": "`fac(1)`"
+            },
+            {
+              "id": "b",
+              "text": "`fac(2)`"
+            },
+            {
+              "id": "c",
+              "text": "`fac(3)`"
+            },
+            {
+              "id": "d",
+              "text": "`main`"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "fac(1) called fac(0) directly and is waiting for its result. Only then does the value return through fac(2) and fac(3) to main.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO11.md",
+            "heading": "Ergänztes Beispiel: einfache rekursive Fakultät"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Recursion",
+            "Stack frame"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "era-11-l4",
+      "index": 4,
+      "kind": "boss",
+      "title": "Boss level",
+      "questions": [
+        {
+          "id": "era-11-l4-q01",
+          "type": "single",
+          "prompt": "`main` calls `f`; then `f` calls function `g` using `jal`. `f` should continue after `g` and later return to `main`. Which action reliably preserves this return?",
+          "options": [
+            {
+              "id": "a",
+              "text": "`f` leaves `ra` unsaved because `jal` preserves the old value."
+            },
+            {
+              "id": "b",
+              "text": "`main` stores `f`'s return address in `x0`."
+            },
+            {
+              "id": "c",
+              "text": "`g` must guess the old value of `ra`."
+            },
+            {
+              "id": "d",
+              "text": "`f` saves the return address it received on entry before calling `g`."
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "`jal` writes a new return address to ra. Therefore, before its own nested call, f must save the address that returns to main.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO6.md",
+            "heading": null
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Return address",
+            "Caller-saved and callee-saved registers",
+            "Stack frame"
+          ]
+        },
+        {
+          "id": "era-11-l4-q02",
+          "type": "single",
+          "prompt": "A result pointer in `a0` points to memory. Then `sw a3, 0(a0)` is executed. What does the store do?",
+          "options": [
+            {
+              "id": "a",
+              "text": "It writes the lower 32 bits from `a3` to the address in `a0`."
+            },
+            {
+              "id": "b",
+              "text": "It loads a 32-bit word from the address in `a0` into `a3`."
+            },
+            {
+              "id": "c",
+              "text": "It calculates the address in `a0` without modifying memory."
+            },
+            {
+              "id": "d",
+              "text": "It writes the value of `a0` to register `a3`."
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "`sw` stores a word from the source register at the effective address. Here, that is the address in a0 plus offset 0.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO8.md",
+            "heading": null
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Pointer parameters",
+            "Result pointer"
+          ]
+        },
+        {
+          "id": "era-11-l4-q03",
+          "type": "single",
+          "prompt": "A function reserves a 16-byte frame and saves `ra` in it. Which sequence correctly frees the frame and then returns?",
+          "options": [
+            {
+              "id": "a",
+              "text": "`ret`, load `ra`, increase `sp` by 16"
+            },
+            {
+              "id": "b",
+              "text": "Clear `ra`, decrease `sp` by 16, `ret`"
+            },
+            {
+              "id": "c",
+              "text": "Load `ra`, increase `sp` by 16, `ret`"
+            },
+            {
+              "id": "d",
+              "text": "Increase `sp` by 16, load `ra`, `ret`"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Before returning, the saved return address is loaded. Then the frame is freed, and `ret` jumps to the saved address.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO11.md",
+            "heading": "Ergänztes Beispiel: einfache rekursive Fakultät"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Stack frame",
+            "Return address",
+            "Stack alignment"
+          ]
+        },
+        {
+          "id": "era-11-l4-q04",
+          "type": "calc",
+          "prompt": "A function multiplies the unsigned 32-bit values `0xFFFFFFFF` and `0x00000002`. Which two 32-bit parts of the 64-bit product are returned by `mul` and `mulhu`?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Lower `0xFFFFFFFE`, upper `0x00000001`"
+            },
+            {
+              "id": "b",
+              "text": "Lower `0x00000001`, upper `0xFFFFFFFE`"
+            },
+            {
+              "id": "c",
+              "text": "Lower `0xFFFFFFFF`, upper `0x00000002`"
+            },
+            {
+              "id": "d",
+              "text": "Lower `0xFFFFFFFE`, upper `0x00000000`"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "The product is `0x1FFFFFFFE`. The lower 32 bits are `0xFFFFFFFE`, and the upper part is `0x00000001`.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO11.md",
+            "heading": "Beispiel: 32-Bit-Faktoren, 64-Bit-Produkt"
+          },
+          "difficulty": 5,
+          "concepts": [
+            "Return values",
+            "Register arguments"
+          ]
+        },
+        {
+          "id": "era-11-l4-q05",
+          "type": "calc",
+          "prompt": "A 128-bit struct addition computes `res.lo = a.lo + b.lo` and `res.hi = a.hi + b.hi` separately, without a carry from `lo` to `hi`. Given `a.lo = 0xFFFFFFFFFFFFFFFF`, `b.lo = 1`, `a.hi = 3`, and `b.hi = 4`, what values result?",
+          "options": [
+            {
+              "id": "a",
+              "text": "`res.lo = 0xFFFFFFFFFFFFFFFF`, `res.hi = 7`"
+            },
+            {
+              "id": "b",
+              "text": "`res.lo = 1`, `res.hi = 7`"
+            },
+            {
+              "id": "c",
+              "text": "`res.lo = 0`, `res.hi = 8`"
+            },
+            {
+              "id": "d",
+              "text": "`res.lo = 0`, `res.hi = 7`"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "The sum of lo wraps modulo 64 bits to 0. Since no carry between fields is added, hi remains `3 + 4 = 7`.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO11.md",
+            "heading": "C-Code"
+          },
+          "difficulty": 5,
+          "concepts": [
+            "Multiword addition"
+          ]
+        },
+        {
+          "id": "era-11-l4-q06",
+          "type": "truefalse",
+          "prompt": "The tail call shown in the tail-recursive factorial avoids further stack growth at each recursive step; the number of steps nevertheless remains the same.",
+          "options": [
+            {
+              "id": "true",
+              "text": "True"
+            },
+            {
+              "id": "false",
+              "text": "False"
+            }
+          ],
+          "correct": [
+            "true"
+          ],
+          "explanation": "The tail call preserves the original return address and does not start a new frame for each step. The function still performs one step for each n.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO11.md",
+            "heading": "RISC-V-Code aus dem Bild"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Tail recursion",
+            "Stack frame"
+          ]
+        },
+        {
+          "id": "era-11-l4-q07",
+          "type": "calc",
+          "prompt": "Tail-recursive factorial starts with `n = 4` and `acc = 2`. What value does it return?",
+          "options": [
+            {
+              "id": "a",
+              "text": "10"
+            },
+            {
+              "id": "b",
+              "text": "48"
+            },
+            {
+              "id": "c",
+              "text": "120"
+            },
+            {
+              "id": "d",
+              "text": "24"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "The accumulator progresses from 2 to 8, 24, and 48. When n = 0, 48 is returned.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO11.md",
+            "heading": "C-Code aus dem Bild"
+          },
+          "difficulty": 5,
+          "concepts": [
+            "Tail recursion"
+          ]
+        },
+        {
+          "id": "era-11-l4-q08",
+          "type": "single",
+          "prompt": "`show_alloc_on_stack` passes a 16-byte result area starting at `8(sp)` to `add_uint128_val`. The result area starts at offset 8; `res.lo` occupies the struct's first 8 bytes. Then `show_alloc_on_stack` returns only `res.lo`. Which return registers should be loaded for this?",
+          "options": [
+            {
+              "id": "a",
+              "text": "`a0` from `16(sp)` and `a1` from `20(sp)`"
+            },
+            {
+              "id": "b",
+              "text": "`a0` from `0(sp)` and `a1` from `4(sp)`"
+            },
+            {
+              "id": "c",
+              "text": "`a0` from `8(sp)` and `a1` from `12(sp)`"
+            },
+            {
+              "id": "d",
+              "text": "`a0` from `24(sp)` and `a1` from `28(sp)`"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "The result area starts at offset 8. `res.lo` occupies its first eight bytes, the words at offsets 8 and 12; they are loaded as a 64-bit return value into a0/a1.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO11.md",
+            "heading": "Assembler:"
+          },
+          "difficulty": 5,
+          "concepts": [
+            "Result pointer",
+            "Return values",
+            "Stack frame"
+          ]
+        },
+        {
+          "id": "era-11-l4-q09",
+          "type": "multi",
+          "prompt": "An RV32 function receives ten signed `short` arguments. Which statements about arguments 9 and 10 are correct? Select all that apply; more than one may be correct.",
+          "options": [
+            {
+              "id": "a",
+              "text": "The ninth argument starts at `0(sp)`."
+            },
+            {
+              "id": "b",
+              "text": "The tenth argument starts at `4(sp)`."
+            },
+            {
+              "id": "c",
+              "text": "The tenth argument is passed in `a7`."
+            },
+            {
+              "id": "d",
+              "text": "A signed value smaller than 32 bits is extended to 32 bits by sign extension."
+            },
+            {
+              "id": "e",
+              "text": "Each stack argument occupies exactly 2 bytes because `short` is 2 bytes in size."
+            }
+          ],
+          "correct": [
+            "a",
+            "b",
+            "d"
+          ],
+          "explanation": "The first eight arguments use a0–a7. Stack arguments start at 0(sp) and occupy at least four bytes, and smaller signed values are sign-extended.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO11.md",
+            "heading": "Zusätzliche Argumente auf dem Stack"
+          },
+          "difficulty": 5,
+          "concepts": [
+            "Stack arguments",
+            "Register arguments"
+          ]
+        },
+        {
+          "id": "era-11-l4-q10",
+          "type": "multi",
+          "prompt": "`fac(3)` has just returned from `fac(2)` in the ordinary recursive factorial function. Which statements help `fac(3)` continue the calculation correctly? Select all that apply; more than one may be correct.",
+          "options": [
+            {
+              "id": "a",
+              "text": "The original value `n = 3` must be preserved for the multiplication."
+            },
+            {
+              "id": "b",
+              "text": "The multiplication `3 × 2` gives 6."
+            },
+            {
+              "id": "c",
+              "text": "`a0` now contains the result of `fac(2)`, which is 2."
+            },
+            {
+              "id": "d",
+              "text": "After the call, `a0` is guaranteed to retain the original argument 3."
+            }
+          ],
+          "correct": [
+            "a",
+            "b",
+            "c"
+          ],
+          "explanation": "The recursive call overwrites a0 with its result. Therefore, fac(3) must have saved its original n so it can then multiply 3 by 2.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO11.md",
+            "heading": "Ergänztes Beispiel: einfache rekursive Fakultät"
+          },
+          "difficulty": 5,
+          "concepts": [
+            "Recursion",
+            "Caller-saved and callee-saved registers",
+            "Stack frame"
+          ]
+        },
+        {
+          "id": "era-11-l4-q11",
+          "type": "calc",
+          "prompt": "In `fac(5)`, each call with `n > 0` reserves exactly 16 bytes; the base case reserves no frame. How much stack space is reserved for the five simultaneously active frames?",
+          "options": [
+            {
+              "id": "a",
+              "text": "64 bytes"
+            },
+            {
+              "id": "b",
+              "text": "16 bytes"
+            },
+            {
+              "id": "c",
+              "text": "96 bytes"
+            },
+            {
+              "id": "d",
+              "text": "80 bytes"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "The calls for n = 5, 4, 3, 2, and 1 each reserve 16 bytes. In total, that is 5 × 16 = 80 bytes.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO11.md",
+            "heading": "Ergänztes Beispiel: einfache rekursive Fakultät"
+          },
+          "difficulty": 5,
+          "concepts": [
+            "Recursion",
+            "Stack frame",
+            "Stack alignment"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "era-11-l5",
+      "index": 5,
+      "kind": "bonus",
+      "title": "In practice: When functions work together",
+      "questions": [
+        {
+          "id": "era-11-l5-q01",
+          "type": "single",
+          "prompt": "You are writing a RISC-V plugin that calls a separately compiled library. Both sides need to know where arguments and return values are placed and who saves register values. Which contract provides these rules?",
+          "options": [
+            {
+              "id": "a",
+              "text": "A TLS encryption scheme"
+            },
+            {
+              "id": "b",
+              "text": "A database index"
+            },
+            {
+              "id": "c",
+              "text": "An image compression format"
+            },
+            {
+              "id": "d",
+              "text": "The calling convention of the RISC-V ABI"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "The calling convention specifies how functions communicate with one another. It allows independently developed RISC-V programs to handle arguments, return values, and registers according to the same rules.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO11.md",
+            "heading": "1. Calling Convention: gemeinsame Regeln für Aufrufe"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Calling convention",
+            "RISC-V ABI"
+          ]
+        },
+        {
+          "id": "era-11-l5-q02",
+          "type": "single",
+          "prompt": "Your RV32 app holds a pixel value in `t0`, calls a filter function, and still needs the old value afterward. `t0` is caller-saved. What should the app do?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Nothing: caller-saved registers are restored automatically"
+            },
+            {
+              "id": "b",
+              "text": "Trust that the callee always leaves `t0` unchanged"
+            },
+            {
+              "id": "c",
+              "text": "Save the value itself before the call, for example on the stack"
+            },
+            {
+              "id": "d",
+              "text": "Move the value into `ra`"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "A callee may overwrite `t0`. If the caller still needs the previous pixel value after the call, it must save it itself beforehand.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO11.md",
+            "heading": "2. Register: Wer sichert was?"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Caller",
+            "Caller-saved"
+          ]
+        },
+        {
+          "id": "era-11-l5-q03",
+          "type": "estimate",
+          "prompt": "A RISC-V function returns a 128-bit result through a reserved memory area. How large is the result area in bytes?",
+          "options": [],
+          "correct": [],
+          "slider": {
+            "min": 4,
+            "max": 36,
+            "step": 4,
+            "answer": 16,
+            "tolerance": 0,
+            "unit": "Byte",
+            "scale": "linear"
+          },
+          "explanation": "One byte contains 8 bits. Therefore, $128 / 8 = 16$ bytes are needed for the result.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO11.md",
+            "heading": "Rückgabe wie das erste Argument"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Return values",
+            "Result pointer"
+          ]
+        },
+        {
+          "id": "era-11-l5-q04",
+          "type": "single",
+          "prompt": "A database helper function uses `s2` for a local loop variable. `s2` is callee-saved. What must the function do for its caller?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Save the old value of `s2` and restore it before returning"
+            },
+            {
+              "id": "b",
+              "text": "Save the old value only if the caller asks afterward"
+            },
+            {
+              "id": "c",
+              "text": "Clear the old value of `s2` so the caller can recompute it"
+            },
+            {
+              "id": "d",
+              "text": "Continue using `s2` in the callee after returning"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "A callee may use a callee-saved register, but it must preserve its old value. This way, after the return, the caller still sees its original value in `s2`.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO11.md",
+            "heading": "2. Register: Wer sichert was?"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Callee",
+            "Callee-saved"
+          ]
+        },
+        {
+          "id": "era-11-l5-q05",
+          "type": "estimate",
+          "prompt": "On RV32, eight argument registers are available: `a0` through `a7`. A 64-bit argument occupies two registers. How many complete 64-bit arguments fit if there are no other arguments?",
+          "options": [],
+          "correct": [],
+          "slider": {
+            "min": 1,
+            "max": 8,
+            "step": 1,
+            "answer": 4,
+            "tolerance": 0,
+            "unit": "Arguments",
+            "scale": "linear"
+          },
+          "explanation": "Each argument uses two of the eight registers. Therefore, $8 / 2 = 4$ complete 64-bit arguments fit.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO11.md",
+            "heading": "Argumente in Registern"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Register arguments",
+            "RV32"
+          ]
+        },
+        {
+          "id": "era-11-l5-q06",
+          "type": "single",
+          "prompt": "An RV32 program calls a routine with ten `short` arguments. The first eight arguments are each extended and passed in `a0`–`a7`. Each additional argument occupies exactly one 4-byte stack slot at function entry, with no extra gaps. Where are arguments 9 and 10 relative to `sp` on entry?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Argument 9 at `0(sp)`, argument 10 at `4(sp)`"
+            },
+            {
+              "id": "b",
+              "text": "Both additional arguments in `a0` and `a1`"
+            },
+            {
+              "id": "c",
+              "text": "Argument 9 at `4(sp)`, argument 10 at `8(sp)`"
+            },
+            {
+              "id": "d",
+              "text": "Argument 9 in `ra`, argument 10 at `0(sp)`"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "If the eight argument registers are insufficient, additional arguments are on the stack at function entry. Under the stated assumption, the first stack argument starts at `0(sp)`; the next is at the higher address `4(sp)`.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO11.md",
+            "heading": "3. Argumente übergeben"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Register arguments",
+            "Stack arguments"
+          ]
+        },
+        {
+          "id": "era-11-l5-q07",
+          "type": "estimate",
+          "prompt": "An ordinary recursive factorial function computes `fac(5)`. Each call with $n > 0$ reserves a 16-byte stack frame; `fac(0)` reserves none. What is the maximum stack space occupied by the function frames simultaneously?",
+          "options": [],
+          "correct": [],
+          "slider": {
+            "min": 16,
+            "max": 160,
+            "step": 16,
+            "answer": 80,
+            "tolerance": 0,
+            "unit": "Byte",
+            "scale": "linear"
+          },
+          "explanation": "The calls from `fac(5)` through `fac(1)` each need a frame, while `fac(0)` creates none. At the deepest point, $5 \\times 16 = 80$ bytes are occupied.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO11.md",
+            "heading": "Ergänztes Beispiel: einfache rekursive Fakultät"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Recursion",
+            "Stack frame"
+          ]
+        },
+        {
+          "id": "era-11-l5-q08",
+          "type": "single",
+          "prompt": "A video codec calls an RV32 function that returns a 128-bit metadata struct. The caller reserves a 16-byte result area and passes its address in `a0`. What does the callee do with this address?",
+          "options": [
+            {
+              "id": "a",
+              "text": "It writes the result to the memory area pointed to by `a0`"
+            },
+            {
+              "id": "b",
+              "text": "It overwrites the result area with the return address"
+            },
+            {
+              "id": "c",
+              "text": "It places the address in `a1` only after returning"
+            },
+            {
+              "id": "d",
+              "text": "It returns all 128 bits directly in `a0`"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "A single 32-bit register cannot hold the 128-bit result. In this return convention, `a0` points to the area reserved by the caller, where the callee writes the result.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO11.md",
+            "heading": "Rückgabe wie das erste Argument"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Result pointer",
+            "Return values"
+          ]
+        },
+        {
+          "id": "era-11-l5-q09",
+          "type": "estimate",
+          "prompt": "Before allocation, `sp` is 16-byte aligned. A stack frame must store `ra` and four 32-bit values; the frame size must be a multiple of 16 bytes. What is the minimum frame size in bytes?",
+          "options": [],
+          "correct": [],
+          "slider": {
+            "min": 8,
+            "max": 64,
+            "step": 8,
+            "answer": 32,
+            "tolerance": 0,
+            "unit": "Byte",
+            "scale": "linear"
+          },
+          "explanation": "The five stored words require $5 \\times 4 = 20$ bytes in total. Rounding up to the next multiple of 16 gives a 32-byte frame.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO11.md",
+            "heading": "Feste Regel: immer 16-Byte-aligned"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Stack alignment",
+            "Stack frame"
+          ]
+        },
+        {
+          "id": "era-11-l5-q10",
+          "type": "truefalse",
+          "prompt": "You are optimizing a recursive routine for an embedded device. It updates an accumulator before the recursive call, returns that call's result directly, and has no further work afterward. There is no local stack frame and no modified callee-saved register to restore. Is this correct: a tail call can perform the next step while preserving the original return address?",
+          "options": [
+            {
+              "id": "true",
+              "text": "True"
+            },
+            {
+              "id": "false",
+              "text": "False"
+            }
+          ],
+          "correct": [
+            "true"
+          ],
+          "explanation": "In a tail call, the recursive call is the final step. If there is no stack frame or modified callee-saved register to restore, the routine can continue with the updated arguments while preserving the return address of its original caller.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO11.md",
+            "heading": "7. Endrekursion / Tail Recursion"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Tail recursion",
+            "Tail call"
+          ]
+        }
+      ]
+    }
+  ]
+}

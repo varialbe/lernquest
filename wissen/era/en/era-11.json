@@ -1,0 +1,505 @@
+{
+  "schemaVersion": 1,
+  "unitId": "era-11",
+  "module": "ERA",
+  "unitNumber": 11,
+  "unitTitle": "Calling Convention and Recursion",
+  "sourceSha": "724bfb7fa6cfb066ebf2673b4808fbb4d273f8eec07ca6e2f9ffddabd446ebf6",
+  "overview": "This unit covers the RISC-V calling convention (Calling Convention) for arguments, return values, register preservation, and stack alignment. Examples involving 64- and 128-bit values, stack frames, and ordinary and tail-recursive factorial show how functions correctly preserve and pass values across calls.",
+  "entries": [
+    {
+      "id": "era-11-k01",
+      "term": "Calling convention",
+      "kind": "definition",
+      "short": "A calling convention is the contract that specifies how functions handle arguments, return values, and register values during calls.",
+      "explanation": "It specifies which registers hold arguments and results, who must preserve register values, how additional or large arguments are passed, and how the stack remains aligned. When the caller and callee follow the same contract, they can work together correctly.",
+      "example": "A caller places the first 32-bit argument in `a0`; the callee reads it there and returns a 32-bit value in `a0` as well.",
+      "pitfalls": [
+        "The calling convention governs more than the choice of argument registers: it also covers register preservation, the stack, and return values."
+      ],
+      "related": [
+        "RISC-V ABI",
+        "Caller and callee (Caller und Callee)",
+        "Subroutine call (Unterprogrammaufruf)"
+      ],
+      "heading": "1. Calling Convention: gemeinsame Regeln für Aufrufe"
+    },
+    {
+      "id": "era-11-k02",
+      "term": "RISC-V ABI",
+      "kind": "definition",
+      "short": "The RISC-V ABI specifies rules for compatible interaction between binary programs and functions.",
+      "explanation": "ABI stands for Application Binary Interface. It includes the calling convention, with rules for registers, arguments, return values, and the stack; an ABI may also specify other properties of binary files. The calling convention covered in this unit is part of the RISC-V ABI.",
+      "example": null,
+      "pitfalls": [
+        "ABI and calling convention are not synonymous: the calling convention is one part of the ABI."
+      ],
+      "related": [
+        "Calling convention",
+        "RISC-V"
+      ],
+      "heading": "1. Calling Convention: gemeinsame Regeln für Aufrufe"
+    },
+    {
+      "id": "era-11-k03",
+      "term": "Caller and callee",
+      "kind": "definition",
+      "short": "The caller invokes a function, and the callee is the function being called.",
+      "explanation": "These roles apply to a particular call. If `main` calls the function `f`, then `main` is the caller and `f` is the callee; if `f` then calls `g`, `f` is itself the caller in that second call. The caller prepares the handoff, and the callee executes the function according to the calling convention.",
+      "example": "`main` passes an argument to `f` in `a0`; `f` returns its result to `main` in `a0`.",
+      "pitfalls": [
+        "Caller and callee are roles for each call, not permanent properties of a function."
+      ],
+      "related": [
+        "Calling convention",
+        "Return values"
+      ],
+      "heading": "Caller und Callee"
+    },
+    {
+      "id": "era-11-k04",
+      "term": "Caller-saved register (Caller-saved-Register)",
+      "kind": "definition",
+      "short": "A callee may modify a caller-saved register, so the caller must save its old value if it still needs it after the call.",
+      "explanation": "In the RV32 convention covered here, `ra`, `t0–t6`, and `a0–a7` are caller-saved registers. The caller saves only values that are still needed after the call. The callee may use these registers for arguments, results, or temporary values.",
+      "example": "If `t0` holds a value needed later before `call f`, the caller can save it in the stack frame and reload it after returning.",
+      "pitfalls": [
+        "A caller-saved register is not automatically unchanged after a call.",
+        "The caller need not save every value, only those that will still be needed later."
+      ],
+      "related": [
+        "Callee-saved register",
+        "Return address `ra`",
+        "Stack frame"
+      ],
+      "heading": "2. Register: Wer sichert was?"
+    },
+    {
+      "id": "era-11-k05",
+      "term": "Callee-saved register",
+      "kind": "definition",
+      "short": "If the callee modifies a callee-saved register, it must save its old value and restore it before returning.",
+      "explanation": "In the RV32 convention covered here, `sp` and `s0–s11` must be preserved. A callee need not save such a register if it does not modify it. This lets the caller keep values in an `s` register across the call.",
+      "example": "If `f` modifies `s1`, `f` saves its original value in the prologue and reloads it in the epilogue before returning.",
+      "pitfalls": [
+        "Callee-saved does not mean that the register must remain unchanged throughout the function; its old value must be restored upon return."
+      ],
+      "related": [
+        "Caller-saved register",
+        "Stack frame",
+        "Prologue and epilogue"
+      ],
+      "heading": "2. Register: Wer sichert was?"
+    },
+    {
+      "id": "era-11-k06",
+      "term": "Return address `ra`",
+      "kind": "definition",
+      "short": "`ra` holds the address at which the calling function resumes after the current call ends.",
+      "explanation": "A `call` places the return address in `ra`. In the convention covered here, `ra` is caller-saved and may be overwritten by another call. A function that still needs to return to its caller afterward therefore saves its current return address.",
+      "example": "If `f` is called by `main` and then calls `g`, `f` first saves the `ra` that leads back to `main`.",
+      "pitfalls": [
+        "Another `call` overwrites the previous contents of `ra`.",
+        "The return address to the caller of `f` differs from the return address after a call to `g`."
+      ],
+      "related": [
+        "Caller-saved register",
+        "Nested calls and `ra`",
+        "Stack frame"
+      ],
+      "heading": "2. Register: Wer sichert was?"
+    },
+    {
+      "id": "era-11-k07",
+      "term": "Nested calls and return address `ra`",
+      "kind": "method",
+      "short": "A function saves its `ra` before calling another function itself, if it still needs to return afterward.",
+      "explanation": "Each `call` writes a new return address to `ra`. To avoid losing the original return address, the function saves it in its stack frame and restores it before its own `ret`.\n\n1. Save the current return address upon entry.\n2. Call the other function with `call`.\n3. After it returns, load the saved `ra` and return to the function's own caller with `ret`.",
+      "example": "If `f` calls `g`, `g` first returns to `f`. Then `f` loads the previously saved `ra` and returns to `main`.",
+      "pitfalls": [
+        "When `g` is called, `ra` does not automatically retain the return address to `main`."
+      ],
+      "related": [
+        "Return address `ra`",
+        "Caller-saved register",
+        "Stack frame"
+      ],
+      "heading": "2. Register: Wer sichert was?"
+    },
+    {
+      "id": "era-11-k08",
+      "term": "Register arguments",
+      "kind": "definition",
+      "short": "In RV32, the first arguments are passed in `a0–a7` whenever possible.",
+      "explanation": "A value of 32 bits or fewer occupies one argument register; the registers are used in ascending order, starting at `a0`. Larger values can occupy multiple registers, and values wider than 64 bits are passed through a pointer in the examples shown. Therefore, eight argument registers do not necessarily suffice for eight arguments of arbitrary size.",
+      "example": "For a function with three 32-bit arguments, they are in `a0`, `a1`, and `a2` upon entry.",
+      "pitfalls": [
+        "The number of argument registers does not always equal the number of arguments that can be passed, because a large argument can occupy multiple registers."
+      ],
+      "related": [
+        "Stack arguments",
+        "64-bit argument in RV32",
+        "Passing large arguments by pointer"
+      ],
+      "heading": "Argumente in Registern"
+    },
+    {
+      "id": "era-11-k09",
+      "term": "Extension of small arguments in RV32",
+      "kind": "concept",
+      "short": "An argument narrower than 32 bits is extended to 32 bits: signed types use sign extension and unsigned types use zero extension.",
+      "explanation": "Sign extension propagates the sign bit to the left; zero extension fills the added upper bits with zeros. Extension preserves the value's signed or unsigned interpretation when it is passed in a 32-bit register.",
+      "example": "A `signed char` with bit pattern `11111111` is extended to 32 ones; a `unsigned char` with the same pattern becomes `00000000 00000000 00000000 11111111`.",
+      "pitfalls": [
+        "The same bit pattern can represent a different value after extension, depending on whether its type is signed or unsigned.",
+        "For an unspecified `char`, it must be clear whether it is treated as signed or unsigned."
+      ],
+      "related": [
+        "Register arguments",
+        "Sign extension and zero extension",
+        "Word width and interpretation"
+      ],
+      "heading": "Argumente in Registern"
+    },
+    {
+      "id": "era-11-k10",
+      "term": "64-bit argument in RV32",
+      "kind": "notation",
+      "short": "A 64-bit argument is passed in two 32-bit argument registers, with the lower-numbered register holding the lower bits.",
+      "explanation": "The 64 bits are split into a lower and an upper 32-bit word. When passed as the first argument, the lower bits are in `a0` and the upper bits are in `a1`. This register sequence represents one value split across registers, not two separate arguments.",
+      "example": "For `0x1122334455667788`, `a0` contains `0x55667788` and `a1` contains `0x11223344`.",
+      "pitfalls": [
+        "The upper word belongs in the register with the higher number."
+      ],
+      "related": [
+        "Register arguments",
+        "Return values",
+        "Multiword addition"
+      ],
+      "heading": "Argumente in Registern"
+    },
+    {
+      "id": "era-11-k11",
+      "term": "Passing large arguments by pointer",
+      "kind": "concept",
+      "short": "In the RV32 examples shown, an argument wider than 64 bits is passed through a pointer to its memory region.",
+      "explanation": "The value does not fit in the designated argument registers, so the caller passes its address. The callee loads the required words through this pointer. For a struct parameter, the C code can still present a value as the parameter even though the machine-level interface passes an address.",
+      "example": "A 128-bit struct can be represented in `a1` by a pointer to its 16 bytes.",
+      "pitfalls": [
+        "A passed pointer is an address, not the large value itself."
+      ],
+      "related": [
+        "Pointer parameter",
+        "Register arguments",
+        "Result pointer"
+      ],
+      "heading": "Argumente in Registern"
+    },
+    {
+      "id": "era-11-k12",
+      "term": "Stack arguments",
+      "kind": "definition",
+      "short": "Arguments that do not fit in the argument registers are passed using locations in memory on the stack.",
+      "explanation": "Upon entry to the callee, the first stack argument is at `0(sp)`; subsequent stack arguments are at higher addresses. Each stack parameter occupies at least 4 bytes, even if its data type is smaller. A 64-bit value on the stack starts at an 8-byte-aligned address.",
+      "example": "For ten `short` arguments, the first eight are extended to 32 bits and placed in `a0–a7`; the ninth is at `0(sp)` and the tenth at `4(sp)`.",
+      "pitfalls": [
+        "Offsets `0(sp)` and `4(sp)` are relative to `sp` upon entry to the callee; after a frame is allocated, the offsets relative to the new `sp` change."
+      ],
+      "related": [
+        "Register arguments",
+        "Stack alignment",
+        "Stack pointer"
+      ],
+      "heading": "Zusätzliche Argumente auf dem Stack"
+    },
+    {
+      "id": "era-11-k13",
+      "term": "Stack alignment (Stackausrichtung)",
+      "kind": "theorem",
+      "short": "The stack pointer remains aligned to a 16-byte boundary, so `sp mod 16 = 0` holds.",
+      "explanation": "If `sp` is already aligned, the allocated frame size must be a multiple of 16 bytes to preserve the alignment. A frame may therefore contain unused padding. The stack grows toward lower addresses.",
+      "example": "A 16- or 32-byte frame preserves alignment; a 12-byte frame would violate it if `sp` were aligned on entry.",
+      "pitfalls": [
+        "Allocating only the memory actually used can break alignment if the frame size is not a multiple of 16."
+      ],
+      "related": [
+        "Stack arguments",
+        "Stack frame",
+        "Stack pointer"
+      ],
+      "heading": "Feste Regel: immer 16-Byte-aligned"
+    },
+    {
+      "id": "era-11-k14",
+      "term": "Return values",
+      "kind": "concept",
+      "short": "A return value is passed the same way as that value would be passed as the first argument.",
+      "explanation": "In RV32, a 32-bit result is in `a0`; for a 64-bit result, `a0` and `a1` hold the lower and upper 32-bit words. In the examples shown, a result wider than 64 bits is returned through a memory region whose address the caller provides.",
+      "example": "A `uint64_t` result is returned with its lower 32 bits in `a0` and its upper 32 bits in `a1`.",
+      "pitfalls": [
+        "A 64-bit result in RV32 does not fit entirely in `a0`."
+      ],
+      "related": [
+        "64-bit argument in RV32",
+        "Result pointer",
+        "Register arguments"
+      ],
+      "heading": "Rückgabe wie das erste Argument"
+    },
+    {
+      "id": "era-11-k15",
+      "term": "Result pointer",
+      "kind": "definition",
+      "short": "For a result wider than 64 bits, the caller allocates a result area and passes its address in `a0`.",
+      "explanation": "The pointer is an additional, hidden parameter in the machine-level calling convention: at entry, `a0` contains the address where the callee writes the result. The subsequent explicit arguments therefore shift to the next argument registers. This lets the function return a result that does not fit in `a0` and `a1`.",
+      "example": "For `add_uint128_val(a, b)`, `a0` points to the 16-byte result area, while `a1` and `a2` point to the two input values.",
+      "pitfalls": [
+        "Upon entry, `a0` contains the address of the result area, not the first bits of the result."
+      ],
+      "related": [
+        "Return values",
+        "Pointer parameter",
+        "Stack frame"
+      ],
+      "heading": "Rückgabe wie das erste Argument"
+    },
+    {
+      "id": "era-11-k16",
+      "term": "Example `mul_64`: 32-bit factors, 64-bit product",
+      "kind": "example",
+      "short": "`mul_64` multiplies two 32-bit factors and returns the 64-bit product in `a0/a1`.",
+      "explanation": "Upon entry, the factors are in `a0` and `a1`. `mul` computes the lower 32 bits of the product, and `mulhu` computes the upper 32 bits of an unsigned multiplication. The code shown first places the lower product in `a2` so that both factors remain available for `mulhu`.",
+      "example": "For `uint64_t mul_64(uint32_t a, uint32_t b)`, `a0` contains the lower word and `a1` the upper 32-bit word of the product after the function returns.",
+      "pitfalls": [
+        "The lower product bits must not overwrite a factor that is still needed before `mulhu`."
+      ],
+      "related": [
+        "Return values",
+        "64-bit argument in RV32",
+        "Register arguments"
+      ],
+      "heading": "Beispiel: 32-Bit-Faktoren, 64-Bit-Produkt"
+    },
+    {
+      "id": "era-11-k17",
+      "term": "Pointer parameter",
+      "kind": "definition",
+      "short": "A pointer parameter passes the address of a memory region that the function can read from or write to.",
+      "explanation": "For large struct parameters, the pointer refers to the input data; the callee loads its words using the address and offsets. A result pointer, by contrast, refers to memory where the callee writes the result. This allows large values to be processed at the machine level.",
+      "example": "If `a1` points to a 16-byte struct, `lw a3, 0(a1)` reads its first 32-bit word.",
+      "pitfalls": [
+        "The address of a struct and the contents of the struct are different things.",
+        "A pointer parameter at the machine level does not necessarily mean that the C function signature explicitly contains a pointer."
+      ],
+      "related": [
+        "Passing large arguments by pointer",
+        "Result pointer",
+        "Pointers and dereferencing"
+      ],
+      "heading": "Warum Pointer, obwohl im C-Code Werte stehen?"
+    },
+    {
+      "id": "era-11-k18",
+      "term": "`uint128_t` memory layout",
+      "kind": "notation",
+      "short": "The 128-bit struct shown consists of the 64-bit fields `lo` and `hi`, which are split into four 32-bit words on RV32.",
+      "explanation": "The struct is defined as two `uint64_t` fields: first `lo`, then `hi`. In the little-endian layout shown, the words are at offsets 0, 4, 8, and 12; the lower bits of a field are at the smaller offset. The offsets let the assembler load individual words with `lw` and store them with `sw`.",
+      "example": "`0(a1)` and `4(a1)` are the lower and upper 32 bits of `lo`; `8(a1)` and `12(a1)` are the lower and upper 32 bits of `hi`.",
+      "pitfalls": [
+        "The order of the `lo` and `hi` fields is not the same as the order of the 32-bit words within each field."
+      ],
+      "related": [
+        "Pointer parameter",
+        "Multiword addition",
+        "Little-endian and big-endian"
+      ],
+      "heading": "5. 128-Bit-Beispiel: Pointer, Speicherlayout und Ergebnisbereich"
+    },
+    {
+      "id": "era-11-k19",
+      "term": "Multiword addition",
+      "kind": "method",
+      "short": "Multiword addition splits a larger value into smaller words and accounts for carries between them.",
+      "explanation": "The addition shown processes each of the two 64-bit fields `lo` and `hi` as two 32-bit words. After adding the lower words, a carry is added to the upper word of the same 64-bit field.\n\n1. Load the words of both operands.\n2. Add the lower 32-bit words and determine the carry.\n3. Add the upper 32-bit words and include any carry.\n4. Write the four result words to the result area.",
+      "example": "`0xFFFFFFFF + 0x00000001` yields a lower word of `0x00000000` and a carry of `1` into the upper word.",
+      "pitfalls": [
+        "The function shown adds `lo` and `hi` separately; it does not account for a carry from the entire 64-bit field `lo` into field `hi`."
+      ],
+      "related": [
+        "`uint128_t` memory layout",
+        "Carry using `sltu`",
+        "Carry and borrow"
+      ],
+      "heading": "5. 128-Bit-Beispiel: Pointer, Speicherlayout und Ergebnisbereich"
+    },
+    {
+      "id": "era-11-k20",
+      "term": "Carry using `sltu`",
+      "kind": "method",
+      "short": "After adding two 32-bit words, `sltu` can determine the carry as `0` or `1`.",
+      "explanation": "After addition modulo $2^{32}$, the result is smaller than one of the addends if the addition produced a carry out of the 32-bit word. An unsigned comparison with `sltu` then returns `1`, otherwise `0`; this value is added to the next higher word. In the code shown, this handles the carry within a 64-bit field.",
+      "example": "After `0xFFFFFFFF + 0x00000001`, the stored result is `0x00000000`; because it is unsigned-smaller than `0x00000001`, the comparison returns `1`.",
+      "pitfalls": [
+        "`sltu` performs an unsigned comparison; a signed comparison is not interchangeable for this carry test.",
+        "This does not automatically compute the carry from field `lo` to field `hi`."
+      ],
+      "related": [
+        "Multiword addition",
+        "Unsigned interpretation"
+      ],
+      "heading": "5. 128-Bit-Beispiel: Pointer, Speicherlayout und Ergebnisbereich"
+    },
+    {
+      "id": "era-11-k21",
+      "term": "Stack frame (Stackframe)",
+      "kind": "definition",
+      "short": "A stack frame is the stack area that an active function call allocates for saved registers, local values, and, if needed, a result area.",
+      "explanation": "A frame holds data that a call still needs during further calls. This can include `ra`, arguments, or intermediate values; after returning, the function releases its frame. The frame size must preserve the stack's 16-byte alignment.",
+      "example": "The `show_alloc_on_stack` frame shown allocates 32 bytes, saves `ra`, and places the 16-byte result area at offsets 8 through 23.",
+      "pitfalls": [
+        "Not every function needs its own frame; one is needed when values must be saved or local stack space allocated.",
+        "A frame can contain padding to keep `sp` aligned."
+      ],
+      "related": [
+        "Stack alignment",
+        "Return address `ra`",
+        "Recursion",
+        "Stack frames"
+      ],
+      "heading": "6. Rekursion in RISC-V"
+    },
+    {
+      "id": "era-11-k22",
+      "term": "Recursion (Rekursion)",
+      "kind": "definition",
+      "short": "Recursion occurs when a function calls itself directly or through other functions.",
+      "explanation": "Each active recursive call is a separate function call and follows the calling convention. Values and return addresses needed after a deeper call must be preserved separately; typically, each active call gets its own stack frame for this purpose. The calls return in reverse order.",
+      "example": "For `fac(3)`, the calls proceed as `fac(2)`, `fac(1)`, and `fac(0)`; they then return one by one.",
+      "pitfalls": [
+        "If a recursive call may overwrite a register, a value that is still needed must not be left there unsaved."
+      ],
+      "related": [
+        "Stack frame",
+        "Return address `ra`",
+        "Factorial by ordinary recursion",
+        "Tail recursion"
+      ],
+      "heading": "6. Rekursion in RISC-V"
+    },
+    {
+      "id": "era-11-k23",
+      "term": "Preserving recursive state",
+      "kind": "method",
+      "short": "Each active recursive call saves the values it will still need to resume after the next call.",
+      "explanation": "These include its own return address, any required parameters or intermediate values, and modified callee-saved registers. The stack keeps the values for each call level separate, so a deeper call cannot overwrite them.\n\n1. Save the required values in the current frame before the recursive call.\n2. Make the recursive call.\n3. After it returns, load the saved values and complete the pending work.",
+      "example": "For `fac(n) = n * fac(n-1)`, each call saves its original `n` because it is needed for the multiplication after the call returns.",
+      "pitfalls": [
+        "After the recursive call, argument register `a0` contains its return value, not the original `n`."
+      ],
+      "related": [
+        "Recursion",
+        "Stack frame",
+        "Caller-saved register",
+        "Return address `ra`"
+      ],
+      "heading": "6. Rekursion in RISC-V"
+    },
+    {
+      "id": "era-11-k24",
+      "term": "Push, pop, and frame pointer",
+      "kind": "concept",
+      "short": "Push saves a value on the stack, pop restores it, and a frame pointer can provide a fixed reference address within the frame.",
+      "explanation": "In the RV32 work shown, push is typically implemented by allocating stack space and then using `sw`; pop loads the value with `lw` and then releases the space. A frame pointer holds a stable address for accessing frame contents, even when `sp` changes. If `s0` is used for this purpose and modified, its old value must be saved as a callee-saved register.",
+      "example": "A frame can be allocated with `addi sp, sp, -16`, a value saved with `sw ra, 12(sp)`, and the frame later deallocated by loading the value and using `addi sp, sp, 16`.",
+      "pitfalls": [
+        "The alignment of `sp` must also be preserved when allocating and releasing memory.",
+        "A frame pointer is not required in the simple factorial examples shown."
+      ],
+      "related": [
+        "Stack frame",
+        "Stack alignment",
+        "Callee-saved register",
+        "Stack: PUSH and POP"
+      ],
+      "heading": "Rückblick: Push, Pop und Framepointer"
+    },
+    {
+      "id": "era-11-k25",
+      "term": "Factorial by ordinary recursion",
+      "kind": "example",
+      "short": "Ordinary recursive factorial calls `fac(n−1)` and multiplies its result by `n` after the call returns.",
+      "explanation": "For nonnegative integers, `fac(0) = 1` and `fac(n) = n · fac(n−1)` for `n > 0`. Each nontrivial call saves its original `n` and `ra`, calls `fac(n−1)`, and then multiplies the returned result by the saved `n`. The computation after the call returns means this form is not tail-recursive.",
+      "example": "For `fac(3)`, `fac(0)` first returns `1`; as the calls return, the results are `1 · 1 = 1`, `2 · 1 = 2`, and `3 · 2 = 6`.",
+      "pitfalls": [
+        "Without saving the original `n`, the factor is no longer available after the recursive call.",
+        "The implementation shown does not handle negative inputs or signed 32-bit overflow."
+      ],
+      "related": [
+        "Recursion",
+        "Preserving recursive state",
+        "Tail recursion",
+        "Return address `ra`"
+      ],
+      "heading": "Ergänztes Beispiel: einfache rekursive Fakultät"
+    },
+    {
+      "id": "era-11-k26",
+      "term": "Tail recursion (Endrekursion)",
+      "kind": "definition",
+      "short": "A function is tail-recursive if the recursive call is its final step and no further computation uses its result.",
+      "explanation": "For factorial, the running product is updated before the next call and passed along as an accumulator argument. The ordinary form `n * fac(n-1)` is not tail-recursive because the multiplication happens after the call returns. A tail-recursive call can be implemented as a tail call if the calling convention is followed.",
+      "example": "`factorial(n, acc)` returns `acc` when `n == 0`; otherwise, it calls `factorial(n-1, n*acc)`.",
+      "pitfalls": [
+        "A recursive call is not tail-recursive just because it appears at the end of an expression; no work may remain after it returns."
+      ],
+      "related": [
+        "Recursion",
+        "Accumulator `acc`",
+        "Tail call `tail`",
+        "Factorial by ordinary recursion"
+      ],
+      "heading": "7. Endrekursion / Tail Recursion"
+    },
+    {
+      "id": "era-11-k27",
+      "term": "Accumulator `acc`",
+      "kind": "definition",
+      "short": "An accumulator stores an intermediate result and is updated and passed along at each tail-recursive step.",
+      "explanation": "In tail-recursive factorial, `acc` represents the running product. It starts at `1`, is multiplied by `n` before the next call, and holds the final result in the base case. Thus, no multiplication is needed after the recursive call.",
+      "example": "The steps for `3!` are `factorial(3,1) → factorial(2,3) → factorial(1,6) → factorial(0,6)`.",
+      "pitfalls": [
+        "For factorial, the initial value must be `1` because it is the multiplicative identity."
+      ],
+      "related": [
+        "Tail recursion",
+        "Tail call `tail`"
+      ],
+      "heading": "7. Endrekursion / Tail Recursion"
+    },
+    {
+      "id": "era-11-k28",
+      "term": "Tail call `tail`",
+      "kind": "notation",
+      "short": "`tail` transfers control to the next function while preserving the original caller's return address.",
+      "explanation": "A tail call is appropriate when the current function has nothing left to do after the call. In the tail-recursive factorial example shown, the updated arguments are passed along and no new stack frame is needed, so the stack does not grow with the recursive steps. Any frame previously allocated by the function and any modified callee-saved registers must be restored before the tail call.",
+      "example": "In `factorial`, the code updates `a0` and `a1` and then performs `tail factorial`; the base case ends the original call chain with `ret`.",
+      "pitfalls": [
+        "A `call` resumes the current function after the call returns; `tail` is appropriate only when no work remains.",
+        "A normal factorial call cannot simply be replaced with `tail`, because that would lose the multiplication performed after the call returns."
+      ],
+      "related": [
+        "Tail recursion",
+        "Accumulator `acc`",
+        "Return address `ra`",
+        "Stack frame"
+      ],
+      "heading": "RISC-V-Code aus dem Bild"
+    }
+  ],
+  "generator": {
+    "model": "gpt-6-luna",
+    "effort": "xhigh",
+    "promptVersion": "k1",
+    "generatedAt": "2026-11-06T23:23:51.495Z"
+  }
+}
