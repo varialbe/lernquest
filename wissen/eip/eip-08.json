@@ -1,0 +1,560 @@
+{
+  "schemaVersion": 1,
+  "unitId": "eip-08",
+  "module": "EIP",
+  "unitNumber": 8,
+  "unitTitle": "Klassen, Listen und Mergesort",
+  "sourceSha": "84e3d1da04bb71c89abead3f4e315cd16ddd6c00f75f5fe0b2f2e771615640a7",
+  "overview": "Die Unit führt von Klassen, Objekten und Referenzen zu Methoden und verketteten Listen. Mergesort sortiert eine Liste, indem es sie teilt, beide Teile rekursiv sortiert und die Ergebnisse mit merge zusammenführt. Die Laufzeit wird über Vergleiche beschrieben; für Stabilität müssen Teilung und Merge zusammenpassen.",
+  "entries": [
+    {
+      "id": "eip-08-k01",
+      "term": "Klasse",
+      "kind": "definition",
+      "short": "Eine Klasse definiert einen Datentyp und legt fest, welche Felder und Methoden seine Objekte haben.",
+      "explanation": "Eine Klasse beschreibt, nach welcher Struktur Objekte eines Typs erzeugt werden. Sie kann Felder für den Zustand und Methoden für Operationen auf diesem Zustand definieren. In `Rational` beschreiben etwa `numer` und `denom` Zähler und Nenner.",
+      "example": "Die Klasse `Rational` kann die Felder `numer` und `denom` sowie die Methode `numerator()` definieren.",
+      "pitfalls": [
+        "Die Klasse ist nicht selbst eines ihrer Objekte."
+      ],
+      "related": [
+        "Objekt",
+        "Konstruktor",
+        "Instanzfeld und Instanzmethode"
+      ],
+      "heading": "Klasse = Bauplan, Objekt = konkrete Instanz"
+    },
+    {
+      "id": "eip-08-k02",
+      "term": "Objekt",
+      "kind": "definition",
+      "short": "Ein Objekt ist eine konkrete Instanz einer Klasse mit eigenen Feldwerten.",
+      "explanation": "Ein Objekt entsteht beispielsweise durch einen `new`-Ausdruck und enthält die Felder, die seine Klasse festlegt. Zwei Objekte derselben Klasse können unterschiedliche Feldwerte haben. Eine Variable mit einem Klassentyp speichert typischerweise eine Referenz auf ein Objekt.",
+      "example": "`Rational a = new Rational(3, 4);` erzeugt ein `Rational`-Objekt und speichert eine Referenz darauf in `a`.",
+      "pitfalls": [
+        "Eine Referenzvariable und das Objekt, auf das sie zeigt, sind verschiedene Dinge."
+      ],
+      "related": [
+        "Klasse",
+        "Konstruktor",
+        "Referenzzuweisung und Aliasing"
+      ],
+      "heading": "Klasse = Bauplan, Objekt = konkrete Instanz"
+    },
+    {
+      "id": "eip-08-k03",
+      "term": "Konstruktor",
+      "kind": "definition",
+      "short": "Ein Konstruktor initialisiert ein neues Objekt und hat denselben Namen wie seine Klasse, aber keinen Rückgabetyp.",
+      "explanation": "Ein Konstruktor wird beim Erzeugen eines Objekts aufgerufen und setzt dessen Anfangszustand. Sein Name muss dem Klassennamen entsprechen; auch `void` darf nicht als Rückgabetyp angegeben werden. Ein Konstruktor kann Eingaben prüfen und bei ungültigen Werten eine Ausnahme auslösen.",
+      "example": "In `Rational(int x, int y)` kann der Konstruktor `numer = x` setzen und bei `y == 0` eine `IllegalArgumentException` auslösen.",
+      "pitfalls": [
+        "Ein Konstruktor mit `void` davor ist eine Methode und kein Konstruktor."
+      ],
+      "related": [
+        "Klasse",
+        "Objekt",
+        "this(...)"
+      ],
+      "heading": "Klasse = Bauplan, Objekt = konkrete Instanz"
+    },
+    {
+      "id": "eip-08-k04",
+      "term": "Referenzzuweisung und Aliasing",
+      "kind": "concept",
+      "short": "Bei einer Zuweisung wie `b = a` wird die Referenz kopiert, sodass beide Variablen dasselbe Objekt bezeichnen.",
+      "explanation": "Eine Variable eines Klassentyps enthält eine Referenz auf ein Objekt. Bei `b = a` wird diese Referenz kopiert; es entsteht kein neues Objekt. Wenn beide Variablen auf dasselbe Objekt zeigen, nennt man das Aliasing. Eine Änderung am Objekt über eine der Referenzen ist dann auch über die andere sichtbar.",
+      "example": "`Rational b = a;` erzeugt keinen zweiten Bruch; `a` und `b` zeigen auf dasselbe `Rational`-Objekt.",
+      "pitfalls": [
+        "Zwei Variablen bedeuten nicht automatisch zwei Objekte.",
+        "Zwei getrennte `new`-Ausdrücke erzeugen verschiedene Objekte, selbst wenn deren Feldwerte gleich sind."
+      ],
+      "related": [
+        "Objekt",
+        "null und nicht initialisierte lokale Variable",
+        "Array-Referenz und Aliasing"
+      ],
+      "heading": "Referenzen und Aliasing"
+    },
+    {
+      "id": "eip-08-k05",
+      "term": "null und nicht initialisierte lokale Variable",
+      "kind": "concept",
+      "short": "`null` bezeichnet eine Referenz auf kein Objekt; eine lokale Variable darf erst gelesen werden, nachdem ihr ein Wert zugewiesen wurde.",
+      "explanation": "`Rational a = null;` initialisiert `a` ausdrücklich mit `null`, aber ein Aufruf wie `a.numerator()` löst eine `NullPointerException` aus. Eine nur deklarierte lokale Variable wie `Rational a;` hat dagegen noch keinen verwendbaren Wert. Java verlangt, dass jede lokale Variable vor dem Lesen zugewiesen wurde; sie wird nicht automatisch auf `null` gesetzt.",
+      "example": "`Rational a = null;` ist eine Zuweisung; `Rational b;` allein ist keine Initialisierung.",
+      "pitfalls": [
+        "Eine null-Referenz ist kein leeres Objekt.",
+        "Nicht initialisierte lokale Variablen sind nicht automatisch `null`."
+      ],
+      "related": [
+        "Referenzzuweisung und Aliasing",
+        "Einfach verkettete Liste"
+      ],
+      "heading": "und nicht initialisierte lokale Variablen"
+    },
+    {
+      "id": "eip-08-k06",
+      "term": "Instanzfeld und Instanzmethode",
+      "kind": "definition",
+      "short": "Ein Instanzfeld und eine Instanzmethode gehören zu einem einzelnen Objekt.",
+      "explanation": "Jedes Objekt besitzt seine eigenen Instanzfelder, und eine Instanzmethode wird auf einem konkreten Objekt aufgerufen. Die Methode kann über den Zustand dieses Objekts lesen oder ihn verändern. In `a.numerator()` arbeitet `numerator()` auf dem Objekt, auf das `a` zeigt.",
+      "example": "`numer` ist ein Instanzfeld von `Rational`; `a.numerator()` ruft die Instanzmethode auf dem Objekt `a` auf.",
+      "pitfalls": [
+        "Instanzfelder werden nicht wie `static`-Felder zwischen allen Objekten geteilt."
+      ],
+      "related": [
+        "Objekt",
+        "static",
+        "this"
+      ],
+      "heading": "Methodenüberladung / Overloading"
+    },
+    {
+      "id": "eip-08-k07",
+      "term": "Neues Objekt zurückgeben",
+      "kind": "concept",
+      "short": "Eine Methode kann ein neues Ergebnisobjekt erzeugen und zurückgeben, ohne ihre Eingabeobjekte zu verändern.",
+      "explanation": "Eine Methode wie `add` kann aus zwei rationalen Zahlen ein Ergebnis berechnen und eine neu erzeugte `Rational`-Instanz zurückgeben. Für Brüche gilt $\\frac{p}{q}+\\frac{r}{s}=\\frac{ps+rq}{qs}$. Die Referenzen der Eingabeobjekte bleiben unverändert und zeigen weiterhin auf dieselben Objekte.",
+      "example": "`Rational c = a.add(b);` kann ein neues Objekt für die Summe erzeugen, während `a` und `b` unverändert bleiben.",
+      "pitfalls": [
+        "Ein neu berechnetes Ergebnis bedeutet nicht, dass eines der Argumentobjekte verändert wurde."
+      ],
+      "related": [
+        "Vorhandenes Objekt verändern",
+        "Methode",
+        "Mutation und echte Kopie"
+      ],
+      "heading": "Neues Objekt zurückgeben"
+    },
+    {
+      "id": "eip-08-k08",
+      "term": "Vorhandenes Objekt verändern",
+      "kind": "concept",
+      "short": "Eine mutierende Methode ändert den Zustand des aufgerufenen Objekts, ohne ein neues Objekt als Ergebnis zu benötigen.",
+      "explanation": "Eine Methode wie `inc(int b)` kann den Zähler so ändern, dass der Wert einer rationalen Zahl um `b` steigt: $\\frac{p}{q}+b=\\frac{p+bq}{q}$. Die Referenz auf das Objekt bleibt dabei dieselbe, aber seine Feldwerte ändern sich. Alle Aliase dieses Objekts sehen anschließend den geänderten Zustand.",
+      "example": "Bei einem Objekt mit Wert $\\frac{3}{4}$ ändert `a.inc(1)` den Wert auf $\\frac{7}{4}$.",
+      "pitfalls": [
+        "Eine unveränderte Referenz bedeutet nicht, dass auch der Objektzustand unverändert ist."
+      ],
+      "related": [
+        "Neues Objekt zurückgeben",
+        "Referenzzuweisung und Aliasing",
+        "Mutation und echte Kopie"
+      ],
+      "heading": "Vorhandenes Objekt verändern"
+    },
+    {
+      "id": "eip-08-k09",
+      "term": "Methodenüberladung (Overloading)",
+      "kind": "definition",
+      "short": "Überladene Methoden haben denselben Namen, aber unterschiedliche Parameterlisten.",
+      "explanation": "Eine Klasse darf mehrere Methoden gleichen Namens definieren, wenn sich ihre Parameterlisten unterscheiden. Java wählt beim Aufruf anhand der verfügbaren Signaturen und Argumenttypen eine passende Überladung aus. So können etwa `inc(int)` und `inc(Rational)` unterschiedliche Arten von Argumenten verarbeiten.",
+      "example": "`inc(1)` kann `inc(int)` wählen, während `inc(r)` mit einem `Rational`-Argument `inc(Rational)` wählt.",
+      "pitfalls": [
+        "Ein anderer Rückgabetyp allein reicht nicht aus, um eine Methode zu überladen."
+      ],
+      "related": [
+        "Referenzvergleich == und equals",
+        "equals(Rational)"
+      ],
+      "heading": "Methodenüberladung / Overloading"
+    },
+    {
+      "id": "eip-08-k10",
+      "term": "Referenzvergleich == und equals",
+      "kind": "concept",
+      "short": "`==` vergleicht bei Referenzen die Objektidentität; `equals` kann inhaltliche Gleichheit prüfen, wenn eine passende Implementierung aufgerufen wird.",
+      "explanation": "Bei zwei Objektreferenzen ist `a == b` genau dann wahr, wenn beide Referenzen dasselbe Objekt bezeichnen. Eine passende `equals`-Methode kann stattdessen Inhalte vergleichen; `Object.equals(Object)` prüft standardmäßig ebenfalls Identität. Welche Signatur aufgerufen wird, hängt auch vom statischen Typ der Referenz ab: `equals(Rational)` ist eine Überladung und überschreibt `equals(Object)` nicht.",
+      "example": "`new String(\"Hello\") == new String(\"Hello\")` ist falsch, während `equals` bei `String` den gleichen Text erkennt.",
+      "pitfalls": [
+        "Gleiche Feldwerte bedeuten nicht, dass `==` bei zwei Objekten wahr ist.",
+        "`equals(Rational)` überschreibt nicht automatisch `equals(Object)`."
+      ],
+      "related": [
+        "Methodenüberladung (Overloading)",
+        "equals(Rational)",
+        "Stringvergleich mit equals"
+      ],
+      "heading": ""
+    },
+    {
+      "id": "eip-08-k11",
+      "term": "equals(Rational)",
+      "kind": "method",
+      "short": "Die gezeigte `equals(Rational)`-Methode prüft rationale Zahlen durch Kreuzmultiplikation auf gleichen Wert.",
+      "explanation": "Für Brüche mit Nennern ungleich null gilt $\\frac{p}{q}=\\frac{r}{s}$ genau dann, wenn $ps=rq$. Die Methode gibt für `null` den Wert `false` zurück und vergleicht anschließend die Kreuzprodukte. Ein Cast auf `long` vor jeder Multiplikation lässt die Produkte als `long` berechnen und verhindert hier einen `int`-Überlauf. Diese Signatur überlädt `equals`; sie überschreibt nicht `equals(Object)`.",
+      "example": "`2/8` und `1/4` haben denselben Wert, weil $2\\cdot4=1\\cdot8$.",
+      "pitfalls": [
+        "Ein Cast nach der Multiplikation verhindert keinen Überlauf, der bereits in der Multiplikation aufgetreten ist.",
+        "Ungekürzte Brüche können denselben Wert haben, auch wenn Zähler und Nenner verschieden sind."
+      ],
+      "related": [
+        "Referenzvergleich == und equals",
+        "Methodenüberladung (Overloading)"
+      ],
+      "heading": ""
+    },
+    {
+      "id": "eip-08-k12",
+      "term": "toString()",
+      "kind": "method",
+      "short": "`toString()` liefert eine Textdarstellung eines Objekts.",
+      "explanation": "Eine Klasse kann `toString()` implementieren, um ihren Objektzustand als Text auszugeben. Wird ein Objekt etwa an `System.out.println` übergeben, verwendet Java seine Textdarstellung. Bei einem `Rational`-Objekt kann diese Darstellung Zähler und Nenner mit einem Schrägstrich verbinden.",
+      "example": "Ein `Rational`-Objekt mit `numer = 3` und `denom = 4` kann als `3/4` ausgegeben werden.",
+      "pitfalls": [
+        "Die Textdarstellung kürzt einen Bruch nicht automatisch, wenn die Methode das nicht ausdrücklich tut."
+      ],
+      "related": [
+        "Klasse",
+        "Instanzfeld und Instanzmethode"
+      ],
+      "heading": "Methodenüberladung / Overloading"
+    },
+    {
+      "id": "eip-08-k13",
+      "term": "private, public und UML",
+      "kind": "notation",
+      "short": "`private` beschränkt den Zugriff auf Code derselben Klasse, `public` macht ein Element von außen zugänglich, und UML kennzeichnet dies oft mit `−` beziehungsweise `+`.",
+      "explanation": "Ein `private`-Feld oder eine `private`-Methode darf aus Code derselben Klasse verwendet werden. Das schließt den Zugriff auf private Felder eines anderen Objekts derselben Klasse ein. `public` kennzeichnet ein öffentlich zugängliches Element. In UML steht `− numer: int` für ein privates Feld und `+ numerator(): int` für eine öffentliche Methode mit Rückgabetyp `int`.",
+      "example": "Eine Methode in `Rational` darf `r.numer` lesen, wenn `r` ein anderes `Rational`-Objekt ist und `numer` in dieser Klasse `private` ist.",
+      "pitfalls": [
+        "`private` bedeutet nicht, dass nur ein einziges Objekt auf das Feld zugreifen kann."
+      ],
+      "related": [
+        "Klasse",
+        "Instanzfeld und Instanzmethode"
+      ],
+      "heading": ""
+    },
+    {
+      "id": "eip-08-k14",
+      "term": "static",
+      "kind": "concept",
+      "short": "`static` kennzeichnet ein Feld oder eine Methode, das beziehungsweise die zur Klasse statt zu einem einzelnen Objekt gehört.",
+      "explanation": "Ein `static`-Feld existiert gemeinsam für die Klasse und wird von deren Objekten geteilt; ein Instanzfeld hat dagegen jedes Objekt separat. Eine statische Methode kann ohne konkretes Objekt aufgerufen werden, zum Beispiel über den Klassennamen. In einer statischen Methode gibt es kein aktuelles Objekt und daher kein `this`.",
+      "example": "Bei einem gemeinsamen Zähler `static int count` können drei erzeugte Objekte jeweils einen eigenen Instanzwert haben, während `count` für alle gemeinsam weitergezählt wird.",
+      "pitfalls": [
+        "Ein `static`-Feld ist nicht für jedes Objekt eine eigene Kopie.",
+        "Eine statische Methode kann `this` nicht verwenden."
+      ],
+      "related": [
+        "Instanzfeld und Instanzmethode",
+        "this"
+      ],
+      "heading": ""
+    },
+    {
+      "id": "eip-08-k15",
+      "term": "this",
+      "kind": "notation",
+      "short": "`this` bezeichnet in einer Instanzmethode oder einem Konstruktor das aktuelle Objekt.",
+      "explanation": "`this.feld` spricht ein Feld des aktuellen Objekts ausdrücklich an. Das ist besonders nützlich, wenn ein Parameter denselben Namen wie das Feld hat. `this` kann außerdem als Referenz auf das aktuelle Objekt an eine andere Methode übergeben werden.",
+      "example": "In `Rational(int numer) { this.numer = numer; }` ist `this.numer` das Feld und `numer` der Parameter.",
+      "pitfalls": [
+        "`numer = numer;` weist bei gleichnamigem Parameter nur den Parameter sich selbst zu.",
+        "`this` ist in einer statischen Methode nicht verfügbar."
+      ],
+      "related": [
+        "static",
+        "Instanzfeld und Instanzmethode",
+        "this(...)"
+      ],
+      "heading": ""
+    },
+    {
+      "id": "eip-08-k16",
+      "term": "this(...)",
+      "kind": "notation",
+      "short": "`this(...)` ruft aus einem Konstruktor einen anderen Konstruktor derselben Klasse für dasselbe neue Objekt auf.",
+      "explanation": "Mit `this(argumente)` kann ein Konstruktor die Initialisierung an einen anderen Konstruktor derselben Klasse weitergeben. Der Aufruf erzeugt kein zusätzliches Objekt. In Java muss ein solcher Konstruktoraufruf an erster Stelle im Konstruktor stehen.",
+      "example": "`public Rational(int x) { this(x, 1); }` delegiert an den Konstruktor mit Zähler und Nenner.",
+      "pitfalls": [
+        "`this(...)` ist ein Konstruktoraufruf und nicht dasselbe wie die Referenz `this`.",
+        "Zwei Konstruktoren mit identischer Parameterliste können nicht gleichzeitig in derselben Klasse stehen."
+      ],
+      "related": [
+        "Konstruktor",
+        "this"
+      ],
+      "heading": "Einen anderen Konstruktor aufrufen:"
+    },
+    {
+      "id": "eip-08-k17",
+      "term": "Einfach verkettete Liste",
+      "kind": "definition",
+      "short": "Eine einfach verkettete Liste besteht aus Knoten, von denen jeder einen Wert und eine Referenz auf den nächsten Knoten enthält.",
+      "explanation": "Ein Knoten besitzt typischerweise ein Wertfeld wie `info` und ein Referenzfeld `next`. Die `next`-Referenz zeigt auf den Nachfolger; beim letzten Knoten ist sie `null`. Eine leere Liste wird durch eine Anfangsreferenz mit Wert `null` dargestellt. Die hier verwendete eigene Klasse `List` ist eine Knotenklasse und nicht `java.util.List`.",
+      "example": "`7 → 0 → −3 → null` bezeichnet drei Knoten, deren letzter Nachfolger `null` ist.",
+      "pitfalls": [
+        "Eine leere Liste hat keinen Knoten, auf dem eine Instanzmethode aufgerufen werden könnte."
+      ],
+      "related": [
+        "null und nicht initialisierte lokale Variable",
+        "Liste durchlaufen",
+        "Nach dem aktuellen Knoten einfügen"
+      ],
+      "heading": "Die eigene Klasse"
+    },
+    {
+      "id": "eip-08-k18",
+      "term": "Liste durch Einfügen am Anfang erzeugen",
+      "kind": "method",
+      "short": "Ein neuer Knoten wird vor den bisherigen Listenanfang gesetzt und wird anschließend selbst zum Anfang.",
+      "explanation": "Aus einer Anfangsreferenz `first` lässt sich eine Liste durch wiederholtes Einfügen am Anfang aufbauen. Jeder neue Knoten erhält den bisherigen Anfang als `next`. Anschließend wird `first` auf den neuen Knoten gesetzt, sodass die ganze bisherige Kette erreichbar bleibt.",
+      "example": "Aus `13 → null` entsteht durch Einfügen von `−3` und dann `0` die Liste `0 → −3 → 13 → null`.",
+      "pitfalls": [
+        "Wird der bisherige Anfang nicht als `next` des neuen Knotens gespeichert, geht der bisherige Rest der Liste verloren."
+      ],
+      "related": [
+        "Einfach verkettete Liste",
+        "Referenzzuweisung und Aliasing"
+      ],
+      "heading": "Liste durch Einfügen am Anfang erzeugen"
+    },
+    {
+      "id": "eip-08-k19",
+      "term": "Liste durchlaufen",
+      "kind": "method",
+      "short": "Eine Liste wird vom Anfang aus besucht, indem die Laufreferenz wiederholt auf `next` gesetzt wird, bis sie `null` ist.",
+      "explanation": "Eine Schleife kann jeden Knoten der Liste der Reihe nach verarbeiten. Die Laufreferenz wird dabei weitergeschaltet, während die Anfangsreferenz und die Verbindungen der Knoten unverändert bleiben. Vor dem Zugriff auf ein Knotenfeld muss die Laufreferenz ungleich `null` sein.",
+      "example": "Setze `t = first`; solange `t != null`, verarbeite `t.info` und setze danach `t = t.next`.",
+      "pitfalls": [
+        "`t = t.next` verschiebt nur die lokale Referenz `t`; es ändert keine Listenverbindung.",
+        "Vor dem Zugriff auf `t.info` muss geprüft sein, dass `t != null` gilt."
+      ],
+      "related": [
+        "Einfach verkettete Liste",
+        "null und nicht initialisierte lokale Variable"
+      ],
+      "heading": "Liste durchlaufen"
+    },
+    {
+      "id": "eip-08-k20",
+      "term": "Nach dem aktuellen Knoten einfügen",
+      "kind": "method",
+      "short": "Beim Einfügen nach einem Knoten wird der neue Knoten zwischen das aktuelle Objekt und seinen bisherigen Nachfolger gesetzt.",
+      "explanation": "Der neue Knoten muss den alten Nachfolger übernehmen, bevor die Verbindung des aktuellen Knotens geändert wird. Danach wird `next` des aktuellen Knotens auf den neuen Knoten gesetzt. So bleibt der hintere Teil der Liste erreichbar.",
+      "example": "Auf `−3` in `7 → 0 → −3 → 13 → null` fügt `insert(4)` den Knoten `4` vor `13` ein.",
+      "pitfalls": [
+        "Wird zuerst die alte `next`-Referenz überschrieben, kann der bisherige Nachfolger verloren gehen."
+      ],
+      "related": [
+        "Einfach verkettete Liste",
+        "Liste durchlaufen"
+      ],
+      "heading": "Nach dem aktuellen Knoten einfügen"
+    },
+    {
+      "id": "eip-08-k21",
+      "term": "Den direkten Nachfolger entfernen",
+      "kind": "method",
+      "short": "`delete()` auf einem Knoten überspringt dessen direkten Nachfolger, indem es `next` auf `next.next` setzt.",
+      "explanation": "Die Methode entfernt nicht das aktuelle Objekt, sondern ändert dessen Verbindung. Ist ein Nachfolger vorhanden, wird dieser aus der ab dem aktuellen Knoten erreichbaren Kette übersprungen. Andere Referenzen auf den übersprungenen Knoten bleiben bestehen; der Speicher kann später freigegeben werden, wenn der Knoten unerreichbar ist.",
+      "example": "Auf dem Knoten `0` angewandt, ändert `7 → 0 → −3 → 13 → null` die erreichbare Kette zu `7 → 0 → 13 → null`.",
+      "pitfalls": [
+        "`delete()` entfernt nicht den Knoten, auf dem die Methode aufgerufen wird.",
+        "Bei `next == null` gibt es keinen Nachfolger zu überspringen."
+      ],
+      "related": [
+        "Einfach verkettete Liste",
+        "Nach dem aktuellen Knoten einfügen"
+      ],
+      "heading": "Den direkten Nachfolger entfernen"
+    },
+    {
+      "id": "eip-08-k22",
+      "term": "Länge einer verketteten Liste",
+      "kind": "method",
+      "short": "Die Länge einer Liste ist die Anzahl ihrer Knoten und lässt sich durch Zählen bis zum Listenende bestimmen.",
+      "explanation": "Eine Instanzmethode kann ab dem aktuellen Knoten zählen und daher bei einer nichtleeren Liste mit `1` beginnen. Eine statische Methode, die eine Anfangsreferenz entgegennimmt, kann auch den leeren Fall behandeln: Für `null` liefert sie `0`, andernfalls zählt sie die Knoten der Kette.",
+      "example": "Die Liste `7 → 0 → −3 → null` hat die Länge `3`; eine leere Liste hat die Länge `0`.",
+      "pitfalls": [
+        "Eine Instanzmethode kann nicht auf einem nicht vorhandenen Knoten einer leeren Liste aufgerufen werden."
+      ],
+      "related": [
+        "Einfach verkettete Liste",
+        "static",
+        "Liste durchlaufen"
+      ],
+      "heading": "Länge bestimmen"
+    },
+    {
+      "id": "eip-08-k23",
+      "term": "Liste → Array",
+      "kind": "method",
+      "short": "Beim Umwandeln einer Liste in ein Array werden ihre Werte in Listenreihenfolge in ein gleich langes Array kopiert.",
+      "explanation": "Zuerst wird die Zahl der Knoten bestimmt, damit ein Array passender Länge angelegt werden kann. Danach werden die Werte vom Listenanfang bis zum Ende in aufsteigende Array-Indizes geschrieben. Für eine leere Liste entsteht ein leeres Array.",
+      "example": "Bestimme `n = length(l)`, erzeuge `int[] a = new int[n]` und schreibe die Knotenwerte der Reihe nach in `a`.",
+      "pitfalls": [
+        "Die Umwandlung kopiert die Werte in ein neues Array; sie erzeugt keine gemeinsamen Listen- und Arrayelemente."
+      ],
+      "related": [
+        "Einfach verkettete Liste",
+        "Array-Referenz und Aliasing"
+      ],
+      "heading": "Liste → Array"
+    },
+    {
+      "id": "eip-08-k24",
+      "term": "Array → Liste",
+      "kind": "method",
+      "short": "Ein Array lässt sich durch rückwärts laufendes Einfügen am Listenanfang in eine Liste gleicher Reihenfolge umwandeln.",
+      "explanation": "Da jeder neue Knoten vorne eingefügt wird, muss das Array vom letzten Index zum ersten durchlaufen werden. So wird die ursprüngliche Reihenfolge im Ergebnis bewahrt. Ein leeres Array ergibt die leere Liste; die Array-Referenz selbst darf nicht `null` sein.",
+      "example": "Setze `result = null` und laufe für `i` von `a.length - 1` bis `0`; bei jedem Schritt setze `result = new List(a[i], result)`. Für `[0, 4, 9]` entsteht `0 → 4 → 9 → null`.",
+      "pitfalls": [
+        "Ein Vorwärtsdurchlauf mit Einfügen am Anfang würde die Reihenfolge umkehren."
+      ],
+      "related": [
+        "Einfach verkettete Liste",
+        "Liste → Array"
+      ],
+      "heading": "Array → Liste"
+    },
+    {
+      "id": "eip-08-k25",
+      "term": "Mergesort",
+      "kind": "method",
+      "short": "Mergesort sortiert eine Liste, indem es sie teilt, beide Teile rekursiv sortiert und die Ergebnisse zusammenführt.",
+      "explanation": "Eine leere Liste oder eine Liste mit einem Knoten ist bereits sortiert. Für längere Listen wird die Liste in zwei ungefähr gleich große Teile zerlegt, jeder Teil separat sortiert und das Ergebnis mit `merge` zusammengesetzt. Bei dieser ausgeglichenen Teilung benötigt das Verfahren $O(n\\log n)$ Vergleiche.",
+      "example": "Behandle den leeren und ein-elementigen Fall direkt; teile sonst die Liste, sortiere beide Hälften rekursiv und führe sie mit `merge` zusammen.",
+      "pitfalls": [
+        "Die rekursiv sortierten Teilketten können an einem neuen Anfangsknoten beginnen; dieser muss übernommen werden."
+      ],
+      "related": [
+        "Merge",
+        "Aufeinanderfolgende Hälften teilen",
+        "Rekursion",
+        "Laufzeit"
+      ],
+      "heading": "5. Mergesort: Teilen, rekursiv sortieren, zusammenführen · Folien 493–519"
+    },
+    {
+      "id": "eip-08-k26",
+      "term": "Merge",
+      "kind": "method",
+      "short": "`merge` führt zwei bereits sortierte Listen zu einer sortierten Liste zusammen, indem es jeweils den kleineren ersten Knoten auswählt.",
+      "explanation": "Die Eingabelisten müssen aufsteigend sortierte, endliche Ketten ohne Zyklen und ohne gemeinsame Knoten sein. Ist eine Liste leer, wird der Rest der anderen zurückgegeben. Andernfalls wird der kleinere der beiden ersten Knoten zum Anfang des Ergebnisses und `merge` wird rekursiv auf dem verbleibenden Rest aufgerufen. Die Methode erzeugt keine Knoten, sondern baut vorhandene `next`-Referenzen um.",
+      "example": "Aus `−3 → 7 → 13` und `0 → 15 → 16` wird `−3 → 0 → 7 → 13 → 15 → 16`.",
+      "pitfalls": [
+        "`merge` sortiert unsortierte Eingabelisten nicht automatisch.",
+        "Die ursprünglichen `next`-Verbindungen werden verändert."
+      ],
+      "related": [
+        "Mergesort",
+        "Einfach verkettete Liste",
+        "Stabilität bei Mergesort"
+      ],
+      "heading": "A. Zwei sortierte Listen zusammenführen"
+    },
+    {
+      "id": "eip-08-k27",
+      "term": "Aufeinanderfolgende Hälften teilen",
+      "kind": "method",
+      "short": "Eine Liste wird in zwei aufeinanderfolgende Abschnitte zerlegt, indem die Verbindung zwischen erster und zweiter Hälfte getrennt wird.",
+      "explanation": "Die beschriebene Methode wird für Listen mit mindestens zwei Knoten verwendet. Bei Länge `n` umfasst die erste Hälfte $\\lfloor n/2\\rfloor$ Knoten und die zweite den Rest. Zuerst wird die Anfangsreferenz der zweiten Hälfte gespeichert, dann die Verbindung der ersten Hälfte auf `null` gesetzt.",
+      "example": "Finde den letzten Knoten `p` der ersten Hälfte, merke `p.next` als Anfang der zweiten Hälfte und setze danach `p.next = null`. Bei fünf Knoten entstehen Abschnitte mit zwei und drei Knoten.",
+      "pitfalls": [
+        "Wird die Verbindung getrennt, bevor der Anfang der zweiten Hälfte gespeichert ist, ist dieser Teil über `p.next` nicht mehr erreichbar."
+      ],
+      "related": [
+        "Mergesort",
+        "Einfach verkettete Liste",
+        "Stabilität bei Mergesort"
+      ],
+      "heading": "B. In aufeinanderfolgende Hälften teilen"
+    },
+    {
+      "id": "eip-08-k28",
+      "term": "Vergleichsschranke für Merge",
+      "kind": "theorem",
+      "short": "Für zwei nichtleere sortierte Listen mit `m` und `n` Elementen benötigt `merge` höchstens `m + n − 1` Wertevergleiche.",
+      "explanation": "Bei jedem Wertevergleich wird mindestens ein Knoten endgültig an den Ergebnisanfang gesetzt. Sobald eine Eingabeliste leer ist, wird der Rest der anderen ohne weitere Wertevergleiche angehängt. Deshalb können höchstens alle bis auf das letzte der insgesamt `m + n` Elemente durch Vergleiche ausgewählt werden.",
+      "example": "Für Listen mit vier und drei Elementen sind höchstens $4+3-1=6$ Vergleiche nötig.",
+      "pitfalls": [
+        "Die Schranke gilt für zwei nichtleere, bereits sortierte Eingabelisten.",
+        "Wenn eine Eingabeliste anfangs leer ist, greift direkt der Basisfall."
+      ],
+      "related": [
+        "Merge",
+        "Laufzeit von Mergesort"
+      ],
+      "heading": "Laufzeit über die Anzahl der Vergleiche"
+    },
+    {
+      "id": "eip-08-k29",
+      "term": "Laufzeit von Mergesort",
+      "kind": "theorem",
+      "short": "Mergesort benötigt für `n` Elemente $O(n\\log n)$ Vergleiche.",
+      "explanation": "Durch wiederholtes Teilen entstehen ungefähr $\\log_2 n$ Ebenen. Auf jeder Ebene werden insgesamt höchstens linear viele Elemente beim Zusammenführen betrachtet. Das ergibt eine obere Schranke in Größenordnung $n\\log n$; die angegebene Laufzeit zählt Vergleiche und ist keine gemessene Zeit in Sekunden.",
+      "example": "Für $n=1024$ ergibt die Ebenenrechnung $1024\\log_2(1024)=10240$ als obere Vergleichsschranke.",
+      "pitfalls": [
+        "Die Schranke bedeutet nicht, dass jeder Lauf exakt $n\\log_2 n$ Vergleiche ausführt."
+      ],
+      "related": [
+        "Mergesort",
+        "Vergleichsschranke für Merge",
+        "Laufzeit",
+        "Insertion Sort"
+      ],
+      "heading": "Laufzeit über die Anzahl der Vergleiche"
+    },
+    {
+      "id": "eip-08-k30",
+      "term": "Alternierendes Teilen",
+      "kind": "method",
+      "short": "Beim alternierenden Teilen werden Knoten abwechselnd auf zwei Teilketten verteilt.",
+      "explanation": "Der Anfangsknoten bleibt in der ersten Teilkette; der bisher zweite Knoten wird Anfang der zurückgegebenen zweiten Teilkette. Rekursiv werden die übrigen Knoten verteilt und die Ketten durch Umhängen von `next` gebildet. Damit landen Knoten an ungeraden ursprünglichen Positionen in der ersten und Knoten an geraden Positionen in der zweiten Teilkette.",
+      "example": "Aus `17 → 0 → −3 → 7 → 9 → 1` entstehen `17 → −3 → 9` und `0 → 7 → 1`.",
+      "pitfalls": [
+        "Diese Teilung erhält keine zwei aufeinanderfolgenden Abschnitte der ursprünglichen Reihenfolge."
+      ],
+      "related": [
+        "Einfach verkettete Liste",
+        "Mergesort",
+        "Stabilität bei Mergesort"
+      ],
+      "heading": "Alternative: Knoten abwechselnd verteilen"
+    },
+    {
+      "id": "eip-08-k31",
+      "term": "Stabilität",
+      "kind": "definition",
+      "short": "Eine stabile Sortierung erhält die ursprüngliche Reihenfolge von Elementen mit gleichem Sortierschlüssel.",
+      "explanation": "Die Stabilität betrachtet Elemente, deren verglichener Schlüssel gleich ist, auch wenn sie sich in anderen Merkmalen unterscheiden. Eine stabile Sortierung lässt solche Elemente in ihrer ursprünglichen relativen Reihenfolge. Das ist nützlich, wenn eine vorherige Sortierung nach einem anderen Merkmal erhalten bleiben soll.",
+      "example": "Sind Alice und Clara ursprünglich in dieser Reihenfolge und haben beide die Note 2, bleibt Alice bei stabiler Sortierung nach Note vor Clara.",
+      "pitfalls": [
+        "Stabilität bedeutet, dass die bisherige Reihenfolge gleicher Schlüssel erhalten bleibt."
+      ],
+      "related": [
+        "Stabilität bei Mergesort",
+        "Insertion Sort"
+      ],
+      "heading": "Stabil sortieren"
+    },
+    {
+      "id": "eip-08-k32",
+      "term": "Stabilität bei Mergesort",
+      "kind": "concept",
+      "short": "Die gezeigte Mergesort-Variante ist stabil, wenn sie aufeinanderfolgende Abschnitte teilt und `merge` bei Gleichheit den linken Knoten zuerst übernimmt.",
+      "explanation": "Die Teilung in aufeinanderfolgende Abschnitte erhält die ursprüngliche Reihenfolge zwischen gleichen Schlüsseln in den beiden Teilketten. Beim Zusammenführen sorgt `a.info <= b.info` dafür, dass bei gleichen Werten zuerst der linke Knoten ausgegeben wird. Alternierendes Teilen kann diese Eigenschaft zerstören: Aus `2A → 2B → 2C → 2D` werden `2A → 2C` und `2B → 2D`; linke Bevorzugung führt dann zu `2A → 2C → 2B → 2D`.",
+      "example": "Für gleiche Werte müssen Teilung und Tie-Breaking zusammenpassen: aufeinanderfolgende Teilketten plus Bevorzugung der linken Liste bei Gleichheit.",
+      "pitfalls": [
+        "`<=` im Merge allein garantiert keine Stabilität, wenn die Teilung die ursprüngliche Reihenfolge aufbricht."
+      ],
+      "related": [
+        "Stabilität",
+        "Merge",
+        "Aufeinanderfolgende Hälften teilen",
+        "Alternierendes Teilen"
+      ],
+      "heading": "Warum kann                     die Stabilität zerstören?"
+    }
+  ],
+  "generator": {
+    "model": "gpt-6-luna",
+    "effort": "xhigh",
+    "promptVersion": "k1",
+    "generatedAt": "2026-11-09T23:33:56.067Z"
+  }
+}
