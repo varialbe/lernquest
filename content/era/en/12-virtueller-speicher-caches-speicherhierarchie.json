@@ -1,0 +1,1991 @@
+{
+  "schemaVersion": 1,
+  "id": "era-12",
+  "module": "ERA",
+  "number": 12,
+  "slug": "virtueller-speicher-caches-speicherhierarchie",
+  "title": "Virtual Memory (Virtueller Speicher), Caches, and the Memory Hierarchy (Speicherhierarchie)",
+  "summary": "This unit covers virtual address translation (Übersetzung virtueller Adressen), page tables (Seitentabellen), the TLB, lazy allocation, and paging. It then covers caches, locality (Lokalität), address decomposition (Adresszerlegung), miss types (Miss-Arten), write policies (Schreibstrategien), and the memory hierarchy. Calculation and transfer problems show how to analyze address mappings and cache accesses step by step.",
+  "concepts": [
+    "Virtual Memory",
+    "Page Tables",
+    "Sv32 and Sv39",
+    "TLB and Page Faults",
+    "Lazy Allocation and Paging",
+    "Caches and the Memory Wall",
+    "Locality",
+    "Cache Address Decomposition",
+    "Cache Organization and Miss Types",
+    "Replacement and Write Policies",
+    "Memory Hierarchy"
+  ],
+  "keyFacts": [
+    "The MMU translates virtual addresses into physical addresses; the page offset remains unchanged.",
+    "Page tables reside in main memory. An entry can point to another table or, as a leaf, to a data page.",
+    "Hierarchical page tables save memory because unused virtual address ranges do not need lower-level tables.",
+    "With 4-KiB pages, the offset is 12 bits. Sv32 divides virtual addresses into 10 + 10 + 12 bits.",
+    "An Sv32 page-table entry is 4 Byte; a table with 1024 entries occupies 4 KiB.",
+    "A valid Sv32 entry need not map a data page: it can point to another page-table level.",
+    "A TLB stores recently used address translations. A TLB miss is not automatically a page fault.",
+    "With lazy allocation, a physical frame is provided only when it is actually accessed; that access can trigger a synchronous exception.",
+    "With paging, a rarely used page can be swapped out so its physical frame can be freed for another page.",
+    "Caches are small, fast buffers that help bridge the speed gap between the CPU and main memory.",
+    "Temporal locality means recently used data is likely to be needed again soon; spatial locality concerns nearby addresses.",
+    "A cache address is divided into a tag, index, and offset: select the set, identify the block, and select the position within the block.",
+    "In an N-way set-associative cache, a block can occupy any one of the N lines in its set.",
+    "Compulsory misses occur on the first access to a block, conflict misses result from competition for a set, and capacity misses result from insufficient overall capacity.",
+    "LRU replaces the block that has gone the longest without being used; LFU replaces the least frequently used block.",
+    "Write-through forwards changes directly to the next level; write-back writes them back later.",
+    "Write-allocate loads a missing block into the cache on a write miss; no-write-allocate does not.",
+    "L1-I holds instructions and L1-D holds data; separate L1 caches reduce direct competition between them.",
+    "Small strides and a working set that fits in a fast cache level improve memory performance."
+  ],
+  "tags": [],
+  "links": [],
+  "source": {
+    "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO12.md",
+    "sha256": "d3bebc3693d5aad04b01439898f050c1e3d48154896f1fa4dda98ac88a0abe5b",
+    "commit": "9105b5c0bd76b4c9675e8acbf9bf50789f7d67ef"
+  },
+  "generator": {
+    "model": "gpt-6-luna",
+    "effort": "xhigh",
+    "reviewEffort": "high",
+    "promptVersion": "v3",
+    "generatedAt": "2026-11-09T23:50:00.860Z",
+    "review": {
+      "checked": 44,
+      "fixed": 3,
+      "removed": 0,
+      "notes": "44 Fragen geprüft. Eine Cachefrage zur Miss-Art hatte widersprüchliche Zeilen- und Set-Angaben; Kapazität und Setabbildung wurden konsistent gemacht. Die Arrayfrage nennt nun zusammenhängende Speicherung, das Layout-Item beschreibt sein Szenario selbst. Antworten, Rechenwege und Verify-Skripte geprüft; Levelgrößen bleiben mindestens 8."
+    }
+  },
+  "levels": [
+    {
+      "id": "era-12-l1",
+      "index": 1,
+      "kind": "basics",
+      "title": "Fundamentals",
+      "questions": [
+        {
+          "id": "era-12-l1-q01",
+          "type": "single",
+          "prompt": "What does the MMU do when a process accesses memory?",
+          "options": [
+            {
+              "id": "a",
+              "text": "It translates virtual addresses into physical addresses."
+            },
+            {
+              "id": "b",
+              "text": "It moves every stack into its own physical memory."
+            },
+            {
+              "id": "c",
+              "text": "It permanently stores all program data in the TLB."
+            },
+            {
+              "id": "d",
+              "text": "It replaces program code with machine instructions."
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "The MMU uses page tables to translate virtual addresses into physical addresses. The TLB can cache translations.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO12.md",
+            "heading": "1. Virtuelle Adressen und Seitentabellen"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Virtual Memory",
+            "Page Tables"
+          ]
+        },
+        {
+          "id": "era-12-l1-q02",
+          "type": "truefalse",
+          "prompt": "When translating an address with 4-KiB pages, the 12-bit offset within the page remains unchanged.",
+          "options": [
+            {
+              "id": "true",
+              "text": "True"
+            },
+            {
+              "id": "false",
+              "text": "False"
+            }
+          ],
+          "correct": [
+            "true"
+          ],
+          "explanation": "The MMU replaces the virtual page number with a physical page number. The position within the 4-KiB page remains the same.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO12.md",
+            "heading": "1. Virtuelle Adressen und Seitentabellen"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Virtual Memory",
+            "Page Tables"
+          ]
+        },
+        {
+          "id": "era-12-l1-q03",
+          "type": "single",
+          "prompt": "Why can hierarchical page tables reduce memory overhead?",
+          "options": [
+            {
+              "id": "a",
+              "text": "They store all process data directly in registers."
+            },
+            {
+              "id": "b",
+              "text": "They eliminate every check of page-table entries."
+            },
+            {
+              "id": "c",
+              "text": "No lower-level tables need to be created for unused parts of the virtual address space."
+            },
+            {
+              "id": "d",
+              "text": "They automatically make all virtual pages larger."
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "A lower-level table can be omitted for an unused range. This means the system does not need to maintain tables for every page across the entire virtual address space.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO12.md",
+            "heading": "2. Warum hierarchische Seitentabellen?"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Page Tables"
+          ]
+        },
+        {
+          "id": "era-12-l1-q04",
+          "type": "cloze",
+          "prompt": "In Sv32, the virtual address is divided into the fields $VPN[1]$, $VPN[0]$, and ___.",
+          "options": [
+            {
+              "id": "a",
+              "text": "Page offset of 12 bits"
+            },
+            {
+              "id": "b",
+              "text": "Page offset of 10 bits"
+            },
+            {
+              "id": "c",
+              "text": "Tag of 10 bits"
+            },
+            {
+              "id": "d",
+              "text": "PPN of 22 bits"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "Sv32 uses two 10-bit indices and a 12-bit offset: 10 + 10 + 12 = 32 bits.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO12.md",
+            "heading": "Virtuelle Adresse: 10 + 10 + 12 Bit"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Sv32 and Sv39"
+          ]
+        },
+        {
+          "id": "era-12-l1-q05",
+          "type": "truefalse",
+          "prompt": "In Sv32, setting the valid bit alone means that the entry already maps a data page.",
+          "options": [
+            {
+              "id": "true",
+              "text": "True"
+            },
+            {
+              "id": "false",
+              "text": "False"
+            }
+          ],
+          "correct": [
+            "false"
+          ],
+          "explanation": "A valid entry can also point to the next page-table level. A valid table reference is not yet a leaf entry for a data page.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO12.md",
+            "heading": "Seitentabelleneintrag: alle 32 Bit"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Sv32 and Sv39",
+            "Page Tables"
+          ]
+        },
+        {
+          "id": "era-12-l1-q06",
+          "type": "single",
+          "prompt": "What permissions does a valid Sv32 leaf entry have when $X/W/R=011$?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Reserved combination"
+            },
+            {
+              "id": "b",
+              "text": "Read and execute"
+            },
+            {
+              "id": "c",
+              "text": "Read and write"
+            },
+            {
+              "id": "d",
+              "text": "Execute only"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "The order is X, W, R. `011` therefore means X=0, W=1, and R=1: read and write.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO12.md",
+            "heading": "Bedeutung von X/W/R"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Sv32 and Sv39"
+          ]
+        },
+        {
+          "id": "era-12-l1-q07",
+          "type": "single",
+          "prompt": "What information does a TLB typically store?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Only the current process's program instructions"
+            },
+            {
+              "id": "b",
+              "text": "The number of writes to each cache line"
+            },
+            {
+              "id": "c",
+              "text": "Recently used translations from virtual to physical addresses"
+            },
+            {
+              "id": "d",
+              "text": "The entire contents of main memory"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "The TLB keeps recently used address translations available, so the page tables do not need to be walked again on every access.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO12.md",
+            "heading": "6. TLB: Übersetzungen schnell wiederfinden"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "TLB and Page Faults"
+          ]
+        },
+        {
+          "id": "era-12-l1-q08",
+          "type": "single",
+          "prompt": "What characterizes lazy allocation?",
+          "options": [
+            {
+              "id": "a",
+              "text": "All memory is written to the SSD before the program starts."
+            },
+            {
+              "id": "b",
+              "text": "A physical frame is assigned only when the virtual page is actually accessed."
+            },
+            {
+              "id": "c",
+              "text": "Every requested virtual page is immediately copied in full into the cache."
+            },
+            {
+              "id": "d",
+              "text": "The processor skips all accesses to pages that have not yet been used."
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "Lazy allocation initially reserves virtual memory. A physical frame is provided only when the page is actually accessed, provided the access is permitted.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO12.md",
+            "heading": "7. Neue Speicherseiten: konservativ oder lazy? · Folie 14"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Lazy Allocation and Paging"
+          ]
+        },
+        {
+          "id": "era-12-l1-q09",
+          "type": "multi",
+          "prompt": "Select all correct statements about scratchpads and caches.",
+          "options": [
+            {
+              "id": "a",
+              "text": "A scratchpad is always larger than main memory."
+            },
+            {
+              "id": "b",
+              "text": "A cache contains only page-table entries."
+            },
+            {
+              "id": "c",
+              "text": "A scratchpad is managed manually."
+            },
+            {
+              "id": "d",
+              "text": "A cache is managed automatically by hardware."
+            }
+          ],
+          "correct": [
+            "c",
+            "d"
+          ],
+          "explanation": "The lecture notes distinguish the manual management of a scratchpad from the automatic hardware management of a cache. The other statements are incorrect.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO12.md",
+            "heading": "9. Warum Caches? Die Memory Wall · Folien 18–21"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Caches and the Memory Wall"
+          ]
+        },
+        {
+          "id": "era-12-l1-q10",
+          "type": "multi",
+          "prompt": "Select all correct matches between types of locality and examples.",
+          "options": [
+            {
+              "id": "a",
+              "text": "Reading array[0] repeatedly: temporal locality"
+            },
+            {
+              "id": "b",
+              "text": "Reading array[0], array[100], array[200]: certainly spatial locality of adjacent addresses"
+            },
+            {
+              "id": "c",
+              "text": "Reusing data: spatial locality"
+            },
+            {
+              "id": "d",
+              "text": "Reading array[0], array[1], array[2] in sequence: spatial locality"
+            }
+          ],
+          "correct": [
+            "a",
+            "d"
+          ],
+          "explanation": "Temporal locality concerns the near-term reuse of recently accessed data; spatial locality concerns addresses that are close together.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO12.md",
+            "heading": "10. Lokalität · Folien 22–24"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Locality"
+          ]
+        },
+        {
+          "id": "era-12-l1-q11",
+          "type": "single",
+          "prompt": "What happens on a cache miss?",
+          "options": [
+            {
+              "id": "a",
+              "text": "The processor can no longer perform the memory access."
+            },
+            {
+              "id": "b",
+              "text": "The MMU deletes the process's address space."
+            },
+            {
+              "id": "c",
+              "text": "The cache is guaranteed to return some other block as the result."
+            },
+            {
+              "id": "d",
+              "text": "The required block is missing and must be loaded from a lower level of the memory hierarchy."
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "On a miss, the requested block is not in the cache. It is fetched from a lower level, which may evict another block.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO12.md",
+            "heading": "11. Cache Hit und Cache Miss · Folie 25"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Caches and the Memory Wall"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "era-12-l2",
+      "index": 2,
+      "kind": "apply",
+      "title": "Apply",
+      "questions": [
+        {
+          "id": "era-12-l2-q01",
+          "type": "calc",
+          "prompt": "A single-level Sv32 page table contains $2^{20}$ entries of 4 Byte each. How large is it?",
+          "options": [
+            {
+              "id": "a",
+              "text": "4 MiB"
+            },
+            {
+              "id": "b",
+              "text": "1 MiB"
+            },
+            {
+              "id": "c",
+              "text": "16 MiB"
+            },
+            {
+              "id": "d",
+              "text": "4 KiB"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "$2^{20}\\cdot4=2^{22}$ Byte, or 4 MiB. The size follows from the number of virtual pages and the size of each entry.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO12.md",
+            "heading": "2. Warum hierarchische Seitentabellen?"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Page Tables",
+            "Sv32 and Sv39"
+          ]
+        },
+        {
+          "id": "era-12-l2-q02-r1",
+          "type": "calc",
+          "prompt": "An Sv32 page table starts at byte address `0x80001000`. Each entry is 4 Byte, and entries are numbered starting at index 0. At what byte address does the entry with index 11 begin?",
+          "options": [
+            {
+              "id": "a",
+              "text": "0x8000100B"
+            },
+            {
+              "id": "b",
+              "text": "0x80001044"
+            },
+            {
+              "id": "c",
+              "text": "0x8000102B"
+            },
+            {
+              "id": "d",
+              "text": "0x8000102C"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "The entry address is the table base plus the entry size times the index: `0x80001000 + 4 × 11 = 0x80001000 + 0x2C = 0x8000102C`.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO12.md",
+            "heading": "Ergänzte Erklärung: Übersetzung Schritt für Schritt"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Sv32",
+            "Page-Table Entry",
+            "Address Calculation"
+          ]
+        },
+        {
+          "id": "era-12-l2-q03",
+          "type": "calc",
+          "prompt": "A virtual page is mapped to physical page number `0x12345`. The offset is `0x678`. What physical address results?",
+          "options": [
+            {
+              "id": "a",
+              "text": "`0x12345000`"
+            },
+            {
+              "id": "b",
+              "text": "`0x12345 + 0x678` as an unshifted page number"
+            },
+            {
+              "id": "c",
+              "text": "`0x12344678`"
+            },
+            {
+              "id": "d",
+              "text": "`0x12345678`"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "The page base is `0x12345 << 12 = 0x12345000`. Adding the unchanged offset `0x678` gives `0x12345678`.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO12.md",
+            "heading": "1. Virtuelle Adressen und Seitentabellen"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Virtual Memory",
+            "Page Tables"
+          ]
+        },
+        {
+          "id": "era-12-l2-q04",
+          "type": "single",
+          "prompt": "Sv39 uses 39 relevant virtual address bits and can represent up to 56 physical address bits according to the address layout. Which statement follows from this?",
+          "options": [
+            {
+              "id": "a",
+              "text": "The 12 offset bits are removed during translation."
+            },
+            {
+              "id": "b",
+              "text": "Every virtual address space is 56 bits wide."
+            },
+            {
+              "id": "c",
+              "text": "The installed RAM must be exactly 64 PiB."
+            },
+            {
+              "id": "d",
+              "text": "The mode name refers to the virtual address width, not to 39 physical bits."
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Sv39 refers to the 39 relevant virtual address bits. The represented physical address range can be wider; this says nothing about the amount of installed RAM.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO12.md",
+            "heading": "Virtuelle und physische Adresse auseinanderhalten"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Sv32 and Sv39",
+            "Virtual Memory"
+          ]
+        },
+        {
+          "id": "era-12-l2-q05",
+          "type": "diagram",
+          "prompt": "A process accesses a permitted virtual page that is not yet mapped to physical memory. After the operating system has provided a frame and updated the page table, what happens next in the sequence?",
+          "context": {
+            "type": "mermaid",
+            "content": "flowchart TD\n    A[\"Reserve virtual memory\"] --> B[\"First access\"]\n    B --> C[\"Page Fault / Exception\"]\n    C --> D{\"Access permitted?\"}\n    D -->|yes| E[\"Provide a frame\"]\n    E --> F[\"Update the page table\"]\n    F --> G[\"Retry the access\"]\n    D -->|no| H[\"Handle the fault\"]",
+            "caption": "Lazy allocation on a permitted access"
+          },
+          "options": [
+            {
+              "id": "a",
+              "text": "The failed access is retried."
+            },
+            {
+              "id": "b",
+              "text": "The process is switched to user mode without resuming the access."
+            },
+            {
+              "id": "c",
+              "text": "The virtual address is permanently deleted."
+            },
+            {
+              "id": "d",
+              "text": "The page is necessarily written to the SSD."
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "After the frame has been successfully assigned and the page table updated, the original memory access can be retried using a valid translation.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO12.md",
+            "heading": "Lazy Allocation und der Bezug zu Exceptions"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Lazy Allocation and Paging",
+            "TLB and Page Faults"
+          ]
+        },
+        {
+          "id": "era-12-l2-q06",
+          "type": "single",
+          "prompt": "An array is stored contiguously. A program reads `array[0]`, `array[1]`, and `array[2]` in sequence. Which type of locality does it primarily use?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Spatial locality, because adjacent addresses are used."
+            },
+            {
+              "id": "b",
+              "text": "Temporal locality, because exactly the same address is used repeatedly."
+            },
+            {
+              "id": "c",
+              "text": "Temporal locality only, because the cache replaces data automatically."
+            },
+            {
+              "id": "d",
+              "text": "No locality, because each element has a different address."
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "With the described contiguous layout, consecutive array elements are adjacent. A loaded block can therefore also serve subsequent accesses.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO12.md",
+            "heading": "10. Lokalität · Folien 22–24"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Locality"
+          ]
+        },
+        {
+          "id": "era-12-l2-q07",
+          "type": "single",
+          "prompt": "A matrix is stored row by row. At $N=12.800$, row-wise matrix-vector multiplication takes 0.71 s and column-wise multiplication takes 4.54 s. Which explanation fits best?",
+          "options": [
+            {
+              "id": "a",
+              "text": "The row-wise version computes fewer matrix elements."
+            },
+            {
+              "id": "b",
+              "text": "The two times prove that the operations are defined differently."
+            },
+            {
+              "id": "c",
+              "text": "The column-wise version is faster because it loads fewer cache blocks."
+            },
+            {
+              "id": "d",
+              "text": "Row-wise access uses adjacent matrix elements and therefore makes better use of spatial locality."
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "In row-wise storage, elements in a row are adjacent. The matching loop order makes better use of loaded blocks, even though both versions perform the same calculation.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO12.md",
+            "heading": "Matrix-Vektor-Multiplikation: gleiche Rechnung, andere Reihenfolge"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Locality",
+            "Caches and the Memory Wall"
+          ]
+        },
+        {
+          "id": "era-12-l2-q08",
+          "type": "calc",
+          "prompt": "A cache block is 64 Byte. An `int` occupies 4 Byte in this example. How many integers fit in one block?",
+          "options": [
+            {
+              "id": "a",
+              "text": "32"
+            },
+            {
+              "id": "b",
+              "text": "8"
+            },
+            {
+              "id": "c",
+              "text": "64"
+            },
+            {
+              "id": "d",
+              "text": "16"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "The number is $64/4=16$ integers per block. A block contains 64 Byte, not 64 integers.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO12.md",
+            "heading": "11. Cache Hit und Cache Miss · Folie 25"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Caches and the Memory Wall",
+            "Locality"
+          ]
+        },
+        {
+          "id": "era-12-l2-q09",
+          "type": "calc",
+          "prompt": "A cache has 8 lines, 8 Byte per line, is 2-way set-associative, and uses 32-bit addresses. How many tag, index, and offset bits does an address have?",
+          "options": [
+            {
+              "id": "a",
+              "text": "27 tag bits, 2 index bits, 3 offset bits"
+            },
+            {
+              "id": "b",
+              "text": "27 tag bits, 3 index bits, 2 offset bits"
+            },
+            {
+              "id": "c",
+              "text": "26 tag bits, 3 index bits, 3 offset bits"
+            },
+            {
+              "id": "d",
+              "text": "28 tag bits, 2 index bits, 2 offset bits"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "There are $8/2=4$ sets, so there are 2 index bits. An 8-Byte block requires 3 offset bits; the remaining $32-2-3=27$ bits are tag bits.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO12.md",
+            "heading": "Rechenbeispiel aus den Folien 30–31"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Cache Address Decomposition"
+          ]
+        },
+        {
+          "id": "era-12-l2-q10",
+          "type": "calc",
+          "prompt": "An empty cache has 4 sets, 2 lines per set, and 8 Byte per block. It uses LRU. For the access sequence `0x1008, 0x2008, 0x3008, 0x1008`, we only ask whether each access is a hit or a miss. What sequence results?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Miss, Miss, Miss, Miss"
+            },
+            {
+              "id": "b",
+              "text": "Miss, Hit, Hit, Hit"
+            },
+            {
+              "id": "c",
+              "text": "Miss, Miss, Hit, Miss"
+            },
+            {
+              "id": "d",
+              "text": "Hit, Miss, Miss, Hit"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "All three distinct blocks belong to set 1. With two lines, LRU evicts the first block loaded when the third block arrives; the final access to `0x1008` is therefore a miss again.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO12.md",
+            "heading": "Zugriffsfolge mit vollständiger Adresszerlegung"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Cache Address Decomposition",
+            "Replacement and Write Policies"
+          ]
+        },
+        {
+          "id": "era-12-l2-q11",
+          "type": "truefalse",
+          "prompt": "In the following memory layout, the heap grows upward and the stack grows downward, with free virtual address space between them. They are regions of the same virtual address space.",
+          "options": [
+            {
+              "id": "true",
+              "text": "True"
+            },
+            {
+              "id": "false",
+              "text": "False"
+            }
+          ],
+          "correct": [
+            "true"
+          ],
+          "explanation": "In this layout, the heap and stack grow toward each other, leaving free virtual address space between them.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO12.md",
+            "heading": "5. Stack, Heap und die Größe des Adressraums"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Virtual Memory"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "era-12-l3",
+      "index": 3,
+      "kind": "deepen",
+      "title": "Deepen Your Understanding",
+      "questions": [
+        {
+          "id": "era-12-l3-q01",
+          "type": "single",
+          "prompt": "A process accesses a page that is validly mapped in RAM, but its translation is not in the TLB. What occurs initially?",
+          "options": [
+            {
+              "id": "a",
+              "text": "A protection fault, because the translation is not cached."
+            },
+            {
+              "id": "b",
+              "text": "A page fault, because every TLB miss means the page is invalid."
+            },
+            {
+              "id": "c",
+              "text": "A TLB miss; by itself, this does not imply a page fault."
+            },
+            {
+              "id": "d",
+              "text": "A cache hit, because the page is in RAM."
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "A TLB miss means that the translation is absent from the TLB. The page tables can still contain a valid mapping, which is then looked up.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO12.md",
+            "heading": "6. TLB: Übersetzungen schnell wiederfinden"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "TLB and Page Faults",
+            "Page Tables"
+          ]
+        },
+        {
+          "id": "era-12-l3-q02",
+          "type": "single",
+          "prompt": "During an Sv32 page walk, the first entry is valid and points to a second table. What happens next for a normal 4-KiB page?",
+          "options": [
+            {
+              "id": "a",
+              "text": "The index `VPN[0]` selects an entry in the second table."
+            },
+            {
+              "id": "b",
+              "text": "The TLB must be flushed."
+            },
+            {
+              "id": "c",
+              "text": "The physical address is already fully known."
+            },
+            {
+              "id": "d",
+              "text": "The offset is used as an index into the second table."
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "For a normal 4-KiB page, `VPN[0]` selects the second-level entry. Only afterward does the offset determine the byte position within the page.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO12.md",
+            "heading": "Ergänzte Erklärung: Übersetzung Schritt für Schritt"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Page Tables",
+            "Sv32 and Sv39"
+          ]
+        },
+        {
+          "id": "era-12-l3-q03",
+          "type": "multi",
+          "prompt": "The bits are given in X/W/R order. Select all bit patterns marked as reserved.",
+          "options": [
+            {
+              "id": "a",
+              "text": "110"
+            },
+            {
+              "id": "b",
+              "text": "010"
+            },
+            {
+              "id": "c",
+              "text": "101"
+            },
+            {
+              "id": "d",
+              "text": "001"
+            },
+            {
+              "id": "e",
+              "text": "011"
+            }
+          ],
+          "correct": [
+            "a",
+            "b"
+          ],
+          "explanation": "`010` and `110` are reserved. `001` permits read only, `011` permits read and write, and `101` permits read and execute.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO12.md",
+            "heading": "Bedeutung von X/W/R"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Sv32 and Sv39"
+          ]
+        },
+        {
+          "id": "era-12-l3-q04",
+          "type": "calc",
+          "prompt": "In Sv32, a valid leaf entry maps a large page at the first page-table level. The address uses 10 index bits and 12 offset bits. How large is the mapped region?",
+          "options": [
+            {
+              "id": "a",
+              "text": "1 MiB"
+            },
+            {
+              "id": "b",
+              "text": "4 KiB"
+            },
+            {
+              "id": "c",
+              "text": "16 MiB"
+            },
+            {
+              "id": "d",
+              "text": "4 MiB"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "The region spans $10+12=22$ address bits, or $2^{22}$ Byte = 4 MiB.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO12.md",
+            "heading": "Ergänzte Erklärung: Übersetzung Schritt für Schritt"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Sv32 and Sv39",
+            "Page Tables"
+          ]
+        },
+        {
+          "id": "era-12-l3-q05",
+          "type": "single",
+          "prompt": "In a full set, block A has the lowest access frequency, while block B has gone the longest without being used. Which statement about the replacement policies is correct?",
+          "options": [
+            {
+              "id": "a",
+              "text": "LRU replaces A; LFU replaces B."
+            },
+            {
+              "id": "b",
+              "text": "Both policies must replace the same block."
+            },
+            {
+              "id": "c",
+              "text": "LRU replaces B; LFU replaces A."
+            },
+            {
+              "id": "d",
+              "text": "LRU and LFU always replace the most recently used block."
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "LRU uses the time of last access and chooses B. LFU uses access frequency and chooses A.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO12.md",
+            "heading": "15. Ersetzungs- und Schreibstrategien · Folie 64"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Replacement and Write Policies"
+          ]
+        },
+        {
+          "id": "era-12-l3-q06",
+          "type": "multi",
+          "prompt": "Select all correct statements about the two write-policy decisions in a cache.",
+          "options": [
+            {
+              "id": "a",
+              "text": "Write-through forwards a change directly to the next level."
+            },
+            {
+              "id": "b",
+              "text": "Write-allocate means that no block is loaded into the cache on a write miss."
+            },
+            {
+              "id": "c",
+              "text": "No-write-allocate loads the missing block on every write miss."
+            },
+            {
+              "id": "d",
+              "text": "Write-back can initially keep a change only in the cache."
+            }
+          ],
+          "correct": [
+            "a",
+            "d"
+          ],
+          "explanation": "Write-through and write-back determine how changes are propagated. Write-allocate and no-write-allocate independently determine whether a block is brought into the cache on a write miss.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO12.md",
+            "heading": "Zwei Entscheidungen bei Schreibzugriffen"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Replacement and Write Policies"
+          ]
+        },
+        {
+          "id": "era-12-l3-q07",
+          "type": "single",
+          "prompt": "A 2-way set-associative cache has four sets, and blocks numbered 0, 4, and 8 are requested in sequence. The access to block 0 is then repeated. What type of miss is this final access if the cache was initially empty and uses LRU?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Compulsory miss, because block 0 is requested for the first time."
+            },
+            {
+              "id": "b",
+              "text": "Capacity miss, because even a fully associative cache of the same capacity could not store all three blocks."
+            },
+            {
+              "id": "c",
+              "text": "Conflict miss, because all three blocks compete for the same set."
+            },
+            {
+              "id": "d",
+              "text": "No miss, because other sets have free lines."
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Block numbers 0, 4, and 8 all select the same set because the set number is the block number modulo 4. Two lines are not enough; free lines in other sets do not help.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO12.md",
+            "heading": "14. Drei Cache-Miss-Arten · Folien 35–60"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Cache Organization and Miss Types",
+            "Cache Address Decomposition"
+          ]
+        },
+        {
+          "id": "era-12-l3-q08",
+          "type": "multi",
+          "prompt": "A memory block is to be placed in a cache. Select all correct statements about cache organizations.",
+          "options": [
+            {
+              "id": "a",
+              "text": "Direct mapped: The block can go in only one specific cache line."
+            },
+            {
+              "id": "b",
+              "text": "N-way set-associative: The block can go in any set and any line."
+            },
+            {
+              "id": "c",
+              "text": "N-way set-associative: The block can go in one specific set, in any one of its N lines."
+            },
+            {
+              "id": "d",
+              "text": "Fully associative: The block can go in any cache line."
+            }
+          ],
+          "correct": [
+            "a",
+            "c",
+            "d"
+          ],
+          "explanation": "Direct mapped fixes one line; fully associative allows any line. With N-way associativity, the set is fixed, while any line within that set may be chosen.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO12.md",
+            "heading": "Drei Organisationsformen"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Cache Organization and Miss Types"
+          ]
+        },
+        {
+          "id": "era-12-l3-q09",
+          "type": "calc",
+          "prompt": "An Sv39 page table contains 512 entries of 64 bits each. How large is one table?",
+          "options": [
+            {
+              "id": "a",
+              "text": "8 KiB"
+            },
+            {
+              "id": "b",
+              "text": "2 KiB"
+            },
+            {
+              "id": "c",
+              "text": "512 Byte"
+            },
+            {
+              "id": "d",
+              "text": "4 KiB"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "64 bits is 8 Byte. Therefore, $512\\cdot8=4096$ Byte = 4 KiB.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO12.md",
+            "heading": "4. Sv39 und weitere Modi"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Sv32 and Sv39",
+            "Page Tables"
+          ]
+        },
+        {
+          "id": "era-12-l3-q10",
+          "type": "truefalse",
+          "prompt": "In an inclusive hierarchy, a block in L1 is also in L2; in an exclusive hierarchy, a block appears at most once in the cache hierarchy being considered.",
+          "options": [
+            {
+              "id": "true",
+              "text": "True"
+            },
+            {
+              "id": "false",
+              "text": "False"
+            }
+          ],
+          "correct": [
+            "true"
+          ],
+          "explanation": "Inclusion allows copies of the same block at multiple levels. Exclusivity keeps a block in at most one level of the hierarchy being considered.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO12.md",
+            "heading": "Inklusive und exklusive Hierarchie"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Memory Hierarchy"
+          ]
+        },
+        {
+          "id": "era-12-l3-q11",
+          "type": "single",
+          "prompt": "A program accesses widely separated data using a large stride. Its regularly used working set is also larger than the L1 cache. What is the most likely result?",
+          "options": [
+            {
+              "id": "a",
+              "text": "The TLB stores data blocks instead of translations."
+            },
+            {
+              "id": "b",
+              "text": "The cache automatically becomes a scratchpad."
+            },
+            {
+              "id": "c",
+              "text": "Every access is guaranteed to be an L1 hit."
+            },
+            {
+              "id": "d",
+              "text": "Spatial locality is used less effectively, and accesses may more often come from lower levels."
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Large strides make less use of nearby data. If the working set does not fit in L1, accesses must more often be served by a lower level of the memory hierarchy.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO12.md",
+            "heading": "Memory Mountain · Folie 73"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Locality",
+            "Memory Hierarchy"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "era-12-l4",
+      "index": 4,
+      "kind": "boss",
+      "title": "Boss",
+      "questions": [
+        {
+          "id": "era-12-l4-q01",
+          "type": "single",
+          "prompt": "A program performs a memory access. The virtual page is not yet mapped; the operating system's exception handler can create the mapping and retry the access. How should the fault that triggers this be classified?",
+          "options": [
+            {
+              "id": "a",
+              "text": "As an asynchronous device interrupt, because the operating system is involved."
+            },
+            {
+              "id": "b",
+              "text": "As a normal cache miss that does not trigger a control transfer."
+            },
+            {
+              "id": "c",
+              "text": "As a synchronous exception, because it is caused by the memory access being executed."
+            },
+            {
+              "id": "d",
+              "text": "As an unconditional jump by the program."
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "A page fault is synchronous with the memory access being executed, so it is an exception. An external interrupt is asynchronous to the instruction currently being executed.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO12.md",
+            "heading": "Lazy Allocation und der Bezug zu Exceptions"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Lazy Allocation and Paging",
+            "TLB and Page Faults"
+          ]
+        },
+        {
+          "id": "era-12-l4-q02",
+          "type": "calc",
+          "prompt": "A processor has separate L1-I for instructions and L1-D for data. The PC contains `0x1000`; `lw t0, 12(s0)` is stored there. `s0` contains `0x2000`. Where is the instruction fetched from, what data address does the load calculate, and which L1 cache serves the data access?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Instruction from L1-I; data address `0x100C` via L1-I"
+            },
+            {
+              "id": "b",
+              "text": "Instruction from L1-I; data address `0x200C` via L1-D"
+            },
+            {
+              "id": "c",
+              "text": "Instruction from L1-D; data address `0x200C` via L1-I"
+            },
+            {
+              "id": "d",
+              "text": "Instruction from L1-D; data address `0x2012` via L1-D"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "The PC determines the instruction address `0x1000`; the instruction is fetched from L1-I. The effective data address is `0x2000 + 12 = 0x200C`, and the data cache L1-D serves this access.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO10.md",
+            "heading": null
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Memory Hierarchy",
+            "Caches and the Memory Wall"
+          ]
+        },
+        {
+          "id": "era-12-l4-q03",
+          "type": "calc",
+          "prompt": "For a row-wise stored matrix-vector multiplication performing the same computation, the measured times were 0.71 s for row-wise and 4.54 s for column-wise access. Approximately how many times longer did column-wise access take?",
+          "options": [
+            {
+              "id": "a",
+              "text": "About 12.8 times"
+            },
+            {
+              "id": "b",
+              "text": "About 4.5 times"
+            },
+            {
+              "id": "c",
+              "text": "About 1.6 times"
+            },
+            {
+              "id": "d",
+              "text": "About 6.4 times"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "The quotient is $4{,}54/0{,}71\\approx6{,}39$. Column-wise access therefore took about 6.4 times as long.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO1.md",
+            "heading": null
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Locality",
+            "Caches and the Memory Wall"
+          ]
+        },
+        {
+          "id": "era-12-l4-q04",
+          "type": "calc",
+          "prompt": "An empty cache has 4 sets, 2 lines per set, and 8 Byte per block; it uses LRU replacement. What hit/miss sequence results for `0x0000, 0x0008, 0x0010, 0x0020, 0x0000`?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Hit, Miss, Miss, Miss, Hit"
+            },
+            {
+              "id": "b",
+              "text": "Miss, Hit, Miss, Hit, Miss"
+            },
+            {
+              "id": "c",
+              "text": "Miss, Miss, Miss, Hit, Miss"
+            },
+            {
+              "id": "d",
+              "text": "Miss, Miss, Miss, Miss, Hit"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "The block numbers are 0, 1, 2, 4, and 0. Blocks 0 and 4 share set 0, but both fit in its two lines; the final access to block 0 is therefore a hit.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO12.md",
+            "heading": "13. Cache-Zugriffe durchrechnen · Folien 29–63"
+          },
+          "difficulty": 5,
+          "concepts": [
+            "Cache Address Decomposition",
+            "Replacement and Write Policies"
+          ]
+        },
+        {
+          "id": "era-12-l4-q05",
+          "type": "calc",
+          "prompt": "A virtual Sv32 address has `VPN[1]=2`, `VPN[0]=5`, and offset `0xABC`. The second-level leaf entry gives physical page number `0xABCDE`. What physical address results?",
+          "options": [
+            {
+              "id": "a",
+              "text": "`0xABCDEABC`"
+            },
+            {
+              "id": "b",
+              "text": "`0xABCDEABC0`"
+            },
+            {
+              "id": "c",
+              "text": "`0xABCDE005`"
+            },
+            {
+              "id": "d",
+              "text": "`0xABCDE000`"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "The page number is shifted left by 12 bits and combined with the unchanged offset: `(0xABCDE << 12) + 0xABC = 0xABCDEABC`. The VPN indices select the entry beforehand, but are not part of the physical page base.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO12.md",
+            "heading": "Ergänzte Erklärung: Übersetzung Schritt für Schritt"
+          },
+          "difficulty": 5,
+          "concepts": [
+            "Virtual Memory",
+            "Page Tables",
+            "Sv32 and Sv39"
+          ]
+        },
+        {
+          "id": "era-12-l4-q06",
+          "type": "single",
+          "prompt": "A cache has four sets with two lines each, for eight lines total. Blocks 0, 4, and 8 are requested, followed by block 0 again. Each block selects its set using `Blocknummer mod 4`; the cache uses LRU. Which diagnosis of the final miss is correct?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Capacity miss: three blocks do not fit in four cache lines."
+            },
+            {
+              "id": "b",
+              "text": "Compulsory miss: block 0 is requested for the first time."
+            },
+            {
+              "id": "c",
+              "text": "No miss can occur because two other sets are free."
+            },
+            {
+              "id": "d",
+              "text": "Conflict miss: the three blocks compete for the same set, although the total capacity could hold all three."
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "All three blocks select the same set. That set has only two lines, even though the cache can store four blocks overall. The repeated access to the evicted block is therefore a conflict miss.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO12.md",
+            "heading": "14. Drei Cache-Miss-Arten · Folien 35–60"
+          },
+          "difficulty": 5,
+          "concepts": [
+            "Cache Organization and Miss Types",
+            "Cache Address Decomposition"
+          ]
+        },
+        {
+          "id": "era-12-l4-q07",
+          "type": "multi",
+          "prompt": "A process reserves virtual heap memory for three pages, initially accesses only the second page, and is allowed to read it. Select all statements that fit the lazy-allocation sequence.",
+          "options": [
+            {
+              "id": "a",
+              "text": "The first access to the second page can trigger an exception because no physical frame has yet been assigned."
+            },
+            {
+              "id": "b",
+              "text": "The reservation alone requires all three pages to be backed by physical frames immediately."
+            },
+            {
+              "id": "c",
+              "text": "If the access is permitted, the operating system can assign a frame, update the page table, and retry the access."
+            },
+            {
+              "id": "d",
+              "text": "The page fault that occurs must always be a protection fault."
+            }
+          ],
+          "correct": [
+            "a",
+            "c"
+          ],
+          "explanation": "With lazy allocation, virtual memory can initially be reserved without physical frames. A permitted first access leads to a frame being assigned; reservation alone does not require all three pages to be backed immediately.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO12.md",
+            "heading": "Lazy Allocation und der Bezug zu Exceptions"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Lazy Allocation and Paging",
+            "TLB and Page Faults"
+          ]
+        },
+        {
+          "id": "era-12-l4-q08",
+          "type": "diagram",
+          "prompt": "A data block is missing from L1-D. In the diagram, which intermediate level is reached next on the way to RAM?",
+          "context": {
+            "type": "mermaid",
+            "content": "flowchart TD\n    C[\"CPU and registers\"] --> I[\"L1-I\"]\n    C --> D[\"L1-D\"]\n    I --> L2[\"L2\"]\n    D --> L2\n    L2 --> L3[\"L3\"]\n    L3 --> R[\"RAM / Main Memory\"]",
+            "caption": "Schematic cache hierarchy"
+          },
+          "options": [
+            {
+              "id": "a",
+              "text": "CPU and registers"
+            },
+            {
+              "id": "b",
+              "text": "L1-I"
+            },
+            {
+              "id": "c",
+              "text": "A second L1-D level"
+            },
+            {
+              "id": "d",
+              "text": "L2"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "In the diagram, L1-I and L1-D lead to L2; from there, the path continues to L3 and finally to RAM.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO12.md",
+            "heading": "16. Speicherhierarchie · Folien 65–74"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Memory Hierarchy"
+          ]
+        },
+        {
+          "id": "era-12-l4-q09",
+          "type": "truefalse",
+          "prompt": "A 56-bit physical address range in Sv39 means that the system actually has 64 PiB of RAM installed.",
+          "options": [
+            {
+              "id": "true",
+              "text": "True"
+            },
+            {
+              "id": "false",
+              "text": "False"
+            }
+          ],
+          "correct": [
+            "false"
+          ],
+          "explanation": "Address width describes a representable range. It says neither how much memory the hardware supports nor how much RAM is actually installed.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO12.md",
+            "heading": "Virtuelle und physische Adresse auseinanderhalten"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Sv32 and Sv39",
+            "Virtual Memory"
+          ]
+        },
+        {
+          "id": "era-12-l4-q10",
+          "type": "single",
+          "prompt": "A cache has 16 lines, 16 Byte per line, and 4-way associativity. What tag/index/offset split applies to 32-bit addresses?",
+          "options": [
+            {
+              "id": "a",
+              "text": "24 tag bits, 4 index bits, 4 offset bits"
+            },
+            {
+              "id": "b",
+              "text": "26 tag bits, 4 index bits, 2 offset bits"
+            },
+            {
+              "id": "c",
+              "text": "25 tag bits, 3 index bits, 4 offset bits"
+            },
+            {
+              "id": "d",
+              "text": "26 tag bits, 2 index bits, 4 offset bits"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "There are $16/4=4$ sets, so there are 2 index bits. A 16-Byte block requires 4 offset bits; there are $32-2-4=26$ tag bits.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO12.md",
+            "heading": "Selbstcheck aus der Vorlage"
+          },
+          "difficulty": 5,
+          "concepts": [
+            "Cache Address Decomposition",
+            "Cache Organization and Miss Types"
+          ]
+        },
+        {
+          "id": "era-12-l4-q11",
+          "type": "multi",
+          "prompt": "A CPU has separate L1-I and L1-D caches, with a shared L2 above them. Select all statements that follow from this organization.",
+          "options": [
+            {
+              "id": "a",
+              "text": "L1-I holds instructions; L1-D holds program data."
+            },
+            {
+              "id": "b",
+              "text": "Separate L1 caches mean that program code and data must reside in separate main memories."
+            },
+            {
+              "id": "c",
+              "text": "The shared L2 must contain instructions only."
+            },
+            {
+              "id": "d",
+              "text": "Instruction and data accesses therefore compete less directly for the same L1 cache."
+            }
+          ],
+          "correct": [
+            "a",
+            "d"
+          ],
+          "explanation": "L1-I and L1-D separate immediate accesses to instructions and data. A shared L2 can serve both; separating the caches does not mean that main memory is Harvard-architecture memory.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO12.md",
+            "heading": "Warum L1-I und L1-D? · Folien 69–71"
+          },
+          "difficulty": 5,
+          "concepts": [
+            "Memory Hierarchy",
+            "Caches and the Memory Wall"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "era-12-l5",
+      "index": 5,
+      "kind": "bonus",
+      "title": "In Practice: Smarter Memory",
+      "questions": [
+        {
+          "id": "era-12-l5-q01",
+          "type": "single",
+          "prompt": "Your computer is running a browser and a music player at the same time. Internally, both programs use the same virtual address, such as `0x4000`. What can make that address map to a different physical RAM frame in each program?",
+          "options": [
+            {
+              "id": "a",
+              "text": "The TLB permanently assigns the same RAM frame to each virtual address."
+            },
+            {
+              "id": "b",
+              "text": "The address is always used directly as a physical RAM address."
+            },
+            {
+              "id": "c",
+              "text": "The MMU translates the virtual address using the page table of the relevant process."
+            },
+            {
+              "id": "d",
+              "text": "The cache divides RAM into separate halves when the process starts."
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "The MMU translates virtual addresses using the page table of the current process. This allows programs to map the same virtual address value independently to different physical frames.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO12.md",
+            "heading": "1. Virtuelle Adressen und Seitentabellen"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Virtual Memory",
+            "Page Tables",
+            "MMU"
+          ]
+        },
+        {
+          "id": "era-12-l5-q02",
+          "type": "single",
+          "prompt": "A file is already in RAM. For the virtual address a process uses to access its data page, the valid page table contains a translation, but that translation is currently missing from the TLB. What happens on this TLB miss?",
+          "options": [
+            {
+              "id": "a",
+              "text": "The page table is walked to find the translation; the miss alone does not mean that the SSD or hard drive is accessed."
+            },
+            {
+              "id": "b",
+              "text": "The virtual address is used as a physical address without checking it."
+            },
+            {
+              "id": "c",
+              "text": "The TLB loads the file data itself from RAM and stores it permanently."
+            },
+            {
+              "id": "d",
+              "text": "The operating system must load the data page from the SSD."
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "The TLB stores translations, not file data. If a translation is missing from the TLB, the valid page-table translation is looked up. A TLB miss is therefore not automatically a page fault or an access to secondary storage.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO12.md",
+            "heading": "6. TLB: Übersetzungen schnell wiederfinden"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "TLB",
+            "Page Faults",
+            "Page Tables"
+          ]
+        },
+        {
+          "id": "era-12-l5-q03",
+          "type": "estimate",
+          "prompt": "A memory page is $4\\,\\mathrm{KiB}$ in size, or $4096$ Byte. How many low-order bits determine the offset, that is, the position within the page?",
+          "options": [],
+          "correct": [],
+          "slider": {
+            "min": 0,
+            "max": 25,
+            "step": 1,
+            "answer": 12,
+            "tolerance": 0,
+            "unit": "Bit",
+            "scale": "linear"
+          },
+          "explanation": "$4096=2^{12}$ Byte, so the offset requires 12 bits. This offset within the page remains unchanged during address translation.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO12.md",
+            "heading": "Virtuelle Adresse: 10 + 10 + 12 Bit"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Page Offset",
+            "Virtual Addresses"
+          ]
+        },
+        {
+          "id": "era-12-l5-q04",
+          "type": "single",
+          "prompt": "An image-editing app reserves space for a large undo buffer but initially uses only a small part of it. Which mechanism can avoid providing physical RAM frames immediately for the untouched regions?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Write-through: Each change is immediately forwarded to the next memory level."
+            },
+            {
+              "id": "b",
+              "text": "Write-back: Modified cache data is written back only later."
+            },
+            {
+              "id": "c",
+              "text": "Spatial locality: Nearby addresses are often used in sequence."
+            },
+            {
+              "id": "d",
+              "text": "Lazy allocation: A frame is provided only when the page is actually accessed."
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "With lazy allocation, virtual memory can initially be available without physical frames. Only the first actual access triggers allocation, and it can cause an exception.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO12.md",
+            "heading": "7. Neue Speicherseiten: konservativ oder lazy? · Folie 14"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Lazy Allocation",
+            "Page Faults"
+          ]
+        },
+        {
+          "id": "era-12-l5-q05",
+          "type": "single",
+          "prompt": "In a program, you sum the values of an array in order: `array[0]`, `array[1]`, `array[2]`, and so on. The cache loads an entire block of adjacent data. Which concept explains why subsequent accesses are often faster?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Temporal locality: Recently used data is likely to be needed again soon."
+            },
+            {
+              "id": "b",
+              "text": "Paging: A rarely used page is moved to secondary storage."
+            },
+            {
+              "id": "c",
+              "text": "Spatial locality: Addresses adjacent to one address are likely to be needed next."
+            },
+            {
+              "id": "d",
+              "text": "TLB: Recently used virtual addresses are translated into physical addresses."
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Consecutive array elements are typically close together. Because the cache loads whole blocks, an access can bring in neighboring values as well, making use of spatial locality.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO12.md",
+            "heading": "10. Lokalität · Folien 22–24"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Spatial Locality",
+            "Cache"
+          ]
+        },
+        {
+          "id": "era-12-l5-q06",
+          "type": "estimate",
+          "prompt": "You are sizing an Sv32 table with 1024 entries of 4 Byte each. How many Byte does the table occupy?",
+          "options": [],
+          "correct": [],
+          "slider": {
+            "min": 1024,
+            "max": 8192,
+            "step": 256,
+            "answer": 4096,
+            "tolerance": 0,
+            "unit": "Byte",
+            "scale": "linear"
+          },
+          "explanation": "$1024\\cdot4=4096$ Byte. Such a table therefore occupies exactly 4 KiB, the size of a 4-KiB page.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO12.md",
+            "heading": "Aufbau der zweistufigen Tabelle"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Sv32",
+            "Page Tables"
+          ]
+        },
+        {
+          "id": "era-12-l5-q07",
+          "type": "single",
+          "prompt": "In a 3D game, the CPU may finish its calculations faster than main memory can supply some of the required data. What hardware typically helps reduce the wait by keeping frequently needed data close to the CPU?",
+          "options": [
+            {
+              "id": "a",
+              "text": "A TLB as a buffer for the actual game data."
+            },
+            {
+              "id": "b",
+              "text": "A cache as a small, fast buffer."
+            },
+            {
+              "id": "c",
+              "text": "Paging, which replaces main memory with faster SSD storage."
+            },
+            {
+              "id": "d",
+              "text": "A page table as an additional fast data store."
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "Caches keep frequently needed data close to the processor, helping bridge the speed gap between the CPU and RAM known as the memory wall.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO12.md",
+            "heading": "9. Warum Caches? Die Memory Wall · Folien 18–21"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Cache",
+            "Memory Wall",
+            "Memory Hierarchy"
+          ]
+        },
+        {
+          "id": "era-12-l5-q08",
+          "type": "estimate",
+          "prompt": "A cache block contains 64 Byte. An `int` occupies 4 Byte. How many complete `int` values fit in one block?",
+          "options": [],
+          "correct": [],
+          "slider": {
+            "min": 4,
+            "max": 40,
+            "step": 1,
+            "answer": 16,
+            "tolerance": 0,
+            "unit": "int",
+            "scale": "linear"
+          },
+          "explanation": "$64\\,\\mathrm{Byte}/4\\,\\mathrm{Byte}=16$ values. When adjacent array elements are read, these values loaded together can benefit from spatial locality.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO12.md",
+            "heading": "11. Cache Hit und Cache Miss · Folie 25"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Cache Block",
+            "Spatial Locality"
+          ]
+        },
+        {
+          "id": "era-12-l5-q09",
+          "type": "single",
+          "prompt": "A processor core fetches the next instruction while also reading data for that instruction. Why might a processor use separate L1 caches for instructions and data?",
+          "options": [
+            {
+              "id": "a",
+              "text": "So that data from L1-D is automatically moved to secondary storage."
+            },
+            {
+              "id": "b",
+              "text": "So that the page table no longer needs to reside in main memory."
+            },
+            {
+              "id": "c",
+              "text": "So that instruction and data accesses compete less directly for the same L1 cache."
+            },
+            {
+              "id": "d",
+              "text": "So that every instruction gets its own virtual address."
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "L1-I holds instructions and L1-D holds data. Separating them reduces direct competition for the L1 cache and can make parallel accesses easier.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO12.md",
+            "heading": "Warum L1-I und L1-D? · Folien 69–71"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "L1-I",
+            "L1-D",
+            "Memory Hierarchy"
+          ]
+        },
+        {
+          "id": "era-12-l5-q10",
+          "type": "single",
+          "prompt": "A CPU changes a value in a cache line. The change initially remains in the cache and is forwarded to the next memory level only later, when the line is evicted. Which write policy is this?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Write-back"
+            },
+            {
+              "id": "b",
+              "text": "Write-allocate"
+            },
+            {
+              "id": "c",
+              "text": "Write-through"
+            },
+            {
+              "id": "d",
+              "text": "No-write-allocate"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "With write-back, changes are kept in the cache initially and written back later. A dirty bit can indicate that the line has been modified.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO12.md",
+            "heading": "Zwei Entscheidungen bei Schreibzugriffen"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Write-Back",
+            "Dirty Bit",
+            "Write Policies"
+          ]
+        }
+      ]
+    }
+  ]
+}

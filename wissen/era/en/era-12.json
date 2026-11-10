@@ -1,0 +1,621 @@
+{
+  "schemaVersion": 1,
+  "unitId": "era-12",
+  "module": "ERA",
+  "unitNumber": 12,
+  "unitTitle": "Virtual Memory (Virtueller Speicher), Caches, and the Memory Hierarchy (Speicherhierarchie)",
+  "sourceSha": "d3bebc3693d5aad04b01439898f050c1e3d48154896f1fa4dda98ac88a0abe5b",
+  "overview": "This unit explains how the MMU translates virtual addresses using page tables and TLBs, and how the operating system provides or swaps out pages on demand. It then covers caches, locality, cache address breakdown, cache organizations, types of misses, and replacement and write policies. The memory hierarchy connects these concepts and shows how access patterns and working-set size affect performance.",
+  "entries": [
+    {
+      "id": "era-12-k01",
+      "term": "Virtual memory (Virtueller Speicher)",
+      "kind": "concept",
+      "short": "Virtual memory gives each process its own address space, whose pages can be mapped to physical memory.",
+      "explanation": "A process uses virtual addresses, which the MMU translates into physical addresses using page tables. Multiple processes can use the same virtual address, with each address mapping to a different physical frame. A virtual page can also temporarily have no mapping in RAM.",
+      "example": "The virtual address 0x1000 can map to different physical frames in two processes.",
+      "pitfalls": [
+        "A virtual address is not automatically an address in RAM."
+      ],
+      "related": [
+        "MMU (Memory Management Unit)",
+        "Virtual page and physical frame",
+        "Page table entry"
+      ],
+      "heading": "1. Virtuelle Adressen und Seitentabellen"
+    },
+    {
+      "id": "era-12-k02",
+      "term": "Virtual page and physical frame (Virtuelle Seite und physische Kachel)",
+      "kind": "definition",
+      "short": "A virtual page and a physical frame are equally sized regions of the virtual and physical address spaces, respectively.",
+      "explanation": "During translation, a virtual page is mapped to a physical frame. The page size determines how many low-order address bits form the offset within the page. For 4-KiB pages, this is 12 bits because $4\\,\\mathrm{KiB}=2^{12}\\,\\mathrm{Byte}$.",
+      "example": "The virtual page is identified by its virtual page number, and the physical frame by its physical page number.",
+      "pitfalls": [
+        "A virtual page and its mapped physical frame have the same size, but not the same address."
+      ],
+      "related": [
+        "Virtual memory",
+        "MMU (Memory Management Unit)",
+        "Page table entry"
+      ],
+      "heading": "1. Virtuelle Adressen und Seitentabellen"
+    },
+    {
+      "id": "era-12-k03",
+      "term": "MMU (Memory Management Unit)",
+      "kind": "definition",
+      "short": "The MMU translates virtual addresses into physical addresses using page tables and checks access permissions.",
+      "explanation": "The MMU uses the virtual page number to find the corresponding physical page number. The offset within the page remains unchanged. The physical address is the physical page base plus the offset; a missing or disallowed entry causes an exception.",
+      "example": "With 4-KiB pages, the lower 12 offset bits remain unchanged during translation.",
+      "pitfalls": [
+        "Add the offset to the physical page base, not the unshifted page number."
+      ],
+      "related": [
+        "Virtual memory",
+        "Page table entry",
+        "TLB (Translation Look-Aside Buffer)"
+      ],
+      "heading": "1. Virtuelle Adressen und Seitentabellen"
+    },
+    {
+      "id": "era-12-k04",
+      "term": "Page table entry (Seitentabelleneintrag)",
+      "kind": "definition",
+      "short": "A page table entry describes a page mapping or a pointer to another table level, along with associated permissions and status information.",
+      "explanation": "Page tables reside in main memory; a special register holds a base pointer to the root table of the active address space. An entry can point to another table or act as a leaf that maps a data page. Validity, access permissions, and status information depend on the specific format.",
+      "example": "A valid Sv32 entry with $X=W=R=0$ can point to the next table level.",
+      "pitfalls": [
+        "A valid entry does not necessarily map a data page yet.",
+        "The general description of cache properties is not an additional bit in the Sv32 format."
+      ],
+      "related": [
+        "Virtual memory",
+        "Hierarchical page tables",
+        "Sv32 page table entry"
+      ],
+      "heading": "1. Virtuelle Adressen und Seitentabellen"
+    },
+    {
+      "id": "era-12-k05",
+      "term": "Hierarchical page tables (Hierarchische Seitentabellen)",
+      "kind": "concept",
+      "short": "Hierarchical page tables divide address translation into levels and require subtables only for used regions.",
+      "explanation": "A complete single-level Sv32 table would have $2^{20}$ entries and, at four bytes per entry, a size of 4 MiB. In a multilevel table, an entry either points to a subtable or maps a page as a leaf. No subtable is needed for unused regions, and address bits directly select the entries.",
+      "example": "In a two-level table, the Page Directory points to a Page Table when needed.",
+      "pitfalls": [
+        "The tables form a tree; their entries are not searched linearly."
+      ],
+      "related": [
+        "Page table entry",
+        "Sv32",
+        "Large pages"
+      ],
+      "heading": "2. Warum hierarchische Seitentabellen?"
+    },
+    {
+      "id": "era-12-k06",
+      "term": "Page Directory and Page Table (Page Directory und Page Table)",
+      "kind": "notation",
+      "short": "In the two-level representation, Page Directory and Page Table refer to the first and second tables in a page-table hierarchy.",
+      "explanation": "The special register points to the Page Directory, whose entries can point to Page Tables. An entry at the second level can act as a leaf containing a physical frame and permissions. These terms come from the terminology used in the lecture notes.",
+      "example": "A Page Directory entry can point to a Page Table for part of the virtual address space.",
+      "pitfalls": [
+        "A pointer to a Page Table is not itself a mapping of a data page."
+      ],
+      "related": [
+        "Hierarchical page tables",
+        "Page table entry",
+        "Page-table translation (Page Walk)"
+      ],
+      "heading": "2. Warum hierarchische Seitentabellen?"
+    },
+    {
+      "id": "era-12-k07",
+      "term": "Large pages (Large Pages)",
+      "kind": "concept",
+      "short": "A large page maps a larger contiguous address range than a regular page using a single leaf entry.",
+      "explanation": "A valid leaf entry can map a large page at an upper table level. In Sv32, a first-level leaf maps a 4-MiB region. Larger pages can also reduce the number of translation entries needed.",
+      "example": "An Sv32 first-level leaf can map 4 MiB instead of 4 KiB.",
+      "pitfalls": [
+        "A valid entry with no read, write, or execute permission is a table pointer, not a leaf."
+      ],
+      "related": [
+        "Hierarchical page tables",
+        "Sv32",
+        "TLB (Translation Look-Aside Buffer)"
+      ],
+      "heading": "3. Sv32 im Detail"
+    },
+    {
+      "id": "era-12-k08",
+      "term": "Sv32",
+      "kind": "notation",
+      "short": "Sv32 is a two-level RISC-V translation mode with 32 virtual address bits and 4-KiB pages.",
+      "explanation": "For regular 4-KiB pages, the virtual address is divided into `VPN[1]` with 10 bits, `VPN[0]` with 10 bits, and a 12-bit offset. Each table level contains $2^{10}=1024$ entries. An Sv32 entry is 4 bytes, so a table occupies 4 KiB. The format shown contains a 22-bit physical page number and 12 offset bits, for up to 34 physical address bits.",
+      "example": "The address breakdown is $10+10+12=32$ bits.",
+      "pitfalls": [
+        "Sv32 specifies the width of the virtual address, not the physical address width.",
+        "The 1024 entries per table do not mean a page size of 1024 bytes."
+      ],
+      "related": [
+        "Sv32 page table entry",
+        "Page-table translation (Page Walk)",
+        "Hierarchical page tables"
+      ],
+      "heading": "3. Sv32 im Detail"
+    },
+    {
+      "id": "era-12-k09",
+      "term": "Sv32 page table entry (Sv32-Seitentabelleneintrag)",
+      "kind": "definition",
+      "short": "An Sv32 page table entry is 32 bits wide and contains a physical page number, status bits, and access permissions.",
+      "explanation": "Bits 31–20 contain `PPN[1]`, bits 19–10 contain `PPN[0]`, and bits 9–8 contain `RSW`. The flags from bit 7 through bit 0 are `D`, `A`, `G`, `U`, `X`, `W`, `R`, and `V`. For a valid entry, $X=W=R=0$ indicates a table pointer; a leaf maps a page, while write permission without read permission is reserved.",
+      "example": "`V=1, X=0, W=0, R=0` can represent a valid pointer to a Page Table.",
+      "pitfalls": [
+        "`PPN` is the physical page number, not a complete byte address.",
+        "`V=1` alone does not mean that the entry already maps a data page."
+      ],
+      "related": [
+        "Page table entry",
+        "Sv32",
+        "Access protection"
+      ],
+      "heading": "3. Sv32 im Detail"
+    },
+    {
+      "id": "era-12-k10",
+      "term": "Page-table translation (Page Walk) (Seitentabellenübersetzung (Page Walk))",
+      "kind": "method",
+      "short": "A Page Walk reads the required table entries using the virtual address indices and uses them to form a physical address.",
+      "explanation": "In Sv32, the address is first divided into `VPN[1]`, `VPN[0]`, and the offset. The base pointer and `VPN[1]` determine the first-table entry; an invalid entry causes an exception, a table pointer leads to the next level, and a leaf can map a large page. For a regular page, `VPN[0]` selects the second-table entry. The physical address is formed from the page base and the unchanged offset; the address of a 4-byte entry is `Tabellenbasis + 4 × Index`.",
+      "example": "A first-level Sv32 leaf can directly map a 4-MiB page.",
+      "pitfalls": [
+        "An invalid entry is not a valid table pointer.",
+        "Add the offset to the physical page base."
+      ],
+      "related": [
+        "Sv32",
+        "Page table entry",
+        "Page fault (Seitenfehler)"
+      ],
+      "heading": "3. Sv32 im Detail"
+    },
+    {
+      "id": "era-12-k11",
+      "term": "Sv39",
+      "kind": "notation",
+      "short": "Sv39 is a three-level RISC-V translation mode with 39 relevant virtual address bits and 4-KiB pages.",
+      "explanation": "The virtual address consists of three 9-bit indices and a 12-bit offset. Each table contains 512 entries of 64 bits each and therefore occupies 4 KiB. The physical format shown extends up to 56 bits: a 44-bit page number plus a 12-bit offset. The virtual address space theoretically covers $2^{39}$ bytes, and the physically representable range extends up to $2^{56}$ bytes.",
+      "example": "$2^{39}$ bytes equal 512 GiB; $2^{56}$ bytes equal 64 PiB.",
+      "pitfalls": [
+        "Sv39 refers to relevant virtual address bits, not the amount of installed RAM.",
+        "A 64-bit register width does not make every 64-bit address a valid virtual address."
+      ],
+      "related": [
+        "Sv48 and Sv57",
+        "Hierarchical page tables",
+        "Page table entry"
+      ],
+      "heading": "4. Sv39 und weitere Modi"
+    },
+    {
+      "id": "era-12-k12",
+      "term": "Sv48 and Sv57",
+      "kind": "notation",
+      "short": "Sv48 and Sv57 are RV64 translation modes with four and five table levels, respectively.",
+      "explanation": "With 4-KiB pages, each additional table level adds nine index bits. Sv48 uses four 9-bit indices and a 12-bit offset; Sv57 uses five 9-bit indices and the same offset. Each table contains 512 entries of 8 bytes each.",
+      "example": "Sv48 uses $9+9+9+9+12=48$ relevant virtual address bits.",
+      "pitfalls": [
+        "The additional address width does not increase the 4-KiB page size; the offset remains 12 bits."
+      ],
+      "related": [
+        "Sv39",
+        "Hierarchical page tables"
+      ],
+      "heading": "4. Sv39 und weitere Modi"
+    },
+    {
+      "id": "era-12-k13",
+      "term": "Stack and heap in the virtual address space (Stack und Heap im virtuellen Adressraum)",
+      "kind": "concept",
+      "short": "The stack and heap are regions of the same virtual address space that, in the layout shown, grow in opposite directions.",
+      "explanation": "In the layout, program code and static data occupy low addresses, the heap grows toward higher addresses, and the stack grows toward lower addresses. Free virtual address space lies between them. A large virtual address width does not require the system to fill the entire range with physical RAM.",
+      "example": "A heap region can be reserved virtually while physical frames are allocated only when accessed.",
+      "pitfalls": [
+        "Separating the stack and heap is not the same as separating instruction and data memory in a Harvard architecture."
+      ],
+      "related": [
+        "Virtual memory",
+        "Lazy allocation",
+        "Paging / swapping"
+      ],
+      "heading": "5. Stack, Heap und die Größe des Adressraums"
+    },
+    {
+      "id": "era-12-k14",
+      "term": "TLB (Translation Look-Aside Buffer)",
+      "kind": "definition",
+      "short": "A TLB is a small, fast storage structure for recently used virtual-to-physical address translations.",
+      "explanation": "On a TLB hit, the MMU finds the translation in the TLB. On a TLB miss, the translation is absent, so the page tables must be consulted. The TLB stores translations, not arbitrary program data. When mappings change, affected old translations must be correctly invalidated or associated with an address space.",
+      "example": "A page can be validly resident in RAM even when its translation is not in the TLB; this is a TLB miss, but not automatically a page fault.",
+      "pitfalls": [
+        "A TLB miss is not automatically a page fault."
+      ],
+      "related": [
+        "MMU (Memory Management Unit)",
+        "Page fault",
+        "Page-table translation (Page Walk)"
+      ],
+      "heading": "6. TLB: Übersetzungen schnell wiederfinden"
+    },
+    {
+      "id": "era-12-k15",
+      "term": "Page fault (Seitenfehler)",
+      "kind": "definition",
+      "short": "A page fault is a synchronous exception that occurs when a memory access cannot use a valid and permitted mapping.",
+      "explanation": "A required mapping may be missing because a page has not yet been physically allocated or has been swapped out. The operating system can establish the mapping and retry the access. A page fault can also indicate an impermissible access that must not be fixed by allocating a page.",
+      "example": "On the first access to a lazy-allocation page, the operating system can allocate a frame and update the page table.",
+      "pitfalls": [
+        "Not every page fault is a protection fault.",
+        "A TLB miss alone is not a page fault."
+      ],
+      "related": [
+        "TLB (Translation Look-Aside Buffer)",
+        "Lazy allocation",
+        "Access protection"
+      ],
+      "heading": "7. Neue Speicherseiten: konservativ oder lazy? · Folie 14"
+    },
+    {
+      "id": "era-12-k16",
+      "term": "Lazy allocation (Lazy Allocation)",
+      "kind": "concept",
+      "short": "Lazy allocation assigns a physical frame to a virtual page only when the page is actually accessed.",
+      "explanation": "The operating system can provide virtual memory without immediately using all potentially needed physical memory. The first access to an unmapped page usually causes a synchronous page fault. If the access is permitted and a frame is available, the operating system updates the page table and retries the access.",
+      "example": "A program can reserve a large heap region while initially using only a few of its pages.",
+      "pitfalls": [
+        "Virtual reservation does not guarantee that physical frames will remain available without limit."
+      ],
+      "related": [
+        "Virtual memory",
+        "Page fault",
+        "Paging / swapping"
+      ],
+      "heading": "7. Neue Speicherseiten: konservativ oder lazy? · Folie 14"
+    },
+    {
+      "id": "era-12-k17",
+      "term": "Paging / swapping (Paging / Swapping)",
+      "kind": "method",
+      "short": "Paging moves pages from RAM to slower backing storage and loads them back when they are accessed later.",
+      "explanation": "When no free frame is available, the operating system can select a page that is used infrequently and save its contents to backing storage. The freed frame is assigned to another page. A later access to the swapped-out page causes an exception; the page is loaded back and mapped again. An unchanged page that has already been saved does not necessarily need to be written again.",
+      "example": "Swapping out page B can free a frame for newly needed page A.",
+      "pitfalls": [
+        "Swapping does not increase the amount of physical RAM or make it faster.",
+        "Accesses to swapped-out pages can be much slower than RAM accesses."
+      ],
+      "related": [
+        "Lazy allocation",
+        "Page fault",
+        "Page table entry"
+      ],
+      "heading": "8. Paging / Swapping: Wenn keine physische Kachel frei ist · Folien 15–16"
+    },
+    {
+      "id": "era-12-k18",
+      "term": "Access protection (Zugriffsschutz)",
+      "kind": "concept",
+      "short": "Access protection specifies whether memory pages may be read, written, or executed.",
+      "explanation": "Page table entries can specify read, write, and execute permissions, as well as the permitted privilege mode. The MMU checks these permissions during memory accesses. A violation causes an exception instead of allowing the unauthorized access to proceed normally.",
+      "example": "A read-only data page may be read but not written.",
+      "pitfalls": [
+        "A valid page table entry does not automatically permit every type of access."
+      ],
+      "related": [
+        "Sv32 page table entry",
+        "Page fault",
+        "Page table entry"
+      ],
+      "heading": "8. Paging / Swapping: Wenn keine physische Kachel frei ist · Folien 15–16"
+    },
+    {
+      "id": "era-12-k19",
+      "term": "Cache and memory wall (Cache und Memory Wall)",
+      "kind": "concept",
+      "short": "A cache is a small, fast buffer that bridges the speed gap between the CPU and main memory.",
+      "explanation": "The CPU can often process data faster than main memory can supply it. When the CPU frequently has to wait for RAM, computing capacity goes unused; this gap is called the memory wall. A cache keeps recently used data blocks closer to the CPU. A scratchpad differs in that software deliberately manages its contents.",
+      "example": "Repeated accesses to the same cache block can be served from the cache after the block is first loaded.",
+      "pitfalls": [
+        "On a cache miss, the block must be fetched from a lower level of the memory hierarchy."
+      ],
+      "related": [
+        "Scratchpad",
+        "Temporal and spatial locality",
+        "Cache hit and cache miss",
+        "Memory hierarchy"
+      ],
+      "heading": "9. Warum Caches? Die Memory Wall · Folien 18–21"
+    },
+    {
+      "id": "era-12-k20",
+      "term": "Scratchpad",
+      "kind": "definition",
+      "short": "A scratchpad is a fast memory whose contents are deliberately managed by software.",
+      "explanation": "Unlike a cache, a scratchpad is not automatically populated by hardware based on access patterns. Software decides which data is stored there and when it is transferred. This can make access predictable, but requires additional management work.",
+      "example": null,
+      "pitfalls": [
+        "A scratchpad is not populated automatically according to the same rules as a cache."
+      ],
+      "related": [
+        "Cache and memory wall"
+      ],
+      "heading": "9. Warum Caches? Die Memory Wall · Folien 18–21"
+    },
+    {
+      "id": "era-12-k21",
+      "term": "Temporal and spatial locality (Zeitliche und räumliche Lokalität)",
+      "kind": "concept",
+      "short": "Temporal locality describes the near-term reuse of recently accessed data, while spatial locality describes accesses to nearby addresses.",
+      "explanation": "With temporal locality, a program is likely to access the same address or block again soon. With spatial locality, nearby addresses are often accessed after a given address. Caches therefore typically load a block of neighboring data rather than a single byte.",
+      "example": "Repeatedly reading `array[0]` shows temporal locality; reading `array[0]`, `array[1]`, and `array[2]` shows spatial locality.",
+      "pitfalls": [
+        "Temporal and spatial locality are different patterns, but they can occur at the same time."
+      ],
+      "related": [
+        "Cache and memory wall",
+        "Cache hit and cache miss",
+        "Stride and working set"
+      ],
+      "heading": "10. Lokalität · Folien 22–24"
+    },
+    {
+      "id": "era-12-k22",
+      "term": "Row-wise and column-wise matrix access (Zeilen- und spaltenweiser Matrixzugriff)",
+      "kind": "example",
+      "short": "For a matrix, loop order can change locality and runtime even when the same computation is performed.",
+      "explanation": "With row-major storage, consecutive elements of a row are typically adjacent in memory. A row-wise access therefore makes better use of loaded cache blocks than a column-wise access with larger jumps. In the slide example with $N=12{,}800$, row-wise access took 0.71 s and column-wise access took 4.54 s. These runtimes depend on the computer, compiler, and memory hierarchy.",
+      "example": "For a row-major matrix, `A[i][0]`, `A[i][1]`, and `A[i][2]` are typically contiguous.",
+      "pitfalls": [
+        "The same number of arithmetic operations does not guarantee the same runtime.",
+        "The comparison assumes identical initial values for the result data and the stated matrix layout."
+      ],
+      "related": [
+        "Temporal and spatial locality",
+        "Stride and working set",
+        "Cache hit and cache miss"
+      ],
+      "heading": "10. Lokalität · Folien 22–24"
+    },
+    {
+      "id": "era-12-k23",
+      "term": "Cache hit and cache miss (Cache Hit und Cache Miss)",
+      "kind": "definition",
+      "short": "A cache hit finds the required data block in the cache, while on a cache miss the block must be fetched from a lower level of the memory hierarchy.",
+      "explanation": "On a hit, the access can be served by the fast cache level. On a miss, the required block is loaded from the next lower level; if the set is full, another block may be evicted. With 64 bytes per block and four bytes per integer, a block contains 16 integers.",
+      "example": "If `array[0]` is at the start of an empty 64-byte block, accessing it may be a miss, and a subsequent access to `array[1]` may be a hit.",
+      "pitfalls": [
+        "A cache miss does not mean the address is invalid."
+      ],
+      "related": [
+        "Cache and memory wall",
+        "Temporal and spatial locality",
+        "Cache address breakdown"
+      ],
+      "heading": "11. Cache Hit und Cache Miss · Folie 25"
+    },
+    {
+      "id": "era-12-k24",
+      "term": "Cache address breakdown (Cache-Adresszerlegung)",
+      "kind": "notation",
+      "short": "Cache address breakdown splits an address into tag, index, and offset to identify the set, memory block, and position within the block.",
+      "explanation": "The offset selects a position within the cache block. The index selects the set in which the requested block may reside. The tag identifies which memory block is stored in that set. With $2^b$ bytes per block, the offset requires $b$ bits; with $2^s$ sets, the index requires $s$ bits.",
+      "example": "With 32-bit addresses, 8 bytes per block, and four sets, 3 bits are used for the offset, 2 for the index, and 27 for the tag.",
+      "pitfalls": [
+        "The index identifies a set, not necessarily an individual cache line."
+      ],
+      "related": [
+        "Cache organization",
+        "Calculating cache accesses",
+        "Cache hit and cache miss"
+      ],
+      "heading": "12. Cache-Aufbau: Tag, Index und Offset · Folien 26–31"
+    },
+    {
+      "id": "era-12-k25",
+      "term": "Cache organization (Cache-Organisation)",
+      "kind": "concept",
+      "short": "Cache organization determines where a memory block may be placed in the cache.",
+      "explanation": "In a direct-mapped cache, each memory block maps to exactly one cache line. A fully associative cache allows any block in any line. In an N-way set-associative cache, the index selects a set, and the block may occupy any of its N lines.",
+      "example": "A cache with eight lines and two-way associativity has four sets with two lines each.",
+      "pitfalls": [
+        "In an N-way set-associative cache, the block index determines the set; a block cannot be placed in an arbitrary set."
+      ],
+      "related": [
+        "Cache address breakdown",
+        "Replacement policies",
+        "Cache miss types"
+      ],
+      "heading": "12. Cache-Aufbau: Tag, Index und Offset · Folien 26–31"
+    },
+    {
+      "id": "era-12-k26",
+      "term": "Calculating cache accesses (Cache-Zugriffe berechnen)",
+      "kind": "method",
+      "short": "For a sequence of cache accesses, determine the block, offset, set, and tag for each address, then update the state of the set.",
+      "explanation": "With four sets and 8-byte blocks, the offset is `Adresse mod 8`, the block number is $\\lfloor\\text{Adresse}/8\\rfloor$, the set is `Blocknummer mod 4`, and the tag is $\\lfloor\\text{Adresse}/32\\rfloor$. A valid matching tag indicates a hit; otherwise, it is a miss. On a miss, an empty line is filled or a line is replaced according to the replacement policy.",
+      "example": "For `0x100C`, the block number is 513, the set is 1, the offset is 4, and the tag is `0x80`.",
+      "pitfalls": [
+        "Free space in another set cannot make room in a full set.",
+        "Without a replacement policy, a miss after the set is full cannot always be predicted uniquely."
+      ],
+      "related": [
+        "Cache address breakdown",
+        "Cache organization",
+        "Replacement policies"
+      ],
+      "heading": "13. Cache-Zugriffe durchrechnen · Folien 29–63"
+    },
+    {
+      "id": "era-12-k27",
+      "term": "Cache miss types (Cache-Miss-Arten)",
+      "kind": "definition",
+      "short": "Compulsory, conflict, and capacity misses result from first-time access, competition for a set, and insufficient total capacity, respectively.",
+      "explanation": "A compulsory miss occurs on the first access to a block that has not yet been loaded. A conflict miss occurs when blocks compete for the same set even though a fully associative cache of equal capacity would still have room. A capacity miss occurs when the required blocks would not all fit even in a fully associative cache of equal capacity.",
+      "example": "A repeated access to `0x100C` after eviction by a competing block from the same set can be a conflict miss.",
+      "pitfalls": [
+        "The first access to a block remains a compulsory miss, even if the set later becomes full.",
+        "An eviction alone does not prove that a miss is a capacity miss."
+      ],
+      "related": [
+        "Cache organization",
+        "Calculating cache accesses",
+        "Cache hit and cache miss"
+      ],
+      "heading": "14. Drei Cache-Miss-Arten · Folien 35–60"
+    },
+    {
+      "id": "era-12-k28",
+      "term": "Replacement policies (Ersetzungsstrategien)",
+      "kind": "method",
+      "short": "On a miss in a full set, replacement policies choose which cache block to evict.",
+      "explanation": "LRU replaces the block that has gone unused for the longest time. LFU replaces the block with the lowest usage frequency. The policy affects which later accesses are hits or misses.",
+      "example": "Under LRU, the less recently used of two blocks is replaced.",
+      "pitfalls": [
+        "LRU considers the most recent use; LFU considers usage frequency.",
+        "A replacement policy is needed when the set has no free line."
+      ],
+      "related": [
+        "Cache organization",
+        "Calculating cache accesses",
+        "Cache miss types"
+      ],
+      "heading": "15. Ersetzungs- und Schreibstrategien · Folie 64"
+    },
+    {
+      "id": "era-12-k29",
+      "term": "Write policies (Schreibstrategien)",
+      "kind": "concept",
+      "short": "Write policies determine when changes are propagated and whether a write miss loads the missing block into the cache.",
+      "explanation": "Write-through immediately propagates a change to the next lower level of the memory hierarchy. Write-back initially changes only the cache block and writes it back later, for example when it is evicted. Write-allocate loads a missing block into the cache on a write miss; no-write-allocate does not load it as a result of that miss. These policies address different questions and can be combined.",
+      "example": "With write-back and write-allocate, a missing block is loaded, modified, and marked dirty.",
+      "pitfalls": [
+        "Write-through and write-back govern propagation; write-allocate and no-write-allocate govern behavior on a write miss.",
+        "With multiple cache levels, the next lower level is not necessarily main memory."
+      ],
+      "related": [
+        "Cache dirty bit",
+        "Cache hit and cache miss",
+        "Memory hierarchy"
+      ],
+      "heading": "15. Ersetzungs- und Schreibstrategien · Folie 64"
+    },
+    {
+      "id": "era-12-k30",
+      "term": "Cache dirty bit (Cache Dirty Bit)",
+      "kind": "notation",
+      "short": "The dirty bit indicates whether a cache block has been modified since it was loaded and must be written back when evicted.",
+      "explanation": "With write-back, changes are initially stored only in the cache. The dirty bit indicates that the contents of the next lower level may be out of date. A dirty block must be written back when evicted; an unchanged block does not need this write.",
+      "example": "After a write to a cache block, its dirty bit can be set to 1.",
+      "pitfalls": [
+        "A cache block's dirty bit and a page's dirty bit track different units."
+      ],
+      "related": [
+        "Write policies",
+        "Sv32 page table entry",
+        "Paging / swapping"
+      ],
+      "heading": "15. Ersetzungs- und Schreibstrategien · Folie 64"
+    },
+    {
+      "id": "era-12-k31",
+      "term": "Memory hierarchy (Speicherhierarchie)",
+      "kind": "concept",
+      "short": "The memory hierarchy combines small, fast levels close to the CPU with larger, slower levels.",
+      "explanation": "Registers and small caches are close to the CPU; lower cache levels and main memory offer more capacity but usually have higher access latency. If data is missing at one level, it is fetched from a lower level. Multiple levels are a practical compromise because a single very large cache cannot also achieve the speed of a very small one.",
+      "example": "A processor can use separate L1 caches and a larger shared L2 or L3 cache before RAM.",
+      "pitfalls": [
+        "Example values such as a 32 KB L1 cache with a 2 ns access time are not general current hardware specifications."
+      ],
+      "related": [
+        "Cache and memory wall",
+        "Inclusive and exclusive cache hierarchy",
+        "L1-I and L1-D"
+      ],
+      "heading": "16. Speicherhierarchie · Folien 65–74"
+    },
+    {
+      "id": "era-12-k32",
+      "term": "Inclusive and exclusive cache hierarchy (Inklusive und exklusive Cache-Hierarchie)",
+      "kind": "concept",
+      "short": "An inclusive hierarchy keeps an L1 block in the lower caches under consideration as well, while an exclusive hierarchy keeps a block in at most one of the considered levels.",
+      "explanation": "In an inclusive organization, the same block can reside in multiple cache levels. In an exclusive organization, a block resides in at most one of the considered levels, so the combined capacities can hold more distinct blocks. The terms describe the relationship between cache contents across levels.",
+      "example": "If block X resides in both L1 and L2 at the same time, the considered hierarchy is inclusive.",
+      "pitfalls": [
+        "Inclusive and exclusive refer to cache contents, not access permissions."
+      ],
+      "related": [
+        "Memory hierarchy",
+        "Cache organization"
+      ],
+      "heading": "16. Speicherhierarchie · Folien 65–74"
+    },
+    {
+      "id": "era-12-k33",
+      "term": "L1-I and L1-D",
+      "kind": "notation",
+      "short": "L1-I stores instructions and L1-D stores program data in separate first-level cache areas.",
+      "explanation": "The processor can fetch instructions while reading or writing data. Separate L1 caches reduce direct competition between these accesses for the same cache. Higher levels can manage instructions and data together; `I` stands for Instruction and `D` for Data.",
+      "example": "An instruction can be fetched from L1-I while a load instruction reads data from L1-D.",
+      "pitfalls": [
+        "L1-I and L1-D are cache areas, not different types of virtual address."
+      ],
+      "related": [
+        "Memory hierarchy",
+        "Cache and memory wall"
+      ],
+      "heading": "16. Speicherhierarchie · Folien 65–74"
+    },
+    {
+      "id": "era-12-k34",
+      "term": "Stride and working set (Stride und Working Set)",
+      "kind": "definition",
+      "short": "Stride is the distance between consecutive memory accesses, while the working set is the amount of data used regularly.",
+      "explanation": "A small stride often accesses neighboring data and thus takes advantage of spatial locality. Working-set size describes how much data a program regularly uses during a given period. If the working set fits in a fast cache level, many accesses can be served there; a larger amount leads to more frequent accesses to lower levels.",
+      "example": "A sequential traversal of an array usually has a small stride.",
+      "pitfalls": [
+        "A small stride does not guarantee a cache hit.",
+        "The working set is not simply the total size of all data declared in the program."
+      ],
+      "related": [
+        "Temporal and spatial locality",
+        "Memory mountain",
+        "Cache organization"
+      ],
+      "heading": "16. Speicherhierarchie · Folien 65–74"
+    },
+    {
+      "id": "era-12-k35",
+      "term": "Memory mountain (Memory Mountain)",
+      "kind": "concept",
+      "short": "The memory mountain illustrates how stride and working-set size affect observed memory performance.",
+      "explanation": "Small strides access neighboring data and thus take advantage of spatial locality. A small working set can remain in a fast cache level, while a larger one more often requires lower levels. The visualization shows how measured performance depends on both quantities; it is not a single fixed cache metric.",
+      "example": "A small data region traversed sequentially can be faster than a larger region accessed with large jumps.",
+      "pitfalls": [
+        "A single measurement does not describe performance for all strides and working-set sizes."
+      ],
+      "related": [
+        "Stride and working set",
+        "Temporal and spatial locality",
+        "Memory hierarchy"
+      ],
+      "heading": "16. Speicherhierarchie · Folien 65–74"
+    }
+  ],
+  "generator": {
+    "model": "gpt-6-luna",
+    "effort": "xhigh",
+    "promptVersion": "k1",
+    "generatedAt": "2026-11-10T00:01:54.156Z"
+  }
+}
