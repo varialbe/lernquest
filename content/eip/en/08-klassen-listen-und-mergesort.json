@@ -1,0 +1,2010 @@
+{
+  "schemaVersion": 1,
+  "id": "eip-08",
+  "module": "EIP",
+  "number": 8,
+  "slug": "klassen-listen-und-mergesort",
+  "title": "Classes, Lists, and Mergesort",
+  "summary": "This unit moves from classes (Klassen), objects (Objekte), and references (Referenzen) through methods and linked lists (verkettete Listen) to mergesort (Mergesort). You will practice how references relate to one another, how lists are modified and sorted, and when a sorting algorithm is stable.",
+  "concepts": [
+    "Class and object (Klasse und Objekt)",
+    "Constructor (Konstruktor)",
+    "Reference and aliasing (Referenz und Aliasing)",
+    "null and local variables (null und lokale Variablen)",
+    "Instance method and static (Instanzmethode und static)",
+    "this and this(...) (this und this(...))",
+    "Overloading and equals (Überladung und equals)",
+    "Singly linked list (einfach verkettete Liste)",
+    "List manipulation (Listenmanipulation)",
+    "Mergesort and merge (Mergesort und Merge)",
+    "Mergesort runtime (Laufzeit von Mergesort)",
+    "Stability (Stabilität)"
+  ],
+  "keyFacts": [
+    "A class defines a data type; an object is a concrete instance with its own field values.",
+    "A constructor has the same name as its class and no return type.",
+    "A reference assignment such as b = a copies the reference, not the object.",
+    "null means that a reference points to no object; an uninitialized local variable must not be read.",
+    "static fields belong to the class and are shared by its objects; instance fields belong to individual objects.",
+    "this refers to the current object; this(...) calls another constructor in the same class.",
+    "Overloaded methods have the same name but different parameter lists.",
+    "For references, == tests object identity; equals can test equality of contents when an appropriate method is selected.",
+    "A singly linked list consists of nodes, each with a value and a next reference; null marks the end.",
+    "Inserting after a node preserves its former successor by making the new node point to it.",
+    "delete skips the current node's direct successor, not the current object.",
+    "arrayToList inserts at the front while traversing the array backward, preserving the array's order.",
+    "Mergesort splits a list, recursively sorts both parts, and combines them with merge.",
+    "merge assumes sorted input lists, reuses existing nodes, and rewires next references.",
+    "When merging two nonempty sorted lists with m and n elements, at most m+n−1 comparisons are needed.",
+    "Mergesort requires O(n log n) comparisons.",
+    "A stable sort preserves the original order of equal keys; the splitting and merging steps must work together to achieve this."
+  ],
+  "tags": [],
+  "links": [],
+  "source": {
+    "file": "EIP/01_Vorlesungen/EIP VO8.md",
+    "sha256": "84e3d1da04bb71c89abead3f4e315cd16ddd6c00f75f5fe0b2f2e771615640a7",
+    "commit": "9105b5c0bd76b4c9675e8acbf9bf50789f7d67ef"
+  },
+  "generator": {
+    "model": "gpt-6-luna",
+    "effort": "xhigh",
+    "reviewEffort": "high",
+    "promptVersion": "v3",
+    "generatedAt": "2026-11-09T23:14:08.358Z",
+    "review": {
+      "checked": 44,
+      "fixed": 2,
+      "removed": 0,
+      "notes": "44 Fragen geprüft. Korrigiert: Formelnotation bei half() in KaTeX gesetzt; die Binärsuche-Frage um die konkrete sortierte Liste und ihre Voraussetzung ergänzt. Antworten, Distraktoren und übrige Verify-Skripte geprüft."
+    }
+  },
+  "levels": [
+    {
+      "id": "eip-08-l1",
+      "index": 1,
+      "kind": "basics",
+      "title": "Foundations",
+      "questions": [
+        {
+          "id": "eip-08-l1-q01",
+          "type": "single",
+          "prompt": "Which description correctly distinguishes a class from an object?",
+          "options": [
+            {
+              "id": "a",
+              "text": "An object is the blueprint; a class is a single stored field value."
+            },
+            {
+              "id": "b",
+              "text": "A class is a blueprint; an object is a concrete instance with its own field values."
+            },
+            {
+              "id": "c",
+              "text": "A class is a reference to an object; an object is the variable name."
+            },
+            {
+              "id": "d",
+              "text": "A class and an object always refer to the same thing."
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "The class defines the data type and its structure. An object is a concrete instance of that class.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO8.md",
+            "heading": "Klasse = Bauplan, Objekt = konkrete Instanz"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Class and object"
+          ]
+        },
+        {
+          "id": "eip-08-l1-q02",
+          "type": "truefalse",
+          "prompt": "A Java constructor has the same name as its class and no return type, not even `void`.",
+          "options": [
+            {
+              "id": "true",
+              "text": "True"
+            },
+            {
+              "id": "false",
+              "text": "False"
+            }
+          ],
+          "correct": [
+            "true"
+          ],
+          "explanation": "A constructor initializes a new object. It has the class name and is declared without a return type.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO8.md",
+            "heading": "1. Klassen, Objekte und Referenzen"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Constructor"
+          ]
+        },
+        {
+          "id": "eip-08-l1-q03",
+          "type": "diagram",
+          "prompt": "Which statement follows from the diagram?",
+          "context": {
+            "type": "mermaid",
+            "content": "flowchart LR\n  A[\"a\"] --> R[\"Rational: 3/4\"]\n  B[\"b\"] --> R",
+            "caption": "Two references and one Rational object"
+          },
+          "options": [
+            {
+              "id": "a",
+              "text": "No reference points to the object."
+            },
+            {
+              "id": "b",
+              "text": "`a` and `b` point to two objects with the same field values."
+            },
+            {
+              "id": "c",
+              "text": "`a` and `b` are aliases: both references point to the same object."
+            },
+            {
+              "id": "d",
+              "text": "`b` contains a copy of the Rational object."
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Both arrows end at the same object. A change to that object is therefore visible through both references.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO8.md",
+            "heading": "Referenzen und Aliasing"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Reference and aliasing"
+          ]
+        },
+        {
+          "id": "eip-08-l1-q04",
+          "type": "cloze",
+          "prompt": "The reference `null` means that the reference points to ___.",
+          "options": [
+            {
+              "id": "a",
+              "text": "no object"
+            },
+            {
+              "id": "b",
+              "text": "an object whose fields are all null"
+            },
+            {
+              "id": "c",
+              "text": "a variable that has not yet been declared"
+            },
+            {
+              "id": "d",
+              "text": "the most recently created object"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "`null` is a reference value that does not refer to an object. Calling a method through this reference causes a NullPointerException.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO8.md",
+            "heading": "1. Klassen, Objekte und Referenzen"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "null and local variables"
+          ]
+        },
+        {
+          "id": "eip-08-l1-q05",
+          "type": "multi",
+          "prompt": "Which statements about local variables and `null` are correct? More than one answer may be correct.",
+          "options": [
+            {
+              "id": "a",
+              "text": "The declaration `Rational a;` already creates a Rational object."
+            },
+            {
+              "id": "b",
+              "text": "A local variable that has only been declared must be assigned before it is read."
+            },
+            {
+              "id": "c",
+              "text": "Java automatically sets every uninitialized local reference to `null`."
+            },
+            {
+              "id": "d",
+              "text": "`Rational a = null;` initializes the local variable with the value `null`."
+            }
+          ],
+          "correct": [
+            "b",
+            "d"
+          ],
+          "explanation": "Local variables do not receive an automatic default value and must be assigned before they are read. An explicit assignment of `null` is an initialization.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO8.md",
+            "heading": "1. Klassen, Objekte und Referenzen"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "null and local variables"
+          ]
+        },
+        {
+          "id": "eip-08-l1-q06",
+          "type": "single",
+          "prompt": "A method in the `Rational` class accesses `r.numer`, where `r` is a different `Rational` object. The field `numer` is `private`. Why can access still be allowed from within the class?",
+          "options": [
+            {
+              "id": "a",
+              "text": "`private` applies only to static fields."
+            },
+            {
+              "id": "b",
+              "text": "`private` allows access to the fields of all objects if their reference is local."
+            },
+            {
+              "id": "c",
+              "text": "Access is allowed only if `r` and `this` are aliases."
+            },
+            {
+              "id": "d",
+              "text": "`private` allows access from code in the same class, including to another object of that class."
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "`private` restricts access to code in the same class, not to a single object. Therefore, a `Rational` method may also read fields of another `Rational` object.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO8.md",
+            "heading": "2. Methoden, Gleichheit und Klassendesign"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Overloading and equals"
+          ]
+        },
+        {
+          "id": "eip-08-l1-q07",
+          "type": "code_output",
+          "prompt": "What does this code print?\n```java\nclass Rational {\n    private int numer, denom;\n    Rational(int x, int y) { numer = x; denom = y; }\n    public String toString() { return numer + \"/\" + denom; }\n}\nRational a = new Rational(3, 4);\nSystem.out.println(a);\n```",
+          "options": [
+            {
+              "id": "a",
+              "text": "`Rational(3,4)`"
+            },
+            {
+              "id": "b",
+              "text": "`3/4`"
+            },
+            {
+              "id": "c",
+              "text": "`3.0/4.0`"
+            },
+            {
+              "id": "d",
+              "text": "`0/0`"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "The string representation combines the numerator, `/`, and the denominator. When the object is printed, `toString()` is used.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO8.md",
+            "heading": "2. Methoden, Gleichheit und Klassendesign"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Class and object"
+          ]
+        },
+        {
+          "id": "eip-08-l1-q08",
+          "type": "multi",
+          "prompt": "Which statements about `static` and instance fields are correct? More than one answer may be correct.",
+          "options": [
+            {
+              "id": "a",
+              "text": "A `static` field belongs to the class and is shared."
+            },
+            {
+              "id": "b",
+              "text": "An instance field can have its own value for each object."
+            },
+            {
+              "id": "c",
+              "text": "A static method always requires a reference to a specific object."
+            },
+            {
+              "id": "d",
+              "text": "Every object has its own copy of a `static` field."
+            }
+          ],
+          "correct": [
+            "a",
+            "b"
+          ],
+          "explanation": "Static fields belong to the class and are shared. Instance fields belong to individual objects; static methods can be called without an object.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO8.md",
+            "heading": ""
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Instance method and static"
+          ]
+        },
+        {
+          "id": "eip-08-l1-q09",
+          "type": "truefalse",
+          "prompt": "In an instance method, `this` refers to the current object.",
+          "options": [
+            {
+              "id": "true",
+              "text": "True"
+            },
+            {
+              "id": "false",
+              "text": "False"
+            }
+          ],
+          "correct": [
+            "true"
+          ],
+          "explanation": "`this` is the reference to the object on which the instance method is currently executing.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO8.md",
+            "heading": ""
+          },
+          "difficulty": 1,
+          "concepts": [
+            "this and this(...)"
+          ]
+        },
+        {
+          "id": "eip-08-l1-q10",
+          "type": "single",
+          "prompt": "What does the UML notation `- numer: int` mean?",
+          "options": [
+            {
+              "id": "a",
+              "text": "A private field `numer` of type `int`."
+            },
+            {
+              "id": "b",
+              "text": "A static field `numer` of type `int`."
+            },
+            {
+              "id": "c",
+              "text": "A public method `numer` that returns `int`."
+            },
+            {
+              "id": "d",
+              "text": "A constructor with the parameter `int numer`."
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "In the UML notation shown, the minus sign marks a private field; the type follows the colon.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO8.md",
+            "heading": "2. Methoden, Gleichheit und Klassendesign"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Class and object"
+          ]
+        },
+        {
+          "id": "eip-08-l1-q11",
+          "type": "single",
+          "prompt": "A class has `inc(int x)` and `inc(Rational r)`. Which method is selected for `obj.inc(new Rational(1, 2))` based on the argument types?",
+          "options": [
+            {
+              "id": "a",
+              "text": "`inc(Rational r)`"
+            },
+            {
+              "id": "b",
+              "text": "Neither; overloaded methods may not have the same name."
+            },
+            {
+              "id": "c",
+              "text": "Both methods are executed one after the other."
+            },
+            {
+              "id": "d",
+              "text": "`inc(int x)`"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "For overloaded methods, Java selects the matching method signature based on the argument type. Here, the argument is a `Rational` object.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO8.md",
+            "heading": "Methodenüberladung / Overloading"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Overloading and equals"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "eip-08-l2",
+      "index": 2,
+      "kind": "apply",
+      "title": "Apply",
+      "questions": [
+        {
+          "id": "eip-08-l2-q01",
+          "type": "code_output",
+          "prompt": "What does the following code print?\n```java\nclass Count {\n    static int count = 0;\n    int info;\n    Count() { info = count++; }\n}\nCount a = new Count();\nCount b = new Count();\nCount c = new Count();\nSystem.out.println(a.info + \" \" + b.info + \" \" + c.info + \" \" + Count.count);\n```",
+          "options": [
+            {
+              "id": "a",
+              "text": "`1 2 3 3`"
+            },
+            {
+              "id": "b",
+              "text": "`0 0 0 3`"
+            },
+            {
+              "id": "c",
+              "text": "`0 1 2 3`"
+            },
+            {
+              "id": "d",
+              "text": "`3 3 3 3`"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Each constructor uses the old value of `count` for `info` and then increments the shared counter. This produces `0`, `1`, `2`, and finally `count == 3`.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO8.md",
+            "heading": ""
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Instance method and static"
+          ]
+        },
+        {
+          "id": "eip-08-l2-q02-r1",
+          "type": "code_output",
+          "prompt": "Which three lines does the code print, in the order of the `println` calls? According to the code, `add` creates a new object, while `inc` modifies the current object. Fractions are not reduced.",
+          "context": {
+            "type": "code",
+            "content": "class Rational {\n    int numer;\n    int denom;\n    Rational(int numer, int denom) {\n        this.numer = numer;\n        this.denom = denom;\n    }\n    Rational add(Rational r) {\n        int x = numer * r.denom + r.numer * denom;\n        int y = denom * r.denom;\n        return new Rational(x, y);\n    }\n    void inc(int k) {\n        numer = numer + k * denom;\n    }\n    public String toString() {\n        return numer + \"/\" + denom;\n    }\n}\nclass Main {\n    public static void main(String[] args) {\n        Rational a = new Rational(3, 4);\n        Rational alias = a;\n        Rational c = a.add(new Rational(1, 4));\n        a.inc(1);\n        System.out.println(a);\n        System.out.println(alias);\n        System.out.println(c);\n    }\n}",
+            "language": "java",
+            "caption": "Class and code to execute"
+          },
+          "options": [
+            {
+              "id": "a",
+              "text": "7/4; 3/4; 1/1"
+            },
+            {
+              "id": "b",
+              "text": "7/4; 7/4; 16/16"
+            },
+            {
+              "id": "c",
+              "text": "1/1; 1/1; 1/1"
+            },
+            {
+              "id": "d",
+              "text": "3/4; 3/4; 16/16"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "`add` computes numerator `3·4 + 1·4 = 16` and denominator `4·4 = 16` for `c`. `alias` points to the same object as `a`, so both see `a.inc(1)` and print `7/4`. `c` remains unchanged at `16/16`.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO8.md",
+            "heading": "Referenzen und Aliasing"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Aliasing",
+            "Object references",
+            "Mutating methods and methods that create new objects"
+          ]
+        },
+        {
+          "id": "eip-08-l2-q03",
+          "type": "single",
+          "prompt": "A class has the overloads `inc(int x)` and `inc(Rational r)`. Which signature matches `a.inc(2)`?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Both, because `2` is automatically converted to a `Rational`."
+            },
+            {
+              "id": "b",
+              "text": "`inc(int x)`"
+            },
+            {
+              "id": "c",
+              "text": "`inc(Rational r)`"
+            },
+            {
+              "id": "d",
+              "text": "Neither, because methods can only be called with variables."
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "The argument `2` has type `int`. Java therefore selects the overload with an `int` parameter.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO8.md",
+            "heading": "Methodenüberladung / Overloading"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Overloading and equals"
+          ]
+        },
+        {
+          "id": "eip-08-l2-q04",
+          "type": "calc",
+          "prompt": "`add` calculates the numerator and denominator using $p/q+r/s=(ps+rq)/(qs)$ and does not reduce the result. What result does adding $1/2$ and $1/3$ produce?",
+          "options": [
+            {
+              "id": "a",
+              "text": "`5/5`"
+            },
+            {
+              "id": "b",
+              "text": "`1/6`"
+            },
+            {
+              "id": "c",
+              "text": "`5/6`"
+            },
+            {
+              "id": "d",
+              "text": "`2/5`"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "The numerator is $1·3+1·2=5$ and the denominator is $2·3=6$. This gives $5/6$.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO8.md",
+            "heading": "Neues Objekt zurückgeben"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Class and object"
+          ]
+        },
+        {
+          "id": "eip-08-l2-q05-r1",
+          "type": "single",
+          "prompt": "A singly linked list consists of nodes with fields `info` and `next`; `null` marks the end. `insert(x)` is called on the current node and inserts a new node immediately after it. The list is initially `7 → 0 → −3 → 13 → null`. After `insert(4)` is called on the node with `info = −3`, which chain is reachable from the start of the list?",
+          "context": {
+            "type": "code",
+            "content": "class List {\n    int info;\n    List next;\n    List(int info, List next) {\n        this.info = info;\n        this.next = next;\n    }\n    void insert(int x) {\n        next = new List(x, next);\n    }\n}",
+            "language": "java",
+            "caption": "Node definition and insert implementation"
+          },
+          "options": [
+            {
+              "id": "a",
+              "text": "7 → 0 → −3 → 4 → 13 → null"
+            },
+            {
+              "id": "b",
+              "text": "7 → 0 → −3 → 13 → 4 → null"
+            },
+            {
+              "id": "c",
+              "text": "4 → 7 → 0 → −3 → 13 → null"
+            },
+            {
+              "id": "d",
+              "text": "7 → 0 → 4 → −3 → 13 → null"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "The method inserts the new node between the current node `−3` and its former successor `13`. The list start therefore remains unchanged, and the chain is `7 → 0 → −3 → 4 → 13 → null`.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO8.md",
+            "heading": "Nach dem aktuellen Knoten einfügen"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Singly linked lists",
+            "Inserting after the current node",
+            "next references"
+          ]
+        },
+        {
+          "id": "eip-08-l2-q06",
+          "type": "code_output",
+          "prompt": "`arrayToList` traverses the array backward and inserts each value at the front. What does traversing the resulting list print?\n```java\nint[] a = {4, 8, 12};\nList l = arrayToList(a);\nfor (List t = l; t != null; t = t.next) {\n    System.out.print(t.info + \" \");\n}\n```",
+          "options": [
+            {
+              "id": "a",
+              "text": "`12 8 4`"
+            },
+            {
+              "id": "b",
+              "text": "`12 4 8`"
+            },
+            {
+              "id": "c",
+              "text": "`4 12 8`"
+            },
+            {
+              "id": "d",
+              "text": "`4 8 12`"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Traversing backward and inserting at the front preserves the original order. Traversing the list therefore prints `4 8 12`.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO8.md",
+            "heading": "Array → Liste"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Linked list"
+          ]
+        },
+        {
+          "id": "eip-08-l2-q07",
+          "type": "code_output",
+          "prompt": "The static method `List.length(l)` returns the value `0` when `l == null`; otherwise, it counts all the nodes. What does this call print?\n```java\nSystem.out.println(List.length(null));\n```",
+          "options": [
+            {
+              "id": "a",
+              "text": "`1`"
+            },
+            {
+              "id": "b",
+              "text": "`0`"
+            },
+            {
+              "id": "c",
+              "text": "`null`"
+            },
+            {
+              "id": "d",
+              "text": "A NullPointerException"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "The static method first checks for `null` and returns `0` for the empty list.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO8.md",
+            "heading": "Länge bestimmen"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Linked list",
+            "Instance method and static"
+          ]
+        },
+        {
+          "id": "eip-08-l2-q08",
+          "type": "calc",
+          "prompt": "`half()` splits a list of five nodes so that the first half contains $\\lfloor n/2\\rfloor$ nodes. How many nodes are in the first and second halves afterward?",
+          "options": [
+            {
+              "id": "a",
+              "text": "`1` and `4`"
+            },
+            {
+              "id": "b",
+              "text": "`3` and `2`"
+            },
+            {
+              "id": "c",
+              "text": "`2` and `3`"
+            },
+            {
+              "id": "d",
+              "text": "`2` and `2`"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "The first half contains $\\lfloor5/2\\rfloor=2$ nodes. The remaining $5-2=3$ nodes form the second half.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO8.md",
+            "heading": "B. In aufeinanderfolgende Hälften teilen"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Mergesort and merge"
+          ]
+        },
+        {
+          "id": "eip-08-l2-q09",
+          "type": "diagram",
+          "prompt": "The two input lists are sorted in ascending order. Which chain is produced by `merge`?",
+          "context": {
+            "type": "mermaid",
+            "content": "flowchart LR\n  A[\"a: −3 → 7 → 13 → 42\"] --> M[\"merge\"]\n  B[\"b: 0 → 15 → 16\"] --> M\n  M --> R[\"Result\"]",
+            "caption": "Two sorted input lists are merged"
+          },
+          "options": [
+            {
+              "id": "a",
+              "text": "`0 → −3 → 7 → 13 → 15 → 16 → 42 → null`"
+            },
+            {
+              "id": "b",
+              "text": "`−3 → 0 → 7 → 13 → 16 → 15 → 42 → null`"
+            },
+            {
+              "id": "c",
+              "text": "`−3 → 7 → 13 → 42 → 0 → 15 → 16 → null`"
+            },
+            {
+              "id": "d",
+              "text": "`−3 → 0 → 7 → 13 → 15 → 16 → 42 → null`"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "`merge` compares the first available values and appends the smaller one each time. This produces a fully ascending chain.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO8.md",
+            "heading": "A. Zwei sortierte Listen zusammenführen"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Mergesort and merge",
+            "Linked list"
+          ]
+        },
+        {
+          "id": "eip-08-l2-q10-r1",
+          "type": "truefalse",
+          "prompt": "Consider the shown `merge` method for two finite, ascending lists with no nodes in common. `new Node(...)` creates a new node object. Does the method body create any new node objects while merging?",
+          "context": {
+            "type": "code",
+            "content": "class Node {\n    int info;\n    Node next;\n    Node(int info, Node next) {\n        this.info = info;\n        this.next = next;\n    }\n    static Node merge(Node a, Node b) {\n        if (a == null) {\n            return b;\n        }\n        if (b == null) {\n            return a;\n        }\n        if (a.info <= b.info) {\n            a.next = merge(a.next, b);\n            return a;\n        } else {\n            b.next = merge(a, b.next);\n            return b;\n        }\n    }\n}",
+            "language": "java",
+            "caption": "Implementation of merge"
+          },
+          "options": [
+            {
+              "id": "true",
+              "text": "True"
+            },
+            {
+              "id": "false",
+              "text": "False"
+            }
+          ],
+          "correct": [
+            "false"
+          ],
+          "explanation": "If an argument is empty, the method body returns the existing remainder. Otherwise, it changes the `next` references of existing nodes and returns one of those nodes. It does not call a constructor, so it creates no new node objects.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO8.md",
+            "heading": "A. Zwei sortierte Listen zusammenführen"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Mergesort",
+            "Merge",
+            "Reusing nodes"
+          ]
+        },
+        {
+          "id": "eip-08-l2-q11",
+          "type": "single",
+          "prompt": "`half()` should split a list into two consecutive parts. Which order saves the start of the second part before breaking the link?",
+          "options": [
+            {
+              "id": "a",
+              "text": "`p.next = null; result = p.next; return result;`"
+            },
+            {
+              "id": "b",
+              "text": "`return p.next; p.next = null;`"
+            },
+            {
+              "id": "c",
+              "text": "`result = p.next; p.next = null; return result;`"
+            },
+            {
+              "id": "d",
+              "text": "`p = p.next; p.next = null; return p;`"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "First, `p.next` is saved as the start of the second part. Then `p.next = null` detaches the first half; the saved remainder remains reachable.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO8.md",
+            "heading": "B. In aufeinanderfolgende Hälften teilen"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "List manipulation",
+            "Mergesort and merge"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "eip-08-l3",
+      "index": 3,
+      "kind": "deepen",
+      "title": "Go Deeper",
+      "questions": [
+        {
+          "id": "eip-08-l3-q01",
+          "type": "multi",
+          "prompt": "The method `equals(Rational r)` compares rational numbers by cross-multiplication and returns `false` when `r == null`. Which statements about it are correct? More than one answer may be correct.",
+          "options": [
+            {
+              "id": "a",
+              "text": "The comparison must require the stored numerators and denominators to be identical."
+            },
+            {
+              "id": "b",
+              "text": "`2/8` and `1/4` can be recognized as equal in value this way."
+            },
+            {
+              "id": "c",
+              "text": "Casting to `long` before multiplication means the product is calculated as `long`."
+            },
+            {
+              "id": "d",
+              "text": "For an argument `null`, the method returns `false`."
+            }
+          ],
+          "correct": [
+            "b",
+            "c",
+            "d"
+          ],
+          "explanation": "Cross-multiplication detects equivalent fractions even when they are written differently. Casting before the product extends its calculation to `long`; `null` is explicitly rejected.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO8.md",
+            "heading": ""
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Overloading and equals"
+          ]
+        },
+        {
+          "id": "eip-08-l3-q02",
+          "type": "truefalse",
+          "prompt": "A method `equals(Rational r)` automatically overrides `Object.equals(Object)` because both methods are named `equals`.",
+          "options": [
+            {
+              "id": "true",
+              "text": "True"
+            },
+            {
+              "id": "false",
+              "text": "False"
+            }
+          ],
+          "correct": [
+            "false"
+          ],
+          "explanation": "The parameter types differ. `equals(Rational)` is an overload; it does not override the signature `equals(Object)`.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO8.md",
+            "heading": ""
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Overloading and equals"
+          ]
+        },
+        {
+          "id": "eip-08-l3-q03",
+          "type": "code_output",
+          "prompt": "`Rational` overrides `equals(Rational)` with a value-based comparison. `Object.equals(Object)` tests object identity here. What does the code print?\n```java\nRational a = new Rational(2, 8);\nRational b = new Rational(1, 4);\nObject x = a;\nSystem.out.println(a.equals(b));\nSystem.out.println(x.equals(b));\n```",
+          "options": [
+            {
+              "id": "a",
+              "text": "`false` and then `true`"
+            },
+            {
+              "id": "b",
+              "text": "`false` and then `false`"
+            },
+            {
+              "id": "c",
+              "text": "`true` and then `false`"
+            },
+            {
+              "id": "d",
+              "text": "`true` and then `true`"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "For the first call, the signature `equals(Rational)` matches, and the cross-comparison recognizes the equivalent fractions. For the second call, the receiver has the static type `Object`, so the identity comparison is used.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO8.md",
+            "heading": ""
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Overloading and equals",
+            "Reference and aliasing"
+          ]
+        },
+        {
+          "id": "eip-08-l3-q04",
+          "type": "single",
+          "prompt": "Why is this short-circuit condition safe even when `a == null`?\n```java\nif (a == null || a.next == null) {\n    return a;\n}\n```",
+          "options": [
+            {
+              "id": "a",
+              "text": "The compiler removes every access to `next`."
+            },
+            {
+              "id": "b",
+              "text": "`a.next` is automatically `null` even when `a == null`."
+            },
+            {
+              "id": "c",
+              "text": "When the left operand is true, `||` does not evaluate the right operand."
+            },
+            {
+              "id": "d",
+              "text": "`||` converts `null` to an object before accessing it."
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "In Java, with `||` the right operand is evaluated only if the left operand is false. If `a == null` is true, `a.next` is not read.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO8.md",
+            "heading": "C. Vollständiger Mergesort"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Mergesort and merge",
+            "null and local variables"
+          ]
+        },
+        {
+          "id": "eip-08-l3-q05",
+          "type": "truefalse",
+          "prompt": "If `a` has the value `null`, then `a.numerator()` can be executed as a regular instance method call.",
+          "options": [
+            {
+              "id": "true",
+              "text": "True"
+            },
+            {
+              "id": "false",
+              "text": "False"
+            }
+          ],
+          "correct": [
+            "false"
+          ],
+          "explanation": "`null` does not refer to an object. Calling an instance method through this reference causes a NullPointerException.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO8.md",
+            "heading": "1. Klassen, Objekte und Referenzen"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "null and local variables"
+          ]
+        },
+        {
+          "id": "eip-08-l3-q06-r1",
+          "type": "single",
+          "prompt": "Each node in a singly linked list has `info` and `next`. The reference `first` points to the first node in the chain `7 → 0 → −3 → 13 → null`. Execute `delete()` on the node with `info = 0`. Which chain is then reachable from `first`?",
+          "context": {
+            "type": "code",
+            "content": "class List {\n    int info;\n    List next;\n    void delete() {\n        if (next != null) {\n            next = next.next;\n        }\n    }\n}",
+            "language": "java",
+            "caption": "Implementation of delete"
+          },
+          "options": [
+            {
+              "id": "a",
+              "text": "7 → 0 → −3 → 13 → null"
+            },
+            {
+              "id": "b",
+              "text": "7 → 0 → 13 → null"
+            },
+            {
+              "id": "c",
+              "text": "7 → −3 → 13 → null"
+            },
+            {
+              "id": "d",
+              "text": "0 → −3 → 13 → null"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "`delete()` skips the current node's direct successor. Therefore, on node `0`, its `next` reference is changed from `−3` to `13`. Node `7` remains reachable through `first`.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO8.md",
+            "heading": "Den direkten Nachfolger entfernen"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Singly linked lists",
+            "Removing a successor",
+            "Reachability"
+          ]
+        },
+        {
+          "id": "eip-08-l3-q07-r1",
+          "type": "code_output",
+          "prompt": "The shown method receives a non-null array. What sequence of values does the loop print after the call to `arrayToList` if `a` is equal to `{3, 1, 4}`?",
+          "context": {
+            "type": "code",
+            "content": "class List {\n    int info;\n    List next;\n    List(int info, List next) {\n        this.info = info;\n        this.next = next;\n    }\n    static List arrayToList(int[] a) {\n        List result = null;\n        for (int i = a.length - 1; i >= 0; --i) {\n            result = new List(a[i], result);\n        }\n        return result;\n    }\n}\nint[] a = {3, 1, 4};\nList l = List.arrayToList(a);\nfor (List t = l; t != null; t = t.next) {\n    System.out.print(t.info + \" \");\n}",
+            "language": "java",
+            "caption": "arrayToList and subsequent list traversal"
+          },
+          "options": [
+            {
+              "id": "a",
+              "text": "1 3 4"
+            },
+            {
+              "id": "b",
+              "text": "4 1 3"
+            },
+            {
+              "id": "c",
+              "text": "3 1 4"
+            },
+            {
+              "id": "d",
+              "text": "4 3 1"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "The loop traverses the array backward. Each value is added to the front of the result list: first `4`, then `1`, then `3`. The completed list, and therefore the output, is `3 1 4`.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO8.md",
+            "heading": "Array → Liste"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Arrays",
+            "Singly linked lists",
+            "Order when inserting at the front"
+          ]
+        },
+        {
+          "id": "eip-08-l3-q08-r1",
+          "type": "calc",
+          "prompt": "When merging two nonempty lists that are already sorted in ascending order, with $m=5$ and $n=2$ elements, at most $m+n-1$ value comparisons are needed. What is this upper bound?",
+          "options": [
+            {
+              "id": "a",
+              "text": "7 comparisons"
+            },
+            {
+              "id": "b",
+              "text": "5 comparisons"
+            },
+            {
+              "id": "c",
+              "text": "6 comparisons"
+            },
+            {
+              "id": "d",
+              "text": "8 comparisons"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Substituting into the stated bound gives $5+2-1=6$ value comparisons.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO8.md",
+            "heading": "Laufzeit über die Anzahl der Vergleiche"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Merge",
+            "Comparison bound",
+            "Arithmetic"
+          ]
+        },
+        {
+          "id": "eip-08-l3-q09",
+          "type": "multi",
+          "prompt": "Which statements about mergesort as a whole are correct? More than one answer may be correct.",
+          "options": [
+            {
+              "id": "a",
+              "text": "The input list must already be sorted in ascending order."
+            },
+            {
+              "id": "b",
+              "text": "Both subchains are sorted recursively and then merged."
+            },
+            {
+              "id": "c",
+              "text": "`sort` uses the possibly new list heads returned by the recursive calls."
+            },
+            {
+              "id": "d",
+              "text": "An empty list or a list with one node is already sorted."
+            }
+          ],
+          "correct": [
+            "b",
+            "c",
+            "d"
+          ],
+          "explanation": "The base cases are empty lists and lists with one element. The recursively sorted parts are joined with `merge`; its inputs must be sorted, but the original input to `sort` does not have to be.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO8.md",
+            "heading": "C. Vollständiger Mergesort"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Mergesort and merge",
+            "Linked list"
+          ]
+        },
+        {
+          "id": "eip-08-l3-q10",
+          "type": "diagram",
+          "prompt": "The method distributes nodes alternately between two subchains. During merging, the node from part A is taken first when values are equal. What node order results?",
+          "context": {
+            "type": "mermaid",
+            "content": "flowchart LR\n  O[\"Original: 2A → 2B → 2C → 2D\"] --> A[\"Part A: 2A → 2C\"]\n  O --> B[\"Part B: 2B → 2D\"]\n  A --> M[\"Merge: take left on ties\"]\n  B --> M\n  M --> R[\"Result\"]",
+            "caption": "Equal keys are split alternately"
+          },
+          "options": [
+            {
+              "id": "a",
+              "text": "`2A → 2C → 2B → 2D`"
+            },
+            {
+              "id": "b",
+              "text": "`2A → 2B → 2C → 2D`"
+            },
+            {
+              "id": "c",
+              "text": "`2D → 2C → 2B → 2A`"
+            },
+            {
+              "id": "d",
+              "text": "`2B → 2D → 2A → 2C`"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "Alternating the nodes forms A as `2A → 2C` and B as `2B → 2D`. When values are equal, merge takes A first; the order within each part is then preserved: `2A → 2C → 2B → 2D`.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO8.md",
+            "heading": ""
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Stability",
+            "Mergesort and merge"
+          ]
+        },
+        {
+          "id": "eip-08-l3-q11",
+          "type": "single",
+          "prompt": "`halfAlternating()` keeps the nodes at odd-numbered original positions in the list starting from the original head. Which two subchains result from `10 → 20 → 30 → 40 → 50 → null`?",
+          "options": [
+            {
+              "id": "a",
+              "text": "A: `10 → 30 → 50`; B: `20 → 40`"
+            },
+            {
+              "id": "b",
+              "text": "A: `20 → 40`; B: `10 → 30 → 50`"
+            },
+            {
+              "id": "c",
+              "text": "A: `50 → 30 → 10`; B: `40 → 20`"
+            },
+            {
+              "id": "d",
+              "text": "A: `10 → 20 → 30`; B: `40 → 50`"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "The nodes at positions 1, 3, and 5 remain in the list starting from the original head. The nodes at positions 2 and 4 form the returned list.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO8.md",
+            "heading": "Alternative: Knoten abwechselnd verteilen"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Linked list",
+            "Stability"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "eip-08-l4",
+      "index": 4,
+      "kind": "boss",
+      "title": "Boss",
+      "questions": [
+        {
+          "id": "eip-08-l4-q01",
+          "type": "single",
+          "prompt": "A list contains `8 → 3 → 6 → 1 → 5`. Mergesort splits it into consecutive halves, recursively sorts both halves, and merges them in ascending order. What is the resulting chain?",
+          "options": [
+            {
+              "id": "a",
+              "text": "`1 → 3 → 6 → 5 → 8`"
+            },
+            {
+              "id": "b",
+              "text": "`3 → 8 → 1 → 5 → 6`"
+            },
+            {
+              "id": "c",
+              "text": "`8 → 6 → 5 → 3 → 1`"
+            },
+            {
+              "id": "d",
+              "text": "`1 → 3 → 5 → 6 → 8`"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "The algorithm produces the values in ascending order. For this input, the result is `1 → 3 → 5 → 6 → 8`.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO8.md",
+            "heading": "C. Vollständiger Mergesort"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Mergesort and merge",
+            "Linked list"
+          ]
+        },
+        {
+          "id": "eip-08-l4-q02",
+          "type": "multi",
+          "prompt": "A sort should leave equal keys in their original order. Which conditions support the stability of the mergesort described here? More than one answer may be correct.",
+          "options": [
+            {
+              "id": "a",
+              "text": "`merge` takes the node from the left list first when values are equal."
+            },
+            {
+              "id": "b",
+              "text": "Every split is stable, regardless of how the nodes are distributed."
+            },
+            {
+              "id": "c",
+              "text": "When values are equal, the entire left list is always appended before the right list."
+            },
+            {
+              "id": "d",
+              "text": "The subchains consist of consecutive sections of the original list."
+            }
+          ],
+          "correct": [
+            "a",
+            "d"
+          ],
+          "explanation": "Consecutive subchains preserve the original order between the sections. Choosing the left node first when values are equal preserves that order during merging.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO8.md",
+            "heading": "Stabil sortieren"
+          },
+          "difficulty": 5,
+          "concepts": [
+            "Stability",
+            "Mergesort and merge"
+          ]
+        },
+        {
+          "id": "eip-08-l4-q03",
+          "type": "truefalse",
+          "prompt": "`merge(a, b)` reliably sorts two arbitrary unsorted input lists because at each step it selects the smaller head.",
+          "options": [
+            {
+              "id": "true",
+              "text": "True"
+            },
+            {
+              "id": "false",
+              "text": "False"
+            }
+          ],
+          "correct": [
+            "false"
+          ],
+          "explanation": "`merge` assumes that both input lists are already sorted in ascending order. It compares only the first available values and does not sort within an unsorted input list.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO8.md",
+            "heading": "A. Zwei sortierte Listen zusammenführen"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Mergesort and merge"
+          ]
+        },
+        {
+          "id": "eip-08-l4-q04",
+          "type": "calc",
+          "prompt": "For $n=8$ elements, the level-based calculation for mergesort gives at most $n\\log_2 n$ comparisons. What is this upper bound?",
+          "options": [
+            {
+              "id": "a",
+              "text": "`64`"
+            },
+            {
+              "id": "b",
+              "text": "`16`"
+            },
+            {
+              "id": "c",
+              "text": "`24`"
+            },
+            {
+              "id": "d",
+              "text": "`32`"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "We have $\\log_2 8=3$. Therefore, the bound is $8·3=24$ comparisons.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO8.md",
+            "heading": "Laufzeit über die Anzahl der Vergleiche"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Mergesort runtime"
+          ]
+        },
+        {
+          "id": "eip-08-l4-q05-r1",
+          "type": "single",
+          "prompt": "A list consists of distinct nodes with fields `info` and `next`. Initially, the chain from `first` is `7 → 0 → −3 → 13 → null`. First, execute `insert(4)` on the node with `info = −3`. Then execute `delete()` on the node with `info = 0`. Which chain is reachable afterward from the original `first`?",
+          "context": {
+            "type": "code",
+            "content": "class List {\n    int info;\n    List next;\n    List(int info, List next) {\n        this.info = info;\n        this.next = next;\n    }\n    void insert(int x) {\n        next = new List(x, next);\n    }\n    void delete() {\n        if (next != null) {\n            next = next.next;\n        }\n    }\n}",
+            "language": "java",
+            "caption": "Implementations of insert and delete"
+          },
+          "options": [
+            {
+              "id": "a",
+              "text": "7 → 0 → 4 → 13 → null"
+            },
+            {
+              "id": "b",
+              "text": "7 → 4 → 0 → 13 → null"
+            },
+            {
+              "id": "c",
+              "text": "7 → 0 → 13 → 4 → null"
+            },
+            {
+              "id": "d",
+              "text": "7 → 0 → −3 → 4 → 13 → null"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "`insert(4)` inserts `4` directly after `−3`. The direct successor of `0` then points to `−3`; `delete()` sets `0.next` to `−3.next`, which is `4`. Thus, the chain `7 → 0 → 4 → 13 → null` is reachable from `first`.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO8.md",
+            "heading": "Nach dem aktuellen Knoten einfügen"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Singly linked lists",
+            "Inserting after the current node",
+            "Removing a successor",
+            "next references"
+          ]
+        },
+        {
+          "id": "eip-08-l4-q06",
+          "type": "multi",
+          "prompt": "Which statements about empty lists and length methods are correct? More than one answer may be correct.",
+          "options": [
+            {
+              "id": "a",
+              "text": "`listToArray(null)` creates an empty array if it uses the static length method."
+            },
+            {
+              "id": "b",
+              "text": "An empty list is represented by a head reference of `null`."
+            },
+            {
+              "id": "c",
+              "text": "`List.length(null)` can return `0` as a static method."
+            },
+            {
+              "id": "d",
+              "text": "An instance method can be called even when no node object exists."
+            }
+          ],
+          "correct": [
+            "a",
+            "b",
+            "c"
+          ],
+          "explanation": "`null` represents the empty list. A static method can handle this case, allowing `listToArray` to create an array of length zero; an instance method cannot be called without an object when `null`.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO8.md",
+            "heading": "Länge bestimmen"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Linked list",
+            "Instance method and static"
+          ]
+        },
+        {
+          "id": "eip-08-l4-q07",
+          "type": "single",
+          "prompt": "`first` points to the first node in the list `7 → 0 → −3`. `alias = first`, then `sorted = sort(first)` is executed. `sort` splits the list, sorts recursively, and reconnects the existing nodes. Which statement applies to this example?",
+          "options": [
+            {
+              "id": "a",
+              "text": "`alias` still points to the original node with value `7`; that node is then the last node in the sorted chain."
+            },
+            {
+              "id": "b",
+              "text": "`alias` is automatically redirected to the new head with value `−3`."
+            },
+            {
+              "id": "c",
+              "text": "`sorted` must contain the same reference as `alias` because both came from `first`."
+            },
+            {
+              "id": "d",
+              "text": "`sort` creates copies of all nodes, so the original chain remains unchanged."
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "The assignment copies the reference, so `alias` remains at the original node `7`. `sort` can return a new list head and changes the links between existing nodes; `7` is at the end of the resulting list.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO8.md",
+            "heading": "C. Vollständiger Mergesort"
+          },
+          "difficulty": 5,
+          "concepts": [
+            "Reference and aliasing",
+            "Mergesort and merge"
+          ]
+        },
+        {
+          "id": "eip-08-l4-q08",
+          "type": "single",
+          "prompt": "In a stable insertion sort, a new record with a key equal to existing keys is inserted after them. Initially, three records are in this order: Alice with grade 2, Bob with grade 1, Clara with grade 2. What is the order of Alice and Clara after sorting by grade?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Clara comes before Alice."
+            },
+            {
+              "id": "b",
+              "text": "Alice and Clara are combined into one record."
+            },
+            {
+              "id": "c",
+              "text": "Alice remains before Clara."
+            },
+            {
+              "id": "d",
+              "text": "Their order cannot be determined because their grades are equal."
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Stability preserves the original order of equal keys. Alice was initially before Clara, so she remains before her when their grades are equal.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO6.md",
+            "heading": null
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Stability"
+          ]
+        },
+        {
+          "id": "eip-08-l4-q09",
+          "type": "single",
+          "prompt": "Binary search assumes an array sorted in ascending order. `listToArray` transfers the values of a list in the same order. A list `−3 → 0 → 7 → 13` is to be searched using binary search. Which step makes it suitable?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Run binary search directly on the linked list using `array[mid]`."
+            },
+            {
+              "id": "b",
+              "text": "First split the list again with `halfAlternating` and search one part."
+            },
+            {
+              "id": "c",
+              "text": "Reverse the list and then perform binary search without an array."
+            },
+            {
+              "id": "d",
+              "text": "Transfer the list to an array with `listToArray`, then search the array using binary search."
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Binary search assumes an array sorted in ascending order. `listToArray` transfers the already sorted values to an array in the same order.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO7.md",
+            "heading": null
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Mergesort and merge",
+            "Linked list"
+          ]
+        },
+        {
+          "id": "eip-08-l4-q10",
+          "type": "single",
+          "prompt": "`merge(a, b)` calls itself recursively, removing the smaller head from one of the lists each time. Both input lists are finite. Why does this recursion terminate?",
+          "options": [
+            {
+              "id": "a",
+              "text": "The method terminates only if both lists have the same length."
+            },
+            {
+              "id": "b",
+              "text": "Each recursive step reduces the number of nodes left to process; when a list is empty, the base case applies."
+            },
+            {
+              "id": "c",
+              "text": "Each recursive call receives unchanged lists, but Java automatically limits recursion."
+            },
+            {
+              "id": "d",
+              "text": "The base case is reached only when both lists are empty at the same time."
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "Each step takes a head node from one list and recursively processes the remainder. Since the lists are finite, this eventually empties one input list, at which point the base case returns the remaining list.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO7.md",
+            "heading": null
+          },
+          "difficulty": 5,
+          "concepts": [
+            "Mergesort and merge"
+          ]
+        },
+        {
+          "id": "eip-08-l4-q11",
+          "type": "code_output",
+          "prompt": "`add(r)` creates a new Rational object with numerator `numer * r.denom + r.numer * denom` and denominator `denom * r.denom`. `equals(r)` uses cross-multiplication. What does the code print?\n```java\nRational a = new Rational(2, 8);\nRational b = a.add(new Rational(1, 4));\nSystem.out.println(b);\nSystem.out.println(b.equals(new Rational(1, 2)));\n```",
+          "options": [
+            {
+              "id": "a",
+              "text": "`1/2` and then `true`"
+            },
+            {
+              "id": "b",
+              "text": "`3/12` and then `false`"
+            },
+            {
+              "id": "c",
+              "text": "`16/32` and then `true`"
+            },
+            {
+              "id": "d",
+              "text": "`16/32` and then `false`"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "The addition calculates the unreduced fraction `(2·4 + 1·8)/(8·4) = 16/32`. Cross-multiplication gives `16·2 = 1·32`, so the result is `true`.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO8.md",
+            "heading": "Neues Objekt zurückgeben"
+          },
+          "difficulty": 5,
+          "concepts": [
+            "Overloading and equals",
+            "Class and object"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "eip-08-l5",
+      "index": 5,
+      "kind": "bonus",
+      "title": "Practice: Code in Real Life",
+      "questions": [
+        {
+          "id": "eip-08-l5-q01",
+          "type": "single",
+          "prompt": "You are building a game: each enemy has its own health points and position. Which mapping fits?",
+          "options": [
+            {
+              "id": "a",
+              "text": "The constructor is the enemy object that has already been created."
+            },
+            {
+              "id": "b",
+              "text": "The class describes the blueprint; each created enemy is an object with its own field values."
+            },
+            {
+              "id": "c",
+              "text": "Health points are automatically `static` because all enemies belong to the same class."
+            },
+            {
+              "id": "d",
+              "text": "The class is a single enemy; the objects describe the blueprint."
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "The class defines the data type and its fields. Each enemy object that is created can have its own values for health points and position.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO8.md",
+            "heading": "1. Klassen, Objekte und Referenzen"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Class and object"
+          ]
+        },
+        {
+          "id": "eip-08-l5-q02",
+          "type": "single",
+          "prompt": "In your campus app, two views point to the same shopping cart: `ansichtB = ansichtA` copies the reference. If you change the quantity of an item through view B, view A sees the change too. Which concept explains this?",
+          "options": [
+            {
+              "id": "a",
+              "text": "A `static` field: each cart has its own copy of it."
+            },
+            {
+              "id": "b",
+              "text": "Aliasing: both variables refer to the same object."
+            },
+            {
+              "id": "c",
+              "text": "Overloading: two methods have the same name."
+            },
+            {
+              "id": "d",
+              "text": "Stability: identical items keep their order."
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "With `ansichtB = ansichtA`, the reference is copied, not the cart. Both views can therefore observe and modify the same object.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO8.md",
+            "heading": "1. Klassen, Objekte und Referenzen"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Reference and aliasing"
+          ]
+        },
+        {
+          "id": "eip-08-l5-q03",
+          "type": "estimate",
+          "prompt": "You merge two chronologically sorted event lists with 37 and 24 entries. What is the upper bound on the number of comparisons in the worst case?",
+          "options": [],
+          "correct": [],
+          "slider": {
+            "min": 30,
+            "max": 80,
+            "step": 1,
+            "answer": 60,
+            "tolerance": 0,
+            "unit": "Comparisons",
+            "scale": "linear"
+          },
+          "explanation": "For two nonempty sorted lists with $m$ and $n$ elements, at most $m+n-1$ comparisons are needed. Here, that is $37+24-1=60$.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO8.md",
+            "heading": "5. Mergesort: Teilen, rekursiv sortieren, zusammenführen · Folien 493–519"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Mergesort and merge",
+            "Mergesort runtime"
+          ]
+        },
+        {
+          "id": "eip-08-l5-q04",
+          "type": "single",
+          "prompt": "A room-planning app loads two records for 'MI 01' into two separate Java objects. The class implements `equals` so that identical room codes are equal in value. Which statement is correct?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Both expressions are `false` because the objects were created separately."
+            },
+            {
+              "id": "b",
+              "text": "`a == b` is `true`, but `a.equals(b)` is `false`."
+            },
+            {
+              "id": "c",
+              "text": "Both expressions are `true` because the room codes are identical."
+            },
+            {
+              "id": "d",
+              "text": "`a == b` is `false`, but `a.equals(b)` is `true`."
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "The separate objects have different identities, so `==` returns `false` for their references. The specified `equals` implementation compares the room code and returns `true`.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO8.md",
+            "heading": "2. Methoden, Gleichheit und Klassendesign"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Reference and aliasing",
+            "Overloading and equals"
+          ]
+        },
+        {
+          "id": "eip-08-l5-q05",
+          "type": "single",
+          "prompt": "A ticketing system has the class field `static int nextId`, and each ticket has its own instance field `seat`. What is true when three tickets are created?",
+          "options": [
+            {
+              "id": "a",
+              "text": "The class shares one `nextId`; each ticket has its own seat value."
+            },
+            {
+              "id": "b",
+              "text": "Each ticket has its own copy of `nextId`; they all share the same seat value."
+            },
+            {
+              "id": "c",
+              "text": "Both fields belong only to the first ticket created."
+            },
+            {
+              "id": "d",
+              "text": "Both fields belong to the class and have the same value for all tickets."
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "The `static` field belongs to the class and is shared by its objects. The instance field `seat` belongs to each individual ticket object.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO8.md",
+            "heading": null
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Instance method and static"
+          ]
+        },
+        {
+          "id": "eip-08-l5-q06",
+          "type": "estimate",
+          "prompt": "Mergesort recursively halves a list of 256 elements until only single elements remain. How many merge levels are needed to combine the sorted sublists again? Use $2^8=256$.",
+          "options": [],
+          "correct": [],
+          "slider": {
+            "min": 3,
+            "max": 15,
+            "step": 1,
+            "answer": 8,
+            "tolerance": 0,
+            "unit": "Levels",
+            "scale": "linear"
+          },
+          "explanation": "At each level, the size of the merged sublists doubles. From single elements to 256 elements, this takes $\\log_2(256)=8$ merge levels.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO8.md",
+            "heading": "5. Mergesort: Teilen, rekursiv sortieren, zusammenführen · Folien 493–519"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Mergesort and merge",
+            "Mergesort runtime"
+          ]
+        },
+        {
+          "id": "eip-08-l5-q07",
+          "type": "single",
+          "prompt": "You are prototyping a delivery-planning app. Each stop stores its location and a reference to the next stop; at the final stop, this reference is `null`. You want to insert a new stop after a known stop. Which data model fits?",
+          "options": [
+            {
+              "id": "a",
+              "text": "A merge step that combines two sorted routes."
+            },
+            {
+              "id": "b",
+              "text": "A single `static` field for the entire route."
+            },
+            {
+              "id": "c",
+              "text": "A singly linked list of nodes."
+            },
+            {
+              "id": "d",
+              "text": "An immutable array in which each stop has a fixed position."
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Each stop corresponds to a node with a value and a `next` reference. Insertion adds the new node to this chain of references.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO8.md",
+            "heading": "4. Einfach verkettete Listen · Folien 462–492"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Linked list",
+            "List manipulation"
+          ]
+        },
+        {
+          "id": "eip-08-l5-q08",
+          "type": "estimate",
+          "prompt": "You are sorting $n=1024$ records with mergesort. Use the comparison upper bound $n\\log_2 n$ and $\\log_2(1024)=10$. How many comparisons does this bound give?",
+          "options": [],
+          "correct": [],
+          "slider": {
+            "min": 2048,
+            "max": 16384,
+            "step": 64,
+            "answer": 10240,
+            "tolerance": 0,
+            "unit": "Comparisons",
+            "scale": "linear"
+          },
+          "explanation": "The bound gives $1024\\cdot10=10\\,240$ comparisons. It is an upper bound based on the number of merge levels and at most $n$ comparisons per level.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO8.md",
+            "heading": "5. Mergesort: Teilen, rekursiv sortieren, zusammenführen · Folien 493–519"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Mergesort runtime",
+            "Mergesort and merge"
+          ]
+        },
+        {
+          "id": "eip-08-l5-q09",
+          "type": "single",
+          "prompt": "Two devices each provide an event list already sorted by timestamp. Your app should combine them into a single timeline by comparing the first remaining timestamps each time and taking the earlier one. Which step fits?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Split: divide a list into consecutive halves."
+            },
+            {
+              "id": "b",
+              "text": "Constructor overloading: create several list objects with different parameters."
+            },
+            {
+              "id": "c",
+              "text": "Merge: combine two sorted lists."
+            },
+            {
+              "id": "d",
+              "text": "Aliasing: make two names refer to the same list object."
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Merge assumes sorted input lists and selects the smaller of the two first values each time. This produces the combined timeline in sorted order.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO8.md",
+            "heading": "5. Mergesort: Teilen, rekursiv sortieren, zusammenführen · Folien 493–519"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Mergesort and merge"
+          ]
+        },
+        {
+          "id": "eip-08-l5-q10",
+          "type": "single",
+          "prompt": "A course list is initially sorted alphabetically by name. You then sort by grade and want to preserve the existing name order when grades are equal. Which property do you need?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Stability: elements with the same sort key retain their relative order."
+            },
+            {
+              "id": "b",
+              "text": "Aliasing: two list references point to the same list."
+            },
+            {
+              "id": "c",
+              "text": "Overloading: methods have the same name but different parameters."
+            },
+            {
+              "id": "d",
+              "text": "`static`: all course objects share a class field."
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "A stable sort preserves the original order of names when grades are equal. This keeps the earlier alphabetical order within each grade group.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO8.md",
+            "heading": "6. Alternierendes Teilen und Stabilität · Folien 520–525"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Stability"
+          ]
+        }
+      ]
+    }
+  ]
+}

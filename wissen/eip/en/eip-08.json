@@ -1,0 +1,560 @@
+{
+  "schemaVersion": 1,
+  "unitId": "eip-08",
+  "module": "EIP",
+  "unitNumber": 8,
+  "unitTitle": "Classes, Lists, and Mergesort",
+  "sourceSha": "84e3d1da04bb71c89abead3f4e315cd16ddd6c00f75f5fe0b2f2e771615640a7",
+  "overview": "This unit moves from classes, objects, and references to methods and linked lists. Mergesort sorts a list by splitting it, recursively sorting both parts, and combining the results with merge. Runtime is described in terms of comparisons; stability depends on the split and merge steps being compatible.",
+  "entries": [
+    {
+      "id": "eip-08-k01",
+      "term": "Class (Klasse)",
+      "kind": "definition",
+      "short": "A class defines a data type and specifies which fields and methods its objects have.",
+      "explanation": "A class describes the structure used to create objects of a type. It can define fields for state and methods for operations on that state. In `Rational`, for example, `numer` and `denom` represent the numerator and denominator.",
+      "example": "The class `Rational` can define the fields `numer` and `denom`, as well as the method `numerator()`.",
+      "pitfalls": [
+        "The class is not itself one of its objects."
+      ],
+      "related": [
+        "Object",
+        "Constructor",
+        "Instance field and instance method"
+      ],
+      "heading": "Klasse = Bauplan, Objekt = konkrete Instanz"
+    },
+    {
+      "id": "eip-08-k02",
+      "term": "Object (Objekt)",
+      "kind": "definition",
+      "short": "An object is a specific instance of a class with its own field values.",
+      "explanation": "An object can be created, for example, with a `new` expression and contains the fields specified by its class. Two objects of the same class can have different field values. A variable with a class type typically stores a reference to an object.",
+      "example": "`Rational a = new Rational(3, 4);` creates a `Rational` object and stores a reference to it in `a`.",
+      "pitfalls": [
+        "A reference variable and the object it points to are different things."
+      ],
+      "related": [
+        "Class",
+        "Constructor",
+        "Reference assignment and aliasing"
+      ],
+      "heading": "Klasse = Bauplan, Objekt = konkrete Instanz"
+    },
+    {
+      "id": "eip-08-k03",
+      "term": "Constructor (Konstruktor)",
+      "kind": "definition",
+      "short": "A constructor initializes a new object and has the same name as its class, but no return type.",
+      "explanation": "A constructor is called when an object is created and sets its initial state. Its name must match the class name; `void` must not be specified as its return type either. A constructor can validate inputs and throw an exception for invalid values.",
+      "example": "In `Rational(int x, int y)`, the constructor can set `numer = x` and throw an `IllegalArgumentException` when `y == 0`.",
+      "pitfalls": [
+        "A constructor with `void` before it is a method, not a constructor."
+      ],
+      "related": [
+        "Class",
+        "Object",
+        "this(...)"
+      ],
+      "heading": "Klasse = Bauplan, Objekt = konkrete Instanz"
+    },
+    {
+      "id": "eip-08-k04",
+      "term": "Reference assignment and aliasing (Referenzzuweisung und Aliasing)",
+      "kind": "concept",
+      "short": "With an assignment such as `b = a`, the reference is copied, so both variables refer to the same object.",
+      "explanation": "A variable of a class type contains a reference to an object. With `b = a`, this reference is copied; no new object is created. When both variables point to the same object, this is called aliasing. A change to the object through one reference is then also visible through the other.",
+      "example": "`Rational b = a;` does not create a second fraction; `a` and `b` point to the same `Rational` object.",
+      "pitfalls": [
+        "Two variables do not automatically mean two objects.",
+        "Two separate `new` expressions create different objects, even if their field values are the same."
+      ],
+      "related": [
+        "Object",
+        "null and an uninitialized local variable",
+        "Array references and aliasing"
+      ],
+      "heading": "Referenzen und Aliasing"
+    },
+    {
+      "id": "eip-08-k05",
+      "term": "null and an uninitialized local variable (null und nicht initialisierte lokale Variable)",
+      "kind": "concept",
+      "short": "`null` denotes a reference to no object; a local variable may be read only after a value has been assigned to it.",
+      "explanation": "`Rational a = null;` explicitly initializes `a` to `null`, but a call such as `a.numerator()` throws a `NullPointerException`. By contrast, a merely declared local variable such as `Rational a;` has no usable value yet. Java requires every local variable to be assigned before it is read; it is not automatically set to `null`.",
+      "example": "`Rational a = null;` is an assignment; `Rational b;` alone is not an initialization.",
+      "pitfalls": [
+        "A null reference is not an empty object.",
+        "Uninitialized local variables are not automatically `null`."
+      ],
+      "related": [
+        "Reference assignment and aliasing",
+        "Singly linked list"
+      ],
+      "heading": "und nicht initialisierte lokale Variablen"
+    },
+    {
+      "id": "eip-08-k06",
+      "term": "Instance field and instance method (Instanzfeld und Instanzmethode)",
+      "kind": "definition",
+      "short": "An instance field and an instance method belong to a single object.",
+      "explanation": "Each object has its own instance fields, and an instance method is called on a specific object. The method can read or change that object's state. In `a.numerator()`, `numerator()` operates on the object to which `a` points.",
+      "example": "`numer` is an instance field of `Rational`; `a.numerator()` calls the instance method on the object `a`.",
+      "pitfalls": [
+        "Instance fields are not shared among all objects like `static` fields."
+      ],
+      "related": [
+        "Object",
+        "static",
+        "this"
+      ],
+      "heading": "Methodenüberladung / Overloading"
+    },
+    {
+      "id": "eip-08-k07",
+      "term": "Returning a new object (Neues Objekt zurückgeben)",
+      "kind": "concept",
+      "short": "A method can create and return a new result object without changing its input objects.",
+      "explanation": "A method such as `add` can calculate a result from two rational numbers and return a newly created `Rational` instance. For fractions, $\\frac{p}{q}+\\frac{r}{s}=\\frac{ps+rq}{qs}$. The references to the input objects remain unchanged and still point to the same objects.",
+      "example": "`Rational c = a.add(b);` can create a new object for the sum while `a` and `b` remain unchanged.",
+      "pitfalls": [
+        "A newly calculated result does not mean that either argument object was changed."
+      ],
+      "related": [
+        "Mutating an existing object",
+        "Method",
+        "Mutation and a true copy"
+      ],
+      "heading": "Neues Objekt zurückgeben"
+    },
+    {
+      "id": "eip-08-k08",
+      "term": "Mutating an existing object (Vorhandenes Objekt verändern)",
+      "kind": "concept",
+      "short": "A mutating method changes the state of the object on which it is called without needing to return a new object.",
+      "explanation": "A method such as `inc(int b)` can change the numerator so that a rational number's value increases by `b`: $\\frac{p}{q}+b=\\frac{p+bq}{q}$. The reference to the object remains the same, but its field values change. All aliases of the object then see the changed state.",
+      "example": "For an object with value $\\frac{3}{4}$, `a.inc(1)` changes the value to $\\frac{7}{4}$.",
+      "pitfalls": [
+        "An unchanged reference does not mean that the object's state is unchanged."
+      ],
+      "related": [
+        "Returning a new object",
+        "Reference assignment and aliasing",
+        "Mutation and a true copy"
+      ],
+      "heading": "Vorhandenes Objekt verändern"
+    },
+    {
+      "id": "eip-08-k09",
+      "term": "Method overloading (Methodenüberladung)",
+      "kind": "definition",
+      "short": "Overloaded methods have the same name but different parameter lists.",
+      "explanation": "A class may define several methods with the same name if their parameter lists differ. When a method is called, Java selects a suitable overload based on the available signatures and argument types. For example, `inc(int)` and `inc(Rational)` can process different kinds of arguments.",
+      "example": "`inc(1)` can select `inc(int)`, while `inc(r)` with a `Rational` argument selects `inc(Rational)`.",
+      "pitfalls": [
+        "A different return type alone is not enough to overload a method."
+      ],
+      "related": [
+        "Reference comparison == and equals",
+        "equals(Rational)"
+      ],
+      "heading": "Methodenüberladung / Overloading"
+    },
+    {
+      "id": "eip-08-k10",
+      "term": "Reference comparison == and equals (Referenzvergleich == und equals)",
+      "kind": "concept",
+      "short": "For references, `==` compares object identity; `equals` can check content equality when an appropriate implementation is called.",
+      "explanation": "For two object references, `a == b` is true exactly when both references denote the same object. An appropriate `equals` method can compare contents instead; by default, `Object.equals(Object)` also checks identity. Which signature is called also depends on the reference's static type: `equals(Rational)` is an overload and does not override `equals(Object)`.",
+      "example": "`new String(\"Hello\") == new String(\"Hello\")` is false, while `equals` recognizes the same text for `String`.",
+      "pitfalls": [
+        "Equal field values do not mean that `==` is true for two objects.",
+        "`equals(Rational)` does not automatically override `equals(Object)`."
+      ],
+      "related": [
+        "Method overloading",
+        "equals(Rational)",
+        "String comparison with equals"
+      ],
+      "heading": ""
+    },
+    {
+      "id": "eip-08-k11",
+      "term": "equals(Rational)",
+      "kind": "method",
+      "short": "The shown `equals(Rational)` method checks whether rational numbers have the same value using cross-multiplication.",
+      "explanation": "For fractions with nonzero denominators, $\\frac{p}{q}=\\frac{r}{s}$ holds exactly when $ps=rq$. The method returns `false` for `null` and then compares the cross-products. Casting to `long` before each multiplication makes the products get computed as `long` and prevents an `int` overflow here. This signature overloads `equals`; it does not override `equals(Object)`.",
+      "example": "`2/8` and `1/4` have the same value because $2\\cdot4=1\\cdot8$.",
+      "pitfalls": [
+        "Casting after multiplication does not prevent an overflow that has already occurred during multiplication.",
+        "Unreduced fractions can have the same value even when their numerators and denominators differ."
+      ],
+      "related": [
+        "Reference comparison == and equals",
+        "Method overloading"
+      ],
+      "heading": ""
+    },
+    {
+      "id": "eip-08-k12",
+      "term": "toString()",
+      "kind": "method",
+      "short": "`toString()` returns a text representation of an object.",
+      "explanation": "A class can implement `toString()` to output its object's state as text. When an object is passed to `System.out.println`, for example, Java uses its text representation. For a `Rational` object, this representation can join the numerator and denominator with a slash.",
+      "example": "A `Rational` object with `numer = 3` and `denom = 4` can be displayed as `3/4`.",
+      "pitfalls": [
+        "The text representation does not automatically reduce a fraction unless the method explicitly does so."
+      ],
+      "related": [
+        "Class",
+        "Instance field and instance method"
+      ],
+      "heading": "Methodenüberladung / Overloading"
+    },
+    {
+      "id": "eip-08-k13",
+      "term": "private, public, and UML",
+      "kind": "notation",
+      "short": "`private` restricts access to code in the same class, `public` makes an element accessible from outside, and UML often denotes these with `−` and `+`, respectively.",
+      "explanation": "An `private` field or `private` method can be used by code in the same class. This includes accessing private fields of another object of that same class. `public` marks an element as publicly accessible. In UML, `− numer: int` denotes a private field, and `+ numerator(): int` denotes a public method with return type `int`.",
+      "example": "A method in `Rational` may read `r.numer` if `r` is another `Rational` object and `numer` is `private` in this class.",
+      "pitfalls": [
+        "`private` does not mean that only one object can access the field."
+      ],
+      "related": [
+        "Class",
+        "Instance field and instance method"
+      ],
+      "heading": ""
+    },
+    {
+      "id": "eip-08-k14",
+      "term": "static",
+      "kind": "concept",
+      "short": "`static` marks a field or method as belonging to the class rather than to an individual object.",
+      "explanation": "A `static` field exists once for the class and is shared by its objects; each object has its own instance fields. A static method can be called without a specific object, for example, through the class name. A static method has no current object and therefore no `this`.",
+      "example": "With a shared counter `static int count`, three created objects can each have their own instance value, while `count` continues to be incremented for all of them together.",
+      "pitfalls": [
+        "A `static` field is not a separate copy for each object.",
+        "A static method cannot use `this`."
+      ],
+      "related": [
+        "Instance field and instance method",
+        "this"
+      ],
+      "heading": ""
+    },
+    {
+      "id": "eip-08-k15",
+      "term": "this",
+      "kind": "notation",
+      "short": "`this` denotes the current object inside an instance method or constructor.",
+      "explanation": "`this.feld` explicitly refers to a field of the current object. This is especially useful when a parameter has the same name as the field. `this` can also be passed to another method as a reference to the current object.",
+      "example": "In `Rational(int numer) { this.numer = numer; }`, `this.numer` is the field and `numer` is the parameter.",
+      "pitfalls": [
+        "With a parameter of the same name, `numer = numer;` assigns the parameter only to itself.",
+        "`this` is not available in a static method."
+      ],
+      "related": [
+        "static",
+        "Instance field and instance method",
+        "this(...)"
+      ],
+      "heading": ""
+    },
+    {
+      "id": "eip-08-k16",
+      "term": "this(...)",
+      "kind": "notation",
+      "short": "`this(...)` calls another constructor of the same class for the same new object from within a constructor.",
+      "explanation": "With `this(argumente)`, a constructor can delegate initialization to another constructor of the same class. The call does not create an additional object. In Java, such a constructor call must be the first statement in the constructor.",
+      "example": "`public Rational(int x) { this(x, 1); }` delegates to the constructor with numerator and denominator.",
+      "pitfalls": [
+        "`this(...)` is a constructor call and is not the same as the reference `this`.",
+        "Two constructors with identical parameter lists cannot coexist in the same class."
+      ],
+      "related": [
+        "Constructor",
+        "this"
+      ],
+      "heading": "Einen anderen Konstruktor aufrufen:"
+    },
+    {
+      "id": "eip-08-k17",
+      "term": "Singly linked list (Einfach verkettete Liste)",
+      "kind": "definition",
+      "short": "A singly linked list consists of nodes, each of which contains a value and a reference to the next node.",
+      "explanation": "A node typically has a value field such as `info` and a reference field `next`. The `next` reference points to the successor; for the last node, it is `null`. An empty list is represented by a head reference whose value is `null`. The custom class `List` used here is a node class, not `java.util.List`.",
+      "example": "`7 → 0 → −3 → null` denotes three nodes whose last successor is `null`.",
+      "pitfalls": [
+        "An empty list has no node on which an instance method could be called."
+      ],
+      "related": [
+        "null and an uninitialized local variable",
+        "Traversing a list",
+        "Inserting after the current node"
+      ],
+      "heading": "Die eigene Klasse"
+    },
+    {
+      "id": "eip-08-k18",
+      "term": "Building a list by inserting at the front (Liste durch Einfügen am Anfang erzeugen)",
+      "kind": "method",
+      "short": "A new node is placed before the current head of the list and then becomes the head itself.",
+      "explanation": "Starting from a head reference `first`, a list can be built by repeatedly inserting at the front. Each new node gets the previous head as its `next`. Then `first` is set to the new node, keeping the entire existing chain reachable.",
+      "example": "Starting with `13 → null`, inserting `−3` and then `0` produces the list `0 → −3 → 13 → null`.",
+      "pitfalls": [
+        "If the previous head is not stored as the new node's `next`, the rest of the existing list is lost."
+      ],
+      "related": [
+        "Singly linked list",
+        "Reference assignment and aliasing"
+      ],
+      "heading": "Liste durch Einfügen am Anfang erzeugen"
+    },
+    {
+      "id": "eip-08-k19",
+      "term": "Traversing a list (Liste durchlaufen)",
+      "kind": "method",
+      "short": "A list is visited from its head by repeatedly setting the traversal reference to `next` until it is `null`.",
+      "explanation": "A loop can process each node in the list in order. The traversal reference advances while the head reference and the node links remain unchanged. Before accessing a node field, the traversal reference must be different from `null`.",
+      "example": "Set `t = first`; while `t != null`, process `t.info` and then set `t = t.next`.",
+      "pitfalls": [
+        "`t = t.next` advances only the local reference `t`; it does not change any list link.",
+        "Before accessing `t.info`, ensure that `t != null` holds."
+      ],
+      "related": [
+        "Singly linked list",
+        "null and an uninitialized local variable"
+      ],
+      "heading": "Liste durchlaufen"
+    },
+    {
+      "id": "eip-08-k20",
+      "term": "Inserting after the current node (Nach dem aktuellen Knoten einfügen)",
+      "kind": "method",
+      "short": "When inserting after a node, the new node is placed between the current object and its previous successor.",
+      "explanation": "The new node must take over the old successor before the current node's link is changed. Then the current node's `next` is set to the new node. This keeps the remainder of the list reachable.",
+      "example": "At `−3` in `7 → 0 → −3 → 13 → null`, `insert(4)` inserts node `4` before `13`.",
+      "pitfalls": [
+        "If the old `next` reference is overwritten first, the previous successor may be lost."
+      ],
+      "related": [
+        "Singly linked list",
+        "Traversing a list"
+      ],
+      "heading": "Nach dem aktuellen Knoten einfügen"
+    },
+    {
+      "id": "eip-08-k21",
+      "term": "Removing the direct successor (Den direkten Nachfolger entfernen)",
+      "kind": "method",
+      "short": "`delete()` on a node skips its direct successor by setting `next` to `next.next`.",
+      "explanation": "The method does not remove the current object; it changes its link. If a successor exists, that node is skipped in the chain reachable from the current node. Other references to the skipped node remain; its memory can be freed later if the node becomes unreachable.",
+      "example": "Applied to node `0`, `7 → 0 → −3 → 13 → null` changes the reachable chain to `7 → 0 → 13 → null`.",
+      "pitfalls": [
+        "`delete()` does not remove the node on which the method is called.",
+        "When `next == null`, there is no successor to skip."
+      ],
+      "related": [
+        "Singly linked list",
+        "Inserting after the current node"
+      ],
+      "heading": "Den direkten Nachfolger entfernen"
+    },
+    {
+      "id": "eip-08-k22",
+      "term": "Length of a linked list (Länge einer verketteten Liste)",
+      "kind": "method",
+      "short": "The length of a list is the number of its nodes and can be found by counting to the end of the list.",
+      "explanation": "An instance method can count starting from the current node and therefore starts at `1` for a nonempty list. A static method that takes a head reference can also handle the empty case: for `null`, it returns `0`; otherwise, it counts the nodes in the chain.",
+      "example": "The list `7 → 0 → −3 → null` has length `3`; an empty list has length `0`.",
+      "pitfalls": [
+        "An instance method cannot be called on a nonexistent node in an empty list."
+      ],
+      "related": [
+        "Singly linked list",
+        "static",
+        "Traversing a list"
+      ],
+      "heading": "Länge bestimmen"
+    },
+    {
+      "id": "eip-08-k23",
+      "term": "List → array",
+      "kind": "method",
+      "short": "When converting a list to an array, its values are copied in list order into an array of the same length.",
+      "explanation": "First, the number of nodes is determined so that an array of the appropriate length can be created. Then the values are written to increasing array indices, from the head of the list to its end. An empty list produces an empty array.",
+      "example": "Determine `n = length(l)`, create `int[] a = new int[n]`, and write the node values in order into `a`.",
+      "pitfalls": [
+        "The conversion copies the values into a new array; it does not create shared list and array elements."
+      ],
+      "related": [
+        "Singly linked list",
+        "Array references and aliasing"
+      ],
+      "heading": "Liste → Array"
+    },
+    {
+      "id": "eip-08-k24",
+      "term": "Array → list",
+      "kind": "method",
+      "short": "An array can be converted into a list with the same order by inserting its elements at the front while iterating backward.",
+      "explanation": "Because each new node is inserted at the front, the array must be traversed from the last index to the first. This preserves the original order in the result. An empty array yields an empty list; the array reference itself must not be `null`.",
+      "example": "Set `result = null` and iterate `i` from `a.length - 1` down to `0`; at each step set `result = new List(a[i], result)`. For `[0, 4, 9]`, the result is `0 → 4 → 9 → null`.",
+      "pitfalls": [
+        "A forward traversal with insertion at the front would reverse the order."
+      ],
+      "related": [
+        "Singly linked list",
+        "List → array"
+      ],
+      "heading": "Array → Liste"
+    },
+    {
+      "id": "eip-08-k25",
+      "term": "Mergesort",
+      "kind": "method",
+      "short": "Mergesort sorts a list by splitting it, recursively sorting both parts, and combining the results.",
+      "explanation": "An empty list or a list with one node is already sorted. Longer lists are split into two roughly equal parts, each part is sorted separately, and the results are combined with `merge`. With this balanced split, the algorithm requires $O(n\\log n)$ comparisons.",
+      "example": "Handle the empty and one-element cases directly; otherwise, split the list, recursively sort both halves, and combine them with `merge`.",
+      "pitfalls": [
+        "The recursively sorted sublists may start at a new head node; that head must be retained."
+      ],
+      "related": [
+        "Merge",
+        "Splitting consecutive halves",
+        "Recursion",
+        "Runtime"
+      ],
+      "heading": "5. Mergesort: Teilen, rekursiv sortieren, zusammenführen · Folien 493–519"
+    },
+    {
+      "id": "eip-08-k26",
+      "term": "Merge",
+      "kind": "method",
+      "short": "`merge` combines two already sorted lists into one sorted list by repeatedly choosing the smaller first node.",
+      "explanation": "The input lists must be finite, ascending chains with no cycles or shared nodes. If one list is empty, the remainder of the other is returned. Otherwise, the smaller of the two first nodes becomes the head of the result, and `merge` is called recursively on the remaining part. The method creates no nodes; instead, it rearranges existing `next` references.",
+      "example": "`−3 → 7 → 13` and `0 → 15 → 16` produce `−3 → 0 → 7 → 13 → 15 → 16`.",
+      "pitfalls": [
+        "`merge` does not automatically sort unsorted input lists.",
+        "The original `next` links are changed."
+      ],
+      "related": [
+        "Mergesort",
+        "Singly linked list",
+        "Stability of Mergesort"
+      ],
+      "heading": "A. Zwei sortierte Listen zusammenführen"
+    },
+    {
+      "id": "eip-08-k27",
+      "term": "Splitting consecutive halves (Aufeinanderfolgende Hälften teilen)",
+      "kind": "method",
+      "short": "A list is split into two consecutive segments by severing the link between the first and second halves.",
+      "explanation": "The described method is used for lists with at least two nodes. For a list of length `n`, the first half contains $\\lfloor n/2\\rfloor$ nodes and the second contains the rest. First, the head reference of the second half is saved; then the link from the first half is set to `null`.",
+      "example": "Find the last node `p` of the first half, save `p.next` as the head of the second half, and then set `p.next = null`. With five nodes, this produces segments of two and three nodes.",
+      "pitfalls": [
+        "If the link is severed before the head of the second half is saved, that part is no longer reachable through `p.next`."
+      ],
+      "related": [
+        "Mergesort",
+        "Singly linked list",
+        "Stability of Mergesort"
+      ],
+      "heading": "B. In aufeinanderfolgende Hälften teilen"
+    },
+    {
+      "id": "eip-08-k28",
+      "term": "Comparison bound for merge (Vergleichsschranke für Merge)",
+      "kind": "theorem",
+      "short": "For two nonempty sorted lists with `m` and `n` elements, `merge` requires at most `m + n − 1` value comparisons.",
+      "explanation": "Each value comparison places at least one node permanently at the head of the result. Once one input list is empty, the remainder of the other can be appended without further value comparisons. Therefore, at most all but the last of the total `m + n` elements can be selected by comparisons.",
+      "example": "For lists with four and three elements, at most $4+3-1=6$ comparisons are needed.",
+      "pitfalls": [
+        "The bound applies to two nonempty input lists that are already sorted.",
+        "If an input list is empty at the start, the base case applies immediately."
+      ],
+      "related": [
+        "Merge",
+        "Mergesort runtime"
+      ],
+      "heading": "Laufzeit über die Anzahl der Vergleiche"
+    },
+    {
+      "id": "eip-08-k29",
+      "term": "Mergesort runtime (Laufzeit von Mergesort)",
+      "kind": "theorem",
+      "short": "Mergesort requires $O(n\\log n)$ comparisons for `n` elements.",
+      "explanation": "Repeated splitting produces roughly $\\log_2 n$ levels. At each level, at most a linear number of elements are examined during merging. This gives an upper bound of order $n\\log n$; the stated runtime counts comparisons and is not a measured time in seconds.",
+      "example": "For $n=1024$, the level calculation gives $1024\\log_2(1024)=10240$ as an upper bound on comparisons.",
+      "pitfalls": [
+        "The bound does not mean that every run performs exactly $n\\log_2 n$ comparisons."
+      ],
+      "related": [
+        "Mergesort",
+        "Comparison bound for merge",
+        "Runtime",
+        "Insertion sort"
+      ],
+      "heading": "Laufzeit über die Anzahl der Vergleiche"
+    },
+    {
+      "id": "eip-08-k30",
+      "term": "Alternating split (Alternierendes Teilen)",
+      "kind": "method",
+      "short": "In an alternating split, nodes are distributed alternately between two sublists.",
+      "explanation": "The head node remains in the first sublist; the node that was second becomes the head of the returned second sublist. The remaining nodes are distributed recursively, and the sublists are formed by rearranging `next` links. Thus, nodes at odd original positions end up in the first sublist and nodes at even positions in the second.",
+      "example": "`17 → 0 → −3 → 7 → 9 → 1` produces `17 → −3 → 9` and `0 → 7 → 1`.",
+      "pitfalls": [
+        "This split does not preserve two consecutive segments of the original order."
+      ],
+      "related": [
+        "Singly linked list",
+        "Mergesort",
+        "Stability of Mergesort"
+      ],
+      "heading": "Alternative: Knoten abwechselnd verteilen"
+    },
+    {
+      "id": "eip-08-k31",
+      "term": "Stability (Stabilität)",
+      "kind": "definition",
+      "short": "A stable sort preserves the original order of elements with equal sort keys.",
+      "explanation": "Stability concerns elements whose compared keys are equal, even if they differ in other attributes. A stable sort leaves such elements in their original relative order. This is useful when the result of an earlier sort by another attribute should be preserved.",
+      "example": "If Alice and Clara are originally in that order and both have a grade of 2, a stable sort by grade keeps Alice before Clara.",
+      "pitfalls": [
+        "Stability means preserving the existing order of elements with equal keys."
+      ],
+      "related": [
+        "Stability of Mergesort",
+        "Insertion sort"
+      ],
+      "heading": "Stabil sortieren"
+    },
+    {
+      "id": "eip-08-k32",
+      "term": "Stability of Mergesort (Stabilität bei Mergesort)",
+      "kind": "concept",
+      "short": "The shown Mergesort variant is stable if it splits into consecutive segments and `merge` chooses the left node first when values are equal.",
+      "explanation": "Splitting into consecutive segments preserves the original order of equal keys across the two sublists. During merging, `a.info <= b.info` ensures that the left node is output first when values are equal. Alternating splits can destroy this property: `2A → 2B → 2C → 2D` becomes `2A → 2C` and `2B → 2D`; preferring the left list then produces `2A → 2C → 2B → 2D`.",
+      "example": "For equal values, the split and tie-breaking rule must work together: consecutive sublists plus preferring the left list when values are equal.",
+      "pitfalls": [
+        "`<=` in the merge alone does not guarantee stability if the split disrupts the original order."
+      ],
+      "related": [
+        "Stability",
+        "Merge",
+        "Splitting consecutive halves",
+        "Alternating split"
+      ],
+      "heading": "Warum kann                     die Stabilität zerstören?"
+    }
+  ],
+  "generator": {
+    "model": "gpt-6-luna",
+    "effort": "xhigh",
+    "promptVersion": "k1",
+    "generatedAt": "2026-11-09T23:33:56.067Z"
+  }
+}
