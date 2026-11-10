@@ -1,0 +1,580 @@
+{
+  "schemaVersion": 1,
+  "unitId": "era-13",
+  "module": "ERA",
+  "unitNumber": 13,
+  "unitTitle": "Caches: Aufbau, Misses und Strategien",
+  "sourceSha": "b877002db9606bd65d7ec7fdcd711a57437346e926cefd4aa507c0693ff25047",
+  "overview": "Diese Unit erklärt, wie Caches durch zeitliche und räumliche Lokalität häufig oder benachbart benötigte Daten schneller bereitstellen. Speicheradressen werden in Tag, Index und Offset zerlegt; die Cache-Organisation legt fest, wo ein Speicherblock liegen kann. Bei einem Miss wird eine ganze Cache-Zeile nachgeladen, und falls nötig verdrängt eine Ersetzungsstrategie eine andere Zeile. Schreibstrategien und die Organisation mehrerer Cache-Level bestimmen, wie Änderungen weitergegeben und Daten über die Hierarchie verteilt werden.",
+  "entries": [
+    {
+      "id": "era-13-k01",
+      "term": "Lokalitätsprinzip",
+      "kind": "concept",
+      "short": "Das Lokalitätsprinzip besagt, dass Programme häufig kürzlich verwendete oder räumlich nahe Daten erneut benötigen.",
+      "explanation": "Caches nutzen typische Zugriffsmuster von Programmen: Ein gerade verwendeter Wert wird oft bald wieder gebraucht, und neben ihm liegende Werte werden häufig ebenfalls angesprochen. Deshalb kann ein Cache beim Nachladen eines Speicherblocks gleich eine ganze Cache-Zeile mit benachbarten Daten aufnehmen. Das erhöht die Chance, dass spätere Zugriffe ohne Zugriff auf eine langsamere Speicherebene auskommen.",
+      "example": "Nach dem Lesen eines Arrayelements greift eine Schleife oft direkt auf das nächste Element zu; eine geladene Cache-Zeile kann beide enthalten.",
+      "pitfalls": [
+        "Lokalität ist eine typische Eigenschaft vieler Zugriffsmuster, aber keine Garantie für jeden einzelnen Zugriff."
+      ],
+      "related": [
+        "Zeitliche Lokalität",
+        "Räumliche Lokalität",
+        "Cache-Zeile"
+      ],
+      "heading": null
+    },
+    {
+      "id": "era-13-k02",
+      "term": "Zeitliche Lokalität",
+      "kind": "concept",
+      "short": "Zeitliche Lokalität bedeutet, dass kürzlich verwendete Daten oder Befehle mit erhöhter Wahrscheinlichkeit bald erneut verwendet werden.",
+      "explanation": "Ein Cache hält kürzlich angeforderte Daten nahe an der CPU, damit ein erneuter Zugriff schnell beantwortet werden kann. Ersetzungsstrategien wie LRU nutzen diese Beobachtung, indem sie länger nicht verwendete Zeilen bevorzugt verdrängen. Zeitliche Lokalität erklärt, warum wiederholte Zugriffe auf dieselben Werte oft Cache-Hits erzeugen.",
+      "example": "Eine Schleife liest bei jeder Iteration dieselbe Variable; nach dem ersten Nachladen kann sie im Cache bleiben.",
+      "pitfalls": [
+        "Zeitliche Lokalität beschreibt Wiederholung über die Zeit, nicht die räumliche Nähe zweier Adressen."
+      ],
+      "related": [
+        "Lokalitätsprinzip",
+        "Räumliche Lokalität",
+        "LRU (Least Recently Used)"
+      ],
+      "heading": null
+    },
+    {
+      "id": "era-13-k03",
+      "term": "Räumliche Lokalität",
+      "kind": "concept",
+      "short": "Räumliche Lokalität bedeutet, dass nach einem Zugriff oft auch nahe Speicheradressen verwendet werden.",
+      "explanation": "Weil Programme häufig benachbarte Speicherplätze ansprechen, lädt ein Cache bei einem Miss normalerweise den gesamten zugehörigen Speicherblock in Form einer Cache-Zeile. Dadurch können folgende Zugriffe auf andere Bytes derselben Zeile direkt aus dem Cache bedient werden. Das ist besonders nützlich beim sequenziellen Zugriff auf Arrays oder Instruktionen.",
+      "example": "Wird ein Byte aus einem Array gelesen, kann dieselbe Cache-Zeile auch die unmittelbar folgenden Arrayelemente enthalten.",
+      "pitfalls": [
+        "Räumliche Lokalität sagt nicht voraus, dass die CPU immer den nächsten Speicherplatz anfordert; sie beschreibt ein häufiges Zugriffsmuster."
+      ],
+      "related": [
+        "Lokalitätsprinzip",
+        "Zeitliche Lokalität",
+        "Cache-Zeile"
+      ],
+      "heading": null
+    },
+    {
+      "id": "era-13-k04",
+      "term": "Cache",
+      "kind": "definition",
+      "short": "Ein Cache ist ein kleiner, schneller Speicher, der Kopien von Daten aus einer nachgeordneten Speicherebene bereithält.",
+      "explanation": "Bei einem Zugriff prüft der Cache, ob der benötigte Speicherblock dort liegt. Bei einem Treffer werden die angeforderten Daten aus dem Cache geliefert; bei einem Miss wird der passende Block aus einer langsameren Speicherebene geladen. Ein Cache verringert die durchschnittliche Zugriffszeit, wenn Programme Lokalität zeigen.",
+      "example": "Ein Prozessor kann häufig verwendete Daten in einem L1-Cache halten, statt bei jedem Zugriff den Hauptspeicher zu verwenden.",
+      "pitfalls": [
+        "Ein Cache enthält Kopien von Speicherinhalten und ist nicht mit dem Hauptspeicher selbst gleichzusetzen.",
+        "Cache-Level können unterschiedliche Zugriffszeiten haben."
+      ],
+      "related": [
+        "Cache-Hit",
+        "Cache-Miss",
+        "Cache-Zeile",
+        "Cache-Hierarchie"
+      ],
+      "heading": null
+    },
+    {
+      "id": "era-13-k05",
+      "term": "Speicherblock",
+      "kind": "definition",
+      "short": "Ein Speicherblock ist ein zusammenhängender Abschnitt des Speichers, der als Einheit zwischen Speicherebenen übertragen wird.",
+      "explanation": "Ein Zugriff auf ein einzelnes Byte kann dazu führen, dass der gesamte zugehörige Speicherblock in den Cache geladen wird. Der Cache legt diesen Block in einer Cache-Zeile ab und speichert zusätzliche Informationen, um ihn später wiederzuerkennen. Die Blockgröße entspricht der Datenkapazität einer Cache-Zeile.",
+      "example": "Bei einer Cache-Zeilengröße von 64 Byte gehören die 64 aufeinanderfolgenden Bytes ab einer 64-Byte-Grenze zu einem Speicherblock.",
+      "pitfalls": [
+        "Der angeforderte Wert kann kleiner als der geladene Speicherblock sein.",
+        "Speicherblock bezeichnet den übertragenen Speicherabschnitt; Cache-Zeile bezeichnet den Platz, an dem er im Cache abgelegt wird."
+      ],
+      "related": [
+        "Cache-Zeile",
+        "Cache-Miss"
+      ],
+      "heading": null
+    },
+    {
+      "id": "era-13-k06",
+      "term": "Cache-Zeile",
+      "kind": "definition",
+      "short": "Eine Cache-Zeile ist ein Platz im Cache, der einen Speicherblock samt Zuordnungsinformationen aufnehmen kann.",
+      "explanation": "Die Daten einer Cache-Zeile enthalten einen ganzen Speicherblock, nicht nur das einzelne angeforderte Byte oder Wort. Zur Zeile gehören außerdem Metadaten wie der Tag und üblicherweise ein Gültigkeitsbit; bei Write-Back kann ein Dirty-Bit Änderungen kennzeichnen. Bei einem Miss wird eine passende Zeile mit dem angeforderten Block befüllt, wobei eine vorhandene Zeile verdrängt werden kann.",
+      "example": "Eine Cache-Zeile mit 64 Byte Daten kann den Block aufnehmen, der die angeforderte Adresse enthält.",
+      "pitfalls": [
+        "Cache-Zeile und angeforderter Wert sind nicht dasselbe: Eine Zeile enthält typischerweise viele Bytes.",
+        "Beim Verdrängen einer geänderten Zeile kann vor dem Ersetzen ein Rückschreiben erforderlich sein."
+      ],
+      "related": [
+        "Speicherblock",
+        "Cache-Miss",
+        "Tag",
+        "Dirty-Bit"
+      ],
+      "heading": null
+    },
+    {
+      "id": "era-13-k07",
+      "term": "Cache-Hit",
+      "kind": "definition",
+      "short": "Ein Cache-Hit liegt vor, wenn der angeforderte Speicherblock im Cache vorhanden und gültig ist.",
+      "explanation": "Der Cache verwendet die Adresse, um eine mögliche Zeile oder ein Set zu finden, und prüft, ob der gespeicherte Tag zur angeforderten Adresse passt. Bei einem Treffer wählt der Offset die angeforderten Bytes oder das angeforderte Wort innerhalb der Zeile aus. Der Zugriff kann dadurch ohne Nachladen aus einer langsameren Speicherebene bedient werden.",
+      "example": "Wird ein Arrayelement erneut gelesen, während sein Speicherblock noch im Cache liegt, ist der Zugriff ein Cache-Hit.",
+      "pitfalls": [
+        "Ein passender Index allein genügt nicht für einen Treffer; auch der Tag muss stimmen."
+      ],
+      "related": [
+        "Cache-Miss",
+        "Tag",
+        "Index",
+        "Offset"
+      ],
+      "heading": null
+    },
+    {
+      "id": "era-13-k08",
+      "term": "Cache-Miss",
+      "kind": "definition",
+      "short": "Ein Cache-Miss liegt vor, wenn der angeforderte Speicherblock nicht als gültiger Eintrag im Cache gefunden wird.",
+      "explanation": "Der Cache muss den Block aus der nachgeordneten Speicherebene laden, bevor der angeforderte Wert bereitgestellt werden kann. Übertragen wird eine ganze Cache-Zeile mit dem Block; ist der vorgesehene Platz belegt, kann eine bestehende Zeile verdrängt werden. Misses werden unter anderem als Compulsory, Conflict oder Capacity eingeordnet.",
+      "example": "Ein erster Zugriff auf einen noch nie geladenen Block verursacht einen Cache-Miss.",
+      "pitfalls": [
+        "Ein Miss bedeutet nicht zwingend, dass im gesamten Cache kein Platz frei ist; der Block kann auch wegen der Zuordnungsregeln fehlen.",
+        "Ein Miss kann zusätzlich einen Schreibzugriff auf eine nachgeordnete Ebene oder einen Rückschreibvorgang auslösen."
+      ],
+      "related": [
+        "Cache-Hit",
+        "Cache-Zeile",
+        "Compulsory Miss",
+        "Conflict Miss",
+        "Capacity Miss"
+      ],
+      "heading": null
+    },
+    {
+      "id": "era-13-k09",
+      "term": "Cache-Adresszerlegung",
+      "kind": "method",
+      "short": "Bei der Cache-Adresszerlegung werden Tag, Index und Offset einer Adresse bestimmt.",
+      "explanation": "Der Offset wählt die Position innerhalb einer Cache-Zeile, der Index wählt eine Zeile oder ein Set, und der Tag identifiziert den dort gespeicherten Speicherblock. Bei einer Zeilengröße von $B$ Byte und einer Zweierpotenz von $B$ benötigt der Offset $\\log_2(B)$ Bits; bei $S$ Sets und einer Zweierpotenz von $S$ benötigt der Index $\\log_2(S)$ Bits. Die höherwertigen verbleibenden Bits bilden den Tag.",
+      "example": "Bei 64 Byte pro Cache-Zeile braucht der Offset $\\log_2(64)=6$ Bits, um ein Byte innerhalb der Zeile auszuwählen.",
+      "pitfalls": [
+        "Ein voll-assoziativer Cache hat keine Index-Bits, weil jeder Block in jeder Zeile liegen kann.",
+        "Der Offset wählt eine Position in einer Zeile und nicht die Cache-Zeile selbst."
+      ],
+      "related": [
+        "Tag",
+        "Index",
+        "Offset",
+        "Cache-Zeile",
+        "Direct-Mapped Cache",
+        "Voll-assoziativer Cache",
+        "Mengenassoziativer Cache"
+      ],
+      "heading": null
+    },
+    {
+      "id": "era-13-k10",
+      "term": "Tag",
+      "kind": "notation",
+      "short": "Der Tag ist der Adressteil, mit dem der Cache prüft, welcher Speicherblock in einer ausgewählten Zeile oder einem Set liegt.",
+      "explanation": "Nach der Auswahl über den Index vergleicht der Cache den Tag der angeforderten Adresse mit dem gespeicherten Tag. Stimmen Tag und Gültigkeit überein, liegt der gesuchte Block in der ausgewählten Zeile. Der Tag unterscheidet Speicherblöcke, die denselben Index verwenden können.",
+      "example": "Zwei Adressen können dasselbe Set wählen, aber unterschiedliche Tags besitzen; dann bezeichnen sie verschiedene Speicherblöcke.",
+      "pitfalls": [
+        "Ein übereinstimmender Index ist ohne passenden Tag kein Cache-Hit."
+      ],
+      "related": [
+        "Cache-Adresszerlegung",
+        "Index",
+        "Offset",
+        "Cache-Hit"
+      ],
+      "heading": null
+    },
+    {
+      "id": "era-13-k11",
+      "term": "Index",
+      "kind": "notation",
+      "short": "Der Index ist der Adressteil, der in einem Cache mit Index-Bits eine Zeile oder ein Set auswählt.",
+      "explanation": "In einem Direct-Mapped Cache wählt der Index genau eine Cache-Zeile aus. In einem mengenassoziativen Cache wählt er ein Set, dessen mehrere Zeilen als mögliche Plätze dienen. Ein voll-assoziativer Cache benötigt keinen Index, weil dort jeder Speicherblock in jeder Zeile liegen kann.",
+      "example": "Ein Cache mit 32 Sets benötigt bei einer Zweierpotenz von 32 fünf Index-Bits.",
+      "pitfalls": [
+        "Der Index identifiziert nicht allein den gespeicherten Speicherblock; dafür wird zusätzlich der Tag geprüft."
+      ],
+      "related": [
+        "Cache-Adresszerlegung",
+        "Tag",
+        "Offset",
+        "Direct-Mapped Cache",
+        "Mengenassoziativer Cache",
+        "Voll-assoziativer Cache"
+      ],
+      "heading": null
+    },
+    {
+      "id": "era-13-k12",
+      "term": "Offset",
+      "kind": "notation",
+      "short": "Der Offset ist der Adressteil, der die Position der angeforderten Daten innerhalb einer Cache-Zeile auswählt.",
+      "explanation": "Nachdem der Cache die passende Zeile und den passenden Speicherblock gefunden hat, bestimmt der Offset die gewünschte Byteposition oder den gewünschten Bereich in der Zeile. Bei $B$ Byte pro Cache-Zeile gibt es $B$ mögliche Bytepositionen. Ist $B$ eine Zweierpotenz, benötigt der Offset $\\log_2(B)$ Bits.",
+      "example": "Bei 64 Byte pro Cache-Zeile wählen die unteren sechs Offset-Bits eines von 64 Bytes aus.",
+      "pitfalls": [
+        "Der Offset wählt keine Cache-Zeile aus; dafür dient der Index, sofern der Cache einen Index hat."
+      ],
+      "related": [
+        "Cache-Adresszerlegung",
+        "Index",
+        "Tag",
+        "Cache-Zeile"
+      ],
+      "heading": null
+    },
+    {
+      "id": "era-13-k13",
+      "term": "Direct-Mapped Cache",
+      "kind": "definition",
+      "short": "In einem Direct-Mapped Cache kann jeder Speicherblock genau einer Cache-Zeile zugeordnet werden.",
+      "explanation": "Der Index der Adresse bestimmt die einzige Zeile, in der der Block liegen darf; der Tag prüft, ob diese Zeile gerade den gesuchten Block enthält. Die Organisation ist einfach und erlaubt einen schnellen Zugriff. Mehrere Speicherblöcke können jedoch auf dieselbe Zeile abgebildet werden und sich dort gegenseitig verdrängen.",
+      "example": "Bei 16 Cache-Zeilen werden Speicherblöcke mit demselben Index auf dieselbe Zeile abgebildet, auch wenn andere Zeilen frei sind.",
+      "pitfalls": [
+        "Ein Block kann nicht in eine andere Cache-Zeile ausweichen, wenn seine zugeordnete Zeile belegt ist.",
+        "Direct-Mapped bedeutet nicht, dass der Cache insgesamt nur eine Zeile besitzt."
+      ],
+      "related": [
+        "Index",
+        "Tag",
+        "Conflict Miss",
+        "Mengenassoziativer Cache",
+        "Voll-assoziativer Cache"
+      ],
+      "heading": null
+    },
+    {
+      "id": "era-13-k14",
+      "term": "Voll-assoziativer Cache",
+      "kind": "definition",
+      "short": "In einem voll-assoziativen Cache kann ein Speicherblock in jeder Cache-Zeile abgelegt werden.",
+      "explanation": "Der Cache hat keine Index-Bits, die einen festen Platz oder ein Set auswählen. Für die Suche müssen die Tags der möglichen Zeilen auf eine Übereinstimmung geprüft werden; wenn kein Platz frei ist, entscheidet eine Ersetzungsstrategie über die verdrängte Zeile. Diese Organisation vermeidet Konflikte durch eine feste Set-Zuordnung, ist aber aufwendiger umzusetzen.",
+      "example": "Ein Block kann in jede freie Zeile eines voll-assoziativen Caches geladen werden.",
+      "pitfalls": [
+        "Voll-assoziativ bedeutet nicht, dass der Cache unbegrenzt viele Blöcke aufnehmen kann.",
+        "Ein voll-assoziativer Cache kann weiterhin Capacity Misses haben."
+      ],
+      "related": [
+        "Tag",
+        "Cache-Adresszerlegung",
+        "Direct-Mapped Cache",
+        "Mengenassoziativer Cache",
+        "Conflict Miss",
+        "Capacity Miss"
+      ],
+      "heading": null
+    },
+    {
+      "id": "era-13-k15",
+      "term": "Mengenassoziativer Cache",
+      "kind": "definition",
+      "short": "Ein mengenassoziativer Cache teilt seine Zeilen in Sets auf, wobei jeder Speicherblock einem bestimmten Set und dort mehreren möglichen Zeilen zugeordnet ist.",
+      "explanation": "Der Index wählt das Set aus; innerhalb dieses Sets darf der Block in jeder der $N$ Zeilen eines N-way-assoziativen Caches liegen. Der Tag unterscheidet die möglichen Speicherblöcke, die demselben Set zugeordnet werden. Die Anzahl der Sets ergibt sich aus Cachegröße geteilt durch Zeilengröße und Assoziativität.",
+      "example": "In einem 4-way-assoziativen Cache können vier unterschiedliche Blöcke, die dasselbe Set auswählen, gleichzeitig dort liegen.",
+      "pitfalls": [
+        "Der Index wählt ein Set, nicht eine einzelne Zeile innerhalb dieses Sets.",
+        "Wenn alle Zeilen eines Sets belegt sind, muss eine Zeile aus genau diesem Set verdrängt werden."
+      ],
+      "related": [
+        "Index",
+        "Tag",
+        "Direct-Mapped Cache",
+        "Voll-assoziativer Cache",
+        "Cache-Ersetzungsstrategie",
+        "Conflict Miss"
+      ],
+      "heading": null
+    },
+    {
+      "id": "era-13-k16",
+      "term": "Compulsory Miss",
+      "kind": "definition",
+      "short": "Ein Compulsory Miss entsteht beim ersten Zugriff auf einen Speicherblock, der zuvor noch nicht im Cache war.",
+      "explanation": "Der Cache kann den Block beim ersten Zugriff nicht bereits als geladene Kopie bereithalten. Deshalb tritt ein solcher Miss auch bei einem unendlich großen Cache auf, wenn dieser anfangs leer ist. Der Miss beruht auf dem erstmaligen Zugriff und nicht auf Platzmangel oder einer ungünstigen Zuordnung.",
+      "example": "Der erste Zugriff eines Programms auf einen bestimmten Arrayblock ist ein Compulsory Miss.",
+      "pitfalls": [
+        "Compulsory Misses verschwinden nicht allein durch eine größere Cache-Kapazität.",
+        "Ein erneuter Miss auf denselben Block ist nicht mehr compulsory, wenn der Block zuvor bereits geladen wurde."
+      ],
+      "related": [
+        "Cache-Miss",
+        "Conflict Miss",
+        "Capacity Miss",
+        "Speicherblock"
+      ],
+      "heading": null
+    },
+    {
+      "id": "era-13-k17",
+      "term": "Conflict Miss",
+      "kind": "definition",
+      "short": "Ein Conflict Miss entsteht, wenn ein Speicherblock wegen einer Zuordnungskollision fehlt, obwohl andere Cache-Zeilen verfügbar wären.",
+      "explanation": "Bei einem Direct-Mapped oder mengenassoziativen Cache können mehrere Blöcke dasselbe Set beziehungsweise dieselbe Zeile beanspruchen. Wenn sie sich dort gegenseitig verdrängen, können andere Sets oder Zeilen ungenutzt bleiben. Ein voll-assoziativer Cache gleicher Gesamtkapazität würde einen solchen Miss durch freie Platzwahl vermeiden.",
+      "example": "Zwei häufig verwendete Blöcke mit demselben Index wechseln sich in einer einzelnen Direct-Mapped-Cache-Zeile ab.",
+      "pitfalls": [
+        "Ein Conflict Miss entsteht durch die Zuordnungsbeschränkung, nicht allein dadurch, dass der Cache insgesamt zu klein ist.",
+        "Kann ein voll-assoziativer Cache gleicher Kapazität den Block ebenfalls nicht halten, spricht man von einem Capacity Miss."
+      ],
+      "related": [
+        "Cache-Miss",
+        "Direct-Mapped Cache",
+        "Mengenassoziativer Cache",
+        "Voll-assoziativer Cache",
+        "Capacity Miss"
+      ],
+      "heading": null
+    },
+    {
+      "id": "era-13-k18",
+      "term": "Capacity Miss",
+      "kind": "definition",
+      "short": "Ein Capacity Miss entsteht, wenn die Gesamtkapazität des Caches für das Zugriffsmuster nicht ausreicht, um die benötigten Speicherblöcke zu halten.",
+      "explanation": "Ein solcher Miss würde auch in einem voll-assoziativen Cache gleicher Gesamtkapazität auftreten, weil selbst die freie Platzwahl nicht genügend Speicher bereitstellt. Werden mehr relevante Blöcke benötigt, als der Cache aufnehmen kann, verdrängen sie einander. Capacity Misses unterscheiden sich damit von Misses, die nur durch Zuordnungskonflikte entstehen.",
+      "example": "Ist der aktive Arbeitsbereich größer als der Cache, können wiederholt benötigte Blöcke verdrängt werden, bevor sie erneut gebraucht werden.",
+      "pitfalls": [
+        "Ein Capacity Miss kann auch in einem voll-assoziativen Cache auftreten.",
+        "Der Begriff besagt nicht, dass jeder einzelne Zugriff misslingt, sondern dass die Kapazität für das Zugriffsmuster nicht reicht."
+      ],
+      "related": [
+        "Cache-Miss",
+        "Voll-assoziativer Cache",
+        "Conflict Miss",
+        "Compulsory Miss"
+      ],
+      "heading": null
+    },
+    {
+      "id": "era-13-k19",
+      "term": "Cache-Ersetzungsstrategie",
+      "kind": "method",
+      "short": "Eine Cache-Ersetzungsstrategie wählt eine belegte Cache-Zeile aus, wenn ein neuer Block geladen werden muss und kein geeigneter Platz frei ist.",
+      "explanation": "Welche Zeile als Opfer infrage kommt, hängt von der Organisation des Caches ab: In einem mengenassoziativen Cache ist es eine Zeile des ausgewählten Sets, in einem voll-assoziativen Cache kann es jede Zeile sein. Die Strategie kann beispielsweise Nutzungszeitpunkte oder Zugriffshäufigkeiten berücksichtigen. Sie wird nur benötigt, wenn kein geeigneter freier Platz vorhanden ist.",
+      "example": "In einem vollen 2-way-Set wählt LRU die Zeile aus, die am längsten nicht verwendet wurde.",
+      "pitfalls": [
+        "Die Strategie wählt nur unter den zulässigen Plätzen des Caches oder Sets.",
+        "Ein Direct-Mapped Cache hat keine Auswahl zwischen mehreren möglichen Zeilen für einen Block."
+      ],
+      "related": [
+        "Direct-Mapped Cache",
+        "Voll-assoziativer Cache",
+        "Mengenassoziativer Cache",
+        "LRU (Least Recently Used)",
+        "LFU (Least Frequently Used)"
+      ],
+      "heading": null
+    },
+    {
+      "id": "era-13-k20",
+      "term": "LRU (Least Recently Used)",
+      "kind": "method",
+      "short": "LRU verdrängt die Cache-Zeile, deren letzter Zugriff am längsten zurückliegt.",
+      "explanation": "Die Strategie ordnet Zeilen nach dem Zeitpunkt ihrer letzten Verwendung. Wenn ein neuer Block in ein volles Set oder einen vollen Cache geladen werden muss, wird die am längsten nicht verwendete zulässige Zeile ersetzt. LRU nutzt die Annahme zeitlicher Lokalität: Kürzlich verwendete Daten werden möglicherweise bald wieder gebraucht.",
+      "example": "Wurde Zeile A vor 20 Zugriffen und Zeile B vor 3 Zugriffen zuletzt verwendet, verdrängt LRU unter diesen beiden Zeilen A.",
+      "pitfalls": [
+        "LRU berücksichtigt den letzten Zugriff, nicht die Gesamtzahl aller Zugriffe.",
+        "Exakte LRU-Verwaltung kann Hardwareaufwand verursachen; praktische Caches können sie vereinfachen oder annähern."
+      ],
+      "related": [
+        "Zeitliche Lokalität",
+        "Cache-Ersetzungsstrategie",
+        "LFU (Least Frequently Used)"
+      ],
+      "heading": null
+    },
+    {
+      "id": "era-13-k21",
+      "term": "LFU (Least Frequently Used)",
+      "kind": "method",
+      "short": "LFU verdrängt die Cache-Zeile mit der geringsten Zugriffshäufigkeit.",
+      "explanation": "Für jede zulässige Zeile wird gezählt oder angenähert, wie oft sie verwendet wurde. Wenn ein Platz gebraucht wird, wählt LFU die Zeile mit den wenigsten Zugriffen. Anders als LRU richtet sich LFU nach der Häufigkeit und nicht danach, wie lange der letzte Zugriff zurückliegt.",
+      "example": "Hat Zeile A 2 Zugriffe und Zeile B 15 Zugriffe registriert, würde LFU unter diesen beiden Zeilen A verdrängen.",
+      "pitfalls": [
+        "Eine häufig verwendete Zeile kann bei LFU lange im Cache bleiben, auch wenn ihre Zugriffe schon weit zurückliegen.",
+        "Die Zugriffszahlen müssen erfasst oder angenähert werden und können zusätzlichen Verwaltungsaufwand erzeugen."
+      ],
+      "related": [
+        "Cache-Ersetzungsstrategie",
+        "LRU (Least Recently Used)"
+      ],
+      "heading": null
+    },
+    {
+      "id": "era-13-k22",
+      "term": "Write-Through",
+      "kind": "concept",
+      "short": "Bei Write-Through wird ein Schreibzugriff im Cache sofort auch an die nachgeordnete Speicherebene weitergegeben.",
+      "explanation": "Bei einem Schreibtreffer werden die Daten in der Cache-Zeile aktualisiert und die Änderung zugleich an die nächste Speicherebene geschrieben. So bleibt diese Ebene zeitnah mit dem Cache synchron. Die zusätzliche Weitergabe kann mehr Speicherverkehr verursachen als Write-Back.",
+      "example": "Schreibt die CPU den Wert 7 in eine gecachte Variable, wird der neue Wert auch sofort an die nachgeordnete Speicherebene weitergegeben.",
+      "pitfalls": [
+        "Write-Through beschreibt, wann eine Änderung weitergeschrieben wird; es legt nicht fest, ob eine Zeile bei einem Schreib-Miss in den Cache geladen wird.",
+        "Die genaue Behandlung eines Schreib-Misses hängt zusätzlich von der Schreib-Allokationsstrategie ab."
+      ],
+      "related": [
+        "Write-Back",
+        "Write-Allocate",
+        "No-Write-Allocate"
+      ],
+      "heading": null
+    },
+    {
+      "id": "era-13-k23",
+      "term": "Write-Back",
+      "kind": "concept",
+      "short": "Bei Write-Back wird eine Änderung zunächst nur im Cache gespeichert und erst später an die nachgeordnete Speicherebene geschrieben.",
+      "explanation": "Nach einem Schreibtreffer enthält die Cache-Zeile zunächst den neuen Wert, während die nachgeordnete Ebene noch den alten Stand haben kann. Der Cache muss die geänderte Zeile kennzeichnen, zum Beispiel mit einem Dirty-Bit. Wird die geänderte Zeile verdrängt, werden ihre Daten zurückgeschrieben.",
+      "example": "Eine CPU ändert einen Wert mehrfach in derselben Cache-Zeile; die Zeile kann erst beim Verdrängen an die nächste Speicherebene zurückgeschrieben werden.",
+      "pitfalls": [
+        "Bei Write-Back ist die nachgeordnete Speicherebene zwischenzeitlich möglicherweise nicht aktuell.",
+        "Write-Back sagt nicht aus, ob ein Block bei einem Schreib-Miss in den Cache geladen wird."
+      ],
+      "related": [
+        "Dirty-Bit",
+        "Write-Through",
+        "Write-Allocate",
+        "No-Write-Allocate",
+        "Cache-Ersetzungsstrategie"
+      ],
+      "heading": null
+    },
+    {
+      "id": "era-13-k24",
+      "term": "Dirty-Bit",
+      "kind": "notation",
+      "short": "Das Dirty-Bit kennzeichnet, ob eine Cache-Zeile seit dem Laden verändert wurde.",
+      "explanation": "Ein gesetztes Dirty-Bit zeigt an, dass die im Cache gespeicherten Daten von der nachgeordneten Speicherebene abweichen können. Bei Write-Back muss eine solche Zeile vor oder beim Verdrängen zurückgeschrieben werden. Ist das Bit nicht gesetzt, kann die Zeile ohne Rückschreiben ersetzt werden.",
+      "example": "Nach einem Schreibtreffer in einer Write-Back-Zeile wird ihr Dirty-Bit gesetzt; nach dem Rückschreiben kann es wieder gelöscht werden.",
+      "pitfalls": [
+        "Das Dirty-Bit sagt nicht, welcher Bytebereich geändert wurde, sondern nur, dass die Zeile geändert ist.",
+        "Write-Through benötigt für die unmittelbare Weitergabe keine Dirty-Markierung wie Write-Back."
+      ],
+      "related": [
+        "Write-Back",
+        "Cache-Zeile",
+        "Cache-Ersetzungsstrategie"
+      ],
+      "heading": null
+    },
+    {
+      "id": "era-13-k25",
+      "term": "Write-Allocate",
+      "kind": "concept",
+      "short": "Bei Write-Allocate wird die betroffene Cache-Zeile bei einem Schreib-Miss zunächst in den Cache geladen.",
+      "explanation": "Nach dem Nachladen kann der Schreibzugriff die Zeile im Cache ändern. Das ist sinnvoll, wenn auf denselben Block wahrscheinlich weitere Zugriffe folgen, weil diese dann einen Treffer erzielen können. Write-Allocate legt fest, was bei einem Schreib-Miss geschieht, und ist von Write-Through oder Write-Back unabhängig.",
+      "example": "Trifft ein Schreibzugriff einen noch nicht gecachten Block, wird dieser Block geladen und anschließend die gewünschte Position in der Cache-Zeile geändert.",
+      "pitfalls": [
+        "Write-Allocate ist eine Regel für Schreib-Misses, keine Regel für den Zeitpunkt des Rückschreibens.",
+        "Die Zeile wird als ganzer Block geladen, auch wenn nur ein Teil davon geschrieben werden soll."
+      ],
+      "related": [
+        "No-Write-Allocate",
+        "Write-Through",
+        "Write-Back",
+        "Cache-Miss",
+        "Cache-Zeile"
+      ],
+      "heading": null
+    },
+    {
+      "id": "era-13-k26",
+      "term": "No-Write-Allocate",
+      "kind": "concept",
+      "short": "Bei No-Write-Allocate wird eine Zeile bei einem Schreib-Miss nicht in den Cache geladen.",
+      "explanation": "Der Schreibzugriff wird stattdessen an die nachgeordnete Speicherebene weitergegeben, ohne dafür den betreffenden Speicherblock im Cache anzulegen. Bereits im Cache vorhandene Zeilen können weiterhin bei einem Schreibtreffer aktualisiert werden. Diese Regel verhindert, dass ein einmaliger Schreibzugriff einen Cache-Platz belegt.",
+      "example": "Bei einem Schreib-Miss wird ein Wert direkt an die nachgeordnete Ebene geschrieben; der Block bleibt zunächst außerhalb des Caches.",
+      "pitfalls": [
+        "No-Write-Allocate bedeutet nicht, dass Schreibzugriffe auf bereits vorhandene Cache-Zeilen den Cache ignorieren.",
+        "Die Strategie entscheidet nicht allein, ob Schreibtreffer Write-Through oder Write-Back verwenden."
+      ],
+      "related": [
+        "Write-Allocate",
+        "Write-Through",
+        "Write-Back",
+        "Cache-Miss"
+      ],
+      "heading": null
+    },
+    {
+      "id": "era-13-k27",
+      "term": "Cache-Hierarchie",
+      "kind": "concept",
+      "short": "Eine Cache-Hierarchie ordnet mehrere Cache-Level nach Größe und Nähe zur CPU an.",
+      "explanation": "L1 ist typischerweise kleiner und näher am Kern als L2 oder L3; größere oder langsamere Level können Daten bereithalten, die in einem näheren Level fehlen. Fehlen angeforderte Daten in einem Level, kann die Suche in einer nachgeordneten Ebene fortgesetzt und eine Cache-Zeile von dort geladen werden. Die konkrete Organisation und gemeinsame Nutzung der Level hängt von der CPU ab.",
+      "example": "Ein Zugriff kann zuerst im L1-Cache gesucht werden und bei einem Miss anschließend im L2-Cache.",
+      "pitfalls": [
+        "Die Bezeichnungen L1, L2 und L3 legen nicht für jede CPU dieselbe Größe oder gemeinsame Nutzung fest.",
+        "Ein Cache-Level ist nicht automatisch inklusiv oder exklusiv."
+      ],
+      "related": [
+        "Inklusive Cache-Hierarchie",
+        "Exklusive Cache-Hierarchie",
+        "Cache-Zeile"
+      ],
+      "heading": null
+    },
+    {
+      "id": "era-13-k28",
+      "term": "Inklusive Cache-Hierarchie",
+      "kind": "definition",
+      "short": "Eine Cache-Hierarchie ist inklusiv, wenn jeder Block eines kleineren Caches auch im darunterliegenden größeren Cache enthalten ist.",
+      "explanation": "Enthält beispielsweise ein kleinerer Cache einen Block, muss eine Kopie dieses Blocks auch im nächstgrößeren Cache-Level liegen. Der größere Cache kann zusätzlich weitere Blöcke halten. Wird ein Block aus dem größeren Level entfernt, kann das deshalb auch Auswirkungen auf Kopien in kleineren Leveln haben.",
+      "example": "Liegt Block A im L1-Cache, ist er bei einer inklusiven L1/L2-Hierarchie ebenfalls im L2-Cache vorhanden.",
+      "pitfalls": [
+        "Inklusivität bedeutet, dass Daten in mehreren Cache-Leveln als Kopie vorkommen können.",
+        "Die Aussage gilt für die betrachteten Cache-Level und besagt nicht, dass jeder Cache-Block im Hauptspeicher liegt."
+      ],
+      "related": [
+        "Cache-Hierarchie",
+        "Exklusive Cache-Hierarchie",
+        "Cache-Zeile"
+      ],
+      "heading": null
+    },
+    {
+      "id": "era-13-k29",
+      "term": "Exklusive Cache-Hierarchie",
+      "kind": "definition",
+      "short": "Eine Cache-Hierarchie ist exklusiv, wenn ein Speicherblock höchstens einmal als Kopie über die betrachteten Cache-Level hinweg vorhanden ist.",
+      "explanation": "Ein Block in einem näheren Level liegt dann nicht zusätzlich als Kopie in den anderen betrachteten Cache-Leveln. Beim Verschieben zwischen Leveln kann die nutzbare Zahl unterschiedlicher Cache-Blöcke daher von der Summe der Kapazitäten der Level abhängen. Das kann die insgesamt gehaltene Datenmenge erhöhen, erfordert aber eine passende Verwaltung beim Austausch zwischen den Leveln.",
+      "example": "Ist Block A im L1-Cache, liegt er in einer exklusiven L1/L2-Hierarchie nicht gleichzeitig als Kopie im L2-Cache.",
+      "pitfalls": [
+        "Exklusiv bedeutet nicht, dass ein Speicherblock nur eine Kopie im gesamten System oder in allen Prozessorkernen haben darf.",
+        "Die Summe der Cachegrößen ist eine Obergrenze für die gemeinsam gespeicherte Nutzdatenmenge, nicht zwingend die tatsächlich erreichbare Kapazität."
+      ],
+      "related": [
+        "Cache-Hierarchie",
+        "Inklusive Cache-Hierarchie",
+        "Cache-Zeile"
+      ],
+      "heading": null
+    },
+    {
+      "id": "era-13-k30",
+      "term": "Getrennte L1-Caches für Instruktionen und Daten",
+      "kind": "concept",
+      "short": "Bei getrennten L1-Caches werden Instruktionen und Daten in eigenen L1-Caches gespeichert.",
+      "explanation": "Ein Instruktionscache hält Befehle bereit, während ein Datencache Werte für Lese- und Schreibzugriffe verwaltet. So konkurrieren Instruktions- und Datenzugriffe nicht direkt um dieselben L1-Zeilen. Weitere Cache-Level können Instruktionen und Daten wieder gemeinsam verwalten; die genaue Aufteilung hängt von der CPU ab.",
+      "example": "Während ein Kern eine Instruktion aus dem L1-Instruktionscache holt, kann er Daten aus dem L1-Datencache lesen.",
+      "pitfalls": [
+        "Getrennte L1-Caches bedeuten nicht, dass Instruktionen und Daten in getrennten Hauptspeichern liegen.",
+        "Die Aufteilung betrifft die Cache-Organisation; sie ändert nicht, welche Adresse ein Befehl oder ein Datenzugriff verwendet."
+      ],
+      "related": [
+        "Cache-Hierarchie",
+        "Cache-Zeile"
+      ],
+      "heading": null
+    }
+  ],
+  "generator": {
+    "model": "gpt-6-luna",
+    "effort": "xhigh",
+    "promptVersion": "k1",
+    "generatedAt": "2026-11-10T23:25:18.087Z"
+  }
+}
