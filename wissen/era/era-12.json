@@ -1,0 +1,621 @@
+{
+  "schemaVersion": 1,
+  "unitId": "era-12",
+  "module": "ERA",
+  "unitNumber": 12,
+  "unitTitle": "Virtueller Speicher, Caches und Speicherhierarchie",
+  "sourceSha": "d3bebc3693d5aad04b01439898f050c1e3d48154896f1fa4dda98ac88a0abe5b",
+  "overview": "Die Unit erklärt, wie die MMU virtuelle Adressen mithilfe von Seitentabellen und TLBs übersetzt und wie das Betriebssystem Seiten bei Bedarf bereitstellt oder auslagert. Anschließend behandelt sie Caches, Lokalität, Cache-Adresszerlegung, Organisationsformen, Miss-Arten sowie Ersetzungs- und Schreibstrategien. Die Speicherhierarchie verbindet diese Konzepte und zeigt, wie Zugriffsmuster und Working-Set-Größe die Leistung beeinflussen.",
+  "entries": [
+    {
+      "id": "era-12-k01",
+      "term": "Virtueller Speicher",
+      "kind": "concept",
+      "short": "Virtueller Speicher gibt jedem Prozess einen eigenen Adressraum, dessen Seiten auf physischen Speicher abgebildet werden können.",
+      "explanation": "Ein Prozess verwendet virtuelle Adressen, die die MMU mithilfe von Seitentabellen in physische Adressen übersetzt. Mehrere Prozesse können dieselbe virtuelle Adresse verwenden, die jeweils auf eine andere physische Kachel zeigt. Eine virtuelle Seite kann auch vorübergehend ohne Abbildung im RAM sein.",
+      "example": "Die virtuelle Adresse 0x1000 kann in zwei Prozessen auf unterschiedliche physische Kacheln zeigen.",
+      "pitfalls": [
+        "Eine virtuelle Adresse ist nicht automatisch eine Adresse im RAM."
+      ],
+      "related": [
+        "MMU (Memory Management Unit)",
+        "Virtuelle Seite und physische Kachel",
+        "Seitentabelleneintrag"
+      ],
+      "heading": "1. Virtuelle Adressen und Seitentabellen"
+    },
+    {
+      "id": "era-12-k02",
+      "term": "Virtuelle Seite und physische Kachel",
+      "kind": "definition",
+      "short": "Eine virtuelle Seite und eine physische Kachel sind gleich große Bereiche des virtuellen beziehungsweise physischen Adressraums.",
+      "explanation": "Bei einer Übersetzung wird einer virtuellen Seite eine physische Kachel zugeordnet. Die Seitengröße bestimmt, wie viele untere Adressbits den Offset innerhalb der Seite bilden. Bei 4-KiB-Seiten sind dies 12 Bit, weil $4\\,\\mathrm{KiB}=2^{12}\\,\\mathrm{Byte}$.",
+      "example": "Die virtuelle Seite wird durch ihre virtuelle Seitennummer bezeichnet, die physische Kachel durch ihre physische Seitennummer.",
+      "pitfalls": [
+        "Eine virtuelle Seite und die ihr zugeordnete physische Kachel haben dieselbe Größe, aber nicht dieselbe Adresse."
+      ],
+      "related": [
+        "Virtueller Speicher",
+        "MMU (Memory Management Unit)",
+        "Seitentabelleneintrag"
+      ],
+      "heading": "1. Virtuelle Adressen und Seitentabellen"
+    },
+    {
+      "id": "era-12-k03",
+      "term": "MMU (Memory Management Unit)",
+      "kind": "definition",
+      "short": "Die MMU übersetzt virtuelle Adressen mithilfe von Seitentabellen in physische Adressen und prüft Zugriffsrechte.",
+      "explanation": "Die MMU verwendet die virtuelle Seitennummer, um die zugehörige physische Seitennummer zu ermitteln. Der Offset innerhalb der Seite bleibt unverändert. Die physische Adresse ergibt sich aus der physischen Seitenbasis plus Offset; ein fehlender oder unzulässiger Eintrag führt zu einer Exception.",
+      "example": "Bei 4-KiB-Seiten bleiben die unteren 12 Offsetbits bei der Übersetzung gleich.",
+      "pitfalls": [
+        "Zur physischen Seitenbasis wird der Offset addiert, nicht die unverschobene Seitennummer."
+      ],
+      "related": [
+        "Virtueller Speicher",
+        "Seitentabelleneintrag",
+        "TLB (Translation Look-Aside Buffer)"
+      ],
+      "heading": "1. Virtuelle Adressen und Seitentabellen"
+    },
+    {
+      "id": "era-12-k04",
+      "term": "Seitentabelleneintrag",
+      "kind": "definition",
+      "short": "Ein Seitentabelleneintrag beschreibt eine Seitenabbildung oder einen Verweis auf eine weitere Tabellenstufe sowie zugehörige Rechte und Statusinformationen.",
+      "explanation": "Seitentabellen liegen im Hauptspeicher; ein Spezialregister enthält den Basiszeiger auf die Wurzeltabelle des aktiven Adressraums. Ein Eintrag kann auf eine weitere Tabelle verweisen oder als Leaf eine Datenseite abbilden. Gültigkeit, Zugriffsrechte und Statusinformationen hängen vom konkreten Format ab.",
+      "example": "Ein gültiger Sv32-Eintrag mit $X=W=R=0$ kann auf die nächste Tabellenstufe verweisen.",
+      "pitfalls": [
+        "Ein gültiger Eintrag bildet nicht zwingend bereits eine Datenseite ab.",
+        "Die allgemeine Beschreibung von Cache-Eigenschaften ist kein zusätzliches Bit im Sv32-Format."
+      ],
+      "related": [
+        "Virtueller Speicher",
+        "Hierarchische Seitentabellen",
+        "Sv32-Seitentabelleneintrag"
+      ],
+      "heading": "1. Virtuelle Adressen und Seitentabellen"
+    },
+    {
+      "id": "era-12-k05",
+      "term": "Hierarchische Seitentabellen",
+      "kind": "concept",
+      "short": "Hierarchische Seitentabellen teilen die Adressübersetzung in Stufen und benötigen Untertabellen nur für verwendete Bereiche.",
+      "explanation": "Eine vollständige einstufige Sv32-Tabelle hätte $2^{20}$ Einträge und bei vier Byte pro Eintrag eine Größe von 4 MiB. In einer mehrstufigen Tabelle führt ein Eintrag entweder zu einer Untertabelle oder bildet als Leaf eine Seite ab. Für ungenutzte Bereiche muss keine Untertabelle angelegt werden, und die Adressbits wählen die Einträge direkt aus.",
+      "example": "Bei einer zweistufigen Tabelle verweist das Page Directory bei Bedarf auf eine Page Table.",
+      "pitfalls": [
+        "Die Tabellen bilden eine Baumstruktur; die Einträge werden nicht linear durchsucht."
+      ],
+      "related": [
+        "Seitentabelleneintrag",
+        "Sv32",
+        "Large Pages"
+      ],
+      "heading": "2. Warum hierarchische Seitentabellen?"
+    },
+    {
+      "id": "era-12-k06",
+      "term": "Page Directory und Page Table",
+      "kind": "notation",
+      "short": "Page Directory und Page Table bezeichnen in der zweistufigen Darstellung die erste und zweite Tabelle einer Seitentabellenhierarchie.",
+      "explanation": "Das Spezialregister verweist auf das Page Directory, dessen Einträge auf Page Tables zeigen können. Ein Eintrag der zweiten Stufe kann als Leaf eine physische Kachel und Rechte enthalten. Die Begriffe stammen aus der in der Mitschrift verwendeten Terminologie.",
+      "example": "Ein Eintrag des Page Directory kann auf eine Page Table für einen Teil des virtuellen Adressraums verweisen.",
+      "pitfalls": [
+        "Ein Verweis auf eine Page Table ist nicht selbst die Abbildung einer Datenseite."
+      ],
+      "related": [
+        "Hierarchische Seitentabellen",
+        "Seitentabelleneintrag",
+        "Seitentabellenübersetzung (Page Walk)"
+      ],
+      "heading": "2. Warum hierarchische Seitentabellen?"
+    },
+    {
+      "id": "era-12-k07",
+      "term": "Large Pages",
+      "kind": "concept",
+      "short": "Large Pages bilden mit einem Leaf-Eintrag einen größeren zusammenhängenden Adressbereich als eine normale Seite ab.",
+      "explanation": "Ein gültiger Leaf-Eintrag kann bereits auf einer oberen Tabellenstufe eine große Seite abbilden. Bei Sv32 entspricht ein Leaf der ersten Stufe einem Bereich von 4 MiB. Größere Seiten können außerdem die Zahl benötigter Übersetzungseinträge verringern.",
+      "example": "Ein Sv32-Leaf auf der ersten Stufe kann 4 MiB statt 4 KiB abbilden.",
+      "pitfalls": [
+        "Ein gültiger Eintrag ohne Lese-, Schreib- oder Ausführungsrecht ist ein Tabellenverweis und kein Leaf."
+      ],
+      "related": [
+        "Hierarchische Seitentabellen",
+        "Sv32",
+        "TLB (Translation Look-Aside Buffer)"
+      ],
+      "heading": "3. Sv32 im Detail"
+    },
+    {
+      "id": "era-12-k08",
+      "term": "Sv32",
+      "kind": "notation",
+      "short": "Sv32 ist ein zweistufiger RISC-V-Übersetzungsmodus mit 32 virtuellen Adressbits und 4-KiB-Seiten.",
+      "explanation": "Bei normalen 4-KiB-Seiten wird die virtuelle Adresse in `VPN[1]` mit 10 Bit, `VPN[0]` mit 10 Bit und den 12-Bit-Offset zerlegt. Jede Tabellenstufe enthält $2^{10}=1024$ Einträge. Ein Sv32-Eintrag ist 4 Byte groß, sodass eine Tabelle 4 KiB belegt. Das dargestellte Format enthält 22 Bit physische Seitennummer und 12 Offsetbits, also bis zu 34 physische Adressbits.",
+      "example": "Die Adressaufteilung lautet $10+10+12=32$ Bit.",
+      "pitfalls": [
+        "Sv32 benennt die Breite der virtuellen Adresse, nicht die physische Adressbreite.",
+        "Die 1024 Einträge pro Tabelle sind keine Seitengröße von 1024 Byte."
+      ],
+      "related": [
+        "Sv32-Seitentabelleneintrag",
+        "Seitentabellenübersetzung (Page Walk)",
+        "Hierarchische Seitentabellen"
+      ],
+      "heading": "3. Sv32 im Detail"
+    },
+    {
+      "id": "era-12-k09",
+      "term": "Sv32-Seitentabelleneintrag",
+      "kind": "definition",
+      "short": "Ein Sv32-Seitentabelleneintrag ist 32 Bit breit und enthält eine physische Seitennummer, Statusbits und Zugriffsrechte.",
+      "explanation": "Die Bits 31–20 enthalten `PPN[1]`, Bits 19–10 `PPN[0]` und Bits 9–8 `RSW`. Die Flags von Bit 7 bis Bit 0 sind `D`, `A`, `G`, `U`, `X`, `W`, `R` und `V`. Bei gültigem Eintrag bedeutet $X=W=R=0$ einen Tabellenverweis; ein Leaf bildet eine Seite ab, wobei Schreiben ohne Lesen reserviert ist.",
+      "example": "`V=1, X=0, W=0, R=0` kann einen gültigen Verweis auf eine Page Table bezeichnen.",
+      "pitfalls": [
+        "`PPN` ist die physische Seitennummer, keine vollständige Byteadresse.",
+        "`V=1` allein bedeutet nicht, dass der Eintrag bereits eine Datenseite abbildet."
+      ],
+      "related": [
+        "Seitentabelleneintrag",
+        "Sv32",
+        "Zugriffsschutz"
+      ],
+      "heading": "3. Sv32 im Detail"
+    },
+    {
+      "id": "era-12-k10",
+      "term": "Seitentabellenübersetzung (Page Walk)",
+      "kind": "method",
+      "short": "Ein Page Walk liest anhand der virtuellen Adressindizes die nötigen Tabelleneinträge und bildet daraus eine physische Adresse.",
+      "explanation": "Bei Sv32 wird die Adresse zuerst in `VPN[1]`, `VPN[0]` und den Offset zerlegt. Der Basiszeiger und `VPN[1]` bestimmen den Eintrag der ersten Tabelle; ein ungültiger Eintrag führt zu einer Exception, ein Tabellenverweis führt zur nächsten Stufe und ein Leaf kann eine große Seite abbilden. Bei einer normalen Seite wählt `VPN[0]` den Eintrag der zweiten Tabelle. Die physische Adresse entsteht aus Seitenbasis und unverändertem Offset; die Adresse eines 4-Byte-Eintrags ist `Tabellenbasis + 4 × Index`.",
+      "example": "Ein Leaf der ersten Sv32-Stufe kann direkt eine 4-MiB-Seite abbilden.",
+      "pitfalls": [
+        "Ein ungültiger Eintrag ist kein gültiger Tabellenverweis.",
+        "Zur physischen Seitenbasis wird der Offset addiert."
+      ],
+      "related": [
+        "Sv32",
+        "Seitentabelleneintrag",
+        "Page Fault (Seitenfehler)"
+      ],
+      "heading": "3. Sv32 im Detail"
+    },
+    {
+      "id": "era-12-k11",
+      "term": "Sv39",
+      "kind": "notation",
+      "short": "Sv39 ist ein dreistufiger RISC-V-Übersetzungsmodus mit 39 relevanten virtuellen Adressbits und 4-KiB-Seiten.",
+      "explanation": "Die virtuelle Adresse besteht aus drei 9-Bit-Indizes und einem 12-Bit-Offset. Jede Tabelle enthält 512 Einträge à 64 Bit und belegt damit 4 KiB. Das dargestellte physische Format reicht bis zu 56 Bit: 44 Bit Seitennummer plus 12 Bit Offset. Der virtuelle Adressraum umfasst theoretisch $2^{39}$ Byte und der physisch darstellbare Bereich bis zu $2^{56}$ Byte.",
+      "example": "$2^{39}$ Byte entsprechen 512 GiB; $2^{56}$ Byte entsprechen 64 PiB.",
+      "pitfalls": [
+        "Sv39 bezeichnet relevante virtuelle Adressbits, nicht die Menge installierten RAMs.",
+        "Eine 64-Bit-Registerbreite macht nicht jede 64-Bit-Adresse zu einer gültigen virtuellen Adresse."
+      ],
+      "related": [
+        "Sv48 und Sv57",
+        "Hierarchische Seitentabellen",
+        "Seitentabelleneintrag"
+      ],
+      "heading": "4. Sv39 und weitere Modi"
+    },
+    {
+      "id": "era-12-k12",
+      "term": "Sv48 und Sv57",
+      "kind": "notation",
+      "short": "Sv48 und Sv57 sind RV64-Übersetzungsmodi mit vier beziehungsweise fünf Tabellenstufen.",
+      "explanation": "Bei 4-KiB-Seiten hat jede zusätzliche Tabellenstufe neun Indexbits. Sv48 verwendet vier 9-Bit-Indizes und einen 12-Bit-Offset; Sv57 verwendet fünf 9-Bit-Indizes und denselben Offset. Jede Tabelle enthält 512 Einträge à 8 Byte.",
+      "example": "Sv48 verwendet $9+9+9+9+12=48$ relevante virtuelle Adressbits.",
+      "pitfalls": [
+        "Die zusätzliche Adressbreite vergrößert nicht die 4-KiB-Seite; der Offset bleibt 12 Bit."
+      ],
+      "related": [
+        "Sv39",
+        "Hierarchische Seitentabellen"
+      ],
+      "heading": "4. Sv39 und weitere Modi"
+    },
+    {
+      "id": "era-12-k13",
+      "term": "Stack und Heap im virtuellen Adressraum",
+      "kind": "concept",
+      "short": "Stack und Heap sind Bereiche desselben virtuellen Adressraums, die im gezeigten Layout in entgegengesetzte Richtungen wachsen.",
+      "explanation": "Im Layout liegen Programmcode und statische Daten bei niedrigen Adressen, der Heap wächst zu höheren und der Stack zu niedrigeren Adressen. Zwischen ihnen liegt freier virtueller Bereich. Eine große virtuelle Adressbreite verpflichtet das System nicht dazu, den gesamten Bereich mit physischem RAM zu füllen.",
+      "example": "Ein Heap-Bereich kann virtuell reserviert sein, während physische Kacheln erst beim Zugriff zugewiesen werden.",
+      "pitfalls": [
+        "Die Trennung von Stack und Heap ist nicht dasselbe wie die Trennung von Instruktions- und Datenspeicher in einer Harvard-Architektur."
+      ],
+      "related": [
+        "Virtueller Speicher",
+        "Lazy Allocation",
+        "Paging / Swapping"
+      ],
+      "heading": "5. Stack, Heap und die Größe des Adressraums"
+    },
+    {
+      "id": "era-12-k14",
+      "term": "TLB (Translation Look-Aside Buffer)",
+      "kind": "definition",
+      "short": "Ein TLB ist ein kleiner schneller Speicher für kürzlich verwendete virtuelle-zu-physische Adressübersetzungen.",
+      "explanation": "Bei einem TLB Hit findet die MMU die Übersetzung im TLB. Bei einem TLB Miss fehlt sie dort, sodass die Seitentabellen ausgewertet werden müssen. Der TLB speichert Übersetzungen und nicht beliebige Programmdaten. Bei geänderten Abbildungen müssen betroffene alte Übersetzungen korrekt invalidiert oder einem Adressraum zugeordnet werden.",
+      "example": "Eine Seite kann gültig im RAM liegen, obwohl ihre Übersetzung nicht im TLB steht; das ist ein TLB Miss, aber nicht automatisch ein Page Fault.",
+      "pitfalls": [
+        "Ein TLB Miss ist nicht automatisch ein Page Fault."
+      ],
+      "related": [
+        "MMU (Memory Management Unit)",
+        "Page Fault (Seitenfehler)",
+        "Seitentabellenübersetzung (Page Walk)"
+      ],
+      "heading": "6. TLB: Übersetzungen schnell wiederfinden"
+    },
+    {
+      "id": "era-12-k15",
+      "term": "Page Fault (Seitenfehler)",
+      "kind": "definition",
+      "short": "Ein Page Fault ist eine synchrone Exception, die auftritt, wenn ein Speicherzugriff keine gültige und erlaubte Abbildung verwenden kann.",
+      "explanation": "Eine benötigte Abbildung kann fehlen, weil eine Seite noch nicht physisch zugewiesen oder ausgelagert ist. Das Betriebssystem kann die Abbildung herstellen und den Zugriff wiederholen lassen. Ein Page Fault kann auch einen unzulässigen Zugriff anzeigen, der nicht durch Zuweisung behoben werden darf.",
+      "example": "Beim ersten Zugriff auf eine Lazy-Allocation-Seite kann das Betriebssystem eine Kachel zuweisen und die Seitentabelle aktualisieren.",
+      "pitfalls": [
+        "Nicht jeder Page Fault ist ein Schutzfehler.",
+        "Ein TLB Miss allein ist kein Page Fault."
+      ],
+      "related": [
+        "TLB (Translation Look-Aside Buffer)",
+        "Lazy Allocation",
+        "Zugriffsschutz"
+      ],
+      "heading": "7. Neue Speicherseiten: konservativ oder lazy? · Folie 14"
+    },
+    {
+      "id": "era-12-k16",
+      "term": "Lazy Allocation",
+      "kind": "concept",
+      "short": "Lazy Allocation weist einer virtuellen Seite erst beim tatsächlichen Zugriff eine physische Kachel zu.",
+      "explanation": "Das Betriebssystem kann virtuellen Speicher bereitstellen, ohne sofort den gesamten möglichen physischen Speicher zu belegen. Beim ersten Zugriff auf eine noch nicht abgebildete Seite entsteht üblicherweise ein synchroner Page Fault. Ist der Zugriff erlaubt und eine Kachel verfügbar, aktualisiert das Betriebssystem die Seitentabelle und lässt den Zugriff wiederholen.",
+      "example": "Ein Programm kann einen großen Heap-Bereich reservieren, obwohl es zunächst nur wenige Seiten davon verwendet.",
+      "pitfalls": [
+        "Virtuelle Reservierung garantiert nicht, dass später unbegrenzt physische Kacheln verfügbar sind."
+      ],
+      "related": [
+        "Virtueller Speicher",
+        "Page Fault (Seitenfehler)",
+        "Paging / Swapping"
+      ],
+      "heading": "7. Neue Speicherseiten: konservativ oder lazy? · Folie 14"
+    },
+    {
+      "id": "era-12-k17",
+      "term": "Paging / Swapping",
+      "kind": "method",
+      "short": "Paging lagert Seiten aus dem RAM in einen langsameren Hintergrundspeicher aus und lädt sie bei späterem Zugriff wieder ein.",
+      "explanation": "Wenn keine freie Kachel verfügbar ist, kann das Betriebssystem eine wenig verwendete Seite auswählen und ihren Inhalt im Hintergrundspeicher sichern. Die frei gewordene Kachel wird einer anderen Seite zugewiesen. Ein späterer Zugriff auf die ausgelagerte Seite löst eine Exception aus; die Seite wird zurückgeladen und neu abgebildet. Eine unveränderte, bereits gesicherte Seite muss nicht zwingend erneut geschrieben werden.",
+      "example": "Das Auslagern einer Seite B kann eine Kachel für eine neu benötigte Seite A freigeben.",
+      "pitfalls": [
+        "Auslagerung vergrößert den physischen RAM nicht und macht ihn nicht schneller.",
+        "Zugriffe auf ausgelagerte Seiten können erheblich langsamer sein als RAM-Zugriffe."
+      ],
+      "related": [
+        "Lazy Allocation",
+        "Page Fault (Seitenfehler)",
+        "Seitentabelleneintrag"
+      ],
+      "heading": "8. Paging / Swapping: Wenn keine physische Kachel frei ist · Folien 15–16"
+    },
+    {
+      "id": "era-12-k18",
+      "term": "Zugriffsschutz",
+      "kind": "concept",
+      "short": "Zugriffsschutz legt für Speicherseiten fest, ob sie gelesen, beschrieben oder ausgeführt werden dürfen.",
+      "explanation": "Seitentabelleneinträge können Lese-, Schreib- und Ausführungsrechte sowie den erlaubten Privilegierungsmodus festlegen. Die MMU prüft diese Rechte bei Speicherzugriffen. Ein Verstoß löst eine Exception aus, statt den unerlaubten Zugriff normal auszuführen.",
+      "example": "Eine nur lesbare Datenseite darf gelesen, aber nicht beschrieben werden.",
+      "pitfalls": [
+        "Ein gültiger Seitentabelleneintrag erlaubt nicht automatisch jede Zugriffsart."
+      ],
+      "related": [
+        "Sv32-Seitentabelleneintrag",
+        "Page Fault (Seitenfehler)",
+        "Seitentabelleneintrag"
+      ],
+      "heading": "8. Paging / Swapping: Wenn keine physische Kachel frei ist · Folien 15–16"
+    },
+    {
+      "id": "era-12-k19",
+      "term": "Cache und Memory Wall",
+      "kind": "concept",
+      "short": "Ein Cache ist ein kleiner schneller Zwischenspeicher, der die Geschwindigkeitslücke zwischen CPU und Hauptspeicher abfedert.",
+      "explanation": "Die CPU kann Daten oft schneller verarbeiten, als der Hauptspeicher sie bereitstellt. Wenn die CPU häufig auf den RAM warten muss, bleibt Rechenleistung ungenutzt; diese Lücke heißt Memory Wall. Ein Cache hält kürzlich verwendete Datenblöcke näher an der CPU bereit. Ein Scratchpad unterscheidet sich dadurch, dass Software seinen Inhalt gezielt verwaltet.",
+      "example": "Wiederholte Zugriffe auf denselben Cache-Block können nach dem ersten Laden aus dem Cache bedient werden.",
+      "pitfalls": [
+        "Bei einem Cache Miss muss der Block aus einer tieferen Speicherebene geholt werden."
+      ],
+      "related": [
+        "Scratchpad",
+        "Zeitliche und räumliche Lokalität",
+        "Cache Hit und Cache Miss",
+        "Speicherhierarchie"
+      ],
+      "heading": "9. Warum Caches? Die Memory Wall · Folien 18–21"
+    },
+    {
+      "id": "era-12-k20",
+      "term": "Scratchpad",
+      "kind": "definition",
+      "short": "Ein Scratchpad ist ein schneller Speicher, dessen Inhalt die Software gezielt verwaltet.",
+      "explanation": "Anders als einen Cache befüllt die Hardware einen Scratchpad nicht automatisch anhand des Zugriffsverhaltens. Die Software entscheidet, welche Daten dort liegen und wann sie übertragen werden. Dadurch kann der Zugriff planbar sein, die Verwaltung erfordert jedoch zusätzliche Arbeit.",
+      "example": null,
+      "pitfalls": [
+        "Ein Scratchpad wird nicht automatisch nach denselben Regeln wie ein Cache befüllt."
+      ],
+      "related": [
+        "Cache und Memory Wall"
+      ],
+      "heading": "9. Warum Caches? Die Memory Wall · Folien 18–21"
+    },
+    {
+      "id": "era-12-k21",
+      "term": "Zeitliche und räumliche Lokalität",
+      "kind": "concept",
+      "short": "Zeitliche Lokalität beschreibt die baldige Wiederverwendung kürzlich genutzter Daten, während räumliche Lokalität Zugriffe auf benachbarte Adressen beschreibt.",
+      "explanation": "Bei zeitlicher Lokalität greift ein Programm wahrscheinlich bald erneut auf dieselbe Adresse oder denselben Block zu. Bei räumlicher Lokalität werden nach einer Adresse oft nahegelegene Adressen verwendet. Caches laden deshalb typischerweise einen Block benachbarter Daten statt nur eines einzelnen Bytes.",
+      "example": "Wiederholtes Lesen von `array[0]` zeigt zeitliche Lokalität; Lesen von `array[0]`, `array[1]` und `array[2]` zeigt räumliche Lokalität.",
+      "pitfalls": [
+        "Zeitliche und räumliche Lokalität sind verschiedene Muster, können aber zugleich auftreten."
+      ],
+      "related": [
+        "Cache und Memory Wall",
+        "Cache Hit und Cache Miss",
+        "Stride und Working Set"
+      ],
+      "heading": "10. Lokalität · Folien 22–24"
+    },
+    {
+      "id": "era-12-k22",
+      "term": "Zeilen- und spaltenweiser Matrixzugriff",
+      "kind": "example",
+      "short": "Bei einer Matrix kann die Schleifenreihenfolge die Lokalität und Laufzeit ändern, obwohl dieselbe Rechnung ausgeführt wird.",
+      "explanation": "Bei zeilenweiser Speicherung liegen aufeinanderfolgende Elemente einer Zeile typischerweise nebeneinander im Speicher. Ein zeilenweiser Zugriff nutzt geladene Cache-Blöcke deshalb besser als ein spaltenweiser Zugriff mit größeren Sprüngen. Im Folienbeispiel mit $N=12{,}800$ dauerte der zeilenweise Zugriff 0,71 s und der spaltenweise 4,54 s. Diese Laufzeiten hängen von Rechner, Compiler und Speicherhierarchie ab.",
+      "example": "Für eine zeilenweise gespeicherte Matrix liegen `A[i][0]`, `A[i][1]` und `A[i][2]` typischerweise zusammenhängend.",
+      "pitfalls": [
+        "Gleiche Anzahl Rechenoperationen garantiert nicht gleiche Laufzeit.",
+        "Der Vergleich setzt gleiche Anfangswerte der Ergebnisdaten und die angenommene Matrixablage voraus."
+      ],
+      "related": [
+        "Zeitliche und räumliche Lokalität",
+        "Stride und Working Set",
+        "Cache Hit und Cache Miss"
+      ],
+      "heading": "10. Lokalität · Folien 22–24"
+    },
+    {
+      "id": "era-12-k23",
+      "term": "Cache Hit und Cache Miss",
+      "kind": "definition",
+      "short": "Ein Cache Hit findet den benötigten Datenblock im Cache, während bei einem Cache Miss der Block aus einer tieferen Speicherebene geholt werden muss.",
+      "explanation": "Bei einem Hit kann der Zugriff aus der schnellen Cache-Stufe bedient werden. Bei einem Miss wird der benötigte Block aus der nächsttieferen Ebene geladen; falls das Set voll ist, kann dabei ein anderer Block verdrängt werden. Bei 64 Byte pro Block und vier Byte pro Integer enthält der Block 16 Integer.",
+      "example": "Liegt `array[0]` am Anfang eines leeren 64-Byte-Blocks, kann der Zugriff darauf ein Miss sein und der Zugriff auf `array[1]` anschließend ein Hit.",
+      "pitfalls": [
+        "Ein Cache Miss bedeutet nicht, dass die Adresse ungültig ist."
+      ],
+      "related": [
+        "Cache und Memory Wall",
+        "Zeitliche und räumliche Lokalität",
+        "Cache-Adresszerlegung"
+      ],
+      "heading": "11. Cache Hit und Cache Miss · Folie 25"
+    },
+    {
+      "id": "era-12-k24",
+      "term": "Cache-Adresszerlegung",
+      "kind": "notation",
+      "short": "Die Cache-Adresszerlegung teilt eine Adresse in Tag, Index und Offset, um Set, Speicherblock und Position im Block zu bestimmen.",
+      "explanation": "Der Offset wählt eine Position innerhalb des Cache-Blocks. Der Index wählt das Set, in dem der gesuchte Block liegen darf. Der Tag unterscheidet innerhalb dieses Sets, welcher Speicherblock gespeichert ist. Bei $2^b$ Byte pro Block benötigt der Offset $b$ Bits; bei $2^s$ Sets benötigt der Index $s$ Bits.",
+      "example": "Bei 32-Bit-Adressen, 8 Byte pro Block und vier Sets entfallen 3 Bits auf den Offset, 2 auf den Index und 27 auf den Tag.",
+      "pitfalls": [
+        "Der Index bezeichnet ein Set und nicht zwingend eine einzelne Cache-Zeile."
+      ],
+      "related": [
+        "Cache-Organisation",
+        "Cache-Zugriffe berechnen",
+        "Cache Hit und Cache Miss"
+      ],
+      "heading": "12. Cache-Aufbau: Tag, Index und Offset · Folien 26–31"
+    },
+    {
+      "id": "era-12-k25",
+      "term": "Cache-Organisation",
+      "kind": "concept",
+      "short": "Die Cache-Organisation bestimmt, an welchen Stellen ein Speicherblock im Cache abgelegt werden darf.",
+      "explanation": "Bei einem Direct-Mapped Cache gehört jeder Speicherblock zu genau einer Cache-Zeile. Ein vollassoziativer Cache erlaubt jeden Block in jeder Zeile. Bei einem N-fach assoziativen Cache bestimmt der Index ein Set, und der Block darf dort in einer von N Zeilen liegen.",
+      "example": "Ein Cache mit acht Zeilen und Zweifachassoziativität hat vier Sets mit je zwei Zeilen.",
+      "pitfalls": [
+        "Bei N-facher Assoziativität bestimmt der Blockindex das Set; ein Block kann nicht in ein beliebiges Set gelegt werden."
+      ],
+      "related": [
+        "Cache-Adresszerlegung",
+        "Ersetzungsstrategien",
+        "Cache-Miss-Arten"
+      ],
+      "heading": "12. Cache-Aufbau: Tag, Index und Offset · Folien 26–31"
+    },
+    {
+      "id": "era-12-k26",
+      "term": "Cache-Zugriffe berechnen",
+      "kind": "method",
+      "short": "Für eine Cache-Zugriffsfolge bestimmst du pro Adresse Block, Offset, Set und Tag und aktualisierst anschließend den Zustand des Sets.",
+      "explanation": "Bei vier Sets und 8-Byte-Blöcken ist der Offset `Adresse mod 8`, die Blocknummer $\\lfloor\\text{Adresse}/8\\rfloor$, das Set `Blocknummer mod 4` und der Tag $\\lfloor\\text{Adresse}/32\\rfloor$. Ein gültiger passender Tag bedeutet Hit; andernfalls liegt ein Miss vor. Bei einem Miss wird eine freie Zeile belegt oder gemäß der Ersetzungsstrategie eine Zeile ersetzt.",
+      "example": "Für `0x100C` ergeben sich Blocknummer 513, Set 1, Offset 4 und Tag `0x80`.",
+      "pitfalls": [
+        "Freier Platz in einem anderen Set kann ein volles Set nicht entlasten.",
+        "Ohne Ersetzungsstrategie ist ein Miss nach voller Belegung nicht immer eindeutig vorherzusagen."
+      ],
+      "related": [
+        "Cache-Adresszerlegung",
+        "Cache-Organisation",
+        "Ersetzungsstrategien"
+      ],
+      "heading": "13. Cache-Zugriffe durchrechnen · Folien 29–63"
+    },
+    {
+      "id": "era-12-k27",
+      "term": "Cache-Miss-Arten",
+      "kind": "definition",
+      "short": "Compulsory, Conflict und Capacity Miss unterscheiden Misses durch erstmaligen Zugriff, Set-Konkurrenz und unzureichende Gesamtkapazität.",
+      "explanation": "Ein Compulsory Miss entsteht beim ersten Zugriff auf einen noch nicht geladenen Block. Ein Conflict Miss entsteht, wenn Blöcke um dasselbe Set konkurrieren, obwohl ein vollassoziativer Cache gleicher Kapazität noch Platz hätte. Ein Capacity Miss entsteht, wenn die benötigten Blöcke selbst in einem vollassoziativen Cache gleicher Kapazität nicht alle Platz finden.",
+      "example": "Ein erneuter Zugriff auf `0x100C` nach Verdrängung durch einen konkurrierenden Block desselben Sets kann ein Conflict Miss sein.",
+      "pitfalls": [
+        "Der erste Zugriff auf einen Block bleibt ein Compulsory Miss, auch wenn das Set später voll wird.",
+        "Eine Verdrängung allein beweist keinen Capacity Miss."
+      ],
+      "related": [
+        "Cache-Organisation",
+        "Cache-Zugriffe berechnen",
+        "Cache Hit und Cache Miss"
+      ],
+      "heading": "14. Drei Cache-Miss-Arten · Folien 35–60"
+    },
+    {
+      "id": "era-12-k28",
+      "term": "Ersetzungsstrategien",
+      "kind": "method",
+      "short": "Ersetzungsstrategien wählen bei einem Miss in einem vollen Set den Cache-Block, der verdrängt wird.",
+      "explanation": "LRU ersetzt den Block, der am längsten nicht verwendet wurde. LFU ersetzt den Block mit der geringsten Nutzungshäufigkeit. Die Strategie beeinflusst, welche späteren Zugriffe Hits oder Misses werden.",
+      "example": "Bei LRU wird von zwei Blöcken der länger nicht verwendete ersetzt.",
+      "pitfalls": [
+        "LRU betrachtet die letzte Nutzung, LFU die Nutzungshäufigkeit.",
+        "Eine Ersetzungsstrategie wird benötigt, wenn das Set keine freie Zeile mehr hat."
+      ],
+      "related": [
+        "Cache-Organisation",
+        "Cache-Zugriffe berechnen",
+        "Cache-Miss-Arten"
+      ],
+      "heading": "15. Ersetzungs- und Schreibstrategien · Folie 64"
+    },
+    {
+      "id": "era-12-k29",
+      "term": "Schreibstrategien",
+      "kind": "concept",
+      "short": "Schreibstrategien legen fest, wann Änderungen weitergegeben werden und ob ein Schreib-Miss den fehlenden Block in den Cache lädt.",
+      "explanation": "Write-Through gibt eine Änderung direkt an die nachgeordnete Speicherebene weiter. Write-Back ändert zunächst nur den Cache-Block und schreibt ihn später zurück, etwa beim Verdrängen. Write-Allocate lädt bei einem Schreib-Miss den fehlenden Block in den Cache; No-Write-Allocate nimmt ihn wegen dieses Misses nicht auf. Diese Entscheidungen betreffen unterschiedliche Fragen und lassen sich kombinieren.",
+      "example": "Bei Write-Back und Write-Allocate wird ein fehlender Block geladen, verändert und als dirty markiert.",
+      "pitfalls": [
+        "Write-Through und Write-Back regeln die Weitergabe; Write-Allocate und No-Write-Allocate regeln das Verhalten beim Schreib-Miss.",
+        "Bei mehreren Cache-Stufen ist die nachgeordnete Ebene nicht zwingend der Hauptspeicher."
+      ],
+      "related": [
+        "Cache Dirty Bit",
+        "Cache Hit und Cache Miss",
+        "Speicherhierarchie"
+      ],
+      "heading": "15. Ersetzungs- und Schreibstrategien · Folie 64"
+    },
+    {
+      "id": "era-12-k30",
+      "term": "Cache Dirty Bit",
+      "kind": "notation",
+      "short": "Das Dirty Bit kennzeichnet, ob ein Cache-Block seit seinem Laden verändert wurde und beim Verdrängen zurückgeschrieben werden muss.",
+      "explanation": "Bei Write-Back werden Änderungen zunächst nur im Cache gespeichert. Das Dirty Bit zeigt an, dass der Inhalt der nachgeordneten Ebene möglicherweise veraltet ist. Ein dirty Block muss beim Verdrängen zurückgeschrieben werden; ein unveränderter Block braucht diesen Schreibvorgang nicht.",
+      "example": "Nach einem Schreibzugriff auf einen Cache-Block kann sein Dirty Bit auf 1 gesetzt werden.",
+      "pitfalls": [
+        "Das Dirty Bit eines Cache-Blocks und das Dirty-Bit einer Seite verwalten unterschiedliche Einheiten."
+      ],
+      "related": [
+        "Schreibstrategien",
+        "Sv32-Seitentabelleneintrag",
+        "Paging / Swapping"
+      ],
+      "heading": "15. Ersetzungs- und Schreibstrategien · Folie 64"
+    },
+    {
+      "id": "era-12-k31",
+      "term": "Speicherhierarchie",
+      "kind": "concept",
+      "short": "Die Speicherhierarchie kombiniert kleine, schnelle Speicherebenen nahe der CPU mit größeren, langsameren Ebenen.",
+      "explanation": "Register und kleine Caches liegen nahe an der CPU; tiefere Cache-Stufen und Hauptspeicher bieten mehr Kapazität, aber meist höhere Zugriffszeiten. Fehlen Daten auf einer Ebene, werden sie aus einer tieferen Ebene geholt. Mehrere Stufen sind ein praktischer Kompromiss, weil ein einzelner sehr großer Cache nicht zugleich die Geschwindigkeit eines sehr kleinen Caches erreicht.",
+      "example": "Ein Prozessor kann getrennte L1-Caches und einen größeren gemeinsamen L2- oder L3-Cache vor dem RAM verwenden.",
+      "pitfalls": [
+        "Beispielwerte wie 32 KB L1 mit 2 ns sind keine allgemeinen aktuellen Hardwarewerte."
+      ],
+      "related": [
+        "Cache und Memory Wall",
+        "Inklusive und exklusive Cache-Hierarchie",
+        "L1-I und L1-D"
+      ],
+      "heading": "16. Speicherhierarchie · Folien 65–74"
+    },
+    {
+      "id": "era-12-k32",
+      "term": "Inklusive und exklusive Cache-Hierarchie",
+      "kind": "concept",
+      "short": "Eine inklusive Hierarchie hält einen L1-Block auch in tieferen betrachteten Caches, während eine exklusive Hierarchie einen Block höchstens einmal in den betrachteten Stufen hält.",
+      "explanation": "Bei einer inklusiven Organisation kann derselbe Block in mehreren Cache-Stufen liegen. Bei einer exklusiven Organisation liegt ein Block höchstens in einer der betrachteten Stufen, sodass die Kapazitäten eher unterschiedliche Blöcke aufnehmen können. Die Begriffe beschreiben die Beziehung der Cache-Inhalte zwischen den Stufen.",
+      "example": "Liegt Block X gleichzeitig in L1 und L2, ist die betrachtete Hierarchie inklusiv.",
+      "pitfalls": [
+        "Inklusiv und exklusiv beziehen sich auf Cache-Inhalte, nicht auf Zugriffsrechte."
+      ],
+      "related": [
+        "Speicherhierarchie",
+        "Cache-Organisation"
+      ],
+      "heading": "16. Speicherhierarchie · Folien 65–74"
+    },
+    {
+      "id": "era-12-k33",
+      "term": "L1-I und L1-D",
+      "kind": "notation",
+      "short": "L1-I speichert Instruktionen und L1-D Programmdaten in getrennten Cache-Bereichen der ersten Stufe.",
+      "explanation": "Der Prozessor kann Instruktionen holen und gleichzeitig Daten lesen oder schreiben. Getrennte L1-Caches verringern die direkte Konkurrenz dieser Zugriffe um denselben Cache. Höhere Ebenen können Instruktionen und Daten gemeinsam verwalten; `I` steht für Instruction und `D` für Data.",
+      "example": "Eine Instruktion kann aus L1-I geholt werden, während ein Load-Befehl Daten aus L1-D liest.",
+      "pitfalls": [
+        "L1-I und L1-D sind Cache-Bereiche und keine unterschiedlichen Arten virtueller Adresse."
+      ],
+      "related": [
+        "Speicherhierarchie",
+        "Cache und Memory Wall"
+      ],
+      "heading": "16. Speicherhierarchie · Folien 65–74"
+    },
+    {
+      "id": "era-12-k34",
+      "term": "Stride und Working Set",
+      "kind": "definition",
+      "short": "Stride ist der Abstand zwischen aufeinanderfolgenden Speicherzugriffen, während das Working Set die regelmäßig verwendete Datenmenge bezeichnet.",
+      "explanation": "Eine kleine Schrittweite greift häufig auf benachbarte Daten zu und nutzt dadurch räumliche Lokalität. Die Working-Set-Größe beschreibt, wie viele Daten ein Programm in einem betrachteten Zeitraum regelmäßig verwendet. Passt das Working Set in eine schnelle Cache-Stufe, können viele Zugriffe dort bedient werden; eine größere Menge führt häufiger zu Zugriffen auf tiefere Ebenen.",
+      "example": "Ein sequenzieller Durchlauf über ein Array hat meist kleine Schrittweite.",
+      "pitfalls": [
+        "Eine kleine Schrittweite garantiert keinen Cache Hit.",
+        "Das Working Set ist nicht einfach die Gesamtgröße aller im Programm deklarierten Daten."
+      ],
+      "related": [
+        "Zeitliche und räumliche Lokalität",
+        "Memory Mountain",
+        "Cache-Organisation"
+      ],
+      "heading": "16. Speicherhierarchie · Folien 65–74"
+    },
+    {
+      "id": "era-12-k35",
+      "term": "Memory Mountain",
+      "kind": "concept",
+      "short": "Der Memory Mountain veranschaulicht, wie Schrittweite und Working-Set-Größe die beobachtete Speicherleistung beeinflussen.",
+      "explanation": "Kleine Schrittweiten nutzen benachbarte Daten und damit räumliche Lokalität. Ein kleines Working Set kann in einer schnellen Cache-Stufe bleiben, während ein größeres häufiger tiefere Ebenen benötigt. Die Darstellung zeigt die Abhängigkeit der gemessenen Leistung von beiden Größen und ist keine einzelne feste Cache-Kennzahl.",
+      "example": "Ein kleiner, sequenziell durchlaufener Datenbereich kann schneller sein als ein größerer Bereich mit großen Zugriffssprüngen.",
+      "pitfalls": [
+        "Ein einzelner Messwert beschreibt nicht die Leistung für alle Schrittweiten und Working-Set-Größen."
+      ],
+      "related": [
+        "Stride und Working Set",
+        "Zeitliche und räumliche Lokalität",
+        "Speicherhierarchie"
+      ],
+      "heading": "16. Speicherhierarchie · Folien 65–74"
+    }
+  ],
+  "generator": {
+    "model": "gpt-6-luna",
+    "effort": "xhigh",
+    "promptVersion": "k1",
+    "generatedAt": "2026-11-10T00:01:54.156Z"
+  }
+}
