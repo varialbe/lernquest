@@ -1,0 +1,1990 @@
+{
+  "schemaVersion": 1,
+  "id": "era-13",
+  "module": "ERA",
+  "number": 13,
+  "slug": "caches-aufbau-misses-strategien",
+  "title": "Caches: Organization, Misses, and Strategies",
+  "summary": "Caches store data in cache lines (Cache-Zeilen) so frequently used or spatially nearby values are available faster. This unit covers address decomposition, cache organization, miss types (Miss-Arten), and replacement, write, and hierarchy strategies. It also covers separate L1 caches for instructions and data.",
+  "concepts": [
+    "Cache hit and cache miss (Cache-Hit und Cache-Miss)",
+    "Cache line (Cache-Zeile)",
+    "Tag, index, and offset",
+    "Direct-mapped cache",
+    "Fully associative cache (voll-assoziativer Cache)",
+    "Set-associative cache (mengenassoziativer Cache)",
+    "Compulsory, conflict, and capacity misses",
+    "LRU and LFU",
+    "Write-through and write-back",
+    "Write-allocate and no-write-allocate",
+    "Inclusive and exclusive cache hierarchy",
+    "Separate L1 instruction and data caches"
+  ],
+  "keyFacts": [
+    "A cache consists of cache lines; on each access, it checks whether the required data is present.",
+    "On a cache miss, the cache line containing the requested data is loaded from the next level of the memory hierarchy; an existing line may be evicted in the process.",
+    "Caches read and write entire cache lines, not just the individual bytes requested.",
+    "An address is divided into a tag, index, and offset: the index selects a line or set, the tag identifies the stored block, and the offset selects a position within the line.",
+    "In a direct-mapped cache, each address maps to exactly one cache line.",
+    "A fully associative cache has no index bits; a block can be placed in any cache line.",
+    "In an N-way set-associative cache, each set contains N cache lines; the index selects the set.",
+    "A compulsory miss occurs on the first access to a memory block and also occurs in an infinitely large cache.",
+    "A conflict miss occurs when another block competes for the same set, even though space is available elsewhere in the cache.",
+    "A capacity miss would also occur in a fully associative cache if its total capacity were insufficient.",
+    "LRU replaces the block that has gone unused for the longest time; LFU replaces the least frequently used block.",
+    "Write-through immediately updates the next level of the memory hierarchy on a write; write-back writes changes back later, for example when a modified line is evicted.",
+    "With write-back, the cache must track whether a line has been modified; a dirty bit can be used for this.",
+    "On a write miss, write-allocate loads the affected line into the cache; no-write-allocate does not load it into the cache.",
+    "In an inclusive hierarchy, every block in a smaller cache is also present in the larger cache below it.",
+    "In an exclusive hierarchy, each memory block appears at most once in the cache hierarchy; the possible total number of blocks depends on the sum of the cache sizes.",
+    "Separate L1 instruction and data caches reduce direct competition between them; higher cache levels are often unified."
+  ],
+  "tags": [],
+  "links": [],
+  "source": {
+    "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO13.md",
+    "sha256": "b877002db9606bd65d7ec7fdcd711a57437346e926cefd4aa507c0693ff25047",
+    "commit": "64fce88201d884ebbe852a9c36a6c9b2db24fcd2"
+  },
+  "generator": {
+    "model": "gpt-6-luna",
+    "effort": "xhigh",
+    "reviewEffort": "high",
+    "promptVersion": "v3",
+    "generatedAt": "2026-11-10T23:12:36.941Z",
+    "review": {
+      "checked": 50,
+      "fixed": 1,
+      "removed": 0,
+      "notes": "50 Fragen geprüft. Eine Working-Set-Frage präzisiert: Vollassoziativität ist ergänzt, damit die Kapazität nicht durch Set-Konflikte eingeschränkt wird. Die Cache-Inhalte bleiben durch Mitschrift und angegebene Kernaussagen gedeckt; unpassende source.heading-Werte sind null."
+    }
+  },
+  "levels": [
+    {
+      "id": "era-13-l1",
+      "index": 1,
+      "kind": "basics",
+      "title": "Fundamentals",
+      "questions": [
+        {
+          "id": "era-13-l1-q01",
+          "type": "cloze",
+          "prompt": "If the tag of the requested address matches the stored cache line, a cache ___ occurs.",
+          "options": [
+            {
+              "id": "a",
+              "text": "Miss"
+            },
+            {
+              "id": "b",
+              "text": "Hit"
+            },
+            {
+              "id": "c",
+              "text": "Write-back"
+            },
+            {
+              "id": "d",
+              "text": "Conflict"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "On a hit, the requested data is present in the cache. On a miss, the required cache line must first be loaded.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO13.md",
+            "heading": null
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Cache hit and cache miss",
+            "Tag, index, and offset"
+          ]
+        },
+        {
+          "id": "era-13-l1-q02",
+          "type": "multi",
+          "prompt": "On a cache miss, a cache line is loaded. Which statements are correct? More than one answer may be correct.",
+          "options": [
+            {
+              "id": "a",
+              "text": "The loaded line may also contain neighboring data."
+            },
+            {
+              "id": "b",
+              "text": "The entire cache line is loaded."
+            },
+            {
+              "id": "c",
+              "text": "In general, only the requested byte is loaded."
+            },
+            {
+              "id": "d",
+              "text": "A previously stored line may be evicted."
+            }
+          ],
+          "correct": [
+            "a",
+            "b",
+            "d"
+          ],
+          "explanation": "Caches transfer entire lines, which may contain nearby data in addition to the requested item. If the cache is full or a line needs to be replaced, an existing line is evicted.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO13.md",
+            "heading": null
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Cache miss",
+            "Cache line"
+          ]
+        },
+        {
+          "id": "era-13-l1-q03",
+          "type": "single",
+          "prompt": "What is the role of the index when a cache address is divided into a tag, index, and offset?",
+          "options": [
+            {
+              "id": "a",
+              "text": "It stores the data itself."
+            },
+            {
+              "id": "b",
+              "text": "It indicates whether the line has been modified."
+            },
+            {
+              "id": "c",
+              "text": "It selects the byte within a cache line."
+            },
+            {
+              "id": "d",
+              "text": "It selects the cache line or cache set."
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "The index determines where in the cache to look for the block. The offset selects a position within the line, and the tag identifies the stored block.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO13.md",
+            "heading": null
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Tag, index, and offset"
+          ]
+        },
+        {
+          "id": "era-13-l1-q04",
+          "type": "truefalse",
+          "prompt": "In a direct-mapped cache, each memory address can be mapped to exactly one cache line.",
+          "options": [
+            {
+              "id": "true",
+              "text": "True"
+            },
+            {
+              "id": "false",
+              "text": "False"
+            }
+          ],
+          "correct": [
+            "true"
+          ],
+          "explanation": "In a direct-mapped cache, the index identifies a unique cache line. An address cannot be mapped to a different line.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO13.md",
+            "heading": null
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Direct-mapped cache"
+          ]
+        },
+        {
+          "id": "era-13-l1-q05",
+          "type": "cloze",
+          "prompt": "A fully associative cache has no ___ bits; each block can be placed in any cache line.",
+          "options": [
+            {
+              "id": "a",
+              "text": "Tag"
+            },
+            {
+              "id": "b",
+              "text": "Index"
+            },
+            {
+              "id": "c",
+              "text": "Offset"
+            },
+            {
+              "id": "d",
+              "text": "Address"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "A fully associative cache has only one cache set. Therefore, no index is needed to select a set.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO13.md",
+            "heading": null
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Fully associative cache",
+            "Tag, index, and offset"
+          ]
+        },
+        {
+          "id": "era-13-l1-q06",
+          "type": "single",
+          "prompt": "What does “4-way set-associative” mean?",
+          "options": [
+            {
+              "id": "a",
+              "text": "The cache has four sets in total."
+            },
+            {
+              "id": "b",
+              "text": "Each address can have only four different tags."
+            },
+            {
+              "id": "c",
+              "text": "Each cache line is four bytes in size."
+            },
+            {
+              "id": "d",
+              "text": "Each cache set contains four cache lines."
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Associativity specifies how many lines are available per set. A 4-way set-associative cache has four lines per set.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO13.md",
+            "heading": null
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Set-associative cache"
+          ]
+        },
+        {
+          "id": "era-13-l1-q07",
+          "type": "single",
+          "prompt": "When does a compulsory (cold) miss occur?",
+          "options": [
+            {
+              "id": "a",
+              "text": "When an existing block is modified."
+            },
+            {
+              "id": "b",
+              "text": "Only when a cache is fully associative."
+            },
+            {
+              "id": "c",
+              "text": "When a block is evicted by another block from the same set."
+            },
+            {
+              "id": "d",
+              "text": "On the first access to a memory block."
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "On the first access, the block cannot yet be in the cache. This miss is unavoidable even in an infinitely large cache.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO13.md",
+            "heading": null
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Compulsory, conflict, and capacity misses"
+          ]
+        },
+        {
+          "id": "era-13-l1-q08",
+          "type": "truefalse",
+          "prompt": "Capacity misses can also occur in a fully associative cache.",
+          "options": [
+            {
+              "id": "true",
+              "text": "True"
+            },
+            {
+              "id": "false",
+              "text": "False"
+            }
+          ],
+          "correct": [
+            "true"
+          ],
+          "explanation": "A capacity miss occurs when the cache's total capacity is insufficient. A fully associative cache also has a limited total capacity.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO13.md",
+            "heading": null
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Compulsory, conflict, and capacity misses",
+            "Fully associative cache"
+          ]
+        },
+        {
+          "id": "era-13-l1-q09",
+          "type": "multi",
+          "prompt": "Which statements about conflict misses are correct? More than one answer may be correct.",
+          "options": [
+            {
+              "id": "a",
+              "text": "They occur in direct-mapped and set-associative caches."
+            },
+            {
+              "id": "b",
+              "text": "They can arise when blocks mapped to the same set compete with one another."
+            },
+            {
+              "id": "c",
+              "text": "They are always the first access to a block."
+            },
+            {
+              "id": "d",
+              "text": "They can sometimes be avoided by changing the access pattern."
+            }
+          ],
+          "correct": [
+            "a",
+            "b",
+            "d"
+          ],
+          "explanation": "Conflict misses arise from competition for specific cache lines or sets, even when space is available elsewhere. A block's first access, by contrast, is a compulsory miss.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO13.md",
+            "heading": null
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Compulsory, conflict, and capacity misses",
+            "Direct-mapped cache",
+            "Set-associative cache"
+          ]
+        },
+        {
+          "id": "era-13-l1-q10",
+          "type": "single",
+          "prompt": "Which line does LFU select as the victim?",
+          "options": [
+            {
+              "id": "a",
+              "text": "The line that has gone unused for the longest time."
+            },
+            {
+              "id": "b",
+              "text": "The most recently loaded line."
+            },
+            {
+              "id": "c",
+              "text": "The line with the smallest index."
+            },
+            {
+              "id": "d",
+              "text": "The least frequently used line."
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "LFU stands for Least Frequently Used: it evicts the line with the lowest access frequency. LRU, by contrast, considers how long a line has gone unused.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO13.md",
+            "heading": null
+          },
+          "difficulty": 1,
+          "concepts": [
+            "LRU and LFU"
+          ]
+        },
+        {
+          "id": "era-13-l1-q11",
+          "type": "multi",
+          "prompt": "Which statements about write strategies are correct? More than one answer may be correct.",
+          "options": [
+            {
+              "id": "a",
+              "text": "Write-back writes changes back later."
+            },
+            {
+              "id": "b",
+              "text": "No-write-allocate loads the missing block into the cache on a write miss."
+            },
+            {
+              "id": "c",
+              "text": "With write-allocate, a block is loaded into the cache on a write miss."
+            },
+            {
+              "id": "d",
+              "text": "A write must not update the cache."
+            },
+            {
+              "id": "e",
+              "text": "Write-through immediately updates the next level of the memory hierarchy."
+            }
+          ],
+          "correct": [
+            "a",
+            "c",
+            "e"
+          ],
+          "explanation": "Write-through and write-back differ in when data is written back. On a write miss, write-allocate loads the line into the cache; no-write-allocate does not.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO13.md",
+            "heading": null
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Write-through and write-back",
+            "Write-allocate and no-write-allocate"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "era-13-l2",
+      "index": 2,
+      "kind": "apply",
+      "title": "Apply",
+      "questions": [
+        {
+          "id": "era-13-l2-q01",
+          "type": "calc",
+          "prompt": "An address is divided into a tag `[31:15]`, an index `[14:5]`, and an offset `[4:0]`. What is the offset of address `0x12345678`?",
+          "options": [
+            {
+              "id": "a",
+              "text": "8 Byte"
+            },
+            {
+              "id": "b",
+              "text": "31 Byte"
+            },
+            {
+              "id": "c",
+              "text": "20 Byte"
+            },
+            {
+              "id": "d",
+              "text": "24 Byte"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "The offset consists of the five lowest bits. The five lowest bits of `0x12345678` equal 24 in decimal.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO13.md",
+            "heading": null
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Tag, index, and offset"
+          ]
+        },
+        {
+          "id": "era-13-l2-q02",
+          "type": "calc",
+          "prompt": "A direct-mapped cache has 64 lines. The cache line number for a memory block is `Blocknummer mod 64`. Which line is block 173 mapped to?",
+          "options": [
+            {
+              "id": "a",
+              "text": "109"
+            },
+            {
+              "id": "b",
+              "text": "47"
+            },
+            {
+              "id": "c",
+              "text": "45"
+            },
+            {
+              "id": "d",
+              "text": "64"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "`173 mod 64 = 45`. The other values result, for example, from adding instead of taking the remainder or from confusing the block number with the line number.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO13.md",
+            "heading": null
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Direct-mapped cache",
+            "Tag, index, and offset"
+          ]
+        },
+        {
+          "id": "era-13-l2-q03",
+          "type": "multi",
+          "prompt": "A 4-way set-associative cache has multiple sets. Which statements correctly describe its organization? More than one answer may be correct.",
+          "options": [
+            {
+              "id": "a",
+              "text": "The index selects a set."
+            },
+            {
+              "id": "b",
+              "text": "The cache has no sets."
+            },
+            {
+              "id": "c",
+              "text": "Each address can be placed in any line in the entire cache."
+            },
+            {
+              "id": "d",
+              "text": "Each set contains four cache lines."
+            }
+          ],
+          "correct": [
+            "a",
+            "d"
+          ],
+          "explanation": "In a set-associative cache, the index selects a set, and the associativity specifies the number of lines per set. Only in a fully associative cache can a block be placed in any cache line.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO13.md",
+            "heading": null
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Set-associative cache",
+            "Tag, index, and offset"
+          ]
+        },
+        {
+          "id": "era-13-l2-q04",
+          "type": "single",
+          "prompt": "A set contains lines A, B, C, and D. Initially, A has gone unused for the longest time, followed by B, C, and D. Then A, C, A, and B are accessed. Which line does LRU evict on the next miss in this set?",
+          "options": [
+            {
+              "id": "a",
+              "text": "D"
+            },
+            {
+              "id": "b",
+              "text": "B"
+            },
+            {
+              "id": "c",
+              "text": "A"
+            },
+            {
+              "id": "d",
+              "text": "C"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "After these accesses, D has still gone unused for the longest time. LRU therefore selects D as the victim line.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO13.md",
+            "heading": null
+          },
+          "difficulty": 3,
+          "concepts": [
+            "LRU and LFU",
+            "Set-associative cache"
+          ]
+        },
+        {
+          "id": "era-13-l2-q05",
+          "type": "single",
+          "prompt": "In a set, lines A, B, C, and D have received 4, 2, 5, and 3 accesses so far. Which line does LFU select for eviction?",
+          "options": [
+            {
+              "id": "a",
+              "text": "B"
+            },
+            {
+              "id": "b",
+              "text": "A"
+            },
+            {
+              "id": "c",
+              "text": "D"
+            },
+            {
+              "id": "d",
+              "text": "C"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "B, with two accesses, was used least frequently. LRU might select a different line because it considers the time of the last use.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO13.md",
+            "heading": null
+          },
+          "difficulty": 2,
+          "concepts": [
+            "LRU and LFU"
+          ]
+        },
+        {
+          "id": "era-13-l2-q06",
+          "type": "single",
+          "prompt": "A processor writes a new value to a cache line, and write-through is used. Which update is consistent with this strategy?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Only the cache is updated; main memory is updated only on eviction."
+            },
+            {
+              "id": "b",
+              "text": "Only main memory is updated; the cache remains unchanged."
+            },
+            {
+              "id": "c",
+              "text": "The cache and the next level of the memory hierarchy are updated immediately."
+            },
+            {
+              "id": "d",
+              "text": "The cache is updated only on a later read."
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Write-through immediately propagates the change to the next level of the memory hierarchy. The cache must also be updated so that it does not contain the old value.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO13.md",
+            "heading": null
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Write-through and write-back"
+          ]
+        },
+        {
+          "id": "era-13-l2-q07",
+          "type": "cloze",
+          "prompt": "On a write miss with write-allocate, the affected line is first loaded into the ___ and then updated.",
+          "options": [
+            {
+              "id": "a",
+              "text": "Offset"
+            },
+            {
+              "id": "b",
+              "text": "Stack"
+            },
+            {
+              "id": "c",
+              "text": "Cache"
+            },
+            {
+              "id": "d",
+              "text": "Instruction register"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Write-allocate places the missing line in the cache on a write miss. The write then updates the cache entry.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO13.md",
+            "heading": null
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Write-allocate and no-write-allocate"
+          ]
+        },
+        {
+          "id": "era-13-l2-q08",
+          "type": "truefalse",
+          "prompt": "On a write miss with no-write-allocate, the missing cache line is still loaded into the cache.",
+          "options": [
+            {
+              "id": "true",
+              "text": "True"
+            },
+            {
+              "id": "false",
+              "text": "False"
+            }
+          ],
+          "correct": [
+            "false"
+          ],
+          "explanation": "No-write-allocate means that the missing block is not loaded into the cache on this write miss.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO13.md",
+            "heading": null
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Write-allocate and no-write-allocate"
+          ]
+        },
+        {
+          "id": "era-13-l2-q09",
+          "type": "single",
+          "prompt": "A block X is in L1. The hierarchy is inclusive, and L2 is the larger cache level below it. Which statement must be true?",
+          "options": [
+            {
+              "id": "a",
+              "text": "X must not be in any other cache."
+            },
+            {
+              "id": "b",
+              "text": "X is also in L2."
+            },
+            {
+              "id": "c",
+              "text": "X is only in L1."
+            },
+            {
+              "id": "d",
+              "text": "X must also be in secondary storage."
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "In an inclusive hierarchy, every block in a smaller cache is also present in the larger cache below it.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO13.md",
+            "heading": null
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Inclusive and exclusive cache hierarchy"
+          ]
+        },
+        {
+          "id": "era-13-l2-q10",
+          "type": "calc",
+          "prompt": "An exclusive hierarchy has 8 lines in L1, 16 in L2, and 64 in L3. What is the maximum total number of distinct blocks that can be held in the caches if each cache line holds one block?",
+          "options": [
+            {
+              "id": "a",
+              "text": "80"
+            },
+            {
+              "id": "b",
+              "text": "88"
+            },
+            {
+              "id": "c",
+              "text": "64"
+            },
+            {
+              "id": "d",
+              "text": "1024"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "In an exclusive hierarchy, each block appears at most once. The capacities therefore add up: 8 + 16 + 64 = 88 blocks.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO13.md",
+            "heading": null
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Inclusive and exclusive cache hierarchy"
+          ]
+        },
+        {
+          "id": "era-13-l2-q11",
+          "type": "single",
+          "prompt": "A processor has separate L1 caches for instructions and data. What advantage does this organization provide?",
+          "options": [
+            {
+              "id": "a",
+              "text": "This necessarily separates every cache level."
+            },
+            {
+              "id": "b",
+              "text": "This prevents cache misses."
+            },
+            {
+              "id": "c",
+              "text": "The two separate memories replace main memory."
+            },
+            {
+              "id": "d",
+              "text": "Instruction and data accesses compete less directly for the same L1 cache."
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Separate L1 instruction and data caches reduce direct competition between the two types of access. Higher cache levels are often unified.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO13.md",
+            "heading": null
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Separate L1 instruction and data caches"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "era-13-l3",
+      "index": 3,
+      "kind": "deepen",
+      "title": "Explore",
+      "questions": [
+        {
+          "id": "era-13-l3-q01",
+          "type": "single",
+          "prompt": "A direct-mapped cache has two lines: blocks A and B both map to line 0. The access sequence is A, B, A. What type of miss is the third access if A was evicted earlier?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Cache hit"
+            },
+            {
+              "id": "b",
+              "text": "Conflict miss"
+            },
+            {
+              "id": "c",
+              "text": "Compulsory miss"
+            },
+            {
+              "id": "d",
+              "text": "Capacity miss"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "A was loaded earlier, so this is not a compulsory miss. B evicted A from the same line, even though the other cache line may be free: this is a conflict miss.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO13.md",
+            "heading": null
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Compulsory, conflict, and capacity misses",
+            "Direct-mapped cache"
+          ]
+        },
+        {
+          "id": "era-13-l3-q02",
+          "type": "single",
+          "prompt": "A fully associative cache holds two blocks. Under LRU replacement, it receives the sequence A, B, C, A; every access to a block never seen before is a compulsory miss. What type of miss is the fourth access?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Compulsory miss"
+            },
+            {
+              "id": "b",
+              "text": "Capacity miss"
+            },
+            {
+              "id": "c",
+              "text": "Conflict miss"
+            },
+            {
+              "id": "d",
+              "text": "Cache hit"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "The fourth access to A is not the first access to A. Because even a fully associative cache with only two lines cannot retain A after the accesses to B and C, this is a capacity miss.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO13.md",
+            "heading": null
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Compulsory, conflict, and capacity misses",
+            "Fully associative cache",
+            "LRU and LFU"
+          ]
+        },
+        {
+          "id": "era-13-l3-q03",
+          "type": "single",
+          "prompt": "A set-associative set contains two lines with tags X and Y. An address selects this set, and its tag is Z. What does the comparison show?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Miss, because neither line has the tag Z."
+            },
+            {
+              "id": "b",
+              "text": "Miss only if the offset is outside the cache line."
+            },
+            {
+              "id": "c",
+              "text": "Hit, because all tags in the same set are equivalent."
+            },
+            {
+              "id": "d",
+              "text": "Hit, because the index points to an existing set."
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "The index selects the set, but only the tag comparison determines whether the requested block is in it. Since Z matches neither X nor Y, this is a miss.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO13.md",
+            "heading": null
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Tag, index, and offset",
+            "Set-associative cache",
+            "Cache hit and cache miss"
+          ]
+        },
+        {
+          "id": "era-13-l3-q04",
+          "type": "single",
+          "prompt": "A cache line is modified using write-back. Which sequence of events is consistent with this strategy?",
+          "options": [
+            {
+              "id": "a",
+              "text": "The cache must not retain the modified line."
+            },
+            {
+              "id": "b",
+              "text": "The modified line initially remains in the cache; the change must be detected when it is written back later."
+            },
+            {
+              "id": "c",
+              "text": "Every change is written to main memory immediately."
+            },
+            {
+              "id": "d",
+              "text": "A modified line is automatically invalidated on the next read."
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "Write-back delays updating the next level, for example until the line is evicted. A dirty bit can track whether the cache line has been modified.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO13.md",
+            "heading": null
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Write-through and write-back"
+          ]
+        },
+        {
+          "id": "era-13-l3-q05",
+          "type": "multi",
+          "prompt": "A processor writes to a cache hit using write-through. Which statements are correct? More than one answer may be correct.",
+          "options": [
+            {
+              "id": "a",
+              "text": "The cache line must contain the new value."
+            },
+            {
+              "id": "b",
+              "text": "The cache must intentionally retain the old value."
+            },
+            {
+              "id": "c",
+              "text": "Main memory is updated only on eviction."
+            },
+            {
+              "id": "d",
+              "text": "The next level of the memory hierarchy is updated immediately."
+            }
+          ],
+          "correct": [
+            "a",
+            "d"
+          ],
+          "explanation": "Write-through immediately propagates the new value, and the cache must also be updated. Writing back only on eviction describes write-back.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO13.md",
+            "heading": null
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Write-through and write-back"
+          ]
+        },
+        {
+          "id": "era-13-l3-q06",
+          "type": "single",
+          "prompt": "On a write miss, the missing block should not be loaded into the cache. Which strategy is being used?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Write-back"
+            },
+            {
+              "id": "b",
+              "text": "LRU"
+            },
+            {
+              "id": "c",
+              "text": "No-write-allocate, or write-around"
+            },
+            {
+              "id": "d",
+              "text": "Write-allocate"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "No-write-allocate, also called write-around, does not load the missing line into the cache on a write miss. Write-back, by contrast, concerns when data is written back.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO13.md",
+            "heading": null
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Write-allocate and no-write-allocate",
+            "Write-through and write-back"
+          ]
+        },
+        {
+          "id": "era-13-l3-q07",
+          "type": "single",
+          "prompt": "An inclusive hierarchy has 4 lines in L1, 12 in L2, and 32 in L3. Each line holds one block. What is the maximum total number of distinct blocks that can be represented in the hierarchy?",
+          "options": [
+            {
+              "id": "a",
+              "text": "12"
+            },
+            {
+              "id": "b",
+              "text": "32"
+            },
+            {
+              "id": "c",
+              "text": "48"
+            },
+            {
+              "id": "d",
+              "text": "4"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "In an inclusive hierarchy, blocks in smaller caches are also present in larger ones. The number of distinct blocks is therefore limited by the largest cache, which has 32 lines.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO13.md",
+            "heading": null
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Inclusive and exclusive cache hierarchy"
+          ]
+        },
+        {
+          "id": "era-13-l3-q08",
+          "type": "calc",
+          "prompt": "An exclusive hierarchy has 4 lines in L1, 12 in L2, and 32 in L3. Each line contains a different block. How many distinct blocks can remain in the caches in total?",
+          "options": [
+            {
+              "id": "a",
+              "text": "32"
+            },
+            {
+              "id": "b",
+              "text": "128"
+            },
+            {
+              "id": "c",
+              "text": "48"
+            },
+            {
+              "id": "d",
+              "text": "36"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "In an exclusive hierarchy, no block is stored more than once. The maximum total is therefore 4 + 12 + 32 = 48.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO13.md",
+            "heading": null
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Inclusive and exclusive cache hierarchy"
+          ]
+        },
+        {
+          "id": "era-13-l3-q09",
+          "type": "multi",
+          "prompt": "A processor has separate L1 caches for instructions and data, but a unified L2. Which statements are consistent with this organization? More than one answer may be correct.",
+          "options": [
+            {
+              "id": "a",
+              "text": "Instruction and data accesses compete less directly in L1."
+            },
+            {
+              "id": "b",
+              "text": "Separating L1 necessarily separates the entire memory hierarchy."
+            },
+            {
+              "id": "c",
+              "text": "A unified L2 can hold both instructions and data."
+            },
+            {
+              "id": "d",
+              "text": "The split prevents cache misses."
+            }
+          ],
+          "correct": [
+            "a",
+            "c"
+          ],
+          "explanation": "Separate L1 areas reduce direct competition between accesses at that level. Higher cache levels can still be unified, and misses remain possible.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO13.md",
+            "heading": null
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Separate L1 instruction and data caches"
+          ]
+        },
+        {
+          "id": "era-13-l3-q10",
+          "type": "calc",
+          "prompt": "A 32-bit cache uses 64-Byte lines and has 256 lines in total. It is 4-way set-associative. How many tag bits does an address have?",
+          "options": [
+            {
+              "id": "a",
+              "text": "22"
+            },
+            {
+              "id": "b",
+              "text": "20"
+            },
+            {
+              "id": "c",
+              "text": "18"
+            },
+            {
+              "id": "d",
+              "text": "26"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "The offset requires 6 bits because $64=2^6$. There are $256/4=64$ sets, so the index requires 6 bits. This leaves $32-6-6=20$ tag bits.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO13.md",
+            "heading": null
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Tag, index, and offset",
+            "Set-associative cache"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "era-13-l4",
+      "index": 4,
+      "kind": "boss",
+      "title": "Boss",
+      "questions": [
+        {
+          "id": "era-13-l4-q01",
+          "type": "single",
+          "prompt": "A direct-mapped cache has two lines. The block number modulo 2 determines the line. The access sequence is 0, 1, 2, 0. What type of miss is the last access? Assume that each block causes a compulsory miss on its first appearance.",
+          "options": [
+            {
+              "id": "a",
+              "text": "Cache hit"
+            },
+            {
+              "id": "b",
+              "text": "Conflict miss"
+            },
+            {
+              "id": "c",
+              "text": "Compulsory miss"
+            },
+            {
+              "id": "d",
+              "text": "Capacity miss"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "The first accesses to 0, 1, and 2 are compulsory misses. Block 2 evicts block 0 from the same line, so the next access to 0 is a conflict miss.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO13.md",
+            "heading": null
+          },
+          "difficulty": 5,
+          "concepts": [
+            "Direct-mapped cache",
+            "Compulsory, conflict, and capacity misses"
+          ]
+        },
+        {
+          "id": "era-13-l4-q02",
+          "type": "calc",
+          "prompt": "A cache has 8 sets, 4-way associativity, and 32-Byte lines. The set index of a byte address is `⌊Adresse / 32⌋ mod 8`. Which set does address `0x1234` map to?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Set 5"
+            },
+            {
+              "id": "b",
+              "text": "Set 1"
+            },
+            {
+              "id": "c",
+              "text": "Set 4"
+            },
+            {
+              "id": "d",
+              "text": "Set 2"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "`0x1234` equals 4660 in decimal. The block number is $\\lfloor4660/32\\rfloor=145$, and $145 mod 8=1$.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO13.md",
+            "heading": null
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Set-associative cache",
+            "Tag, index, and offset"
+          ]
+        },
+        {
+          "id": "era-13-l4-q03",
+          "type": "single",
+          "prompt": "A line is missing from the cache. A write miss occurs with write-allocate and write-back. Which sequence is correct?",
+          "options": [
+            {
+              "id": "a",
+              "text": "The line is loaded, the cache is updated, and the change is marked for a later write-back."
+            },
+            {
+              "id": "b",
+              "text": "The line is loaded, but only main memory receives the new value."
+            },
+            {
+              "id": "c",
+              "text": "The line is not loaded, and the cache remains unchanged."
+            },
+            {
+              "id": "d",
+              "text": "The line is loaded only on a later read."
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "Write-allocate loads the missing line into the cache and updates it. Write-back delays updating the next level, so the modified line must be marked as changed.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO13.md",
+            "heading": null
+          },
+          "difficulty": 5,
+          "concepts": [
+            "Write-allocate and no-write-allocate",
+            "Write-through and write-back"
+          ]
+        },
+        {
+          "id": "era-13-l4-q04",
+          "type": "single",
+          "prompt": "Both copies of the same block X are present in L1 and L2. Which hierarchy strategy is consistent with this state?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Inclusive, but not exclusive."
+            },
+            {
+              "id": "b",
+              "text": "Both exclusive and not inclusive."
+            },
+            {
+              "id": "c",
+              "text": "Neither inclusive nor exclusive."
+            },
+            {
+              "id": "d",
+              "text": "Exclusive, but not inclusive."
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "The duplicate copy is consistent with an inclusive hierarchy, in which L1 blocks are also present in L2. An exclusive hierarchy allows at most one copy of each block.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO13.md",
+            "heading": null
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Inclusive and exclusive cache hierarchy"
+          ]
+        },
+        {
+          "id": "era-13-l4-q05",
+          "type": "single",
+          "prompt": "Two blocks are used repeatedly, but both compete for the same line in a direct-mapped cache. Other lines are free. Which action is most likely to address the cause of the misses?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Increase the offset without changing the cache lines."
+            },
+            {
+              "id": "b",
+              "text": "Replace write-through with write-back."
+            },
+            {
+              "id": "c",
+              "text": "Change the access pattern so the blocks do not repeatedly compete for the same line."
+            },
+            {
+              "id": "d",
+              "text": "Load the blocks more often so that they are in the cache for the first time."
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "The cause is a conflict miss: the blocks compete for the same line even though space is available elsewhere. Changing the access pattern can sometimes avoid such conflicts.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO13.md",
+            "heading": null
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Compulsory, conflict, and capacity misses",
+            "Direct-mapped cache"
+          ]
+        },
+        {
+          "id": "era-13-l4-q06",
+          "type": "calc",
+          "prompt": "A cache line is 32 Byte in size. A 4-Byte value is at the start of a line, and then 4-Byte values are read sequentially. After the first miss, the entire line is loaded. How many subsequent values can come from the same line if no other access evicts it?",
+          "options": [
+            {
+              "id": "a",
+              "text": "7"
+            },
+            {
+              "id": "b",
+              "text": "6"
+            },
+            {
+              "id": "c",
+              "text": "4"
+            },
+            {
+              "id": "d",
+              "text": "8"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "A 32-Byte line contains eight 4-Byte values. The first value causes the miss; seven more values are then available from the same line.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO13.md",
+            "heading": null
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Cache line",
+            "Cache hit and cache miss"
+          ]
+        },
+        {
+          "id": "era-13-l4-q07",
+          "type": "single",
+          "prompt": "On a cache access, the index is evaluated first. None of the stored tags match in the selected set. What happens next on a miss?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Update only the tag in main memory."
+            },
+            {
+              "id": "b",
+              "text": "Store the offset as the new tag and return the same value."
+            },
+            {
+              "id": "c",
+              "text": "Cancel the access because the index has already been evaluated."
+            },
+            {
+              "id": "d",
+              "text": "If necessary, evict a line, load the required cache line, replace the tag, and return the value at the offset."
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "On a miss, the required cache line is loaded from the next level and its tag is updated. The requested item can then be selected using the offset.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO13.md",
+            "heading": null
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Tag, index, and offset",
+            "Cache hit and cache miss"
+          ]
+        },
+        {
+          "id": "era-13-l4-q08",
+          "type": "multi",
+          "prompt": "Which statements about LRU, LFU, and locality are correct? More than one answer may be correct.",
+          "options": [
+            {
+              "id": "a",
+              "text": "LRU and LFU always select the same line."
+            },
+            {
+              "id": "b",
+              "text": "LFU takes into account how often a block has been used."
+            },
+            {
+              "id": "c",
+              "text": "Reusing recently accessed data is consistent with temporal locality."
+            },
+            {
+              "id": "d",
+              "text": "LRU takes into account how long a block has gone unused."
+            }
+          ],
+          "correct": [
+            "b",
+            "c",
+            "d"
+          ],
+          "explanation": "LRU orders blocks by the time of their last access, while LFU uses access frequency. Frequently reusing recently accessed data is an example of temporal locality.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO13.md",
+            "heading": null
+          },
+          "difficulty": 4,
+          "concepts": [
+            "LRU and LFU",
+            "Cache line"
+          ]
+        },
+        {
+          "id": "era-13-l4-q09",
+          "type": "multi",
+          "prompt": "A Von Neumann processor has separate L1 caches for code and data and a unified L2. Which statements are consistent with this organization? More than one answer may be correct.",
+          "options": [
+            {
+              "id": "a",
+              "text": "A shared main memory can be combined with separate L1 caches."
+            },
+            {
+              "id": "b",
+              "text": "Separate L1 caches require separate main memories for code and data."
+            },
+            {
+              "id": "c",
+              "text": "Instruction and data accesses can compete less directly with each other in L1."
+            },
+            {
+              "id": "d",
+              "text": "A unified L2 can complement the separate L1 caches."
+            }
+          ],
+          "correct": [
+            "a",
+            "c",
+            "d"
+          ],
+          "explanation": "Separate L1 caches can decouple instruction and data accesses, even when main memory and higher cache levels are shared.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO13.md",
+            "heading": null
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Separate L1 instruction and data caches",
+            "Inclusive and exclusive cache hierarchy"
+          ]
+        },
+        {
+          "id": "era-13-l4-q10",
+          "type": "multi",
+          "prompt": "A TLB stores recently used address translations; a cache stores data blocks. Which statements are correct? More than one answer may be correct.",
+          "options": [
+            {
+              "id": "a",
+              "text": "A cache miss means that the requested block is absent from the cache level being considered."
+            },
+            {
+              "id": "b",
+              "text": "Every TLB miss is a cache miss of the same type."
+            },
+            {
+              "id": "c",
+              "text": "A TLB miss is not automatically a page fault."
+            },
+            {
+              "id": "d",
+              "text": "A cache miss proves that the virtual page is invalid."
+            }
+          ],
+          "correct": [
+            "a",
+            "c"
+          ],
+          "explanation": "The TLB stores translations; a TLB miss does not automatically mean that the page is missing. A cache miss, by contrast, means the requested data block is absent from the cache level being considered.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO13.md",
+            "heading": null
+          },
+          "difficulty": 5,
+          "concepts": [
+            "Cache hit and cache miss",
+            "Tag, index, and offset"
+          ]
+        },
+        {
+          "id": "era-13-l4-q11",
+          "type": "single",
+          "prompt": "A program repeatedly accesses a working set of six cache lines using small strides. The fast cache level holds eight lines, is fully associative, and has no competing accesses. Which assessment is consistent with the locality principles?",
+          "options": [
+            {
+              "id": "a",
+              "text": "The working set can fit in the fast cache level; small strides favor memory performance."
+            },
+            {
+              "id": "b",
+              "text": "Small strides prevent spatial locality."
+            },
+            {
+              "id": "c",
+              "text": "The working set is too large because six is greater than the associativity."
+            },
+            {
+              "id": "d",
+              "text": "A cache can store only one line of the working set."
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "Six lines fit in a cache level with eight lines; a fully associative cache has no set conflicts. Repeated accesses use temporal locality, and small strides favor spatial locality.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO13.md",
+            "heading": null
+          },
+          "difficulty": 5,
+          "concepts": [
+            "Cache line",
+            "LRU and LFU"
+          ]
+        },
+        {
+          "id": "era-13-l4-q12",
+          "type": "single",
+          "prompt": "A cache designer wants more placement flexibility than a direct-mapped cache provides, while limiting the search to a group of lines. Which organization best fits?",
+          "options": [
+            {
+              "id": "a",
+              "text": "A set-associative cache, where the index selects a set with multiple lines."
+            },
+            {
+              "id": "b",
+              "text": "A cache with no tags, index, or offset."
+            },
+            {
+              "id": "c",
+              "text": "A direct-mapped cache with exactly one possible line."
+            },
+            {
+              "id": "d",
+              "text": "A fully associative cache with no sets and no index."
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "A set-associative cache is the compromise: an index selects a set, and the block can be placed in one of the lines in that set.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO13.md",
+            "heading": null
+          },
+          "difficulty": 5,
+          "concepts": [
+            "Direct-mapped cache",
+            "Fully associative cache",
+            "Set-associative cache"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "era-13-l5",
+      "index": 5,
+      "kind": "bonus",
+      "title": "In Practice: Caches in Everyday Use",
+      "questions": [
+        {
+          "id": "era-13-l5-q01",
+          "type": "single",
+          "prompt": "You are designing a CPU core for a game. During rendering, instructions are fetched while image data is read. L1I stores instructions, and L1D stores data. What is an advantage of this organization?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Every access automatically becomes a cache hit."
+            },
+            {
+              "id": "b",
+              "text": "The CPU no longer needs tags."
+            },
+            {
+              "id": "c",
+              "text": "Instruction and data lines compete less directly for the same L1 space."
+            },
+            {
+              "id": "d",
+              "text": "The cache automatically becomes inclusive."
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Separate L1 caches for code and data reduce direct competition between instruction and data accesses. Misses can still occur.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO13.md",
+            "heading": "1. Hat jeder CPU-Kern seinen eigenen Cache?"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Separate L1 instruction and data caches"
+          ]
+        },
+        {
+          "id": "era-13-l5-q02",
+          "type": "single",
+          "prompt": "An empty direct-mapped cache has two lines. Memory blocks A and B both map to the same line, while C maps to the other. Thus, there is enough total space for A and B. You access A, then B, then A again. A compulsory miss occurs on a block's first access; a conflict miss results from the mapping despite free cache lines; a capacity miss would also occur in an equally sized fully associative cache. What is the third access?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Hit – A is still in the cache"
+            },
+            {
+              "id": "b",
+              "text": "Conflict miss – A was evicted despite a free line elsewhere"
+            },
+            {
+              "id": "c",
+              "text": "Capacity miss – the cache would also be too small if fully associative"
+            },
+            {
+              "id": "d",
+              "text": "Compulsory miss – A is requested for the first time"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "B evicts A from the only line to which both are mapped. A fully associative cache with two lines could hold A and B at the same time, so this is a conflict miss.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO13.md",
+            "heading": null
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Direct-mapped cache",
+            "Compulsory, conflict, and capacity misses"
+          ]
+        },
+        {
+          "id": "era-13-l5-q03",
+          "type": "estimate",
+          "prompt": "A cache has 48 KiB of data capacity. A cache line stores 64 Byte; 1 KiB is 1024 Byte. How many cache lines fit in it?",
+          "options": [],
+          "correct": [],
+          "slider": {
+            "min": 256,
+            "max": 1408,
+            "step": 4,
+            "answer": 768,
+            "tolerance": 0,
+            "unit": "Lines",
+            "scale": "linear"
+          },
+          "explanation": "48 KiB is $48 \\cdot 1024 = 49152$ Byte. Dividing by 64 Byte per line gives 768 lines.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO13.md",
+            "heading": null
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Cache line"
+          ]
+        },
+        {
+          "id": "era-13-l5-q04",
+          "type": "single",
+          "prompt": "A cache set is full, and a new block D is to be added. A was last used 8 accesses ago, B 2 accesses ago, and C 1 access ago. A has been used 20 times in total, B once, and C 7 times. Which line does LRU evict? LRU removes the block whose last access was the longest ago.",
+          "options": [
+            {
+              "id": "a",
+              "text": "B: last used 2 accesses ago"
+            },
+            {
+              "id": "b",
+              "text": "D: the new block"
+            },
+            {
+              "id": "c",
+              "text": "C: last used 1 access ago"
+            },
+            {
+              "id": "d",
+              "text": "A: last used 8 accesses ago"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "LRU is based on how long a block has gone unused, not on its total number of accesses. Therefore, A is evicted even though it has been used the most overall.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO13.md",
+            "heading": null
+          },
+          "difficulty": 2,
+          "concepts": [
+            "LRU and LFU"
+          ]
+        },
+        {
+          "id": "era-13-l5-q05",
+          "type": "single",
+          "prompt": "You are designing a measurement-device controller. After every write to a cache hit, the next level of the memory hierarchy must immediately receive the new value. Which write strategy meets this requirement?",
+          "options": [
+            {
+              "id": "a",
+              "text": "No-write-allocate"
+            },
+            {
+              "id": "b",
+              "text": "Write-through"
+            },
+            {
+              "id": "c",
+              "text": "Write-back"
+            },
+            {
+              "id": "d",
+              "text": "Write-allocate"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "With write-through, changes are also propagated directly to the next level of the memory hierarchy. With write-back, this typically happens later, for example when the modified cache line is evicted.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO13.md",
+            "heading": null
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Write-through and write-back"
+          ]
+        },
+        {
+          "id": "era-13-l5-q06",
+          "type": "estimate",
+          "prompt": "A byte-addressed processor uses 32-bit addresses and a direct-mapped cache with 8 KiB of data capacity and 64 Byte per line. 1 KiB is 1024 Byte. How many tag bits does the address have?",
+          "options": [],
+          "correct": [],
+          "slider": {
+            "min": 4,
+            "max": 30,
+            "step": 1,
+            "answer": 19,
+            "tolerance": 0,
+            "unit": "Bit",
+            "scale": "linear"
+          },
+          "explanation": "A 64-Byte line requires 6 offset bits. 8 KiB contains 128 lines, so the index requires 7 bits. This leaves $32 - 6 - 7 = 19$ tag bits.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO13.md",
+            "heading": null
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Tag, index, and offset",
+            "Direct-mapped cache"
+          ]
+        },
+        {
+          "id": "era-13-l5-q07",
+          "type": "single",
+          "prompt": "A log analysis writes a large results area once and never reads the old values again. On a write miss, the cache can either first load the entire line and then perform the write (write-allocate), or send the write to the next memory level without loading the line into the cache (no-write-allocate). Which strategy avoids bringing one-time-use lines into the cache?",
+          "options": [
+            {
+              "id": "a",
+              "text": "No-write-allocate"
+            },
+            {
+              "id": "b",
+              "text": "Write-back"
+            },
+            {
+              "id": "c",
+              "text": "Write-allocate"
+            },
+            {
+              "id": "d",
+              "text": "LRU"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "No-write-allocate does not load the cache line into the cache on a write miss. This suits a one-time output stream whose data does not need cache space for imminent reuse.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO13.md",
+            "heading": null
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Write-allocate and no-write-allocate"
+          ]
+        },
+        {
+          "id": "era-13-l5-q08",
+          "type": "estimate",
+          "prompt": "A 4-way set-associative cache has 512 cache lines in total. Each set contains four lines. How many sets does the cache have?",
+          "options": [],
+          "correct": [],
+          "slider": {
+            "min": 32,
+            "max": 288,
+            "step": 4,
+            "answer": 128,
+            "tolerance": 0,
+            "unit": "Sets",
+            "scale": "linear"
+          },
+          "explanation": "The 512 lines are distributed among sets of four lines each: $512 / 4 = 128$ sets.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO13.md",
+            "heading": null
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Set-associative cache"
+          ]
+        },
+        {
+          "id": "era-13-l5-q09",
+          "type": "single",
+          "prompt": "A server uses L1 and L2 caches. The design guarantees that every cache line in L1 is also in L2; L2 may contain additional lines. What property does this hierarchy have?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Inclusive hierarchy"
+            },
+            {
+              "id": "b",
+              "text": "Exclusive hierarchy"
+            },
+            {
+              "id": "c",
+              "text": "No-write-allocate hierarchy"
+            },
+            {
+              "id": "d",
+              "text": "Write-through hierarchy"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "In an inclusive hierarchy, every block in the smaller cache is also present in the larger cache below it. L2 can hold additional blocks as well.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO13.md",
+            "heading": null
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Inclusive and exclusive cache hierarchy"
+          ]
+        },
+        {
+          "id": "era-13-l5-q10",
+          "type": "single",
+          "prompt": "You read a densely stored byte array sequentially. On a miss, the cache loads an entire cache line containing 64 contiguous bytes. What is the typical advantage compared with accesses to widely separated random addresses?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Several neighboring array values can be read from the same already-loaded cache line."
+            },
+            {
+              "id": "b",
+              "text": "After the first miss, the entire array is loaded into the cache."
+            },
+            {
+              "id": "c",
+              "text": "The cache needs neither a tag nor an index for these accesses."
+            },
+            {
+              "id": "d",
+              "text": "Each byte forms its own cache line and causes a miss."
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "Because the cache loads entire lines, nearby values are often already in the cache together. This can avoid further misses during sequential reads.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO13.md",
+            "heading": null
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Cache line",
+            "Cache hit and cache miss"
+          ]
+        }
+      ]
+    }
+  ]
+}

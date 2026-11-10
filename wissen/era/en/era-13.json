@@ -1,0 +1,580 @@
+{
+  "schemaVersion": 1,
+  "unitId": "era-13",
+  "module": "ERA",
+  "unitNumber": 13,
+  "unitTitle": "Caches: Structure, Misses, and Policies",
+  "sourceSha": "b877002db9606bd65d7ec7fdcd711a57437346e926cefd4aa507c0693ff25047",
+  "overview": "This unit explains how caches use temporal and spatial locality (zeitliche und räumliche Lokalität) to provide frequently used or nearby data more quickly. Memory addresses are divided into a tag (Tag), an index (Index), and an offset (Offset); the cache organization determines where a memory block can reside. On a cache miss (Cache-Miss), an entire cache line (Cache-Zeile) is fetched, and a replacement policy (Cache-Ersetzungsstrategie) evicts another line if necessary. Write policies and the organization of multiple cache levels determine how changes are propagated and data distributed across the hierarchy.",
+  "entries": [
+    {
+      "id": "era-13-k01",
+      "term": "locality principle (Lokalitätsprinzip)",
+      "kind": "concept",
+      "short": "The locality principle states that programs often reuse recently accessed data or data located nearby.",
+      "explanation": "Caches exploit typical program access patterns: a value that has just been used is often needed again soon, and nearby values are often accessed as well. A cache can therefore fetch an entire cache line of neighboring data when it loads a memory block. This makes it more likely that later accesses can be served without accessing a slower level of memory.",
+      "example": "After reading an array element, a loop often accesses the next element immediately; one cache line may contain both.",
+      "pitfalls": [
+        "Locality is a common property of many access patterns, but it is not guaranteed for every individual access."
+      ],
+      "related": [
+        "temporal locality",
+        "spatial locality",
+        "cache line"
+      ],
+      "heading": null
+    },
+    {
+      "id": "era-13-k02",
+      "term": "temporal locality (zeitliche Lokalität)",
+      "kind": "concept",
+      "short": "Temporal locality means that recently used data or instructions are more likely to be used again soon.",
+      "explanation": "A cache keeps recently requested data close to the CPU so that a repeated access can be served quickly. Replacement policies such as LRU use this observation by preferentially evicting lines that have not been used for longer. Temporal locality explains why repeated accesses to the same values often produce cache hits.",
+      "example": "A loop reads the same variable on every iteration; after the first fetch, it can remain in the cache.",
+      "pitfalls": [
+        "Temporal locality describes repetition over time, not the spatial proximity of two addresses."
+      ],
+      "related": [
+        "locality principle",
+        "spatial locality",
+        "LRU (Least Recently Used)"
+      ],
+      "heading": null
+    },
+    {
+      "id": "era-13-k03",
+      "term": "spatial locality (räumliche Lokalität)",
+      "kind": "concept",
+      "short": "Spatial locality means that nearby memory addresses are often accessed after an access.",
+      "explanation": "Because programs often access neighboring memory locations, a cache normally loads the entire associated memory block as a cache line on a miss. This allows subsequent accesses to other bytes in the same line to be served directly from the cache. This is especially useful when accessing arrays or instructions sequentially.",
+      "example": "When one byte of an array is read, the same cache line may also contain the immediately following array elements.",
+      "pitfalls": [
+        "Spatial locality does not predict that the CPU will always request the next memory location; it describes a common access pattern."
+      ],
+      "related": [
+        "locality principle",
+        "temporal locality",
+        "cache line"
+      ],
+      "heading": null
+    },
+    {
+      "id": "era-13-k04",
+      "term": "cache",
+      "kind": "definition",
+      "short": "A cache is a small, fast memory that holds copies of data from a lower level of the memory hierarchy.",
+      "explanation": "On an access, the cache checks whether the required memory block is present. On a hit, it supplies the requested data from the cache; on a miss, it fetches the block from a slower level of memory. A cache reduces average access time when programs exhibit locality.",
+      "example": "A processor can keep frequently used data in an L1 cache instead of accessing main memory each time.",
+      "pitfalls": [
+        "A cache contains copies of memory contents; it is not the same as main memory.",
+        "Cache levels can have different access times."
+      ],
+      "related": [
+        "cache hit",
+        "cache miss",
+        "cache line",
+        "cache hierarchy"
+      ],
+      "heading": null
+    },
+    {
+      "id": "era-13-k05",
+      "term": "memory block (Speicherblock)",
+      "kind": "definition",
+      "short": "A memory block is a contiguous region of memory transferred as a unit between levels of the memory hierarchy.",
+      "explanation": "An access to a single byte can cause the entire associated memory block to be loaded into the cache. The cache places this block in a cache line and stores additional information to recognize it later. The block size equals the data capacity of a cache line.",
+      "example": "With a cache line size of 64 bytes, the 64 consecutive bytes starting at a 64-byte boundary form one memory block.",
+      "pitfalls": [
+        "The requested value can be smaller than the memory block that is loaded.",
+        "Memory block refers to the memory region being transferred; cache line refers to the place where it is stored in the cache."
+      ],
+      "related": [
+        "cache line",
+        "cache miss"
+      ],
+      "heading": null
+    },
+    {
+      "id": "era-13-k06",
+      "term": "cache line (Cache-Zeile)",
+      "kind": "definition",
+      "short": "A cache line is a location in the cache that can hold a memory block together with its mapping information.",
+      "explanation": "The data in a cache line contain an entire memory block, not just the individual requested byte or word. The line also has metadata such as the tag and usually a valid bit; with write-back, a dirty bit can mark changes. On a miss, a suitable line is filled with the requested block, and an existing line may be evicted.",
+      "example": "A cache line with 64 bytes of data can hold the block containing the requested address.",
+      "pitfalls": [
+        "A cache line and the requested value are not the same: a line typically contains many bytes.",
+        "Evicting a modified line may require writing it back before replacement."
+      ],
+      "related": [
+        "memory block",
+        "cache miss",
+        "tag",
+        "dirty bit"
+      ],
+      "heading": null
+    },
+    {
+      "id": "era-13-k07",
+      "term": "cache hit (Cache-Hit)",
+      "kind": "definition",
+      "short": "A cache hit occurs when the requested memory block is present and valid in the cache.",
+      "explanation": "The cache uses the address to find a possible line or set and checks whether the stored tag matches the requested address. On a hit, the offset selects the requested bytes or word within the line. The access can therefore be served without fetching data from a slower level of memory.",
+      "example": "If an array element is read again while its memory block is still in the cache, the access is a cache hit.",
+      "pitfalls": [
+        "A matching index alone is not enough for a hit; the tag must also match."
+      ],
+      "related": [
+        "cache miss",
+        "tag",
+        "index",
+        "offset"
+      ],
+      "heading": null
+    },
+    {
+      "id": "era-13-k08",
+      "term": "cache miss (Cache-Miss)",
+      "kind": "definition",
+      "short": "A cache miss occurs when the requested memory block is not found as a valid entry in the cache.",
+      "explanation": "The cache must fetch the block from the next lower level of memory before it can provide the requested value. An entire cache line containing the block is transferred; if the designated location is occupied, an existing line may be evicted. Misses are classified, among other types, as compulsory, conflict, or capacity misses.",
+      "example": "The first access to a block that has never been loaded causes a cache miss.",
+      "pitfalls": [
+        "A miss does not necessarily mean that the entire cache has no free space; the block may be absent because of the mapping rules.",
+        "A miss may also trigger a write to a lower level or a write-back operation."
+      ],
+      "related": [
+        "cache hit",
+        "cache line",
+        "compulsory miss",
+        "conflict miss",
+        "capacity miss"
+      ],
+      "heading": null
+    },
+    {
+      "id": "era-13-k09",
+      "term": "cache address decomposition (Cache-Adresszerlegung)",
+      "kind": "method",
+      "short": "Cache address decomposition determines the tag, index, and offset of an address.",
+      "explanation": "The offset selects a position within a cache line, the index selects a line or set, and the tag identifies the memory block stored there. For a line size of $B$ bytes and a power of two of $B$, the offset requires $\\log_2(B)$ bits; with $S$ sets and a power of two of $S$, the index requires $\\log_2(S)$ bits. The higher-order remaining bits form the tag.",
+      "example": "With 64 bytes per cache line, the offset requires $\\log_2(64)=6$ bits to select a byte within the line.",
+      "pitfalls": [
+        "A fully associative cache has no index bits because any block can be placed in any line.",
+        "The offset selects a position within a line, not the cache line itself."
+      ],
+      "related": [
+        "tag",
+        "index",
+        "offset",
+        "cache line",
+        "direct-mapped cache",
+        "fully associative cache",
+        "set-associative cache"
+      ],
+      "heading": null
+    },
+    {
+      "id": "era-13-k10",
+      "term": "tag",
+      "kind": "notation",
+      "short": "The tag is the part of an address that the cache uses to check which memory block is in a selected line or set.",
+      "explanation": "After selecting a location by index, the cache compares the tag of the requested address with the stored tag. If the tag matches and the line is valid, the requested block is in the selected line. The tag distinguishes memory blocks that can use the same index.",
+      "example": "Two addresses can select the same set but have different tags; they then refer to different memory blocks.",
+      "pitfalls": [
+        "A matching index without a matching tag is not a cache hit."
+      ],
+      "related": [
+        "cache address decomposition",
+        "index",
+        "offset",
+        "cache hit"
+      ],
+      "heading": null
+    },
+    {
+      "id": "era-13-k11",
+      "term": "index",
+      "kind": "notation",
+      "short": "The index is the part of an address that selects a line or set in a cache with index bits.",
+      "explanation": "In a direct-mapped cache, the index selects exactly one cache line. In a set-associative cache, it selects a set whose multiple lines are possible locations. A fully associative cache does not need an index because any memory block can be placed in any line.",
+      "example": "A cache with 32 sets needs five index bits because 32 is a power of two.",
+      "pitfalls": [
+        "The index alone does not identify the stored memory block; the tag must also be checked."
+      ],
+      "related": [
+        "cache address decomposition",
+        "tag",
+        "offset",
+        "direct-mapped cache",
+        "set-associative cache",
+        "fully associative cache"
+      ],
+      "heading": null
+    },
+    {
+      "id": "era-13-k12",
+      "term": "offset",
+      "kind": "notation",
+      "short": "The offset is the part of an address that selects the position of the requested data within a cache line.",
+      "explanation": "After the cache finds the matching line and memory block, the offset determines the desired byte position or range within the line. For $B$ bytes per cache line, there are $B$ possible byte positions. If $B$ is a power of two, the offset requires $\\log_2(B)$ bits.",
+      "example": "With 64 bytes per cache line, the lower six offset bits select one of the 64 bytes.",
+      "pitfalls": [
+        "The offset does not select a cache line; the index does, if the cache has an index."
+      ],
+      "related": [
+        "cache address decomposition",
+        "index",
+        "tag",
+        "cache line"
+      ],
+      "heading": null
+    },
+    {
+      "id": "era-13-k13",
+      "term": "direct-mapped cache (Direct-Mapped Cache)",
+      "kind": "definition",
+      "short": "In a direct-mapped cache, each memory block can be mapped to exactly one cache line.",
+      "explanation": "The address index determines the only line in which the block may reside; the tag checks whether that line currently contains the requested block. This organization is simple and allows fast access. However, multiple memory blocks can map to the same line and evict one another.",
+      "example": "With 16 cache lines, memory blocks with the same index map to the same line, even if other lines are free.",
+      "pitfalls": [
+        "A block cannot move to another cache line if its mapped line is occupied.",
+        "Direct-mapped does not mean that the cache has only one line in total."
+      ],
+      "related": [
+        "index",
+        "tag",
+        "conflict miss",
+        "set-associative cache",
+        "fully associative cache"
+      ],
+      "heading": null
+    },
+    {
+      "id": "era-13-k14",
+      "term": "fully associative cache (voll-assoziativer Cache)",
+      "kind": "definition",
+      "short": "In a fully associative cache, a memory block can be placed in any cache line.",
+      "explanation": "The cache has no index bits to select a fixed location or set. To search, the tags of the possible lines must be checked for a match; if no space is free, a replacement policy chooses which line to evict. This organization avoids conflicts caused by a fixed set mapping, but it is more complex to implement.",
+      "example": "A block can be loaded into any free line of a fully associative cache.",
+      "pitfalls": [
+        "Fully associative does not mean that the cache can hold an unlimited number of blocks.",
+        "A fully associative cache can still have capacity misses."
+      ],
+      "related": [
+        "tag",
+        "cache address decomposition",
+        "direct-mapped cache",
+        "set-associative cache",
+        "conflict miss",
+        "capacity miss"
+      ],
+      "heading": null
+    },
+    {
+      "id": "era-13-k15",
+      "term": "set-associative cache (mengenassoziativer Cache)",
+      "kind": "definition",
+      "short": "A set-associative cache divides its lines into sets. Each memory block maps to a specific set and can occupy any of several lines within it.",
+      "explanation": "The index selects the set; within that set, the block can occupy any of the $N$ lines in an N-way set-associative cache. The tag distinguishes possible memory blocks mapped to the same set. The number of sets is the cache size divided by the line size and associativity.",
+      "example": "In a 4-way set-associative cache, four different blocks that select the same set can reside there simultaneously.",
+      "pitfalls": [
+        "The index selects a set, not an individual line within that set.",
+        "If all lines in a set are occupied, a line from that set must be evicted."
+      ],
+      "related": [
+        "index",
+        "tag",
+        "direct-mapped cache",
+        "fully associative cache",
+        "cache replacement policy",
+        "conflict miss"
+      ],
+      "heading": null
+    },
+    {
+      "id": "era-13-k16",
+      "term": "compulsory miss",
+      "kind": "definition",
+      "short": "A compulsory miss occurs on the first access to a memory block that was not previously in the cache.",
+      "explanation": "On the first access, the cache cannot already have a loaded copy of the block. Therefore, this kind of miss occurs even in an infinitely large cache if it starts empty. The miss is due to the first access, not to insufficient space or an unfavorable mapping.",
+      "example": "A program's first access to a particular array block is a compulsory miss.",
+      "pitfalls": [
+        "Compulsory misses do not disappear simply by increasing cache capacity.",
+        "A later miss on the same block is no longer compulsory if the block has already been loaded."
+      ],
+      "related": [
+        "cache miss",
+        "conflict miss",
+        "capacity miss",
+        "memory block"
+      ],
+      "heading": null
+    },
+    {
+      "id": "era-13-k17",
+      "term": "conflict miss",
+      "kind": "definition",
+      "short": "A conflict miss occurs when a memory block is absent due to a mapping conflict, even though other cache lines are available.",
+      "explanation": "In a direct-mapped or set-associative cache, multiple blocks can compete for the same set or line. If they evict one another there, other sets or lines may remain unused. A fully associative cache with the same total capacity would avoid such a miss by allowing free placement.",
+      "example": "Two frequently used blocks with the same index alternate in a single direct-mapped cache line.",
+      "pitfalls": [
+        "A conflict miss is caused by the mapping restriction, not simply by the cache being too small overall.",
+        "If a fully associative cache of the same capacity also cannot hold the block, the miss is a capacity miss."
+      ],
+      "related": [
+        "cache miss",
+        "direct-mapped cache",
+        "set-associative cache",
+        "fully associative cache",
+        "capacity miss"
+      ],
+      "heading": null
+    },
+    {
+      "id": "era-13-k18",
+      "term": "capacity miss",
+      "kind": "definition",
+      "short": "A capacity miss occurs when the cache's total capacity is insufficient to hold the memory blocks needed by an access pattern.",
+      "explanation": "Such a miss would also occur in a fully associative cache with the same total capacity, because even unrestricted placement cannot provide enough storage. If more relevant blocks are needed than the cache can hold, they evict one another. Capacity misses thus differ from misses caused only by mapping conflicts.",
+      "example": "If the active working set is larger than the cache, blocks that are needed repeatedly may be evicted before they are used again.",
+      "pitfalls": [
+        "A capacity miss can also occur in a fully associative cache.",
+        "The term does not mean that every individual access misses; it means the capacity is insufficient for the access pattern."
+      ],
+      "related": [
+        "cache miss",
+        "fully associative cache",
+        "conflict miss",
+        "compulsory miss"
+      ],
+      "heading": null
+    },
+    {
+      "id": "era-13-k19",
+      "term": "cache replacement policy (Cache-Ersetzungsstrategie)",
+      "kind": "method",
+      "short": "A cache replacement policy selects an occupied cache line when a new block must be loaded and no suitable space is free.",
+      "explanation": "Which line can be chosen as the victim depends on the cache organization: in a set-associative cache, it must be a line in the selected set; in a fully associative cache, it can be any line. A policy may consider, for example, usage times or access frequencies. It is needed only when no suitable free location is available.",
+      "example": "In a full 2-way set, LRU selects the line that has gone unused for the longest time.",
+      "pitfalls": [
+        "The policy selects only from the permitted locations in the cache or set.",
+        "A direct-mapped cache offers no choice among multiple possible lines for a block."
+      ],
+      "related": [
+        "direct-mapped cache",
+        "fully associative cache",
+        "set-associative cache",
+        "LRU (Least Recently Used)",
+        "LFU (Least Frequently Used)"
+      ],
+      "heading": null
+    },
+    {
+      "id": "era-13-k20",
+      "term": "LRU (Least Recently Used)",
+      "kind": "method",
+      "short": "LRU evicts the cache line whose last access was the longest time ago.",
+      "explanation": "The policy orders lines by the time of their last use. When a new block must be loaded into a full set or cache, it replaces the eligible line that has gone unused for the longest time. LRU exploits the assumption of temporal locality: recently used data may be needed again soon.",
+      "example": "If line A was last used 20 accesses ago and line B 3 accesses ago, LRU evicts A from among these two lines.",
+      "pitfalls": [
+        "LRU considers the most recent access, not the total number of accesses.",
+        "Exact LRU tracking can add hardware overhead; practical caches may simplify or approximate it."
+      ],
+      "related": [
+        "temporal locality",
+        "cache replacement policy",
+        "LFU (Least Frequently Used)"
+      ],
+      "heading": null
+    },
+    {
+      "id": "era-13-k21",
+      "term": "LFU (Least Frequently Used)",
+      "kind": "method",
+      "short": "LFU evicts the cache line with the lowest access frequency.",
+      "explanation": "For each eligible line, the number of uses is counted or estimated. When a location is needed, LFU selects the line with the fewest accesses. Unlike LRU, LFU is based on frequency rather than on how long ago the last access occurred.",
+      "example": "If line A has recorded 2 accesses and line B has recorded 15, LFU would evict A from among these two lines.",
+      "pitfalls": [
+        "A frequently used line can remain in the cache for a long time under LFU, even if its accesses occurred far in the past.",
+        "Access counts must be tracked or estimated and can add management overhead."
+      ],
+      "related": [
+        "cache replacement policy",
+        "LRU (Least Recently Used)"
+      ],
+      "heading": null
+    },
+    {
+      "id": "era-13-k22",
+      "term": "write-through",
+      "kind": "concept",
+      "short": "With write-through, a write to the cache is immediately propagated to the next lower level of memory.",
+      "explanation": "On a write hit, the data in the cache line are updated and the change is also written to the next level of memory. This keeps that level up to date with the cache. The extra propagation can generate more memory traffic than write-back.",
+      "example": "If the CPU writes the value 7 to a cached variable, the new value is also immediately propagated to the next lower level of memory.",
+      "pitfalls": [
+        "Write-through describes when a change is written through; it does not determine whether a line is loaded into the cache on a write miss.",
+        "The exact handling of a write miss also depends on the write-allocation policy."
+      ],
+      "related": [
+        "write-back",
+        "write-allocate",
+        "no-write-allocate"
+      ],
+      "heading": null
+    },
+    {
+      "id": "era-13-k23",
+      "term": "write-back",
+      "kind": "concept",
+      "short": "With write-back, a change is initially stored only in the cache and is written to the next lower level of memory later.",
+      "explanation": "After a write hit, the cache line initially contains the new value, while the next lower level may still contain the old value. The cache must mark the modified line, for example with a dirty bit. When the modified line is evicted, its data are written back.",
+      "example": "A CPU changes a value several times in the same cache line; the line may not be written back to the next level of memory until it is evicted.",
+      "pitfalls": [
+        "With write-back, the next lower level of memory may temporarily be out of date.",
+        "Write-back does not specify whether a block is loaded into the cache on a write miss."
+      ],
+      "related": [
+        "dirty bit",
+        "write-through",
+        "write-allocate",
+        "no-write-allocate",
+        "cache replacement policy"
+      ],
+      "heading": null
+    },
+    {
+      "id": "era-13-k24",
+      "term": "dirty bit (Dirty-Bit)",
+      "kind": "notation",
+      "short": "The dirty bit indicates whether a cache line has been modified since it was loaded.",
+      "explanation": "A set dirty bit indicates that the data stored in the cache may differ from the next lower level of memory. With write-back, such a line must be written back before or during eviction. If the bit is not set, the line can be replaced without being written back.",
+      "example": "After a write hit in a write-back line, its dirty bit is set; it can be cleared again after write-back.",
+      "pitfalls": [
+        "The dirty bit does not indicate which byte range was modified; it only indicates that the line was modified.",
+        "Write-through does not need a dirty marker for immediate propagation in the way write-back does."
+      ],
+      "related": [
+        "write-back",
+        "cache line",
+        "cache replacement policy"
+      ],
+      "heading": null
+    },
+    {
+      "id": "era-13-k25",
+      "term": "write-allocate",
+      "kind": "concept",
+      "short": "With write-allocate, the affected cache line is first loaded into the cache on a write miss.",
+      "explanation": "After it is loaded, the write can modify the line in the cache. This is useful when further accesses to the same block are likely, because they can then hit in the cache. Write-allocate specifies what happens on a write miss and is independent of write-through or write-back.",
+      "example": "When a write accesses a block that is not yet cached, the block is loaded and then the desired position in the cache line is modified.",
+      "pitfalls": [
+        "Write-allocate is a rule for write misses, not a rule for when data are written back.",
+        "The entire block is loaded as a line, even if only part of it will be written."
+      ],
+      "related": [
+        "no-write-allocate",
+        "write-through",
+        "write-back",
+        "cache miss",
+        "cache line"
+      ],
+      "heading": null
+    },
+    {
+      "id": "era-13-k26",
+      "term": "no-write-allocate",
+      "kind": "concept",
+      "short": "With no-write-allocate, a line is not loaded into the cache on a write miss.",
+      "explanation": "Instead, the write is passed to the next lower level of memory without placing the relevant memory block in the cache. Lines already in the cache can still be updated on a write hit. This policy prevents a one-time write from occupying a cache location.",
+      "example": "On a write miss, a value is written directly to the next lower level; the block initially remains outside the cache.",
+      "pitfalls": [
+        "No-write-allocate does not mean that writes to cache lines already present ignore the cache.",
+        "The policy alone does not determine whether write hits use write-through or write-back."
+      ],
+      "related": [
+        "write-allocate",
+        "write-through",
+        "write-back",
+        "cache miss"
+      ],
+      "heading": null
+    },
+    {
+      "id": "era-13-k27",
+      "term": "cache hierarchy (Cache-Hierarchie)",
+      "kind": "concept",
+      "short": "A cache hierarchy arranges multiple cache levels by size and proximity to the CPU.",
+      "explanation": "L1 is typically smaller and closer to the core than L2 or L3; larger or slower levels can hold data that are absent from a closer level. If requested data are missing from one level, the search can continue at a lower level and a cache line can be loaded from there. The specific organization and sharing of levels depend on the CPU.",
+      "example": "An access may first be looked up in the L1 cache and, on a miss, then in the L2 cache.",
+      "pitfalls": [
+        "The labels L1, L2, and L3 do not imply the same size or sharing arrangement for every CPU.",
+        "A cache level is not automatically inclusive or exclusive."
+      ],
+      "related": [
+        "inclusive cache hierarchy",
+        "exclusive cache hierarchy",
+        "cache line"
+      ],
+      "heading": null
+    },
+    {
+      "id": "era-13-k28",
+      "term": "inclusive cache hierarchy (inklusive Cache-Hierarchie)",
+      "kind": "definition",
+      "short": "A cache hierarchy is inclusive if every block in a smaller cache is also present in the next larger cache.",
+      "explanation": "For example, if a smaller cache contains a block, a copy of that block must also be present in the next larger cache level. The larger cache can hold additional blocks as well. Therefore, removing a block from the larger level can also affect copies in smaller levels.",
+      "example": "If block A is in the L1 cache, it is also present in the L2 cache in an inclusive L1/L2 hierarchy.",
+      "pitfalls": [
+        "Inclusivity means that data can occur as copies in multiple cache levels.",
+        "This statement applies to the cache levels under consideration; it does not mean that every cache block is in main memory."
+      ],
+      "related": [
+        "cache hierarchy",
+        "exclusive cache hierarchy",
+        "cache line"
+      ],
+      "heading": null
+    },
+    {
+      "id": "era-13-k29",
+      "term": "exclusive cache hierarchy (exklusive Cache-Hierarchie)",
+      "kind": "definition",
+      "short": "A cache hierarchy is exclusive if a memory block appears as a copy at most once across the cache levels under consideration.",
+      "explanation": "A block in a closer level is not also present as a copy in the other cache levels under consideration. When blocks move between levels, the number of distinct cache blocks that can be used may therefore depend on the sum of the levels' capacities. This can increase the total amount of data held, but requires suitable management when blocks move between levels.",
+      "example": "If block A is in the L1 cache, it is not also present as a copy in the L2 cache in an exclusive L1/L2 hierarchy.",
+      "pitfalls": [
+        "Exclusive does not mean that a memory block can have only one copy in the entire system or across all processor cores.",
+        "The sum of the cache sizes is an upper bound on the amount of data they can store together, not necessarily the capacity that can actually be achieved."
+      ],
+      "related": [
+        "cache hierarchy",
+        "inclusive cache hierarchy",
+        "cache line"
+      ],
+      "heading": null
+    },
+    {
+      "id": "era-13-k30",
+      "term": "separate L1 instruction and data caches (getrennte L1-Caches für Instruktionen und Daten)",
+      "kind": "concept",
+      "short": "With separate L1 caches, instructions and data are stored in their own L1 caches.",
+      "explanation": "An instruction cache holds instructions, while a data cache manages values for reads and writes. This prevents instruction and data accesses from competing directly for the same L1 lines. Other cache levels may manage instructions and data together again; the exact division depends on the CPU.",
+      "example": "While a core fetches an instruction from the L1 instruction cache, it can read data from the L1 data cache.",
+      "pitfalls": [
+        "Separate L1 caches do not mean that instructions and data reside in separate main memories.",
+        "The division concerns cache organization; it does not change which address an instruction or data access uses."
+      ],
+      "related": [
+        "cache hierarchy",
+        "cache line"
+      ],
+      "heading": null
+    }
+  ],
+  "generator": {
+    "model": "gpt-6-luna",
+    "effort": "xhigh",
+    "promptVersion": "k1",
+    "generatedAt": "2026-11-10T23:25:18.087Z"
+  }
+}
