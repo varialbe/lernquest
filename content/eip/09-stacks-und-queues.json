@@ -1,0 +1,1934 @@
+{
+  "schemaVersion": 1,
+  "id": "eip-09",
+  "module": "EIP",
+  "number": 9,
+  "slug": "stacks-und-queues",
+  "title": "Stacks und Queues",
+  "summary": "Diese Unit erklärt abstrakte Datentypen und die Funktionsweise von Stacks und Queues. Du übst verkettete und arraybasierte Implementierungen, zirkuläre Arrays, Postfix-Auswertung und amortisierte Kosten. Außerdem geht es darum, wie eine private Repräsentation ausgetauscht werden kann, ohne das Verhalten für den Client zu ändern.",
+  "concepts": [
+    "ADT",
+    "Information Hiding",
+    "Stack (LIFO)",
+    "Verketteter Stack",
+    "Array-Stack",
+    "Amortisierte Analyse",
+    "Postfix/RPN",
+    "switch",
+    "Queue (FIFO)",
+    "Verkettete Queue",
+    "Zirkuläres Array",
+    "Repräsentationswahl"
+  ],
+  "keyFacts": [
+    "Ein ADT legt fest, welche Operationen verfügbar sind und was sie tun, nicht wie die Daten gespeichert werden.",
+    "Private Repräsentation schützt Datenstruktur-Invarianten; Clients verwenden die public-Operationen.",
+    "Ein Stack arbeitet nach LIFO: Der zuletzt gespeicherte Wert wird zuerst entfernt.",
+    "Bei einem verketteten Stack zeigt top auf den nächsten Knoten, den pop entfernt.",
+    "Beim Array-Stack liegen die belegten Werte in a[0] bis a[size - 1]; top liegt bei size - 1.",
+    "Ein volles Array wird vor dem Einfügen durch ein doppelt so großes ersetzt.",
+    "Ein Array wird erst bei höchstens einem Viertel Füllung halbiert; die Mindestkapazität ist 4.",
+    "Bei n Pushes und Pops ab leer werden insgesamt höchstens 2n Werte durch Resizes kopiert.",
+    "Eine einzelne Array-Operation kann O(n) kosten, obwohl die amortisierten Kosten pro Operation O(1) sind.",
+    "Postfix-Notation stellt jeden Operator hinter seine beiden Operanden und wird von links nach rechts ausgewertet.",
+    "Bei nichtkommutativen Postfix-Operationen wird zuerst der rechte Operand vom Stack genommen.",
+    "Die Pfeil-Syntax von switch hat kein Fall-through; die klassische Syntax benötigt break, um Fall-through zu verhindern.",
+    "Eine Queue arbeitet nach FIFO: Der am längsten wartende Wert wird zuerst entfernt.",
+    "Eine verkettete Queue verwendet first und last; beim Entfernen des letzten Elements müssen beide null werden.",
+    "Eine zirkuläre Array-Queue berechnet Indizes mit modulo der Arraylänge und nutzt size, um voll von leer zu unterscheiden.",
+    "Beim Resize einer Array-Queue werden die Elemente in ihrer logischen Reihenfolge an den Anfang des neuen Arrays kopiert; danach gilt first = 0.",
+    "Stack- und Queue-ADT können ihre interne Repräsentation wechseln, ohne dass der Client seine Aufrufe ändern muss."
+  ],
+  "tags": [
+    "eip",
+    "adt",
+    "stack",
+    "queue",
+    "amortized-analysis",
+    "java"
+  ],
+  "links": [],
+  "source": {
+    "file": "EIP/01_Vorlesungen/EIP VO9.md",
+    "sha256": "50ca77e95541fe50b62d30bc6b989f98d036c3be6dd891d01142fef43fa3f066",
+    "commit": "1e6a446bc8454b49da54263edb5b455e138a7a9a"
+  },
+  "generator": {
+    "model": "gpt-6-luna",
+    "effort": "xhigh",
+    "reviewEffort": "high",
+    "promptVersion": "v3",
+    "generatedAt": "2026-11-11T23:15:45.662Z",
+    "review": {
+      "checked": 42,
+      "fixed": 1,
+      "removed": 0,
+      "notes": "Geprüft: 42 Fragen. Im klassischen switch-Codebeispiel fehlte die Deklaration des verwendeten Stacks; ergänzt. Rechen- und Code-Ausgaben stimmen, Mermaid-Kontexte sind klein und enthalten die nötigen Daten."
+    }
+  },
+  "levels": [
+    {
+      "id": "eip-09-l1",
+      "index": 1,
+      "kind": "basics",
+      "title": "Grundlagen",
+      "questions": [
+        {
+          "id": "eip-09-l1-q01",
+          "type": "single",
+          "prompt": "Welche Beschreibung trifft auf einen abstrakten Datentyp (ADT) zu?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Er legt verfügbare Operationen und ihr Verhalten fest, aber nicht die interne Speicherung."
+            },
+            {
+              "id": "b",
+              "text": "Er legt die konkreten Speicherzellen fest, lässt die Operationen aber offen."
+            },
+            {
+              "id": "c",
+              "text": "Er beschreibt ausschließlich den Speicherbedarf eines Programms."
+            },
+            {
+              "id": "d",
+              "text": "Er erlaubt Clients, interne Datenfelder direkt zu ändern."
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "Ein ADT beschreibt das öffentliche Verhalten über Operationen. Die konkrete Repräsentation bleibt der Implementierung überlassen.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO9.md",
+            "heading": "34. Abstract Data Types (ADT)"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "ADT"
+          ]
+        },
+        {
+          "id": "eip-09-l1-q02",
+          "type": "truefalse",
+          "prompt": "Bei Information Hiding bleiben die Repräsentationsdaten privat, sodass Clients sie nicht direkt verändern können.",
+          "options": [
+            {
+              "id": "true",
+              "text": "Wahr"
+            },
+            {
+              "id": "false",
+              "text": "Falsch"
+            }
+          ],
+          "correct": [
+            "true"
+          ],
+          "explanation": "Private Daten werden nur über die Methoden der Datenstruktur geändert. So können diese Methoden ihre Invarianten sichern.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO9.md",
+            "heading": "Information Hiding"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Information Hiding"
+          ]
+        },
+        {
+          "id": "eip-09-l1-q03",
+          "type": "multi",
+          "prompt": "Welche Aussagen über einen Stack treffen zu? Wähle alle richtigen Aussagen; mehrere können richtig sein.",
+          "options": [
+            {
+              "id": "a",
+              "text": "push und pop arbeiten am top."
+            },
+            {
+              "id": "b",
+              "text": "Der zuerst eingefügte Wert wird immer zuerst entfernt."
+            },
+            {
+              "id": "c",
+              "text": "Der zuletzt eingefügte Wert wird zuerst entfernt."
+            },
+            {
+              "id": "d",
+              "text": "pop auf einem leeren Stack ist ein Fehler."
+            }
+          ],
+          "correct": [
+            "a",
+            "c",
+            "d"
+          ],
+          "explanation": "Ein Stack ist LIFO: Der jüngste Wert liegt oben und wird zuerst entfernt. Ein leerer Stack hat keinen Wert für pop zurückzugeben.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO9.md",
+            "heading": "35. Stacks"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Stack (LIFO)"
+          ]
+        },
+        {
+          "id": "eip-09-l1-q04",
+          "type": "cloze",
+          "prompt": "Bei einem Stack wird der zuletzt gespeicherte Wert ___ entfernt.",
+          "options": [
+            {
+              "id": "a",
+              "text": "erst nach allen älteren Werten"
+            },
+            {
+              "id": "b",
+              "text": "nur bei einem Resize"
+            },
+            {
+              "id": "c",
+              "text": "zuletzt"
+            },
+            {
+              "id": "d",
+              "text": "zuerst"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "LIFO bedeutet „last in, first out“: Der zuletzt gespeicherte Wert wird als erster entfernt.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO9.md",
+            "heading": "35. Stacks"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Stack (LIFO)"
+          ]
+        },
+        {
+          "id": "eip-09-l1-q05",
+          "type": "single",
+          "prompt": "Was bedeutet FIFO für eine Queue?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Werte werden stets in aufsteigender Reihenfolge entfernt."
+            },
+            {
+              "id": "b",
+              "text": "Einfügen und Entfernen finden am selben Ende statt."
+            },
+            {
+              "id": "c",
+              "text": "Der am längsten wartende Wert wird zuerst entfernt."
+            },
+            {
+              "id": "d",
+              "text": "Der zuletzt eingefügte Wert wird zuerst entfernt."
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "FIFO bedeutet „first in, first out“: Der älteste Wert wird zuerst entfernt. Einfügen geschieht am back, Entfernen am front.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO9.md",
+            "heading": "37. Queues"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Queue (FIFO)"
+          ]
+        },
+        {
+          "id": "eip-09-l1-q06",
+          "type": "diagram",
+          "prompt": "Welche Rolle haben die privaten Daten im dargestellten ADT?",
+          "context": {
+            "type": "mermaid",
+            "content": "flowchart LR\n  C[Client] --> P[public operations]\n  P --> D[private data]",
+            "caption": "Öffentliche Operationen vermitteln zwischen Client und privater Repräsentation."
+          },
+          "options": [
+            {
+              "id": "a",
+              "text": "Sie sind die interne Repräsentation, auf die der Client nur über public operations zugreift."
+            },
+            {
+              "id": "b",
+              "text": "Sie zeigen, dass jede Operation ein Array verwenden muss."
+            },
+            {
+              "id": "c",
+              "text": "Sie ersetzen den Client und rufen dessen Methoden auf."
+            },
+            {
+              "id": "d",
+              "text": "Sie sind eine zweite Menge öffentlicher Operationen für den Client."
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "Der Client ruft öffentliche Operationen auf. Diese arbeiten intern mit privaten Daten, deren konkrete Form verborgen bleibt.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO9.md",
+            "heading": "34. Abstract Data Types (ADT)"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "ADT",
+            "Information Hiding"
+          ]
+        },
+        {
+          "id": "eip-09-l1-q07",
+          "type": "single",
+          "prompt": "Ein Array-Stack hat `size = 3`. An welchem Index liegt sein oberster gespeicherter Wert?",
+          "options": [
+            {
+              "id": "a",
+              "text": "2"
+            },
+            {
+              "id": "b",
+              "text": "a.length - 1` in jedem Fall"
+            },
+            {
+              "id": "c",
+              "text": "3"
+            },
+            {
+              "id": "d",
+              "text": "0"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "Die belegten Zellen gehen von 0 bis size - 1. Bei size = 3 liegt top daher bei Index 2.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO9.md",
+            "heading": "Repräsentation"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Array-Stack"
+          ]
+        },
+        {
+          "id": "eip-09-l1-q08-r1",
+          "type": "truefalse",
+          "prompt": "Für diese Array-Stack-Implementierung gilt: Nach einem `pop()` wird die verringerte `size` geprüft. Ist die Kapazität größer als 4 und gilt `size <= Kapazität / 4`, wird das Array halbiert; die Mindestkapazität beträgt 4. Unmittelbar vor einem `pop()` liegen 5 Werte in einem Array mit Kapazität 16. Aussage: Nach diesem `pop()` wird das Array von 16 auf 8 Zellen verkleinert. Wahr oder falsch?",
+          "options": [
+            {
+              "id": "true",
+              "text": "Wahr"
+            },
+            {
+              "id": "false",
+              "text": "Falsch"
+            }
+          ],
+          "correct": [
+            "true"
+          ],
+          "explanation": "Nach dem `pop()` ist `size = 4`. Da die Kapazität 16 und damit größer als 4 ist und $4 \\le 16/4$, wird auf 8 Zellen halbiert.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO9.md",
+            "heading": "Speicher freigeben: wann schrumpfen?"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Array-Stack",
+            "Schrumpfen",
+            "Viertel-Regel"
+          ]
+        },
+        {
+          "id": "eip-09-l1-q09",
+          "type": "cloze",
+          "prompt": "Bei einer zirkulären Array-Queue lautet der Einfügeindex `(___ + size) % a.length`.",
+          "options": [
+            {
+              "id": "a",
+              "text": "last"
+            },
+            {
+              "id": "b",
+              "text": "size - 1"
+            },
+            {
+              "id": "c",
+              "text": "first"
+            },
+            {
+              "id": "d",
+              "text": "a.length"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "first markiert den ältesten Wert. Zusammen mit size ergibt sich modulo Arraylänge die nächste freie Position.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO9.md",
+            "heading": "Problem: Entfernen hinterlässt freie Zellen am Anfang"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Zirkuläres Array"
+          ]
+        },
+        {
+          "id": "eip-09-l1-q10",
+          "type": "multi",
+          "prompt": "Welche Aussagen über eine zirkuläre Array-Queue treffen zu? Wähle alle richtigen Aussagen; mehrere können richtig sein.",
+          "options": [
+            {
+              "id": "a",
+              "text": "`first` allein unterscheidet immer eine volle Queue von einer leeren."
+            },
+            {
+              "id": "b",
+              "text": "`size == 0` bedeutet, dass die Queue leer ist."
+            },
+            {
+              "id": "c",
+              "text": "`size == a.length` bedeutet, dass die Queue voll ist."
+            },
+            {
+              "id": "d",
+              "text": "Beim Resize werden Werte in logischer Reihenfolge kopiert und `first` danach auf 0 gesetzt."
+            }
+          ],
+          "correct": [
+            "b",
+            "c",
+            "d"
+          ],
+          "explanation": "size unterscheidet leer von voll. Ein Resize ordnet die logische Queue ab Index 0 im neuen Array an.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO9.md",
+            "heading": "Voll vs. leer"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Zirkuläres Array"
+          ]
+        },
+        {
+          "id": "eip-09-l1-q11",
+          "type": "single",
+          "prompt": "Wo steht ein Operator in der Postfix-Notation?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Zwischen seinen beiden Operanden"
+            },
+            {
+              "id": "b",
+              "text": "Vor seinen beiden Operanden"
+            },
+            {
+              "id": "c",
+              "text": "Nur innerhalb von Klammern"
+            },
+            {
+              "id": "d",
+              "text": "Nach seinen beiden Operanden"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "In Postfix-Notation folgen die zwei Operanden zuerst und der Operator danach, etwa `3 5 +`.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO9.md",
+            "heading": "Postfix-Notation (Reverse Polish Notation, RPN)"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Postfix/RPN"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "eip-09-l2",
+      "index": 2,
+      "kind": "apply",
+      "title": "Anwenden",
+      "questions": [
+        {
+          "id": "eip-09-l2-q01",
+          "type": "code_output",
+          "prompt": "Ein Stack unterstützt `push` und `pop` nach LIFO. Was gibt dieser Code aus?\n\n```java\nStack s = new Stack();\ns.push(9);\ns.push(3);\nint right = s.pop();\nint left = s.pop();\ns.push(left - right);\ns.push(2);\nright = s.pop();\nleft = s.pop();\ns.push(left * right);\nwrite(s.pop());\n```",
+          "options": [
+            {
+              "id": "a",
+              "text": "6"
+            },
+            {
+              "id": "b",
+              "text": "18"
+            },
+            {
+              "id": "c",
+              "text": "−12"
+            },
+            {
+              "id": "d",
+              "text": "12"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Die ersten beiden Pops liefern right = 3 und left = 9, also 6. Danach wird 2 damit multipliziert und 12 ausgegeben.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO9.md",
+            "heading": "Der top-Wert ist der rechte Operand"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Stack (LIFO)",
+            "Postfix/RPN"
+          ]
+        },
+        {
+          "id": "eip-09-l2-q02",
+          "type": "calc",
+          "prompt": "Werte den Postfix-Ausdruck `8 3 -` aus. Bei `-` wird zuerst der rechte Operand gepoppt, dann der linke.",
+          "options": [
+            {
+              "id": "a",
+              "text": "5"
+            },
+            {
+              "id": "b",
+              "text": "11"
+            },
+            {
+              "id": "c",
+              "text": "−5"
+            },
+            {
+              "id": "d",
+              "text": "24"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "Oben liegt 3, also ist right = 3; danach wird left = 8 genommen. Damit ergibt sich 8 − 3 = 5.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO9.md",
+            "heading": "Der top-Wert ist der rechte Operand"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Postfix/RPN",
+            "Stack (LIFO)"
+          ]
+        },
+        {
+          "id": "eip-09-l2-q03",
+          "type": "calc",
+          "prompt": "Ein Stack ist anfangs leer. Führe `push(2)`, `push(7)`, `pop()`, `push(4)`, `pop()`, `pop()` aus. Welchen Wert liefert der dritte `pop()`?",
+          "options": [
+            {
+              "id": "a",
+              "text": "2"
+            },
+            {
+              "id": "b",
+              "text": "Der Stack ist dann leer und liefert keinen Wert."
+            },
+            {
+              "id": "c",
+              "text": "7"
+            },
+            {
+              "id": "d",
+              "text": "4"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "Die Pops liefern der Reihe nach 7, 4 und 2. Der älteste Wert bleibt bis zum letzten Pop unten im Stack.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO9.md",
+            "heading": "Beispielablauf"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Stack (LIFO)"
+          ]
+        },
+        {
+          "id": "eip-09-l2-q04",
+          "type": "diagram",
+          "prompt": "Eine zirkuläre Queue liest die logischen Werte ab `first` und geht dann modulo Arraylänge weiter. Welcher Wert wird als Nächstes entfernt?",
+          "context": {
+            "type": "mermaid",
+            "content": "flowchart LR\n  I2[\"a[2] = 3, first\"] --> I3[\"a[3] = 4\"] --> I0[\"a[0] = 5\"] --> I1[\"a[1] = 6\"]\n  I1 -. wrap .-> I2",
+            "caption": "Die Queue ist voll; die logische Reihenfolge beginnt bei `first = 2`."
+          },
+          "options": [
+            {
+              "id": "a",
+              "text": "5 aus `a[0]`"
+            },
+            {
+              "id": "b",
+              "text": "4 aus `a[3]`"
+            },
+            {
+              "id": "c",
+              "text": "6 aus `a[1]`"
+            },
+            {
+              "id": "d",
+              "text": "3 aus `a[2]`"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "`first` zeigt auf Index 2. Dieser enthält den ältesten Wert 3 und ist daher der nächste für dequeue.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO9.md",
+            "heading": "Logische und physische Reihenfolge"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Queue (FIFO)",
+            "Zirkuläres Array"
+          ]
+        },
+        {
+          "id": "eip-09-l2-q05",
+          "type": "code_output",
+          "prompt": "Ein Stack wertet Postfix-Ausdrücke aus; bei `-` werden rechter und linker Operand in dieser Reihenfolge gepoppt. Was gibt der Code aus?\n\n```java\nStack s = new Stack();\ns.push(9);\ns.push(3);\ns.push(2);\nint right = s.pop();\nint left = s.pop();\ns.push(left * right);\nright = s.pop();\nleft = s.pop();\ns.push(left - right);\nwrite(s.pop());\n```",
+          "options": [
+            {
+              "id": "a",
+              "text": "3"
+            },
+            {
+              "id": "b",
+              "text": "−3"
+            },
+            {
+              "id": "c",
+              "text": "15"
+            },
+            {
+              "id": "d",
+              "text": "−15"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "Zuerst ergibt 3 · 2 = 6. Danach werden 9 − 6 berechnet, also 3.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO9.md",
+            "heading": "Auswertung mit einem Stack"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Postfix/RPN",
+            "Stack (LIFO)"
+          ]
+        },
+        {
+          "id": "eip-09-l2-q06",
+          "type": "single",
+          "prompt": "Eine verkettete Queue ist leer. Was müssen `first` und `last` nach `enqueue(7)` referenzieren?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Beide bleiben `null`, bis ein zweiter Wert eingefügt wird."
+            },
+            {
+              "id": "b",
+              "text": "Beide zeigen auf denselben neuen Knoten mit Wert 7."
+            },
+            {
+              "id": "c",
+              "text": "`first` zeigt auf den neuen Knoten, `last` bleibt `null`."
+            },
+            {
+              "id": "d",
+              "text": "`last` zeigt auf den neuen Knoten, `first` bleibt `null`."
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "Beim Einfügen in eine leere Queue wird der neue Knoten zugleich der erste und der letzte Knoten.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO9.md",
+            "heading": "enqueue: neuen Knoten hinter den letzten hängen"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Verkettete Queue"
+          ]
+        },
+        {
+          "id": "eip-09-l2-q07",
+          "type": "cloze",
+          "prompt": "Beim Array-Stack schreibt `push(x)` den neuen Wert zuerst an Index `___` und erhöht danach `size`.",
+          "options": [
+            {
+              "id": "a",
+              "text": "`size`"
+            },
+            {
+              "id": "b",
+              "text": "`0` in jedem Fall"
+            },
+            {
+              "id": "c",
+              "text": "`size - 1`"
+            },
+            {
+              "id": "d",
+              "text": "`a.length - 1`"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "size ist der Index der ersten freien Zelle. Nach dem Schreiben wird size um eins erhöht.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO9.md",
+            "heading": "push in die erste freie Zelle"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Array-Stack"
+          ]
+        },
+        {
+          "id": "eip-09-l2-q08-r1",
+          "type": "multi",
+          "prompt": "Ein Array-Stack hat Kapazität 8 und enthält vor einem `pop()` 3 Werte. Für diese Implementierung gilt: Nach dem Entfernen wird die neue `size` geprüft. Wenn die Kapazität größer als 4 und `size <= Kapazität / 4` ist, wird auf die halbe Kapazität verkleinert. Die Mindestkapazität ist 4; beim Resize werden nur die verbleibenden Werte kopiert. Welche Aussagen treffen auf diesen `pop()` zu? Wähle alle richtigen Aussagen.",
+          "options": [
+            {
+              "id": "a",
+              "text": "Nach dem `pop()` sind 2 Werte übrig; das Array wird von 8 auf 4 Zellen verkleinert."
+            },
+            {
+              "id": "b",
+              "text": "Die Kapazität darf durch Schrumpfen unter 4 fallen."
+            },
+            {
+              "id": "c",
+              "text": "Der Schrumpftest verwendet die `size` nach dem Entfernen."
+            },
+            {
+              "id": "d",
+              "text": "Beim Resize werden alle 8 Zellen kopiert, auch die unbenutzten."
+            }
+          ],
+          "correct": [
+            "a",
+            "c"
+          ],
+          "explanation": "Nach dem `pop()` ist `size = 2`, also gilt $2 \\le 8/4$ und die Kapazität wird auf 4 halbiert. Kopiert werden nur die 2 verbleibenden Werte. Der Test verwendet die verringerte `size`; die Mindestkapazität verhindert ein Schrumpfen unter 4.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO9.md",
+            "heading": "Speicher freigeben: wann schrumpfen?"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Array-Stack",
+            "Schrumpfen",
+            "Viertel-Regel"
+          ]
+        },
+        {
+          "id": "eip-09-l2-q09",
+          "type": "calc",
+          "prompt": "Eine zirkuläre Array-Queue hat Arraylänge 4 und `first = 3`. Nach einem dequeue wird `first` zu `(first + 1) % a.length`. Welchen Wert erhält es?",
+          "options": [
+            {
+              "id": "a",
+              "text": "4"
+            },
+            {
+              "id": "b",
+              "text": "1"
+            },
+            {
+              "id": "c",
+              "text": "3"
+            },
+            {
+              "id": "d",
+              "text": "0"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "(3 + 1) % 4 = 0. Der Front-Index springt am Arrayende zurück zu Index 0.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO9.md",
+            "heading": "dequeue mit Schrumpfen"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Zirkuläres Array"
+          ]
+        },
+        {
+          "id": "eip-09-l2-q10",
+          "type": "code_output",
+          "prompt": "Bei klassischem `switch` ohne `break` läuft die Ausführung in den nächsten Fall weiter. Der Stack ist anfangs leer. Was steht danach im Stack (top zuerst)?\n\n```java\nStack s = new Stack();\nint left = 3;\nint right = 5;\nswitch ('+') {\n    case '+': s.push(left + right);\n    case '*': s.push(left * right);\n        break;\n}\n```",
+          "options": [
+            {
+              "id": "a",
+              "text": "`[8, 15]`"
+            },
+            {
+              "id": "b",
+              "text": "`[15, 8]`"
+            },
+            {
+              "id": "c",
+              "text": "`[15]`"
+            },
+            {
+              "id": "d",
+              "text": "`[8]`"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "Der `+`-Fall pusht 8. Ohne `break` folgt auch der `*`-Fall, der 15 oben auf den Stack legt.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO9.md",
+            "heading": "36. Stack-Rechner und"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "switch",
+            "Stack (LIFO)"
+          ]
+        },
+        {
+          "id": "eip-09-l2-q11",
+          "type": "truefalse",
+          "prompt": "Für `a = [5, 6, 3, 4]`, `first = 2` und `size = 4` ist die logische Reihenfolge der Queue `[3, 4, 5, 6]`.",
+          "options": [
+            {
+              "id": "true",
+              "text": "Wahr"
+            },
+            {
+              "id": "false",
+              "text": "Falsch"
+            }
+          ],
+          "correct": [
+            "true"
+          ],
+          "explanation": "Die Werte werden ab Index 2 gelesen und danach mit wrap-around bei Index 0 fortgesetzt: 3, 4, 5, 6.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO9.md",
+            "heading": "Logische und physische Reihenfolge"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Zirkuläres Array",
+            "Queue (FIFO)"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "eip-09-l3",
+      "index": 3,
+      "kind": "deepen",
+      "title": "Vertiefen",
+      "questions": [
+        {
+          "id": "eip-09-l3-q01",
+          "type": "multi",
+          "prompt": "Welche Aussagen erklären die Vorteile eines ADT mit privater Repräsentation? Wähle alle richtigen Aussagen; mehrere können richtig sein.",
+          "options": [
+            {
+              "id": "a",
+              "text": "Die Methoden können Regeln der Datenstruktur schützen."
+            },
+            {
+              "id": "b",
+              "text": "Dieselbe Menge von Operationen kann durch verschiedene Repräsentationen umgesetzt werden."
+            },
+            {
+              "id": "c",
+              "text": "Der Client verwendet die public-Operationen."
+            },
+            {
+              "id": "d",
+              "text": "Der Client kann private Felder direkt ändern."
+            }
+          ],
+          "correct": [
+            "a",
+            "b",
+            "c"
+          ],
+          "explanation": "Ein ADT verbirgt seine Repräsentation vor dem Client. Die eigenen Methoden steuern Änderungen und können Invarianten durchsetzen.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO9.md",
+            "heading": "Information Hiding"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "ADT",
+            "Information Hiding"
+          ]
+        },
+        {
+          "id": "eip-09-l3-q02",
+          "type": "diagram",
+          "prompt": "Jede Gruppe endet mit einem Resize; der anschließende Tail enthält keines. Welche Schranke lässt sich aus der dargestellten Gruppierung für die Kopien insgesamt ableiten?",
+          "context": {
+            "type": "mermaid",
+            "content": "flowchart LR\n  G1[\"Gruppe 1: n₁ Ops, ≤ 2n₁ Kopien, Resize\"] --> G2[\"Gruppe 2: n₂ Ops, ≤ 2n₂ Kopien, Resize\"] --> GK[\"Gruppe k: nₖ Ops, ≤ 2nₖ Kopien, Resize\"] --> T[\"Tail: kein Resize, 0 Kopien\"]",
+            "caption": "Die Gruppen enden jeweils mit einem Resize; der Tail nicht."
+          },
+          "options": [
+            {
+              "id": "a",
+              "text": "Der Tail kopiert immer so viele Werte wie die letzte Gruppe."
+            },
+            {
+              "id": "b",
+              "text": "Höchstens `2n` Kopien für `n` Operationen"
+            },
+            {
+              "id": "c",
+              "text": "Höchstens `n²` Kopien für `n` Operationen"
+            },
+            {
+              "id": "d",
+              "text": "Mindestens `2n` Kopien für `n` Operationen"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "Jede Gruppe mit nᵢ Operationen verursacht höchstens 2nᵢ Kopien; der Tail verursacht keine. Die Gruppen umfassen zusammen höchstens n Operationen.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO9.md",
+            "heading": "Schritt 2: Schranken über die ganze Folge aufsummieren"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Amortisierte Analyse"
+          ]
+        },
+        {
+          "id": "eip-09-l3-q03",
+          "type": "single",
+          "prompt": "Eine verkettete Queue enthält genau einen Knoten. `dequeue()` entfernt ihn und setzt `first` danach auf `null`. Welche zusätzliche Aktualisierung ist nötig?",
+          "options": [
+            {
+              "id": "a",
+              "text": "`last` auf den entfernten Knoten zurücksetzen."
+            },
+            {
+              "id": "b",
+              "text": "`first` wieder auf den entfernten Knoten setzen."
+            },
+            {
+              "id": "c",
+              "text": "Die Queue um einen zusätzlichen Knoten erweitern."
+            },
+            {
+              "id": "d",
+              "text": "`last` ebenfalls auf `null` setzen."
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Nach dem Entfernen des letzten Elements muss die leere Queue durch `first == null` und `last == null` repräsentiert werden.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO9.md",
+            "heading": "dequeue: first-Referenz weiterschieben"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Verkettete Queue"
+          ]
+        },
+        {
+          "id": "eip-09-l3-q04",
+          "type": "calc",
+          "prompt": "Ein Array-Stack startet mit Kapazität 4 und `size = 0`. Er erhält fünf Pushes und danach drei Pops. Er verdoppelt vor einem Push, wenn er voll ist, und halbiert nach einem Pop bei höchstens einem Viertel Füllung, aber nie unter Kapazität 4. Welche Kapazität und `size` hat er am Ende?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Kapazität 8, `size = 2`"
+            },
+            {
+              "id": "b",
+              "text": "Kapazität 8, `size = 3`"
+            },
+            {
+              "id": "c",
+              "text": "Kapazität 4, `size = 3`"
+            },
+            {
+              "id": "d",
+              "text": "Kapazität 4, `size = 2`"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Der fünfte Push verdoppelt die Kapazität auf 8. Nach drei Pops ist size = 2; damit greift die Viertel-Regel und die Kapazität wird auf 4 halbiert.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO9.md",
+            "heading": "Speicher freigeben: wann schrumpfen?"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Array-Stack",
+            "Amortisierte Analyse"
+          ]
+        },
+        {
+          "id": "eip-09-l3-q05",
+          "type": "cloze",
+          "prompt": "Bei der Auswertung von `8 3 -` liegt der rechte Operand oben. Deshalb wird beim Minus zuerst ___ gepoppt.",
+          "options": [
+            {
+              "id": "a",
+              "text": "3"
+            },
+            {
+              "id": "b",
+              "text": "5"
+            },
+            {
+              "id": "c",
+              "text": "8"
+            },
+            {
+              "id": "d",
+              "text": "−5"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "Der letzte abgelegte Wert 3 liegt oben und ist der rechte Operand. Danach wird 8 als linker Operand gepoppt.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO9.md",
+            "heading": "Der top-Wert ist der rechte Operand"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Postfix/RPN",
+            "Stack (LIFO)"
+          ]
+        },
+        {
+          "id": "eip-09-l3-q06",
+          "type": "truefalse",
+          "prompt": "Ein Array-Stack mit Kapazität 8 und 5 Werten halbiert bei jeder einzelnen Wechseloperation `pop`, `push`, `pop`, `push`, wenn er bereits bei halber Füllung schrumpft.",
+          "options": [
+            {
+              "id": "true",
+              "text": "Wahr"
+            },
+            {
+              "id": "false",
+              "text": "Falsch"
+            }
+          ],
+          "correct": [
+            "true"
+          ],
+          "explanation": "Der erste Pop senkt size auf 4 und halbiert die Kapazität auf 4. Der nächste Push füllt das Array und verdoppelt es sofort wieder; das wiederholt sich.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO9.md",
+            "heading": "Speicher freigeben: wann schrumpfen?"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Array-Stack",
+            "Amortisierte Analyse"
+          ]
+        },
+        {
+          "id": "eip-09-l3-q07",
+          "type": "multi",
+          "prompt": "Welche Aussagen zur amortisierten Analyse des Array-Stacks treffen zu? Wähle alle richtigen Aussagen; mehrere können richtig sein.",
+          "options": [
+            {
+              "id": "a",
+              "text": "Sie begrenzt die Kosten einer ganzen Folge von Operationen."
+            },
+            {
+              "id": "b",
+              "text": "Eine einzelne Operation kann trotzdem O(n) kosten."
+            },
+            {
+              "id": "c",
+              "text": "Bei n Pushes und Pops ab leer sind höchstens 2n Resize-Kopien nötig."
+            },
+            {
+              "id": "d",
+              "text": "Jede einzelne Operation kopiert höchstens zwei Werte."
+            }
+          ],
+          "correct": [
+            "a",
+            "b",
+            "c"
+          ],
+          "explanation": "Die Schranke gilt für die gesamte Folge, nicht für jede Operation einzeln. Ein Resize kann viele Werte auf einmal kopieren, aber die Summe bleibt höchstens 2n.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO9.md",
+            "heading": "35.3 Amortisierte Analyse: Wie viel wird insgesamt kopiert?"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Amortisierte Analyse"
+          ]
+        },
+        {
+          "id": "eip-09-l3-q08",
+          "type": "calc",
+          "prompt": "Eine Folge aus 12 Pushes und Pops beginnt mit einem leeren Stack. Wie viele Resize-Kopien sind nach der amortisierten Schranke höchstens möglich?",
+          "options": [
+            {
+              "id": "a",
+              "text": "12"
+            },
+            {
+              "id": "b",
+              "text": "36"
+            },
+            {
+              "id": "c",
+              "text": "144"
+            },
+            {
+              "id": "d",
+              "text": "24"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Die Schranke lautet höchstens 2n Kopien. Für n = 12 ergibt das 2 · 12 = 24.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO9.md",
+            "heading": "35.3 Amortisierte Analyse: Wie viel wird insgesamt kopiert?"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Amortisierte Analyse"
+          ]
+        },
+        {
+          "id": "eip-09-l3-q09",
+          "type": "single",
+          "prompt": "Ein Client verwendet nur `enqueue`, `dequeue` und `isEmpty` einer Queue. Was kann beim Wechsel von einer verketteten zu einer zirkulären Array-Implementierung unverändert bleiben?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Die internen Felder `first` und `last` müssen im Client angepasst werden."
+            },
+            {
+              "id": "b",
+              "text": "Der Client muss die Werte selbst in physischer Array-Reihenfolge kopieren."
+            },
+            {
+              "id": "c",
+              "text": "Die Aufrufe und die Client-Logik, sofern die Queue dasselbe FIFO-Verhalten liefert."
+            },
+            {
+              "id": "d",
+              "text": "Die Queue muss ihre Repräsentation öffentlich machen."
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Der Client hängt vom ADT-Verhalten und seinen öffentlichen Operationen ab, nicht von der privaten Speicherung.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO9.md",
+            "heading": "Ein ADT erlaubt den Wechsel der Implementierung"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "ADT",
+            "Repräsentationswahl"
+          ]
+        },
+        {
+          "id": "eip-09-l3-q10",
+          "type": "code_output",
+          "prompt": "Ein Stack verarbeitet die Operanden und Operatoren dieses Postfix-Ausdrucks von links nach rechts. Was gibt der Code aus?\n\n```java\nStack s = new Stack();\ns.push(8);\ns.push(4);\ns.push(2);\nint right = s.pop();\nint left = s.pop();\ns.push(left - right);\nright = s.pop();\nleft = s.pop();\ns.push(left * right);\nwrite(s.pop());\n```",
+          "options": [
+            {
+              "id": "a",
+              "text": "−16"
+            },
+            {
+              "id": "b",
+              "text": "4"
+            },
+            {
+              "id": "c",
+              "text": "12"
+            },
+            {
+              "id": "d",
+              "text": "16"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Der erste Operator ergibt 4 − 2 = 2. Danach wird 8 · 2 berechnet, also 16.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO9.md",
+            "heading": "Vollständiger Rechner"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Postfix/RPN",
+            "Stack (LIFO)"
+          ]
+        },
+        {
+          "id": "eip-09-l3-q11",
+          "type": "calc",
+          "prompt": "Eine zirkuläre Queue hat Arraylänge 8, `first = 6` und `size = 4`. An welchem physischen Index liegt der Wert an logischer Position `i = 2`? Verwende `(first + i) % a.length`.",
+          "options": [
+            {
+              "id": "a",
+              "text": "6"
+            },
+            {
+              "id": "b",
+              "text": "8"
+            },
+            {
+              "id": "c",
+              "text": "0"
+            },
+            {
+              "id": "d",
+              "text": "2"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "(6 + 2) % 8 = 0. Der dritte logische Wert liegt durch wrap-around in Arrayzelle 0.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO9.md",
+            "heading": "Logische und physische Reihenfolge"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Zirkuläres Array"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "eip-09-l4",
+      "index": 4,
+      "kind": "boss",
+      "title": "Boss",
+      "questions": [
+        {
+          "id": "eip-09-l4-q01",
+          "type": "code_output",
+          "prompt": "Java-Referenzzuweisungen kopieren eine Referenz. `a` und `b` zeigen daher auf denselben Stack. Was gibt der Code aus?\n\n```java\nStack a = new Stack();\na.push(2);\nStack b = a;\nb.push(9);\nwrite(a.pop());\n```",
+          "options": [
+            {
+              "id": "a",
+              "text": "9"
+            },
+            {
+              "id": "b",
+              "text": "2"
+            },
+            {
+              "id": "c",
+              "text": "Der Stack ist leer."
+            },
+            {
+              "id": "d",
+              "text": "0"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "`b = a` erzeugt keinen zweiten Stack. `b.push(9)` verändert dasselbe Stack-Objekt, sodass 9 oben liegt und von `a.pop()` entfernt wird.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO8.md",
+            "heading": null
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Stack (LIFO)",
+            "ADT"
+          ]
+        },
+        {
+          "id": "eip-09-l4-q02",
+          "type": "calc",
+          "prompt": "Werte den Postfix-Ausdruck `9 5 3 - * 2 +` aus. Jeder Operator kombiniert die obersten zwei Stack-Werte; bei `-` zählt die Pop-Reihenfolge.",
+          "options": [
+            {
+              "id": "a",
+              "text": "20"
+            },
+            {
+              "id": "b",
+              "text": "38"
+            },
+            {
+              "id": "c",
+              "text": "−16"
+            },
+            {
+              "id": "d",
+              "text": "14"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "5 − 3 ergibt 2, dann 9 · 2 = 18 und schließlich 18 + 2 = 20.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO9.md",
+            "heading": "Vollständiger Rechner"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Postfix/RPN",
+            "Stack (LIFO)"
+          ]
+        },
+        {
+          "id": "eip-09-l4-q03",
+          "type": "calc",
+          "prompt": "Eine zirkuläre Queue hat Kapazität 4, `first = 2` und die logische Folge `[7, 8, 9]`. In physischen Zellen stehen `a[2]=7`, `a[3]=8`, `a[0]=9`; `a[1]` ist frei. Führe `enqueue(10)`, `enqueue(11)`, `dequeue()` aus. Welche Endwerte für front, size und Kapazität gelten? Beim vollen Array wird verdoppelt; Resize kopiert in logischer Reihenfolge.",
+          "options": [
+            {
+              "id": "a",
+              "text": "Front 8, `size = 4`, Kapazität 4"
+            },
+            {
+              "id": "b",
+              "text": "Front 7, `size = 5`, Kapazität 8"
+            },
+            {
+              "id": "c",
+              "text": "Front 9, `size = 3`, Kapazität 8"
+            },
+            {
+              "id": "d",
+              "text": "Front 8, `size = 4`, Kapazität 8"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "`enqueue(10)` füllt die vierte Zelle. Das nächste Enqueue löst den Resize aus und ergibt `[7,8,9,10,11]` mit first = 0. Das dequeue entfernt 7; danach ist 8 vorne, size = 4 und die Kapazität bleibt 8.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO9.md",
+            "heading": "resize: in logischer Reihenfolge kopieren"
+          },
+          "difficulty": 5,
+          "concepts": [
+            "Queue (FIFO)",
+            "Zirkuläres Array",
+            "Amortisierte Analyse"
+          ]
+        },
+        {
+          "id": "eip-09-l4-q04",
+          "type": "multi",
+          "prompt": "Eine Queue kann mit verketteten Knoten oder als zirkuläres Array implementiert werden. Verkettete Einfügungen verlinken einen Knoten ohne Durchlaufen der Queue; Array-Zellen liegen nebeneinander, aber ein volles Array muss beim Wachsen kopiert werden. Welche Aussagen treffen zu? Wähle alle richtigen Aussagen; mehrere können richtig sein.",
+          "options": [
+            {
+              "id": "a",
+              "text": "Die verkettete Variante vermeidet eine große Kopie bei einer einzelnen Einfügung."
+            },
+            {
+              "id": "b",
+              "text": "Mit Verdoppeln und Schrumpfen bei Viertelfüllung sind die Array-Operationen amortisiert O(1)."
+            },
+            {
+              "id": "c",
+              "text": "Die verkettete Variante braucht pro Wert weniger Speicher als ein int in einem gemeinsamen Array."
+            },
+            {
+              "id": "d",
+              "text": "Die Array-Variante speichert Werte in benachbarten Zellen."
+            }
+          ],
+          "correct": [
+            "a",
+            "b",
+            "d"
+          ],
+          "explanation": "Verkettete Knoten vermeiden das Kopieren der ganzen Queue bei einer Einfügung. Arrays bieten benachbarte Zellen und amortisiert O(1), benötigen aber beim Resize eine größere Kopie.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO9.md",
+            "heading": "38. Wahl der Repräsentation"
+          },
+          "difficulty": 5,
+          "concepts": [
+            "Verkettete Queue",
+            "Zirkuläres Array",
+            "Repräsentationswahl"
+          ]
+        },
+        {
+          "id": "eip-09-l4-q05",
+          "type": "single",
+          "prompt": "Ein Client könnte `top` eines Stacks direkt ändern und damit die LIFO-Regel umgehen. Welche Gestaltung schützt die Stack-Invariante?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Jeden Stack-Wert bei jedem Methodenaufruf sortieren."
+            },
+            {
+              "id": "b",
+              "text": "`top` privat halten und Änderungen nur über `push` und `pop` erlauben."
+            },
+            {
+              "id": "c",
+              "text": "`top` öffentlich machen und Clients um Vorsicht bitten."
+            },
+            {
+              "id": "d",
+              "text": "Die Stack-Operationen entfernen und nur `toString()` öffentlich lassen."
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "Private Repräsentationsdaten können nur durch Stack-Methoden geändert werden. Diese Methoden erhalten dadurch die Regeln der Struktur.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO9.md",
+            "heading": "Information Hiding"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Information Hiding",
+            "Stack (LIFO)"
+          ]
+        },
+        {
+          "id": "eip-09-l4-q06",
+          "type": "truefalse",
+          "prompt": "Bei rekursiven Methoden kehrt der zuletzt gestartete Aufruf zuerst zurück. Das entspricht dem LIFO-Prinzip eines Stacks.",
+          "options": [
+            {
+              "id": "true",
+              "text": "Wahr"
+            },
+            {
+              "id": "false",
+              "text": "Falsch"
+            }
+          ],
+          "correct": [
+            "true"
+          ],
+          "explanation": "Jeder rekursive Aufruf legt einen Stack Frame ab. Die Frames werden in umgekehrter Reihenfolge der Aufrufe abgearbeitet.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO7.md",
+            "heading": null
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Stack (LIFO)"
+          ]
+        },
+        {
+          "id": "eip-09-l4-q07",
+          "type": "calc",
+          "prompt": "Eine verkettete Queue enthält die Knoten `A → B → C → null`, wobei `first` auf A zeigt. `dequeue()` liest den Wert bei first und setzt `first = first.next`. Welcher Inhalt und welche Referenz bleiben danach?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Die gesamte Kette wird entfernt."
+            },
+            {
+              "id": "b",
+              "text": "A → C bleiben; `first` zeigt auf A."
+            },
+            {
+              "id": "c",
+              "text": "B → C bleiben; `first` zeigt auf B."
+            },
+            {
+              "id": "d",
+              "text": "Nur C bleibt; `first` zeigt auf C."
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "`dequeue()` entfernt den ersten Knoten, indem first auf dessen Nachfolger gesetzt wird. Die Links von B nach C bleiben unverändert.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO8.md",
+            "heading": null
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Verkettete Queue",
+            "Queue (FIFO)"
+          ]
+        },
+        {
+          "id": "eip-09-l4-q08",
+          "type": "multi",
+          "prompt": "Ein Postfix-Rechner verarbeitet `8 3 -`. Welche Aussagen beschreiben die Auswertung korrekt? Wähle alle richtigen Aussagen; mehrere können richtig sein.",
+          "options": [
+            {
+              "id": "a",
+              "text": "In klassischer `case '-' :`-Syntax kann ein fehlendes `break` Fall-through verursachen."
+            },
+            {
+              "id": "b",
+              "text": "Die Pfeil-Syntax `case '-' ->` läuft nicht in den nächsten Fall weiter."
+            },
+            {
+              "id": "c",
+              "text": "Beim Minus liegt der rechte Operand 3 oben auf dem Stack."
+            },
+            {
+              "id": "d",
+              "text": "Zuerst wird 8 gepoppt und als rechter Operand verwendet."
+            }
+          ],
+          "correct": [
+            "a",
+            "b",
+            "c"
+          ],
+          "explanation": "Die Tokens werden links nach rechts verarbeitet, daher liegt 3 oben. Pfeil-Syntax verhindert Fall-through; klassische Syntax braucht dafür ein break.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO9.md",
+            "heading": "36. Stack-Rechner und"
+          },
+          "difficulty": 5,
+          "concepts": [
+            "Postfix/RPN",
+            "switch",
+            "Stack (LIFO)"
+          ]
+        },
+        {
+          "id": "eip-09-l4-q09",
+          "type": "code_output",
+          "prompt": "Ein Stack ist LIFO, eine Queue ist FIFO. Was gibt der Code aus?\n\n```java\nStack s = new Stack();\nQueue q = new Queue();\ns.push(4);\ns.push(7);\nq.enqueue(4);\nq.enqueue(7);\nint x = s.pop();\nint y = q.dequeue();\nwrite(x - y);\n```",
+          "options": [
+            {
+              "id": "a",
+              "text": "0"
+            },
+            {
+              "id": "b",
+              "text": "3"
+            },
+            {
+              "id": "c",
+              "text": "−3"
+            },
+            {
+              "id": "d",
+              "text": "11"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "Der Stack liefert 7, die Queue liefert 4. Die Differenz ist 7 − 4 = 3.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO9.md",
+            "heading": "38. Wahl der Repräsentation"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Stack (LIFO)",
+            "Queue (FIFO)"
+          ]
+        },
+        {
+          "id": "eip-09-l4-q10",
+          "type": "truefalse",
+          "prompt": "In einer zirkulären Array-Queue kann der nächste Einfügeindex sowohl bei einer leeren als auch bei einer vollen Queue auf `first` zeigen. `size` unterscheidet diese Zustände.",
+          "options": [
+            {
+              "id": "true",
+              "text": "Wahr"
+            },
+            {
+              "id": "false",
+              "text": "Falsch"
+            }
+          ],
+          "correct": [
+            "true"
+          ],
+          "explanation": "Durch wrap-around fällt der Einfügeindex auf first zurück. `size == 0` kennzeichnet leer und `size == a.length` kennzeichnet voll.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO9.md",
+            "heading": "Voll vs. leer"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Zirkuläres Array",
+            "Queue (FIFO)"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "eip-09-l5",
+      "index": 5,
+      "kind": "bonus",
+      "title": "Praxis: Datenstrukturen überall",
+      "questions": [
+        {
+          "id": "eip-09-l5-q01",
+          "type": "single",
+          "prompt": "Du drückst in einem Texteditor auf „Rückgängig“: Die zuletzt ausgeführte Änderung soll zuerst verschwinden. Welche Datenstruktur passt zu diesem Verhalten?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Hash-Tabelle"
+            },
+            {
+              "id": "b",
+              "text": "Stack (LIFO)"
+            },
+            {
+              "id": "c",
+              "text": "Queue (FIFO)"
+            },
+            {
+              "id": "d",
+              "text": "Sortierte Warteschlange"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "Ein Stack entfernt zuletzt hinzugefügte Werte zuerst (LIFO). So kann ein Editor die jüngste Änderung zuerst rückgängig machen.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO9.md",
+            "heading": "35. Stacks"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Stack (LIFO)"
+          ]
+        },
+        {
+          "id": "eip-09-l5-q02",
+          "type": "single",
+          "prompt": "In deiner Messenger-App werden Sendeaufträge bei einer Unterbrechung gesammelt. Die App soll sie in der Reihenfolge ihres Eingangs abarbeiten, also den ältesten Auftrag zuerst. Welche Datenstruktur passt?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Postfix-Auswerter"
+            },
+            {
+              "id": "b",
+              "text": "Array-Stack"
+            },
+            {
+              "id": "c",
+              "text": "Stack"
+            },
+            {
+              "id": "d",
+              "text": "Queue"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Eine Queue arbeitet nach FIFO: Der Auftrag, der am längsten wartet, wird zuerst entfernt. Das passt zur geforderten Eingangsreihenfolge.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO9.md",
+            "heading": "37. Queues"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Queue (FIFO)"
+          ]
+        },
+        {
+          "id": "eip-09-l5-q03",
+          "type": "estimate",
+          "prompt": "Du legst 13 Werte in einen Array-Stack mit Startkapazität 4. Ist das Array voll, wird seine Kapazität vor dem nächsten `push` verdoppelt. Wie viele Resizes passieren?",
+          "options": [],
+          "correct": [],
+          "slider": {
+            "min": 0,
+            "max": 6,
+            "step": 1,
+            "answer": 2,
+            "tolerance": 0,
+            "unit": "Resizes",
+            "scale": "linear"
+          },
+          "explanation": "Die Kapazität wächst von 4 auf 8, bevor der fünfte Wert eingefügt wird, und von 8 auf 16 vor dem neunten. Für die übrigen Pushes reicht der Platz, also gibt es 2 Resizes.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO9.md",
+            "heading": "Wachsen durch Verdoppeln"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Array-Stack"
+          ]
+        },
+        {
+          "id": "eip-09-l5-q04",
+          "type": "single",
+          "prompt": "Du gibst `8 3 -` in einen einfachen Postfix-Rechner ein. Er liest von links nach rechts, legt Zahlen auf einen Stack und berechnet bei `-` zuerst `links - rechts` (der rechte Operand wird zuerst gepoppt). Welches Ergebnis erscheint?",
+          "options": [
+            {
+              "id": "a",
+              "text": "5"
+            },
+            {
+              "id": "b",
+              "text": "11"
+            },
+            {
+              "id": "c",
+              "text": "24"
+            },
+            {
+              "id": "d",
+              "text": "−5"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "Der Rechner legt 8 und dann 3 auf den Stack. Er nimmt 3 als rechten und 8 als linken Operanden und berechnet $8-3=5$.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO9.md",
+            "heading": "Der top-Wert ist der rechte Operand"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Postfix/RPN",
+            "Stack (LIFO)"
+          ]
+        },
+        {
+          "id": "eip-09-l5-q05",
+          "type": "truefalse",
+          "prompt": "Dein Team ersetzt eine Queue-Bibliothek intern: Statt verketteter Knoten verwendet sie nun ein zirkuläres Array. Wenn die öffentlichen Methoden `enqueue` und `dequeue` weiterhin dasselbe FIFO-Verhalten bieten, muss der Client seine Aufrufe dafür ändern. Stimmt das?",
+          "options": [
+            {
+              "id": "true",
+              "text": "Wahr"
+            },
+            {
+              "id": "false",
+              "text": "Falsch"
+            }
+          ],
+          "correct": [
+            "false"
+          ],
+          "explanation": "Ein ADT beschreibt die öffentlichen Operationen und ihr Verhalten, nicht die Speicherung. Bleibt dieser Vertrag gleich, kann die private Repräsentation wechseln, ohne dass der Client seine Aufrufe anpassen muss.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO9.md",
+            "heading": "Ein ADT erlaubt den Wechsel der Implementierung"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "ADT",
+            "Repräsentationswahl"
+          ]
+        },
+        {
+          "id": "eip-09-l5-q06",
+          "type": "estimate",
+          "prompt": "Eine Array-Queue startet leer. Für beliebige 100 gültige `enqueue`- und `dequeue`-Operationen garantiert die amortisierte Analyse höchstens $2n$ Resize-Kopien bei $n$ Operationen. Wie viele kopierte Werte beträgt diese obere Schranke für $n=100$?",
+          "options": [],
+          "correct": [],
+          "slider": {
+            "min": 0,
+            "max": 300,
+            "step": 1,
+            "answer": 200,
+            "tolerance": 0,
+            "unit": "Werte",
+            "scale": "linear"
+          },
+          "explanation": "Die im Prompt angegebene Schranke ist $2n$. Mit $n=100$ ergibt sich $2\\cdot100=200$ kopierte Werte; eine konkrete Folge kann weniger Kopien verursachen.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO9.md",
+            "heading": "Kosten der Array-Queue"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Amortisierte Analyse",
+            "Queue (FIFO)"
+          ]
+        },
+        {
+          "id": "eip-09-l5-q07",
+          "type": "single",
+          "prompt": "Eine Bibliothek bietet dir eine Queue mit `enqueue` und `dequeue`. Ihre internen Felder `first` und `last` sind privat. Was ist der wichtigste Grund dafür?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Damit die Queue ihre Elemente immer sortiert ausgibt."
+            },
+            {
+              "id": "b",
+              "text": "Damit Clients die Zustandsregeln der Queue nicht durch direkte Änderungen verletzen können."
+            },
+            {
+              "id": "c",
+              "text": "Damit `enqueue` automatisch schneller als `dequeue` läuft."
+            },
+            {
+              "id": "d",
+              "text": "Damit Clients keine der öffentlichen Queue-Methoden aufrufen können."
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "Private Felder schützen die Repräsentation. So kann die Queue ihre Invarianten, etwa `first` und `last` bei einer leeren Queue, durch ihre eigenen Methoden sichern.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO9.md",
+            "heading": "Information Hiding"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Information Hiding",
+            "Queue (FIFO)"
+          ]
+        },
+        {
+          "id": "eip-09-l5-q08",
+          "type": "estimate",
+          "prompt": "Ein zirkuläres Array hat Kapazität 7. `first = 5` und `size = 4`. Der Einfügeindex ist `(first + size) mod Kapazität`. An welchem Array-Index landet der nächste Wert?",
+          "options": [],
+          "correct": [],
+          "slider": {
+            "min": 0,
+            "max": 8,
+            "step": 1,
+            "answer": 2,
+            "tolerance": 0,
+            "unit": "Index",
+            "scale": "linear"
+          },
+          "explanation": "Einsetzen in die Formel ergibt $(5+4)\\bmod7=9\\bmod7=2$. Der nächste Wert landet also an Index 2.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO9.md",
+            "heading": "37.2 Implementierung 2: Array-Queue (zirkuläres Array)"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Zirkuläres Array"
+          ]
+        },
+        {
+          "id": "eip-09-l5-q09",
+          "type": "truefalse",
+          "prompt": "Du programmierst eine Ringpuffer-Queue mit Kapazität $C$; ihr Einfügeindex ist `(first + size) mod C`. Dieser Index kann bei einer leeren und bei einer vollen Queue auf `first` zeigen. Stimmt es, dass `size` die beiden Fälle unterscheidet: leer bei `0`, voll bei `C`?",
+          "options": [
+            {
+              "id": "true",
+              "text": "Wahr"
+            },
+            {
+              "id": "false",
+              "text": "Falsch"
+            }
+          ],
+          "correct": [
+            "true"
+          ],
+          "explanation": "Ja. Der Index allein unterscheidet leer und voll nicht, aber `size` tut es: `0` bedeutet leer und `C` bedeutet, dass alle Zellen belegt sind.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO9.md",
+            "heading": "Voll vs. leer"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Zirkuläres Array",
+            "Queue (FIFO)"
+          ]
+        },
+        {
+          "id": "eip-09-l5-q10",
+          "type": "single",
+          "prompt": "Du baust in einem Java-Postfixrechner die Operatorauswahl als `switch`. Das Team verlangt, dass ein ausgewählter Operator genau einen Zweig ausführt, selbst wenn jemand kein `break` ergänzt. Die verwendete Java-Version unterstützt die Pfeil-Syntax in `switch`. Welche Form erfüllt das direkt?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Klassische Syntax: `case '-': ...` mit `break`"
+            },
+            {
+              "id": "b",
+              "text": "Pfeil-Syntax: `case '-' -> ...`"
+            },
+            {
+              "id": "c",
+              "text": "Mehrere klassische `case`-Marken vor demselben Befehl"
+            },
+            {
+              "id": "d",
+              "text": "Klassische Syntax: `case '-': ...` ohne `break`"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "Bei der Pfeil-Syntax läuft nur der gewählte Zweig; Fall-through gibt es nicht. In der klassischen Syntax verhindert erst ein `break` das Weiterlaufen in den nächsten Fall.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO9.md",
+            "heading": "36. Stack-Rechner und"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "switch"
+          ]
+        }
+      ]
+    }
+  ]
+}
