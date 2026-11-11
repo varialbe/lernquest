@@ -1,0 +1,515 @@
+{
+  "schemaVersion": 1,
+  "unitId": "eip-09",
+  "module": "EIP",
+  "unitNumber": 9,
+  "unitTitle": "Stacks und Queues",
+  "sourceSha": "50ca77e95541fe50b62d30bc6b989f98d036c3be6dd891d01142fef43fa3f066",
+  "overview": "Diese Unit erklärt ADTs und wie Stacks und Queues durch ihr öffentliches Verhalten unabhängig von ihrer privaten Repräsentation bleiben. Sie behandelt verkettete und arraybasierte Implementierungen, Resize-Regeln und deren amortisierte Kosten sowie die Auswertung von Postfix-Ausdrücken mit einem Stack. Zirkuläre Arrays ermöglichen es einer Array-Queue, freie Zellen am Anfang wiederzuverwenden.",
+  "entries": [
+    {
+      "id": "eip-09-k01",
+      "term": "Abstrakter Datentyp (ADT)",
+      "kind": "definition",
+      "short": "Ein ADT legt fest, welche Operationen verfügbar sind und was sie tun, aber nicht, wie die Daten gespeichert werden.",
+      "explanation": "Ein abstrakter Datentyp beschreibt das Verhalten einer Datenstruktur durch ihre öffentlichen Operationen. Die konkrete Speicherung bleibt der Implementierung überlassen. Mehrere Implementierungen können daher dasselbe Verhalten anbieten.",
+      "example": "Ein Stack-ADT kann `push`, `pop` und `isEmpty` anbieten, egal ob die Werte in Knoten oder in einem Array liegen.",
+      "pitfalls": [
+        "Ein ADT ist nicht mit einer bestimmten Datenstruktur oder Speicheranordnung gleichzusetzen."
+      ],
+      "related": [
+        "Information Hiding",
+        "Repräsentationswahl"
+      ],
+      "heading": "34. Abstract Data Types (ADT)"
+    },
+    {
+      "id": "eip-09-k02",
+      "term": "Information Hiding",
+      "kind": "concept",
+      "short": "Information Hiding verbirgt die private Repräsentation vor dem Client und lässt ihn die Datenstruktur nur über ihre öffentlichen Operationen verwenden.",
+      "explanation": "Ein Client greift auf die public-Operationen eines ADT zu, nicht direkt auf dessen interne Felder. Die eigenen Methoden können dadurch die Invarianten der Datenstruktur schützen. Das erleichtert auch Wartung und Austausch der Implementierung.",
+      "example": "Bei einem Stack ist `top` `private`; der Client ruft `push` und `pop` auf, statt `top` selbst zu verändern.",
+      "pitfalls": [
+        "Öffentlich zugängliche Repräsentationsfelder können Änderungen erlauben, die eine Invariante verletzen."
+      ],
+      "related": [
+        "Abstrakter Datentyp (ADT)",
+        "Repräsentationswahl"
+      ],
+      "heading": "Information Hiding"
+    },
+    {
+      "id": "eip-09-k03",
+      "term": "Repräsentationswahl",
+      "kind": "concept",
+      "short": "Die Repräsentationswahl bestimmt, wie ein ADT intern gespeichert wird, während sein öffentliches Verhalten gleich bleibt.",
+      "explanation": "Stacks und Queues lassen sich mit verketteten Knoten oder Arrays implementieren. Verkettete Strukturen vermeiden das Kopieren vieler gespeicherter Werte bei einem Resize, benötigen aber zusätzliche Knoten und Referenzen. Arrays speichern Werte nebeneinander, können die Speicherlokalität verbessern und erfordern beim Resize Kopien. Die Wahl richtet sich nach den Laufzeit- und Speicheranforderungen des Programms.",
+      "example": "Ein Client kann dieselben Queue-Operationen verwenden, wenn die interne Implementierung von einer verketteten Queue zu einem zirkulären Array wechselt.",
+      "pitfalls": [
+        "Ein Wechsel der privaten Repräsentation soll das öffentliche Verhalten des ADT nicht ändern."
+      ],
+      "related": [
+        "Abstrakter Datentyp (ADT)",
+        "Information Hiding",
+        "Verketteter Stack",
+        "Array-Stack",
+        "Verkettete Queue",
+        "Zirkuläres Array"
+      ],
+      "heading": "38. Wahl der Repräsentation"
+    },
+    {
+      "id": "eip-09-k04",
+      "term": "Stack (LIFO)",
+      "kind": "definition",
+      "short": "Ein Stack folgt dem Prinzip „Last in, first out“: Der zuletzt gespeicherte Wert wird zuerst entfernt.",
+      "explanation": "Einfügen und Entfernen erfolgen am selben Ende, dem `top`. `push` legt einen Wert oben ab; `pop` entfernt und liefert den obersten Wert. `isEmpty` prüft, ob ein Wert verfügbar ist. `pop` auf einem leeren Stack ist ein Fehler.",
+      "example": "Nach `push(3)` und `push(5)` liefert `pop()` den Wert `5`; danach liegt `3` oben.",
+      "pitfalls": [
+        "`pop` liefert den zuletzt eingefügten, nicht den zuerst eingefügten Wert.",
+        "Vor `pop` muss der Stack nichtleer sein."
+      ],
+      "related": [
+        "Öffentliches Stack-Modell",
+        "Verketteter Stack",
+        "Array-Stack",
+        "Queue (FIFO)"
+      ],
+      "heading": "35. Stacks"
+    },
+    {
+      "id": "eip-09-k05",
+      "term": "Öffentliches Stack-Modell",
+      "kind": "concept",
+      "short": "Das öffentliche Stack-Modell beschreibt die verfügbaren Operationen, ohne die interne Speicherung festzulegen.",
+      "explanation": "Das Modell der Mitschrift umfasst einen Konstruktor, `isEmpty()`, `push(x)`, `pop()` und `toString()`. `push` fügt einen Wert hinzu, `pop` liefert den obersten Wert und entfernt ihn, und `toString` zeigt die Werte, ohne den Stack zu verändern. Das Modell legt die Bedeutung der Operationen fest, nicht ihre Implementierung.",
+      "example": "Für den Stack `[5, 3]` mit `top` zuerst liefert `pop()` den Wert `5` und lässt `[3]` zurück.",
+      "pitfalls": [
+        "`toString()` zeigt den Stack, ohne ihn zu verändern.",
+        "`pop()` setzt einen nichtleeren Stack voraus."
+      ],
+      "related": [
+        "Abstrakter Datentyp (ADT)",
+        "Stack (LIFO)",
+        "Information Hiding"
+      ],
+      "heading": "Öffentliches Modell"
+    },
+    {
+      "id": "eip-09-k06",
+      "term": "Verketteter Stack",
+      "kind": "definition",
+      "short": "Ein verketteter Stack speichert seine Werte in Knoten, wobei `top` auf den Knoten zeigt, den das nächste `pop` entfernt.",
+      "explanation": "Jeder Knoten enthält einen Wert und eine `next`-Referenz auf den folgenden Knoten. `top` zeigt auf den obersten Knoten; die übrigen Knoten hängen über `next` daran. Der leere Stack wird durch `top == null` repräsentiert. `push` und `pop` benötigen keine Schleife und laufen in $O(1)$ Zeit.",
+      "example": "Die Kette `top → 3 → 2 → 1 → null` enthält einen Stack mit `3` oben.",
+      "pitfalls": [
+        "`top` zeigt auf den als Nächstes zu entfernenden Knoten, nicht auf den untersten Knoten."
+      ],
+      "related": [
+        "Stack (LIFO)",
+        "push und pop beim verketteten Stack",
+        "Verkettete Liste",
+        "Information Hiding"
+      ],
+      "heading": "35.1 Implementierung 1: Verketteter Stack"
+    },
+    {
+      "id": "eip-09-k07",
+      "term": "push und pop beim verketteten Stack",
+      "kind": "method",
+      "short": "`push` hängt einen neuen Knoten vor den bisherigen `top`, und `pop` verschiebt `top` auf den nächsten Knoten.",
+      "explanation": "Bei `push(x)` wird ein Knoten erzeugt, dessen `next` auf den bisherigen `top` zeigt; anschließend wird `top` auf den neuen Knoten gesetzt. Bei `pop()` wird zuerst geprüft, dass der Stack nicht leer ist. Dann wird der Wert von `top` gesichert, `top` auf `top.next` verschoben und der gesicherte Wert zurückgegeben. Beide Operationen laufen in $O(1)$ Zeit.",
+      "example": "Bei `top → 3 → 2` macht `push(4)` daraus `top → 4 → 3 → 2`; das nächste `pop()` liefert `4`.",
+      "pitfalls": [
+        "Den Wert beim `pop` sichern, bevor `top` weitergeschoben wird.",
+        "Bei leerem Stack kann `pop` keinen Wert zurückgeben."
+      ],
+      "related": [
+        "Verketteter Stack",
+        "Stack (LIFO)"
+      ],
+      "heading": "push: neuer Knoten vor den alten top"
+    },
+    {
+      "id": "eip-09-k08",
+      "term": "Array-Stack",
+      "kind": "definition",
+      "short": "Ein Array-Stack speichert seine Werte in einem Array `a` und zählt mit `size`, wie viele Werte belegt sind.",
+      "explanation": "Die Werte liegen der Reihe nach in `a[0]` bis `a[size - 1]`; `size` gibt die Anzahl gespeicherter Werte an. Einfügen schreibt in die erste freie Zelle, und Entfernen liest die letzte belegte Zelle. Die öffentlichen Stack-Operationen bleiben dieselben wie bei der verketteten Implementierung.",
+      "example": "Bei `a = [1, 2, 3, _]` und `size = 3` ist `3` oben und liegt bei Index `size - 1`.",
+      "pitfalls": [
+        "Die Array-Kapazität `a.length` ist nicht dasselbe wie die Anzahl gespeicherter Werte `size`.",
+        "Ein allokiertes Array kann einen leeren Stack repräsentieren."
+      ],
+      "related": [
+        "Stack (LIFO)",
+        "Invariante des Array-Stacks",
+        "Verdoppeln beim Array-Stack",
+        "Schrumpfen mit Viertel-Regel",
+        "Arrays und Indizes"
+      ],
+      "heading": "35.2 Implementierung 2: Array-Stack"
+    },
+    {
+      "id": "eip-09-k09",
+      "term": "Invariante des Array-Stacks",
+      "kind": "concept",
+      "short": "In einem Array-Stack sind die Werte in `a[0]` bis `a[size - 1]` gespeichert, und `top` liegt bei Index `size - 1`.",
+      "explanation": "Diese Regel beschreibt die gültige Beziehung zwischen Array und `size`. Bei `size == 0` ist der Stack leer, auch wenn das Array Speicher belegt. Unbenutzte Zellen ab Index `size` gehören nicht zum Stack und ihr Inhalt ist bedeutungslos.",
+      "example": "Bei `size = 2` sind nur `a[0]` und `a[1]` Stack-Werte; `a[2]` gehört nicht zum Stack.",
+      "pitfalls": [
+        "`size - 1` ist nur bei einem nichtleeren Stack ein gültiger `top`-Index."
+      ],
+      "related": [
+        "Array-Stack",
+        "Invariante",
+        "Arrays und Indizes"
+      ],
+      "heading": "Repräsentation"
+    },
+    {
+      "id": "eip-09-k10",
+      "term": "Verdoppeln beim Array-Stack",
+      "kind": "method",
+      "short": "Ist das Array voll, wird vor dem nächsten `push` ein doppelt so großes Array angelegt und mit den belegten Werten befüllt.",
+      "explanation": "Das Resize kopiert die `size` gespeicherten Werte in ein neues Array und ersetzt anschließend das alte Array. Beim Wachsen wird die Kapazität verdoppelt. Danach schreibt `push` den neuen Wert an Index `size` und erhöht `size`.",
+      "example": "Bei vier belegten Zellen wird vor dem nächsten `push` auf Kapazität 8 vergrößert; anschließend wird der neue Wert gespeichert.",
+      "pitfalls": [
+        "Das Resize erfolgt vor dem Schreiben, wenn `size == a.length` gilt.",
+        "Nur die belegten Werte müssen kopiert werden."
+      ],
+      "related": [
+        "Array-Stack",
+        "Invariante des Array-Stacks",
+        "Amortisierte Analyse",
+        "Kopiergrenze von 2n"
+      ],
+      "heading": "Wachsen durch Verdoppeln"
+    },
+    {
+      "id": "eip-09-k11",
+      "term": "Schrumpfen mit Viertel-Regel",
+      "kind": "method",
+      "short": "Der Array-Stack wird halbiert, wenn nach einem `pop` höchstens ein Viertel der Zellen belegt ist und die Kapazität größer als 4 ist.",
+      "explanation": "Nach dem Entfernen wird die neue `size` geprüft. Falls `size <= a.length / 4` und `a.length > 4` gilt, wird ein Array mit halber Kapazität angelegt und mit den verbleibenden Werten befüllt. Die Mindestkapazität ist 4. Der Abstand zwischen Schrumpfen und erneutem Wachstum verhindert, dass abwechselnde `pop`- und `push`-Operationen ständig Kopien erzwingen.",
+      "example": "Bei Kapazität 8 wird bei höchstens 2 verbleibenden Werten auf Kapazität 4 geschrumpft.",
+      "pitfalls": [
+        "Bei halber Füllung zu schrumpfen kann direkt danach erneutes Wachstum auslösen.",
+        "Die neue `size` wird nach dem Entfernen geprüft."
+      ],
+      "related": [
+        "Array-Stack",
+        "Verdoppeln beim Array-Stack",
+        "Amortisierte Analyse"
+      ],
+      "heading": "Speicher freigeben: wann schrumpfen?"
+    },
+    {
+      "id": "eip-09-k12",
+      "term": "Amortisierte Analyse",
+      "kind": "concept",
+      "short": "Die amortisierte Analyse betrachtet die Gesamtkosten einer Operationsfolge statt nur die Kosten einer einzelnen Operation.",
+      "explanation": "Eine einzelne Array-Operation kann wegen eines Resizes $O(n)$ kosten. Bei der amortisierten Analyse werden die Kopierkosten über die Operationen einer ganzen Folge verteilt. Bei Verdoppeln des vollen Arrays und Halbieren bei höchstens einem Viertel Füllung betragen die Resize-Kopien insgesamt höchstens $2n$ für $n$ Pushes und Pops ab leer. Damit sind die amortisierten Kosten pro Operation $O(1)$.",
+      "example": "Ein `push`, der viele Werte kopiert, kann teuer sein, obwohl die durchschnittlichen Resize-Kopien pro Operation über die ganze Folge konstant beschränkt sind.",
+      "pitfalls": [
+        "Amortisierte $O(1)$-Kosten bedeuten nicht, dass jede einzelne Operation $O(1)$ kostet."
+      ],
+      "related": [
+        "Verdoppeln beim Array-Stack",
+        "Schrumpfen mit Viertel-Regel",
+        "Kopiergrenze von 2n",
+        "Kosten der Array-Queue"
+      ],
+      "heading": "35.3 Amortisierte Analyse: Wie viel wird insgesamt kopiert?"
+    },
+    {
+      "id": "eip-09-k13",
+      "term": "Kopiergrenze von 2n",
+      "kind": "theorem",
+      "short": "Bei $n$ Pushes und Pops ab einem leeren Stack werden insgesamt höchstens $2n$ Werte durch Resizes kopiert.",
+      "explanation": "Man gruppiert die Operationen so, dass jede Gruppe mit einem Resize endet; ein Rest ohne Resize verursacht keine Kopien. Zwischen Resizes liegen genügend Operationen, um die Kopierzahl der jeweiligen Gruppe auf höchstens das Doppelte ihrer Operationszahl zu begrenzen. Beim Wachsen werden höchstens so viele Werte kopiert wie die Gruppe an Operationen mit mindestens halber Arraykapazität umfasst; beim Schrumpfen reichen mindestens ein Viertel der Kapazität an Pops für höchstens ein Viertel der Kapazität an Kopien. Aufsummiert ergibt sich höchstens $2n$ für die ganze Folge.",
+      "example": "Für 100 Stack-Operationen ab leer beträgt die Resize-Kopierarbeit höchstens 200 kopierte Werte.",
+      "pitfalls": [
+        "Die Schranke gilt für die ganze Operationsfolge, nicht für jedes einzelne `push` oder `pop`."
+      ],
+      "related": [
+        "Amortisierte Analyse",
+        "Verdoppeln beim Array-Stack",
+        "Schrumpfen mit Viertel-Regel",
+        "Kosten der Array-Queue"
+      ],
+      "heading": "Schritt 1: Jeden Resize mit den Operationen seit dem vorherigen vergleichen"
+    },
+    {
+      "id": "eip-09-k14",
+      "term": "Postfix-Notation (Reverse Polish Notation, RPN)",
+      "kind": "definition",
+      "short": "In der Postfix-Notation steht jeder Operator nach seinen beiden Operanden, sodass die Reihenfolge der Tokens die Gruppierung ausdrückt.",
+      "explanation": "Anders als in der Infix-Notation stehen Operatoren nicht zwischen ihren Operanden. Die Reihenfolge der Tokens ersetzt Klammern und Operatorvorrang. Ein Postfix-Ausdruck wird von links nach rechts gelesen.",
+      "example": "`(3 + 5) * 2` wird zu `3 5 + 2 *`; `3 + (5 * 2)` wird zu `3 5 2 * +`.",
+      "pitfalls": [
+        "Die Position eines Operators bestimmt, welche zuvor gelesenen Werte er kombiniert."
+      ],
+      "related": [
+        "Auswertung von Postfix mit einem Stack",
+        "Operand-Reihenfolge in Postfix",
+        "Stack (LIFO)"
+      ],
+      "heading": "Postfix-Notation (Reverse Polish Notation, RPN)"
+    },
+    {
+      "id": "eip-09-k15",
+      "term": "Auswertung von Postfix mit einem Stack",
+      "kind": "method",
+      "short": "Ein Postfix-Ausdruck wird von links nach rechts verarbeitet: Zahlen kommen auf den Stack, Operatoren kombinieren die obersten zwei Werte.",
+      "explanation": "Der Stack hält Zahlen und Zwischenergebnisse, bis ein Operator sie benötigt. Bei jedem Operator werden zwei Werte entfernt, die Operation wird ausgeführt und das Ergebnis wird wieder auf den Stack gelegt. Bei einem gültigen Ausdruck bleiben am Ende genau ein Ergebnis und keine unbenutzten Operanden übrig.",
+      "example": "`3 5 2 4 + * +` ergibt schrittweise `6`, dann `30`, dann `33` auf dem Stack.",
+      "pitfalls": [
+        "Jeder Operator benötigt zwei bereits auf dem Stack liegende Werte.",
+        "Der beschriebene Rechner setzt einen gültigen Ausdruck voraus."
+      ],
+      "related": [
+        "Postfix-Notation (Reverse Polish Notation, RPN)",
+        "Operand-Reihenfolge in Postfix",
+        "Stack (LIFO)"
+      ],
+      "heading": "Auswertung mit einem Stack"
+    },
+    {
+      "id": "eip-09-k16",
+      "term": "Operand-Reihenfolge in Postfix",
+      "kind": "concept",
+      "short": "Bei einem nichtkommutativen Operator ist der zuerst gepoppte Wert der rechte Operand und der danach gepoppte Wert der linke Operand.",
+      "explanation": "Beim Operator stehen die obersten zwei Stack-Werte in umgekehrter Reihenfolge zu den Operanden. Deshalb wird zuerst `right = s.pop()` und danach `left = s.pop()` ausgeführt. Für die Subtraktion wird `left - right` berechnet.",
+      "example": "Bei `8 3 -` liegt `3` oben: Zuerst wird `right = 3`, dann `left = 8` gepoppt, also ist das Ergebnis `8 - 3 = 5`.",
+      "pitfalls": [
+        "`8 3 -` bedeutet `8 - 3`, nicht `3 - 8`.",
+        "Die Reihenfolge ist besonders bei Subtraktion wichtig."
+      ],
+      "related": [
+        "Postfix-Notation (Reverse Polish Notation, RPN)",
+        "Auswertung von Postfix mit einem Stack"
+      ],
+      "heading": "Der top-Wert ist der rechte Operand"
+    },
+    {
+      "id": "eip-09-k17",
+      "term": "switch",
+      "kind": "concept",
+      "short": "Ein `switch` wählt anhand des Werts eines Ausdrucks einen passenden Fall aus.",
+      "explanation": "Im Postfix-Rechner wird der Operator-Zeichenwert verwendet, um etwa `+`, `-` oder `*` zu behandeln. Ein `default`-Fall kann unbekannte Operatoren zurückweisen. Java bietet eine Pfeil-Syntax und eine klassische Syntax mit Doppelpunkten.",
+      "example": "Ein `switch (operator)` kann für `case '+'` die Addition und für `case '-'` die Subtraktion ausführen.",
+      "pitfalls": [
+        "Unbekannte Operatoren sollten nicht stillschweigend als gültige Operation behandelt werden."
+      ],
+      "related": [
+        "Pfeil-Syntax im switch",
+        "Klassisches switch und Fall-through"
+      ],
+      "heading": "Operation wählen: von     -Kette zu"
+    },
+    {
+      "id": "eip-09-k18",
+      "term": "Pfeil-Syntax im switch",
+      "kind": "notation",
+      "short": "Bei `case X ->` wird genau der passende Zweig ausgeführt und es gibt kein Fall-through.",
+      "explanation": "Die Pfeil-Syntax verbindet einen `case` direkt mit seiner Aktion. Nach dem ausgeführten Zweig springt die Ausführung nicht in den nächsten Fall weiter. Für dieses Verhalten ist kein `break` nötig.",
+      "example": "```java\nswitch (operator) {\n    case '+' -> s.push(left + right);\n    case '-' -> s.push(left - right);\n    default -> throw new IllegalArgumentException();\n}\n```",
+      "pitfalls": [
+        "Pfeil-Fälle verhalten sich nicht wie klassische `case`-Blöcke mit möglichem Fall-through."
+      ],
+      "related": [
+        "switch",
+        "Klassisches switch und Fall-through"
+      ],
+      "heading": "mit Pfeil-Syntax (    )"
+    },
+    {
+      "id": "eip-09-k19",
+      "term": "Klassisches switch und Fall-through",
+      "kind": "concept",
+      "short": "Bei der klassischen `case X:`-Syntax läuft die Ausführung ohne `break` in den nächsten Fall weiter.",
+      "explanation": "Ein `break` beendet das `switch` und setzt die Ausführung nach dem Block fort. Fehlt es, führt Java auch die Anweisungen der folgenden Fälle aus. Das kann mehrere Aktionen für einen einzigen Operator auslösen.",
+      "example": "Ohne `break` kann ein `case '+'` erst die Summe und danach auch das Produkt auf den Stack legen.",
+      "pitfalls": [
+        "Die klassische `case:`-Syntax verhindert Fall-through nicht automatisch.",
+        "`break` beendet das `switch`, aber führt nicht selbst die Berechnung aus."
+      ],
+      "related": [
+        "switch",
+        "Pfeil-Syntax im switch"
+      ],
+      "heading": "Traditionelle Syntax mit     und"
+    },
+    {
+      "id": "eip-09-k20",
+      "term": "Ziffernzeichen in Zahl umwandeln",
+      "kind": "method",
+      "short": "Ein einzelnes Ziffernzeichen wird durch Subtraktion von `'0'` in seinen Zahlenwert umgewandelt.",
+      "explanation": "Der Rechner behandelt jedes Zeichen von `'0'` bis `'9'` als eigenen Zahl-Token. Die Zeichencodes dieser Ziffern sind aufeinanderfolgend, daher entspricht `token - '0'` dem Zahlenwert. Dieser Wert wird auf den Stack gelegt, nicht der Zeichencode.",
+      "example": "`'5' - '0'` ergibt die Zahl `5`, nicht den Zeichencode `53`.",
+      "pitfalls": [
+        "Die beschriebene Eingabe verarbeitet jede Ziffer einzeln und damit keine mehrstellige Zahl als einen Token."
+      ],
+      "related": [
+        "Auswertung von Postfix mit einem Stack",
+        "Postfix-Notation (Reverse Polish Notation, RPN)",
+        "Primitive Datentypen"
+      ],
+      "heading": "Ziffernzeichen in Zahl umwandeln"
+    },
+    {
+      "id": "eip-09-k21",
+      "term": "Queue (FIFO)",
+      "kind": "definition",
+      "short": "Eine Queue folgt dem Prinzip „First in, first out“: Der am längsten wartende Wert wird zuerst entfernt.",
+      "explanation": "Werte werden am hinteren Ende mit `enqueue` eingefügt und am vorderen Ende mit `dequeue` entfernt. `isEmpty` prüft, ob Werte vorhanden sind. `dequeue` auf einer leeren Queue ist ein Fehler.",
+      "example": "Nach `enqueue(3)` und `enqueue(5)` liefert `dequeue()` den Wert `3`.",
+      "pitfalls": [
+        "Eine Queue entfernt den ältesten Wert, anders als ein Stack.",
+        "Vor `dequeue` muss die Queue nichtleer sein."
+      ],
+      "related": [
+        "Verkettete Queue",
+        "Zirkuläres Array",
+        "Stack (LIFO)"
+      ],
+      "heading": "37. Queues"
+    },
+    {
+      "id": "eip-09-k22",
+      "term": "Verkettete Queue",
+      "kind": "definition",
+      "short": "Eine verkettete Queue speichert Werte in Knoten und hält `first` und `last` als Referenzen auf die Enden der Kette.",
+      "explanation": "`first` bezeichnet den ältesten Wert, der als Nächstes entfernt wird; `last` bezeichnet den zuletzt eingefügten Knoten. Bei genau einem Element zeigen beide Referenzen auf denselben Knoten. Eine leere Queue wird durch `first == null` und `last == null` repräsentiert. Mit beiden Endreferenzen laufen Einfügen und Entfernen ohne Durchlaufen der Knoten in $O(1)$ Zeit.",
+      "example": "`first → 1 → 2 → 3 → null` und `last → 3` beschreibt eine Queue mit `1` vorne und `3` hinten.",
+      "pitfalls": [
+        "Bei leerer Queue müssen `first` und `last` beide `null` sein.",
+        "Bei genau einem Element sind `first` und `last` gleich."
+      ],
+      "related": [
+        "Queue (FIFO)",
+        "enqueue und dequeue bei verketteter Queue",
+        "Verkettete Liste",
+        "Information Hiding"
+      ],
+      "heading": "37.1 Implementierung 1: Verkettete Queue"
+    },
+    {
+      "id": "eip-09-k23",
+      "term": "enqueue und dequeue bei verketteter Queue",
+      "kind": "method",
+      "short": "`enqueue` hängt einen Knoten hinter `last`, und `dequeue` entfernt den Knoten bei `first`.",
+      "explanation": "Bei `enqueue(x)` wird ein neuer Knoten erzeugt; bei leerer Queue wird er `first`, andernfalls wird er über `last.next` angehängt, und danach wird `last` aktualisiert. Bei `dequeue()` wird der Wert bei `first` gesichert und `first` auf den nächsten Knoten verschoben. Wird dadurch `first == null`, muss auch `last = null` gesetzt werden. Beide Operationen benötigen $O(1)$ Zeit.",
+      "example": "Wird aus einer Queue mit genau einem Knoten `dequeue()` aufgerufen, sind danach `first` und `last` beide `null`.",
+      "pitfalls": [
+        "Beim Einfügen in eine leere Queue müssen `first` und `last` auf den neuen Knoten zeigen.",
+        "Beim Entfernen des letzten Knotens darf `last` nicht auf den entfernten Knoten zeigen bleiben."
+      ],
+      "related": [
+        "Verkettete Queue",
+        "Queue (FIFO)"
+      ],
+      "heading": "dequeue: first-Referenz weiterschieben"
+    },
+    {
+      "id": "eip-09-k24",
+      "term": "Zirkuläres Array",
+      "kind": "definition",
+      "short": "Ein zirkuläres Array bildet die logische Reihenfolge einer Array-Queue durch Umlaufen vom letzten Arrayfeld zurück zum Index 0 ab.",
+      "explanation": "Die Array-Queue speichert `first` als Front-Index und `size` als Anzahl der Werte. Beim Entfernen wird `first` weitergeschoben, ohne die übrigen Werte zu verschieben. Der Einfügeindex und die logischen Positionen werden mit Modulo auf gültige Array-Indizes abgebildet.",
+      "example": "Bei `first = 2`, `size = 3` und Kapazität 4 liegen die logischen Werte an den Indizes `2`, `3` und `0`.",
+      "pitfalls": [
+        "Die physische Reihenfolge der Arrayzellen kann von der logischen FIFO-Reihenfolge abweichen.",
+        "Beim Entfernen werden die übrigen Werte nicht nach vorne verschoben."
+      ],
+      "related": [
+        "Queue (FIFO)",
+        "Modulo-Indizes der zirkulären Queue",
+        "size bei der Array-Queue",
+        "Arrays und Indizes"
+      ],
+      "heading": "37.2 Implementierung 2: Array-Queue (zirkuläres Array)"
+    },
+    {
+      "id": "eip-09-k25",
+      "term": "Modulo-Indizes der zirkulären Queue",
+      "kind": "notation",
+      "short": "Modulo bildet einen logischen Index auf eine Arrayposition ab, indem es nach dem letzten Feld bei 0 fortsetzt.",
+      "explanation": "Bei Arraylänge $m$ ist der Einfügeindex $(\\texttt{first} + \\texttt{size}) \\bmod m$. Der Index des $i$-ten logischen Werts ist $(\\texttt{first} + i) \\bmod m$, und nach einem Entfernen wird `first` zu `(first + 1) % m`. So kann die Queue freie Zellen am Arrayanfang wiederverwenden.",
+      "example": "Bei `first = 2`, `size = 2` und Arraylänge 4 ist der Einfügeindex `(2 + 2) % 4 = 0`.",
+      "pitfalls": [
+        "Modulo bezieht sich auf die Arraylänge, nicht auf `size`.",
+        "Ohne Modulo kann ein Index nach dem letzten Arrayfeld außerhalb des Arrays liegen."
+      ],
+      "related": [
+        "Zirkuläres Array",
+        "size bei der Array-Queue",
+        "Arrays und Indizes"
+      ],
+      "heading": null
+    },
+    {
+      "id": "eip-09-k26",
+      "term": "size bei der Array-Queue",
+      "kind": "concept",
+      "short": "`size` unterscheidet eine leere Queue mit `size == 0` von einer vollen Queue mit `size == a.length`.",
+      "explanation": "Bei einer leeren und einer vollen zirkulären Queue kann der nächste Einfügeindex auf `first` zeigen. `first` allein reicht deshalb nicht aus, um beide Zustände zu unterscheiden. Vor dem Einfügen in eine volle Queue muss das Array vergrößert werden, sonst würde der älteste Wert überschrieben.",
+      "example": "Bei Arraylänge 4 ist `size = 0` leer und `size = 4` voll, obwohl beide Zustände dieselbe Frontposition haben können.",
+      "pitfalls": [
+        "Der Einfügeindex allein zeigt nicht an, ob die Queue leer oder voll ist.",
+        "Bei voller Queue darf der neue Wert den ältesten Wert nicht überschreiben."
+      ],
+      "related": [
+        "Zirkuläres Array",
+        "Modulo-Indizes der zirkulären Queue",
+        "Resize der Array-Queue"
+      ],
+      "heading": "Voll vs. leer"
+    },
+    {
+      "id": "eip-09-k27",
+      "term": "Resize der Array-Queue",
+      "kind": "method",
+      "short": "Beim Resize werden die Werte in logischer Queue-Reihenfolge an den Anfang des neuen Arrays kopiert und danach wird `first = 0` gesetzt.",
+      "explanation": "Beim Wachstum wird ein neues Array angelegt, das genügend Kapazität bietet. Für jeden logischen Index `i` wird `a[(first + i) % a.length]` nach `b[i]` kopiert. Danach ersetzt `b` das alte Array und `first` wird auf 0 gesetzt, sodass die Queue wieder bei Index 0 beginnt.",
+      "example": "Eine Queue mit logischer Reihenfolge `[3, 4, 5, 6]` wird nach dem Resize als `[3, 4, 5, 6, _, _, _, _]` gespeichert.",
+      "pitfalls": [
+        "Wenn die Queue gewrappt ist, dürfen die Arrayzellen nicht einfach in physischer Indexreihenfolge kopiert werden.",
+        "Nach dem Kopieren muss `first` auf 0 gesetzt werden."
+      ],
+      "related": [
+        "Zirkuläres Array",
+        "Modulo-Indizes der zirkulären Queue",
+        "size bei der Array-Queue"
+      ],
+      "heading": "resize: in logischer Reihenfolge kopieren"
+    },
+    {
+      "id": "eip-09-k28",
+      "term": "Kosten der Array-Queue",
+      "kind": "concept",
+      "short": "Ohne Resize benötigen `enqueue` und `dequeue` konstante Arbeit, und über $n$ Operationen ab einer leeren Queue entstehen höchstens $2n$ Resize-Kopien.",
+      "explanation": "Ohne Resize schreibt `enqueue` eine Zelle, während `dequeue` eine Zelle liest und `first` sowie `size` aktualisiert. Ein Resize kopiert jeden gespeicherten Wert einmal. Da die Queue bei voller Kapazität verdoppelt und erst bei höchstens einem Viertel Füllung halbiert wird, gilt dieselbe Kopiergrenze wie beim Array-Stack. Die amortisierten Kosten pro Operation sind daher $O(1)$, obwohl eine einzelne Operation wegen eines Resizes länger dauern kann.",
+      "example": "Eine einzelne Einfügung in eine volle Queue kann viele Werte kopieren, obwohl die Kopierarbeit über eine längere Operationsfolge amortisiert $O(1)$ pro Operation beträgt.",
+      "pitfalls": [
+        "Eine einzelne Queue-Operation kann wegen eines Resizes mehr als konstante Zeit benötigen.",
+        "Die $2n$-Schranke gilt für die ganze Folge ab leerer Queue."
+      ],
+      "related": [
+        "Zirkuläres Array",
+        "Resize der Array-Queue",
+        "Amortisierte Analyse",
+        "Kopiergrenze von 2n"
+      ],
+      "heading": "Kosten der Array-Queue"
+    }
+  ],
+  "generator": {
+    "model": "gpt-6-luna",
+    "effort": "xhigh",
+    "promptVersion": "k1",
+    "generatedAt": "2026-11-11T23:28:30.778Z"
+  }
+}
