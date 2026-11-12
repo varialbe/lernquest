@@ -93,12 +93,12 @@ const setAwait = (a: Await | null) => setKV('bot.await', JSON.stringify(a));
 const codex = createCodexBot({ show, tg, getKV, setKV, chat: ADMIN_CHAT });
 
 // ---------- Bildschirme ----------
+/** Hauptmenü: vier Bereiche – Lernen, Agent, LernQuest, Newsletter */
 const MENU: Keyboard = [
-  [btn('🔄 Neue Inhalte holen', 'fetch')],
-  [btn('🔍 Was ist neu?', 'dry'), btn('📡 Status', 'status')],
-  [btn('📝 Neuer Newsletter', 'new'), btn('📂 Entwürfe', 'drafts')],
-  [btn('🧠 Codex', 'cx:home'), btn('📚 Lehrer', 'cx:lehrer')],
-  [btn('📊 Übersicht', 'overview'), btn('❓ Hilfe', 'help')],
+  [btn('📚 Lehrer', 'cx:lehrer'), btn('📅 Artemis', 'cx:artemis'), btn('📄 Artemis .md', 'cx:amd')],
+  [btn('🧠 Codex', 'cx:home'), btn('📋 Jobs', 'cx:jobs')],
+  [btn('🎮 LernQuest', 'lq'), btn('📬 Newsletter', 'nl')],
+  [btn('❓ Hilfe', 'help')],
 ];
 const back = (to = 'menu', label = '⬅️ Menü') => [btn(label, to)];
 
@@ -107,29 +107,76 @@ function menu(editId?: number) {
   codex.clearAwait();
   const c = subscriberCounts(db);
   const n = drafts().length;
-  return show(`<b>🤖 LernQuest</b>\n📬 Newsletter: ${c.confirmed ?? 0} Abonnenten · ${n} ${n === 1 ? 'Entwurf' : 'Entwürfe'}\n🔄 Neue Vorlesungen holen: sofort per Button, sonst automatisch um 00:00\n\nWas möchtest du tun?`, MENU, editId);
+  return show(
+    [
+      '<b>🤖 Steuerzentrale</b>',
+      '',
+      '<b>📚 Lernen</b> – Lehrer, Hausaufgaben-Stand, alles aus Artemis als .md',
+      '<b>🧠 Agent</b> – Codex mit Modell/Reasoning/Ordner, laufende Jobs',
+      '<b>🎮 LernQuest</b> – neue Vorlesungen holen (sonst automatisch 00:00)',
+      `<b>📬 Newsletter</b> – ${c.confirmed ?? 0} Abonnenten · ${n} ${n === 1 ? 'Entwurf' : 'Entwürfe'}`,
+    ].join('\n'),
+    MENU,
+    editId,
+  );
 }
 
-const HELP = `<b>❓ So geht’s</b>
-<b>Neue Inhalte</b>
-• <b>🔄 Neue Inhalte holen</b> (oder /fetch, /hol, oder einfach „hol die neuen Sachen“): startet sofort den Lauf, der sonst um 00:00 kommt – neue Mitschriften aus dem Studium-Repo → Codex erzeugt Level, Praxis und Wissenssammlung. Ich zeige den Fortschritt hier live, am Ende kommt die Zusammenfassung.
-• <b>🔍 Was ist neu?</b> (/neu): nur nachsehen, was verarbeitet würde
-• <b>📡 Status</b> (/status): laufender und letzte Läufe, Wissenssammlung nachholen
+function lqMenu(editId?: number) {
+  return show(
+    '<b>🎮 LernQuest-Pipeline</b>\nNeue Mitschriften aus dem Studium-Repo → Level, Praxis, Wissenssammlung. Läuft sonst automatisch um 00:00.',
+    [[btn('🔄 Neue Inhalte holen', 'fetch')], [btn('🔍 Was ist neu?', 'dry'), btn('📡 Status', 'status')], [btn('📖 Wissenssammlung nachholen', 'knowledge')], back()],
+    editId,
+  );
+}
 
-<b>Newsletter</b>
-1. <b>📝 Neuer Newsletter</b> → Betreff schicken
-2. Inhalt schicken: einfach als Nachricht (Markdown: <code>**fett**</code>, <code># Überschrift</code>, Links) oder als Datei <b>.md</b>, <b>.html</b>, <b>.txt</b>
-3. <b>🧪 Testmail</b> → geht an ${esc(TEST_TO)}, die HTML-Vorschau kommt hier in den Chat
-4. <b>🚀 Senden</b> → mit Rückfrage an alle bestätigten Abonnenten
+function nlMenu(editId?: number) {
+  setAwait(null);
+  const c = subscriberCounts(db);
+  const n = drafts().length;
+  return show(
+    `<b>📬 Newsletter</b>\n${c.confirmed ?? 0} bestätigte Abonnenten · ${n} ${n === 1 ? 'Entwurf' : 'Entwürfe'}`,
+    [[btn('📝 Neuer Newsletter', 'new')], [btn('📂 Entwürfe', 'drafts'), btn('📊 Übersicht', 'overview')], back()],
+    editId,
+  );
+}
 
-<b>Codex vom Handy</b>
-• <b>🧠 Codex</b> (/codex): Modell, Reasoning, Ordner wählen → Aufgabe schicken. Schnell: <code>/codex m=luna r=xhigh d=lernquest Aufgabe…</code>
-• Nach der Antwort einfach weiterschreiben oder auf die Antwort antworten → derselbe Thread macht weiter
-• <b>📋 Jobs</b> (/jobs): laufende Jobs ansehen/stoppen
-• <b>📚 Lehrer</b> (/lehrer Frage): lernen mit deinen Mitschriften, <code>/lehrer neu</code> = neues Gespräch
-• <b>📅 Artemis</b> (/artemis): Hausaufgaben-Stand ERA/EIP
+/** Befehlsliste im Telegram-Menü – gleiche Reihenfolge wie Hauptmenü und Hilfe */
+const COMMANDS = [
+  { command: 'start', description: '🏠 Menü' },
+  { command: 'lehrer', description: '📚 Lernen mit deinen Mitschriften' },
+  { command: 'artemis', description: '📅 Hausaufgaben-Stand ERA/EIP' },
+  { command: 'md', description: '📄 Alles aus Artemis als .md' },
+  { command: 'codex', description: '🧠 Codex-Agent: Aufgabe, Modell, Reasoning' },
+  { command: 'jobs', description: '📋 Laufende und letzte Codex-Jobs' },
+  { command: 'fetch', description: '🎮 LernQuest: neue Inhalte holen' },
+  { command: 'status', description: '🎮 LernQuest: Pipeline-Status' },
+  { command: 'newsletter', description: '📬 Newsletter' },
+  { command: 'hilfe', description: '❓ Alle Befehle erklärt' },
+];
 
-Absender ist news.quest@varialbe.xyz. Footer mit Abmeldelink, Impressum und Datenschutz kommt automatisch dazu.`;
+const HELP = `<b>❓ Alle Befehle</b>
+
+<b>📚 Lernen</b>
+• /lehrer <i>Frage</i> – lernen mit deinen Mitschriften (erklären, abfragen, Hausaufgaben-Hinweise). Gespräch läuft weiter, <code>/lehrer neu</code> startet frisch
+• /artemis – Hausaufgaben-Stand ERA/EIP: Deadlines, Abgaben, Punkte
+• /md – <b>alles</b> aus Artemis als .md: Überblick, jede Abgabe, jedes Testergebnis mit Fehlermeldung, alle Aufgabenstellungen
+
+<b>🧠 Agent</b>
+• /codex – Modell, Reasoning, Ordner wählen → Aufgabe als Nachricht schicken
+  Schnell: <code>/codex m=luna r=xhigh d=lernquest Aufgabe…</code>
+• Nach einer Antwort: einfach weiterschreiben oder auf die Antwort antworten → derselbe Thread macht weiter
+• /jobs – laufende und letzte Jobs ansehen, stoppen
+
+<b>🎮 LernQuest</b>
+• /fetch (oder „hol die neuen Sachen“) – Lauf sofort starten, Fortschritt live
+• /neu – nur ansehen, was verarbeitet würde · /status – Läufe · /wissen – Wissenssammlung nachholen
+
+<b>📬 Newsletter</b> (/newsletter)
+1. 📝 Neuer Newsletter → Betreff schicken
+2. Inhalt als Nachricht (Markdown) oder Datei .md/.html/.txt
+3. 🧪 Testmail → an ${esc(TEST_TO)}, Vorschau kommt hier
+4. 🚀 Senden → mit Rückfrage an alle bestätigten Abonnenten
+Absender news.quest@varialbe.xyz, Footer mit Abmeldelink/Impressum/Datenschutz automatisch.`;
 
 function draftCard(i: Issue, editId?: number, note = '') {
   setKV('bot.draft', String(i.id));
@@ -295,6 +342,8 @@ async function onButton(data: string, editId: number) {
   const id = Number(idStr);
   if (action === 'menu') return menu(editId);
   if (action === 'help') return show(HELP, [back()], editId);
+  if (action === 'lq') return lqMenu(editId);
+  if (action === 'nl') return nlMenu(editId);
   if (action === 'drafts') return draftList(editId);
   if (action === 'overview') return overview(editId);
   if (action === 'fetch') return startRun('run', editId);
@@ -375,7 +424,7 @@ async function handleCommand(text: string) {
     case 'delete':
       return target ? onButton(`del:${target.id}`, 0) : draftList();
     default:
-      return menu();
+      return nlMenu();
   }
 }
 
@@ -426,7 +475,9 @@ async function handle(u: Update) {
     setAwait(null);
     return;
   }
-  if (text.startsWith('/')) return menu(); // /start, /help, /menu …
+  if (/^\/(hilfe|help)(@\w+)?\b/i.test(text)) return show(HELP, [back()]);
+  if (/^\/(lernquest|lq)(@\w+)?\b/i.test(text)) return lqMenu();
+  if (text.startsWith('/')) return menu(); // /start, /menu …
   if (!text.trim()) return;
   if (msg.reply_to_message && (await codex.onText(text, msg.reply_to_message.message_id))) return;
   if (waiting?.kind === 'new') return createDraft(text.trim());
@@ -447,16 +498,7 @@ async function main() {
     log('TELEGRAM_BOT_TOKEN/TELEGRAM_CHAT_ID fehlen – Bot startet nicht.');
     process.exit(1);
   }
-  await tg('setMyCommands', {
-    commands: [
-      { command: 'fetch', description: '🔄 Neue Inhalte jetzt holen' },
-      { command: 'status', description: '📡 Pipeline-Status' },
-      { command: 'neu', description: '🔍 Was ist neu? (Vorschau)' },
-      { command: 'wissen', description: '📖 Wissenssammlung nachholen' },
-      ...codex.commands,
-      { command: 'start', description: 'Menü (Newsletter, Pipeline, Codex)' },
-    ],
-  }).catch((e) => log(e));
+  await tg('setMyCommands', { commands: COMMANDS }).catch((e) => log(e));
   setInterval(() => void tickWatchers().catch((e) => log('watch', e)), 20_000);
   let codexTicking = false;
   setInterval(() => {

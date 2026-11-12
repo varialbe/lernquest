@@ -5,6 +5,7 @@
  *   Schnell: /codex m=luna r=xhigh d=lernquest <Aufgabe>   (m/r/d optional, gelten nur für diesen Job)
  * 📚 Lehrer (/lehrer <Frage>): Codex mit dem Skill `lehrer` im Studium-Repo; Gespräch läuft weiter, bis /lehrer neu.
  * 📋 Jobs (/jobs): laufende und letzte Jobs, Stop.   📅 Artemis (/artemis): Hausaufgaben-Stand.
+ * 📄 /md: alles aus Artemis als .md (artemis export: Überblick, Abgaben, Tests, Aufgabenstellungen).
  * Nach einer Antwort: einfach weiterschreiben oder auf die Antwort antworten → derselbe Codex-Thread macht weiter.
  *
  * Jeder Job läuft als eigene systemd-User-Unit (codex-tg-<id>), nicht im Bot-Prozess: kein 300-MB-Limit des Bots,
@@ -453,7 +454,6 @@ export function createCodexBot(ctx: Ctx) {
       [
         [btn('🤖 Modell', 'models'), btn('🧠 Reasoning', 'efforts')],
         [btn('📁 Ordner', 'dirs'), btn('📋 Jobs', 'jobs')],
-        [btn('📚 Lehrer', 'lehrer'), btn('📅 Artemis', 'artemis')],
         [{ text: '⬅️ Menü', callback_data: 'menu' }],
       ],
       editId,
@@ -508,10 +508,35 @@ export function createCodexBot(ctx: Ctx) {
       execFile('python3', [ARTEMIS, 'status', ...(refresh ? ['--refresh'] : [])], { timeout: 60_000, env: { ...process.env, PATH: PATH_ENV } }, (err, stdout, stderr) => {
         const out = (stdout || stderr || (err ? err.message : '')).trim();
         resolve(
-          ctx.show(`<b>📅 Artemis</b>\n<pre>${esc(out.slice(0, 3700))}</pre>`, [[btn('🔁 Neu laden', 'artemis:r'), btn('📚 Lehrer: Plan', 'lplan')], [btn('⬅️ Zurück', 'home')]], editId),
+          ctx.show(
+            `<b>📅 Artemis</b>\n<pre>${esc(out.slice(0, 3700))}</pre>`,
+            [[btn('📄 Alles als .md', 'amd'), btn('🔁 Neu laden', 'artemis:r')], [btn('📚 Lehrer: Plan', 'lplan'), { text: '⬅️ Menü', callback_data: 'menu' }]],
+            editId,
+          ),
         );
       });
     });
+  }
+
+  /** Kompletter Artemis-Stand als .md: Überblick, Abgaben, Testergebnisse, Aufgabenstellungen (artemis export) */
+  async function artemisExport(editId?: number) {
+    await ctx.show('⏳ Hole alles aus Artemis (Abgaben, Tests, Aufgabenstellungen) … ca. 15 s', [], editId);
+    const out = path.join(os.tmpdir(), `artemis-${Date.now()}.md`);
+    const r = await new Promise<{ err: Error | null; stderr: string }>((resolve) =>
+      execFile('python3', [ARTEMIS, 'export', '--out', out], { timeout: 180_000, env: { ...process.env, PATH: PATH_ENV } }, (err, _o, stderr) => resolve({ err, stderr })),
+    );
+    if (r.err || !fs.existsSync(out)) {
+      return ctx.show(`⚠️ Export fehlgeschlagen:\n<pre>${esc((r.stderr || r.err?.message || '').slice(-1500))}</pre>`, [[btn('📅 Artemis', 'artemis'), { text: '⬅️ Menü', callback_data: 'menu' }]]);
+    }
+    const md = fs.readFileSync(out, 'utf8');
+    fs.unlinkSync(out);
+    const day = new Date().toLocaleDateString('sv-SE', { timeZone: 'Europe/Berlin' });
+    const fd = new FormData();
+    fd.set('chat_id', ctx.chat);
+    fd.set('caption', `📄 Artemis-Stand komplett (ERA + EIP) · ${md.split('\n').length} Zeilen\nÜberblick, alle Abgaben, Testergebnisse und Aufgabenstellungen.`);
+    fd.set('document', new Blob([md], { type: 'text/markdown' }), `artemis_${day}.md`);
+    fd.set('reply_markup', JSON.stringify({ inline_keyboard: [[btn('📅 Artemis', 'artemis'), { text: '⬅️ Menü', callback_data: 'menu' }]] }));
+    await ctx.tg('sendDocument', fd, 60_000);
   }
 
   // ---------------- Starten ----------------
@@ -569,7 +594,7 @@ export function createCodexBot(ctx: Ctx) {
       setAwait({ kind: 'lehrer' });
       return ctx.show(
         '<b>📚 Lehrer</b>\nFrag einfach: „erklär mir Calling Convention“, „frag mich DS VO5 ab“, „hilf mir bei der ERA-Hausaufgabe“ …\n\nDas Gespräch läuft weiter, bis du <code>/lehrer neu</code> schreibst.',
-        [[btn('📅 Was ist fällig?', 'lplan'), btn('🆕 Neues Gespräch', 'lnew')], [btn('⬅️ Zurück', 'home')]],
+        [[btn('📅 Was ist fällig?', 'lplan'), btn('🆕 Neues Gespräch', 'lnew')], [{ text: '⬅️ Menü', callback_data: 'menu' }]],
       );
     }
     let last: { id: string; at: number } | null = null;
@@ -644,18 +669,21 @@ export function createCodexBot(ctx: Ctx) {
         return lehrer('Was ist in ERA und EIP fällig, wie ist mein Stand, und was sollte ich heute lernen? Kurzer Plan.');
       case 'artemis':
         return artemisScreen(editId, arg === 'r');
+      case 'amd':
+        return artemisExport(editId);
     }
     return home(editId);
   }
 
   /** Slash-Befehle; true = erledigt */
   async function onCommand(text: string): Promise<boolean> {
-    const m = /^\/(codex|cx|c|lehrer|l|jobs|artemis)(?:@\w+)?(?:\s+([\s\S]*))?$/i.exec(text.trim());
+    const m = /^\/(codex|cx|c|lehrer|l|jobs|artemis|md|export)(?:@\w+)?(?:\s+([\s\S]*))?$/i.exec(text.trim());
     if (!m) return false;
     const cmd = m[1]!.toLowerCase();
     const rest = (m[2] ?? '').trim();
     if (cmd === 'jobs') await jobsScreen();
     else if (cmd === 'artemis') await artemisScreen();
+    else if (cmd === 'md' || cmd === 'export') await artemisExport();
     else if (cmd === 'lehrer' || cmd === 'l') await lehrer(rest);
     else if (!rest) await home();
     else {
@@ -711,11 +739,5 @@ export function createCodexBot(ctx: Ctx) {
     onText,
     tick,
     clearAwait: () => setAwait(null),
-    commands: [
-      { command: 'codex', description: '🧠 Codex-Agent (Modell/Reasoning/Ordner)' },
-      { command: 'lehrer', description: '📚 Lehrer: lernen mit deinen Mitschriften' },
-      { command: 'jobs', description: '📋 Codex-Jobs' },
-      { command: 'artemis', description: '📅 Hausaufgaben-Stand ERA/EIP' },
-    ],
   };
 }
