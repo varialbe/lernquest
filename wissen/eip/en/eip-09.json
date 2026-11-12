@@ -1,0 +1,515 @@
+{
+  "schemaVersion": 1,
+  "unitId": "eip-09",
+  "module": "EIP",
+  "unitNumber": 9,
+  "unitTitle": "Stacks and Queues",
+  "sourceSha": "50ca77e95541fe50b62d30bc6b989f98d036c3be6dd891d01142fef43fa3f066",
+  "overview": "This unit explains abstract data types (ADTs) and how stacks and queues remain independent of their private representation through their public behavior. It covers linked and array-based implementations, resizing policies and their amortized costs, and evaluating postfix expressions with a stack. Circular arrays allow an array-based queue to reuse free cells at the beginning.",
+  "entries": [
+    {
+      "id": "eip-09-k01",
+      "term": "Abstract data type (abstrakter Datentyp, ADT)",
+      "kind": "definition",
+      "short": "An ADT specifies which operations are available and what they do, but not how the data is stored.",
+      "explanation": "An abstract data type describes a data structure’s behavior through its public operations. The implementation determines how the data is stored. Several implementations can therefore provide the same behavior.",
+      "example": "A stack ADT can provide `push`, `pop`, and `isEmpty`, whether the values are stored in nodes or in an array.",
+      "pitfalls": [
+        "An ADT should not be equated with a particular data structure or memory layout."
+      ],
+      "related": [
+        "Information hiding",
+        "Representation choice"
+      ],
+      "heading": "34. Abstract Data Types (ADT)"
+    },
+    {
+      "id": "eip-09-k02",
+      "term": "Information hiding",
+      "kind": "concept",
+      "short": "Information hiding hides the private representation from the client, which can use the data structure only through its public operations.",
+      "explanation": "A client accesses an ADT’s public operations rather than its internal fields directly. This allows its own methods to protect the data structure’s invariants. It also makes the implementation easier to maintain and replace.",
+      "example": "For a stack, `top` is `private`; the client calls `push` and `pop` instead of changing `top` itself.",
+      "pitfalls": [
+        "Publicly accessible representation fields can allow changes that violate an invariant."
+      ],
+      "related": [
+        "Abstract data type (ADT)",
+        "Representation choice"
+      ],
+      "heading": "Information Hiding"
+    },
+    {
+      "id": "eip-09-k03",
+      "term": "Representation choice (Repräsentationswahl)",
+      "kind": "concept",
+      "short": "The representation choice determines how an ADT is stored internally while its public behavior remains the same.",
+      "explanation": "Stacks and queues can be implemented with linked nodes or arrays. Linked structures avoid copying many stored values during a resize, but require additional nodes and references. Arrays store values contiguously, which can improve memory locality, but resizing requires copying. The choice depends on the program’s runtime and memory requirements.",
+      "example": "A client can use the same queue operations when the internal implementation changes from a linked queue to a circular array.",
+      "pitfalls": [
+        "Changing the private representation should not change the ADT’s public behavior."
+      ],
+      "related": [
+        "Abstract data type (ADT)",
+        "Information hiding",
+        "Linked stack",
+        "Array-based stack",
+        "Linked queue",
+        "Circular array"
+      ],
+      "heading": "38. Wahl der Repräsentation"
+    },
+    {
+      "id": "eip-09-k04",
+      "term": "Stack (LIFO)",
+      "kind": "definition",
+      "short": "A stack follows the last-in, first-out principle: the value most recently stored is the first one removed.",
+      "explanation": "Insertion and removal take place at the same end, the `top`. `push` puts a value on top; `pop` removes and returns the top value. `isEmpty` checks whether a value is available. `pop` on an empty stack is an error.",
+      "example": "After `push(3)` and `push(5)`, `pop()` returns `5`; then `3` is on top.",
+      "pitfalls": [
+        "`pop` returns the most recently inserted value, not the first one inserted.",
+        "The stack must be nonempty before `pop`."
+      ],
+      "related": [
+        "Public stack model",
+        "Linked stack",
+        "Array-based stack",
+        "Queue (FIFO)"
+      ],
+      "heading": "35. Stacks"
+    },
+    {
+      "id": "eip-09-k05",
+      "term": "Public stack model",
+      "kind": "concept",
+      "short": "The public stack model describes the available operations without specifying how the stack is stored internally.",
+      "explanation": "The model in the lecture notes includes a constructor, `isEmpty()`, `push(x)`, `pop()`, and `toString()`. `push` adds a value, `pop` returns and removes the top value, and `toString` displays the values without changing the stack. The model defines what the operations mean, not how they are implemented.",
+      "example": "For the stack `[5, 3]` with `top` first, `pop()` returns `5` and leaves `[3]`.",
+      "pitfalls": [
+        "`toString()` displays the stack without changing it.",
+        "`pop()` requires a nonempty stack."
+      ],
+      "related": [
+        "Abstract data type (ADT)",
+        "Stack (LIFO)",
+        "Information hiding"
+      ],
+      "heading": "Öffentliches Modell"
+    },
+    {
+      "id": "eip-09-k06",
+      "term": "Linked stack",
+      "kind": "definition",
+      "short": "A linked stack stores its values in nodes, with `top` pointing to the node that the next `pop` will remove.",
+      "explanation": "Each node contains a value and a `next` reference to the next node. `top` points to the top node; the remaining nodes are linked to it through `next`. The empty stack is represented by `top == null`. `push` and `pop` require no loop and take $O(1)$ time.",
+      "example": "The chain `top → 3 → 2 → 1 → null` represents a stack with `3` on top.",
+      "pitfalls": [
+        "`top` points to the next node to be removed, not to the bottom node."
+      ],
+      "related": [
+        "Stack (LIFO)",
+        "push and pop on a linked stack",
+        "Linked list",
+        "Information hiding"
+      ],
+      "heading": "35.1 Implementierung 1: Verketteter Stack"
+    },
+    {
+      "id": "eip-09-k07",
+      "term": "push and pop on a linked stack",
+      "kind": "method",
+      "short": "`push` links a new node before the current `top`, and `pop` moves `top` to the next node.",
+      "explanation": "For `push(x)`, a node is created whose `next` points to the current `top`; then `top` is set to the new node. For `pop()`, the stack is first checked to ensure it is not empty. The value of `top` is then saved, `top` is moved to `top.next`, and the saved value is returned. Both operations take $O(1)$ time.",
+      "example": "For `top → 3 → 2`, `push(4)` changes it to `top → 4 → 3 → 2`; the next `pop()` returns `4`.",
+      "pitfalls": [
+        "Save the value during `pop` before moving `top`.",
+        "On an empty stack, `pop` cannot return a value."
+      ],
+      "related": [
+        "Linked stack",
+        "Stack (LIFO)"
+      ],
+      "heading": "push: neuer Knoten vor den alten top"
+    },
+    {
+      "id": "eip-09-k08",
+      "term": "Array-based stack",
+      "kind": "definition",
+      "short": "An array-based stack stores its values in an array `a` and uses `size` to count how many values are stored.",
+      "explanation": "The values are stored in order from `a[0]` to `a[size - 1]`; `size` gives the number of stored values. Insertion writes to the first free cell, and removal reads the last occupied cell. The public stack operations are the same as for the linked implementation.",
+      "example": "For `a = [1, 2, 3, _]` and `size = 3`, `3` is on top and is at index `size - 1`.",
+      "pitfalls": [
+        "The array capacity `a.length` is not the same as the number of stored values `size`.",
+        "An allocated array can represent an empty stack."
+      ],
+      "related": [
+        "Stack (LIFO)",
+        "Array-stack invariant",
+        "Doubling an array-based stack",
+        "Shrinking with the quarter-full rule",
+        "Arrays and indices"
+      ],
+      "heading": "35.2 Implementierung 2: Array-Stack"
+    },
+    {
+      "id": "eip-09-k09",
+      "term": "Array-stack invariant",
+      "kind": "concept",
+      "short": "In an array-based stack, values are stored from `a[0]` through `a[size - 1]`, and `top` is at index `size - 1`.",
+      "explanation": "This rule describes the valid relationship between the array and `size`. When `size == 0`, the stack is empty even if the array occupies memory. Unused cells starting at index `size` are not part of the stack, and their contents are meaningless.",
+      "example": "For `size = 2`, only `a[0]` and `a[1]` are stack values; `a[2]` is not part of the stack.",
+      "pitfalls": [
+        "`size - 1` is a valid `top` index only when the stack is nonempty."
+      ],
+      "related": [
+        "Array-based stack",
+        "Invariant",
+        "Arrays and indices"
+      ],
+      "heading": "Repräsentation"
+    },
+    {
+      "id": "eip-09-k10",
+      "term": "Doubling an array-based stack",
+      "kind": "method",
+      "short": "If the array is full, an array twice as large is created and filled with the stored values before the next `push`.",
+      "explanation": "Resizing copies the `size` stored values into a new array and then replaces the old array. When the array grows, its capacity is doubled. Then `push` writes the new value at index `size` and increments `size`.",
+      "example": "With four occupied cells, the capacity is increased to 8 before the next `push`; the new value is then stored.",
+      "pitfalls": [
+        "Resizing happens before writing when `size == a.length` holds.",
+        "Only the stored values need to be copied."
+      ],
+      "related": [
+        "Array-based stack",
+        "Array-stack invariant",
+        "Amortized analysis",
+        "The 2n copying bound"
+      ],
+      "heading": "Wachsen durch Verdoppeln"
+    },
+    {
+      "id": "eip-09-k11",
+      "term": "Shrinking with the quarter-full rule",
+      "kind": "method",
+      "short": "The array-based stack is halved when at most one quarter of the cells are occupied after a `pop` and the capacity is greater than 4.",
+      "explanation": "After removal, the new `size` is checked. If `size <= a.length / 4` and `a.length > 4` hold, an array with half the capacity is created and filled with the remaining values. The minimum capacity is 4. The gap between shrinking and growing again prevents alternating `pop` and `push` operations from continually forcing copies.",
+      "example": "At capacity 8, the array is shrunk to capacity 4 when at most 2 values remain.",
+      "pitfalls": [
+        "Shrinking at half full can trigger another growth immediately afterward.",
+        "The new `size` is checked after removal."
+      ],
+      "related": [
+        "Array-based stack",
+        "Doubling an array-based stack",
+        "Amortized analysis"
+      ],
+      "heading": "Speicher freigeben: wann schrumpfen?"
+    },
+    {
+      "id": "eip-09-k12",
+      "term": "Amortized analysis",
+      "kind": "concept",
+      "short": "Amortized analysis considers the total cost of a sequence of operations rather than the cost of just one operation.",
+      "explanation": "A single array operation can cost $O(n)$ because of a resize. Amortized analysis distributes the copying costs across the operations in an entire sequence. When a full array is doubled and the array is halved at no more than one-quarter full, resizing copies at most $2n$ values in total for $n$ pushes and pops starting from empty. Thus, the amortized cost per operation is $O(1)$.",
+      "example": "A `push` that copies many values can be costly, even though the average number of resize copies per operation is bounded by a constant over the entire sequence.",
+      "pitfalls": [
+        "Amortized $O(1)$ cost does not mean that every individual operation costs $O(1)$."
+      ],
+      "related": [
+        "Doubling an array-based stack",
+        "Shrinking with the quarter-full rule",
+        "The 2n copying bound",
+        "Array-queue costs"
+      ],
+      "heading": "35.3 Amortisierte Analyse: Wie viel wird insgesamt kopiert?"
+    },
+    {
+      "id": "eip-09-k13",
+      "term": "The 2n copying bound",
+      "kind": "theorem",
+      "short": "For $n$ pushes and pops starting from an empty stack, at most $2n$ values are copied by resizes in total.",
+      "explanation": "Group the operations so that each group ends with a resize; any remaining operations without a resize cause no copies. There are enough operations between resizes to bound each group’s number of copied values by at most twice its number of operations. When growing, at most as many values are copied as there are operations in the group while the array is at least half full; when shrinking, at least one quarter of the capacity in pops suffices to bound copies by one quarter of the capacity. Summed across the sequence, this gives at most $2n$.",
+      "example": "For 100 stack operations starting from empty, the resize copying work is at most 200 copied values.",
+      "pitfalls": [
+        "The bound applies to the entire sequence of operations, not to each individual `push` or `pop`."
+      ],
+      "related": [
+        "Amortized analysis",
+        "Doubling an array-based stack",
+        "Shrinking with the quarter-full rule",
+        "Array-queue costs"
+      ],
+      "heading": "Schritt 1: Jeden Resize mit den Operationen seit dem vorherigen vergleichen"
+    },
+    {
+      "id": "eip-09-k14",
+      "term": "Postfix notation (Reverse Polish notation, RPN)",
+      "kind": "definition",
+      "short": "In postfix notation, each operator follows its two operands, so the token order expresses the grouping.",
+      "explanation": "Unlike in infix notation, operators do not appear between their operands. The token order replaces parentheses and operator precedence. A postfix expression is read from left to right.",
+      "example": "`(3 + 5) * 2` becomes `3 5 + 2 *`; `3 + (5 * 2)` becomes `3 5 2 * +`.",
+      "pitfalls": [
+        "An operator’s position determines which previously read values it combines."
+      ],
+      "related": [
+        "Evaluating postfix expressions with a stack",
+        "Operand order in postfix notation",
+        "Stack (LIFO)"
+      ],
+      "heading": "Postfix-Notation (Reverse Polish Notation, RPN)"
+    },
+    {
+      "id": "eip-09-k15",
+      "term": "Evaluating postfix expressions with a stack",
+      "kind": "method",
+      "short": "A postfix expression is processed from left to right: numbers are pushed onto the stack, and operators combine the top two values.",
+      "explanation": "The stack holds numbers and intermediate results until an operator needs them. For each operator, two values are removed, the operation is performed, and the result is pushed back onto the stack. For a valid expression, exactly one result remains at the end, with no unused operands.",
+      "example": "`3 5 2 4 + * +` successively gives `6`, then `30`, then `33` on the stack.",
+      "pitfalls": [
+        "Each operator requires two values already on the stack.",
+        "The calculator described assumes a valid expression."
+      ],
+      "related": [
+        "Postfix notation (Reverse Polish notation, RPN)",
+        "Operand order in postfix notation",
+        "Stack (LIFO)"
+      ],
+      "heading": "Auswertung mit einem Stack"
+    },
+    {
+      "id": "eip-09-k16",
+      "term": "Operand order in postfix notation",
+      "kind": "concept",
+      "short": "For a noncommutative operator, the first value popped is the right operand, and the next value popped is the left operand.",
+      "explanation": "At an operator, the top two stack values are in the reverse order from the operands. Therefore, first execute `right = s.pop()` and then `left = s.pop()`. For subtraction, calculate `left - right`.",
+      "example": "For `8 3 -`, `3` is on top: first `right = 3` is popped, then `left = 8`, so the result is `8 - 3 = 5`.",
+      "pitfalls": [
+        "`8 3 -` means `8 - 3`, not `3 - 8`.",
+        "The order is especially important for subtraction."
+      ],
+      "related": [
+        "Postfix notation (Reverse Polish notation, RPN)",
+        "Evaluating postfix expressions with a stack"
+      ],
+      "heading": "Der top-Wert ist der rechte Operand"
+    },
+    {
+      "id": "eip-09-k17",
+      "term": "switch",
+      "kind": "concept",
+      "short": "A `switch` selects a matching case based on the value of an expression.",
+      "explanation": "In the postfix calculator, the operator character is used to handle cases such as `+`, `-`, or `*`. A `default` case can reject unknown operators. Java provides arrow syntax and a traditional syntax with colons.",
+      "example": "A `switch (operator)` can perform addition for `case '+'` and subtraction for `case '-'`.",
+      "pitfalls": [
+        "Unknown operators should not be silently treated as valid operations."
+      ],
+      "related": [
+        "Arrow syntax in switch",
+        "Traditional switch and fall-through"
+      ],
+      "heading": "Operation wählen: von     -Kette zu"
+    },
+    {
+      "id": "eip-09-k18",
+      "term": "Arrow syntax in switch",
+      "kind": "notation",
+      "short": "With `case X ->`, exactly the matching branch is executed, with no fall-through.",
+      "explanation": "Arrow syntax connects a `case` directly to its action. After the branch is executed, execution does not continue into the next case. No `break` is needed for this behavior.",
+      "example": "```java\nswitch (operator) {\n    case '+' -> s.push(left + right);\n    case '-' -> s.push(left - right);\n    default -> throw new IllegalArgumentException();\n}\n```",
+      "pitfalls": [
+        "Arrow cases do not behave like traditional `case` blocks, which can fall through."
+      ],
+      "related": [
+        "switch",
+        "Traditional switch and fall-through"
+      ],
+      "heading": "mit Pfeil-Syntax (    )"
+    },
+    {
+      "id": "eip-09-k19",
+      "term": "Traditional switch and fall-through",
+      "kind": "concept",
+      "short": "In the traditional `case X:` syntax, execution continues into the next case without a `break`.",
+      "explanation": "A `break` ends the `switch` and continues execution after the block. If it is missing, Java also executes the statements in the following cases. This can trigger multiple actions for a single operator.",
+      "example": "Without `break`, a `case '+'` can push the sum onto the stack and then also push the product.",
+      "pitfalls": [
+        "Traditional `case:` syntax does not prevent fall-through automatically.",
+        "`break` ends the `switch` but does not perform the calculation itself."
+      ],
+      "related": [
+        "switch",
+        "Arrow syntax in switch"
+      ],
+      "heading": "Traditionelle Syntax mit     und"
+    },
+    {
+      "id": "eip-09-k20",
+      "term": "Converting a digit character to a number",
+      "kind": "method",
+      "short": "A single digit character is converted to its numeric value by subtracting `'0'`.",
+      "explanation": "The calculator treats each character from `'0'` to `'9'` as a separate number token. The character codes for these digits are consecutive, so `token - '0'` gives the numeric value. This value, not the character code, is pushed onto the stack.",
+      "example": "`'5' - '0'` gives the number `5`, not the character code `53`.",
+      "pitfalls": [
+        "The input described processes each digit separately, so it does not treat a multi-digit number as a single token."
+      ],
+      "related": [
+        "Evaluating postfix expressions with a stack",
+        "Postfix notation (Reverse Polish notation, RPN)",
+        "Primitive data types"
+      ],
+      "heading": "Ziffernzeichen in Zahl umwandeln"
+    },
+    {
+      "id": "eip-09-k21",
+      "term": "Queue (FIFO)",
+      "kind": "definition",
+      "short": "A queue follows the first-in, first-out principle: the value that has been waiting the longest is removed first.",
+      "explanation": "Values are inserted at the rear using `enqueue` and removed at the front using `dequeue`. `isEmpty` checks whether any values are present. `dequeue` on an empty queue is an error.",
+      "example": "After `enqueue(3)` and `enqueue(5)`, `dequeue()` returns `3`.",
+      "pitfalls": [
+        "A queue removes the oldest value, unlike a stack.",
+        "The queue must be nonempty before `dequeue`."
+      ],
+      "related": [
+        "Linked queue",
+        "Circular array",
+        "Stack (LIFO)"
+      ],
+      "heading": "37. Queues"
+    },
+    {
+      "id": "eip-09-k22",
+      "term": "Linked queue",
+      "kind": "definition",
+      "short": "A linked queue stores values in nodes and maintains `first` and `last` as references to the ends of the chain.",
+      "explanation": "`first` identifies the oldest value, which will be removed next; `last` identifies the most recently inserted node. When there is exactly one element, both references point to the same node. An empty queue is represented by `first == null` and `last == null`. With references to both ends, insertion and removal take $O(1)$ time without traversing the nodes.",
+      "example": "`first → 1 → 2 → 3 → null` and `last → 3` describe a queue with `1` at the front and `3` at the rear.",
+      "pitfalls": [
+        "For an empty queue, both `first` and `last` must be `null`.",
+        "With exactly one element, `first` and `last` are equal."
+      ],
+      "related": [
+        "Queue (FIFO)",
+        "enqueue and dequeue on a linked queue",
+        "Linked list",
+        "Information hiding"
+      ],
+      "heading": "37.1 Implementierung 1: Verkettete Queue"
+    },
+    {
+      "id": "eip-09-k23",
+      "term": "enqueue and dequeue on a linked queue",
+      "kind": "method",
+      "short": "`enqueue` links a node after `last`, and `dequeue` removes the node at `first`.",
+      "explanation": "For `enqueue(x)`, a new node is created; if the queue is empty, it becomes `first`, otherwise it is appended through `last.next`, and then `last` is updated. For `dequeue()`, the value at `first` is saved and `first` is moved to the next node. If this makes `first == null`, `last = null` must also be set. Both operations take $O(1)$ time.",
+      "example": "If `dequeue()` is called on a queue with exactly one node, afterward both `first` and `last` are `null`.",
+      "pitfalls": [
+        "When inserting into an empty queue, both `first` and `last` must point to the new node.",
+        "When removing the last node, `last` must no longer point to the removed node."
+      ],
+      "related": [
+        "Linked queue",
+        "Queue (FIFO)"
+      ],
+      "heading": "dequeue: first-Referenz weiterschieben"
+    },
+    {
+      "id": "eip-09-k24",
+      "term": "Circular array",
+      "kind": "definition",
+      "short": "A circular array represents the logical order of an array-based queue by wrapping from the last array cell back to index 0.",
+      "explanation": "The array-based queue stores `first` as the front index and `size` as the number of values. On removal, `first` advances without shifting the remaining values. Modulo maps the insertion index and logical positions to valid array indices.",
+      "example": "With `first = 2`, `size = 3`, and capacity 4, the logical values are at indices `2`, `3`, and `0`.",
+      "pitfalls": [
+        "The physical order of array cells can differ from the logical FIFO order.",
+        "On removal, the remaining values are not shifted forward."
+      ],
+      "related": [
+        "Queue (FIFO)",
+        "Modulo indices in a circular queue",
+        "size in an array-based queue",
+        "Arrays and indices"
+      ],
+      "heading": "37.2 Implementierung 2: Array-Queue (zirkuläres Array)"
+    },
+    {
+      "id": "eip-09-k25",
+      "term": "Modulo indices in a circular queue",
+      "kind": "notation",
+      "short": "Modulo maps a logical index to an array position, continuing at 0 after the last cell.",
+      "explanation": "For an array of length $m$, the insertion index is $(\\texttt{first} + \\texttt{size}) \\bmod m$. The index of the $i$th logical value is $(\\texttt{first} + i) \\bmod m$, and after a removal, `first` becomes `(first + 1) % m`. This allows the queue to reuse free cells at the beginning of the array.",
+      "example": "With `first = 2`, `size = 2`, and an array length of 4, the insertion index is `(2 + 2) % 4 = 0`.",
+      "pitfalls": [
+        "Modulo uses the array length, not `size`.",
+        "Without modulo, an index after the last array cell could be outside the array."
+      ],
+      "related": [
+        "Circular array",
+        "size in an array-based queue",
+        "Arrays and indices"
+      ],
+      "heading": null
+    },
+    {
+      "id": "eip-09-k26",
+      "term": "size in an array-based queue",
+      "kind": "concept",
+      "short": "`size` distinguishes an empty queue with `size == 0` from a full queue with `size == a.length`.",
+      "explanation": "In an empty and a full circular queue, the next insertion index can point to `first`. `first` alone is therefore not enough to distinguish the two states. Before inserting into a full queue, the array must be resized; otherwise, the oldest value would be overwritten.",
+      "example": "For an array of length 4, `size = 0` is empty and `size = 4` is full, even though both states can have the same front position.",
+      "pitfalls": [
+        "The insertion index alone does not indicate whether the queue is empty or full.",
+        "When the queue is full, the new value must not overwrite the oldest value."
+      ],
+      "related": [
+        "Circular array",
+        "Modulo indices in a circular queue",
+        "Resizing an array-based queue"
+      ],
+      "heading": "Voll vs. leer"
+    },
+    {
+      "id": "eip-09-k27",
+      "term": "Resizing an array-based queue",
+      "kind": "method",
+      "short": "During resizing, values are copied to the beginning of the new array in logical queue order, and then `first = 0` is set.",
+      "explanation": "When growing, a new array with sufficient capacity is created. For each logical index `i`, `a[(first + i) % a.length]` is copied to `b[i]`. Then `b` replaces the old array and `first` is set to 0, so the queue starts at index 0 again.",
+      "example": "A queue with logical order `[3, 4, 5, 6]` is stored as `[3, 4, 5, 6, _, _, _, _]` after resizing.",
+      "pitfalls": [
+        "If the queue has wrapped around, the array cells must not simply be copied in physical index order.",
+        "After copying, `first` must be set to 0."
+      ],
+      "related": [
+        "Circular array",
+        "Modulo indices in a circular queue",
+        "size in an array-based queue"
+      ],
+      "heading": "resize: in logischer Reihenfolge kopieren"
+    },
+    {
+      "id": "eip-09-k28",
+      "term": "Array-queue costs",
+      "kind": "concept",
+      "short": "Without resizing, `enqueue` and `dequeue` take constant work, and at most $2n$ resize copies occur over $n$ operations starting from an empty queue.",
+      "explanation": "Without resizing, `enqueue` writes one cell, while `dequeue` reads one cell and updates `first` and `size`. A resize copies each stored value once. Because the queue doubles its capacity when full and halves it only when at most one-quarter full, the same copying bound as for an array-based stack applies. The amortized cost per operation is therefore $O(1)$, although an individual operation can take longer because of a resize.",
+      "example": "A single insertion into a full queue can copy many values, even though the copying work is amortized to $O(1)$ per operation over a longer sequence.",
+      "pitfalls": [
+        "A single queue operation can take more than constant time because of a resize.",
+        "The $2n$ bound applies to the entire sequence starting from an empty queue."
+      ],
+      "related": [
+        "Circular array",
+        "Resizing an array-based queue",
+        "Amortized analysis",
+        "The 2n copying bound"
+      ],
+      "heading": "Kosten der Array-Queue"
+    }
+  ],
+  "generator": {
+    "model": "gpt-6-luna",
+    "effort": "xhigh",
+    "promptVersion": "k1",
+    "generatedAt": "2026-11-11T23:28:30.778Z"
+  }
+}
