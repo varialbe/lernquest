@@ -1,0 +1,549 @@
+{
+  "schemaVersion": 1,
+  "unitId": "ds-09",
+  "module": "DS",
+  "unitNumber": 9,
+  "unitTitle": "Word Relations, Closures, and Equivalence Classes",
+  "sourceSha": "b12576905ef850e8ebaa270706ea2be8338912ad1069c485da6dd75c63bee45a",
+  "overview": "This unit classifies endorelations by their properties, studies relations on numbers, sets, and words, and shows how closures express reachability. An equivalence relation (Äquivalenzrelation) partitions its underlying set into equivalence classes; their set is the quotient (Quotient) and forms a partition (Partition).",
+  "entries": [
+    {
+      "id": "ds-09-k01",
+      "term": "Endorelation",
+      "kind": "definition",
+      "short": "An endorelation on a set A is a subset of A × A.",
+      "explanation": "Formally, $R\\subseteq A\\times A$. Here, $aRb$ means that the ordered pair $(a,b)$ belongs to $R$. Both elements of a relation pair come from the same underlying set.",
+      "example": "For $A=\\{1,2\\}$, $R=\\{(1,2),(2,2)\\}$ is an endorelation on $A$.",
+      "pitfalls": [
+        "The underlying set A and the relation R are distinct sets.",
+        "A relation between two different underlying sets is not an endorelation."
+      ],
+      "related": [
+        "Binary relations",
+        "Relations and arity"
+      ],
+      "heading": "1. Notation und Relationseigenschaften"
+    },
+    {
+      "id": "ds-09-k02",
+      "term": "Reflexivity (Reflexivität)",
+      "kind": "definition",
+      "short": "A relation is reflexive if every element is related to itself.",
+      "explanation": "On $A$, $R$ is reflexive if $\\forall a\\in A:\\ aRa$. In the directed graph, every vertex then has a loop. The condition must hold for every element of the underlying set.",
+      "example": "The relation $\\leq$ on $\\mathbb Z$ is reflexive because $a\\leq a$ holds for every integer $a$.",
+      "pitfalls": [
+        "A single loop is not enough; every element must be related to itself.",
+        "Reflexivity requires self-relations, whereas irreflexivity forbids them."
+      ],
+      "related": [
+        "Irreflexivity",
+        "Identity relation Id_A",
+        "Partial order",
+        "Equivalence relation"
+      ],
+      "heading": "Die sechs Eigenschaften zum Nachschlagen"
+    },
+    {
+      "id": "ds-09-k03",
+      "term": "Irreflexivity (Irreflexivität)",
+      "kind": "definition",
+      "short": "A relation is irreflexive if no element is related to itself.",
+      "explanation": "On $A$, $R$ is irreflexive if $\\forall a\\in A:\\ \\neg(aRa)$. The directed graph then has no loops. Irreflexivity is stronger than merely saying that a relation is not reflexive.",
+      "example": "The relation $<$ on $\\mathbb Z$ is irreflexive because no number is less than itself.",
+      "pitfalls": [
+        "Not reflexive means that at least one self-relation is missing; irreflexive means that all are missing."
+      ],
+      "related": [
+        "Reflexivity",
+        "Asymmetry"
+      ],
+      "heading": "Die sechs Eigenschaften zum Nachschlagen"
+    },
+    {
+      "id": "ds-09-k04",
+      "term": "Symmetry (Symmetrie)",
+      "kind": "definition",
+      "short": "A relation is symmetric if every relation holds in the reverse direction as well.",
+      "explanation": "On $A$, $R$ is symmetric if $\\forall a,b\\in A:\\ aRb\\Rightarrow bRa$. Thus, for every arrow from $a$ to $b$, there is also an arrow from $b$ to $a$. Self-relations satisfy the condition automatically.",
+      "example": "Equality is symmetric: $a=b$ implies $b=a$.",
+      "pitfalls": [
+        "The reverse relation must hold for every pair in the relation.",
+        "Symmetry and antisymmetry can hold simultaneously."
+      ],
+      "related": [
+        "Antisymmetry",
+        "Equivalence relation"
+      ],
+      "heading": "Die sechs Eigenschaften zum Nachschlagen"
+    },
+    {
+      "id": "ds-09-k05",
+      "term": "Antisymmetry (Antisymmetrie)",
+      "kind": "definition",
+      "short": "A relation is antisymmetric if mutual relations occur only between equal elements.",
+      "explanation": "On $A$, $R$ is antisymmetric if $\\forall a,b\\in A:\\ (aRb\\land bRa)\\Rightarrow a=b$. Relations in both directions are allowed when the two elements are equal. This distinguishes antisymmetry from asymmetry.",
+      "example": "The relation $\\subseteq$ on $\\mathcal P(\\mathbb Z)$ is antisymmetric: $X\\subseteq Y$ and $Y\\subseteq X$ imply $X=Y$.",
+      "pitfalls": [
+        "Antisymmetry does not forbid mutual relations between equal elements.",
+        "Symmetry and antisymmetry are not mutually exclusive."
+      ],
+      "related": [
+        "Symmetry",
+        "Asymmetry",
+        "Partial order"
+      ],
+      "heading": "Die sechs Eigenschaften zum Nachschlagen"
+    },
+    {
+      "id": "ds-09-k06",
+      "term": "Asymmetry (Asymmetrie)",
+      "kind": "definition",
+      "short": "A relation is asymmetric if every relation excludes the reverse relation.",
+      "explanation": "On $A$, $R$ is asymmetric if $\\forall a,b\\in A:\\ aRb\\Rightarrow\\neg(bRa)$. For $b=a$, this implies that $aRa$ cannot hold; every asymmetric relation is therefore irreflexive. Asymmetry is stronger than nonsymmetry.",
+      "example": "The relation $<$ on $\\mathbb Z$ is asymmetric: $a<b$ implies that $b<a$ is false.",
+      "pitfalls": [
+        "Not symmetric does not mean asymmetric.",
+        "Asymmetry also forbids self-relations."
+      ],
+      "related": [
+        "Irreflexivity",
+        "Symmetry",
+        "Antisymmetry"
+      ],
+      "heading": "Die sechs Eigenschaften zum Nachschlagen"
+    },
+    {
+      "id": "ds-09-k07",
+      "term": "Transitivity (Transitivität)",
+      "kind": "definition",
+      "short": "A relation is transitive if two consecutive relations imply a direct relation.",
+      "explanation": "On $A$, $R$ is transitive if $\\forall a,b,c\\in A:\\ (aRb\\land bRc)\\Rightarrow aRc$. In a directed graph, every path of two steps must have a direct arrow from its start to its end. Transitivity is part of the definitions of an equivalence relation and a partial order.",
+      "example": "$2\\mid 6$ and $6\\mid 18$ imply $2\\mid 18$.",
+      "pitfalls": [
+        "A counterexample must include the two relations $aRb$ and $bRc$, but lack the relation $aRc$."
+      ],
+      "related": [
+        "Equivalence relation",
+        "Partial order",
+        "Divisibility",
+        "Transitive closure R⁺"
+      ],
+      "heading": "Die sechs Eigenschaften zum Nachschlagen"
+    },
+    {
+      "id": "ds-09-k08",
+      "term": "Equivalence relation",
+      "kind": "definition",
+      "short": "An equivalence relation is reflexive, symmetric, and transitive.",
+      "explanation": "A relation $R$ on $A$ is an equivalence relation if it satisfies all three properties. It groups together elements that are alike in the sense under consideration. The equivalence classes form a partition of $A$.",
+      "example": "Congruence modulo a fixed positive $m$ is an equivalence relation on $\\mathbb Z$.",
+      "pitfalls": [
+        "Antisymmetry is not one of the defining properties.",
+        "An equivalence relation can also be antisymmetric, as the equality relation is."
+      ],
+      "related": [
+        "Reflexivity",
+        "Symmetry",
+        "Transitivity",
+        "Congruence modulo m",
+        "Equivalence class",
+        "Partition"
+      ],
+      "heading": "Eigenschaften ergeben Relationsarten"
+    },
+    {
+      "id": "ds-09-k09",
+      "term": "Partial order (partielle Ordnung)",
+      "kind": "definition",
+      "short": "A partial order is reflexive, antisymmetric, and transitive.",
+      "explanation": "A relation $R$ on $A$ is called a partial order if it satisfies these three properties. Not every pair of distinct elements must be comparable. Mutual relations can occur only between equal elements.",
+      "example": "The subset relation $\\subseteq$ on $\\mathcal P(\\mathbb Z)$ is a partial order.",
+      "pitfalls": [
+        "Symmetry is not a requirement.",
+        "The elements do not all have to be comparable with one another."
+      ],
+      "related": [
+        "Reflexivity",
+        "Antisymmetry",
+        "Transitivity",
+        "Subset relation",
+        "Prefix",
+        "Suffix",
+        "Infix"
+      ],
+      "heading": "Eigenschaften ergeben Relationsarten"
+    },
+    {
+      "id": "ds-09-k10",
+      "term": "Divisibility (Teilbarkeit)",
+      "kind": "definition",
+      "short": "Divisibility means that one number can be written as an integer multiple of another.",
+      "explanation": "The division-free definition is $a\\mid b\\Longleftrightarrow\\exists k\\in\\mathbb Z:\\ b=ka$. On $\\mathbb Z$, this relation is reflexive and transitive, but neither symmetric nor antisymmetric. On the positive integers, it is a partial order, and there the division-free and quotient definitions agree.",
+      "example": "$2\\mid 4$, since $4=2\\cdot2$, but $4\\nmid 2$.",
+      "pitfalls": [
+        "The quotient definition $b/a\\in\\mathbb Z$ is not defined for $a=0$.",
+        "On $\\mathbb Z$, the division-free definition gives both $1\\mid -1$ and $-1\\mid 1$, so antisymmetry fails."
+      ],
+      "related": [
+        "Transitivity",
+        "Partial order",
+        "Congruence modulo m"
+      ],
+      "heading": "Teilbarkeit: Die Definition macht bei 0 einen Unterschied"
+    },
+    {
+      "id": "ds-09-k11",
+      "term": "Congruence modulo m (Kongruenz modulo m)",
+      "kind": "definition",
+      "short": "Two integers are congruent modulo m if their difference is divisible by the fixed positive integer m.",
+      "explanation": "For a fixed positive $m$, $a\\equiv_m b\\Longleftrightarrow m\\mid(a-b)$. Their difference is then an integer multiple of $m$. The relation is reflexive, symmetric, and transitive, and hence an equivalence relation on $\\mathbb Z$.",
+      "example": "$7\\equiv_3 1$ because $7-1=6=2\\cdot3$.",
+      "pitfalls": [
+        "The modulus $m$ must be fixed and positive.",
+        "Congruence modulo m is not geometric congruence."
+      ],
+      "related": [
+        "Divisibility",
+        "Equivalence relation",
+        "Equivalence class"
+      ],
+      "heading": "Kongruenz modulo m"
+    },
+    {
+      "id": "ds-09-k12",
+      "term": "Subset relation (Teilmengenrelation)",
+      "kind": "definition",
+      "short": "The subset relation compares sets by whether every element of one also belongs to the other.",
+      "explanation": "On $\\mathcal P(\\mathbb Z)$, the elements are themselves subsets of $\\mathbb Z$. We have $X\\subseteq Y$ if every element of $X$ also belongs to $Y$. The relation is reflexive, antisymmetric, and transitive, so it is a partial order.",
+      "example": "$\\{1\\}\\subseteq\\{1,2\\}$, where both sets are elements of $\\mathcal P(\\mathbb Z)$.",
+      "pitfalls": [
+        "The underlying set is $\\mathcal P(\\mathbb Z)$, not $\\mathbb Z$.",
+        "$X\\subseteq Y$ also allows the case $X=Y$."
+      ],
+      "related": [
+        "Partial order",
+        "Power set"
+      ],
+      "heading": null
+    },
+    {
+      "id": "ds-09-k13",
+      "term": "Geometric congruence (geometrische Kongruenz)",
+      "kind": "example",
+      "short": "Geometric congruence is an example of a reflexive, symmetric, and transitive relation.",
+      "explanation": "On a specified set of geometric objects, two objects can be related when they are congruent. Every object is congruent to itself, the relation holds in both directions, and two objects congruent in succession are also congruent. Thus, geometric congruence is an equivalence relation.",
+      "example": "Two congruent triangles have the same shape and size.",
+      "pitfalls": [
+        "Geometric congruence is not congruence modulo m.",
+        "The underlying set of geometric objects being compared must be specified."
+      ],
+      "related": [
+        "Equivalence relation",
+        "Congruence modulo m"
+      ],
+      "heading": null
+    },
+    {
+      "id": "ds-09-k14",
+      "term": "Alphabet and word sets (Alphabet und Wortmengen)",
+      "kind": "notation",
+      "short": "An alphabet Σ specifies the symbols from which the word sets Σᵏ and Σ* are formed.",
+      "explanation": "An alphabet $\\Sigma$ is a set of symbols, and $\\Sigma^k$ contains all words of length exactly $k$ over this alphabet. We have $\\Sigma^*=\\bigcup_{k\\geq0}\\Sigma^k$; this set contains all finite words, including the empty word $\\varepsilon$. The notation $uv$ denotes concatenation: first the word $u$, then the word $v$.",
+      "example": "For $\\Sigma=\\{a,b\\}$, $\\Sigma^0=\\{\\varepsilon\\}$ and $\\Sigma^2=\\{aa,ab,ba,bb\\}$.",
+      "pitfalls": [
+        "$\\Sigma^k$ contains words of length exactly $k$.",
+        "The empty word $\\varepsilon$ belongs to $\\Sigma^*$ and has length zero."
+      ],
+      "related": [
+        "Alphabet",
+        "Words",
+        "Concatenation"
+      ],
+      "heading": "3. Wörter und die Zeichen Σ, Σᵏ, Σ* und ε"
+    },
+    {
+      "id": "ds-09-k15",
+      "term": "Prefix (Präfix)",
+      "kind": "definition",
+      "short": "A word u is a prefix of v if u occurs at the beginning of v.",
+      "explanation": "For $u,v\\in\\Sigma^*$, $u\\preceq_p v\\Longleftrightarrow\\exists w\\in\\Sigma^*:\\ uw=v$. The completion word $w$ may be empty, so every word is a prefix of itself. The prefix relation is reflexive, antisymmetric, and transitive, so it is a partial order.",
+      "example": "$ab\\preceq_p abcde$ because $ab\\cdot cde=abcde$.",
+      "pitfalls": [
+        "A part of a word that does not occur at the beginning is not a prefix.",
+        "The empty word is a prefix of every word."
+      ],
+      "related": [
+        "Suffix",
+        "Infix",
+        "Partial order",
+        "Concatenation"
+      ],
+      "heading": "4. Präfix, Suffix und Infix"
+    },
+    {
+      "id": "ds-09-k16",
+      "term": "Suffix (Suffix)",
+      "kind": "definition",
+      "short": "A word u is a suffix of v if u occurs at the end of v.",
+      "explanation": "For $u,v\\in\\Sigma^*$, $u\\preceq_s v\\Longleftrightarrow\\exists w\\in\\Sigma^*:\\ wu=v$. The completion word occurs before $u$ and may be empty. The suffix relation is reflexive, antisymmetric, and transitive, so it is a partial order.",
+      "example": "$ef\\preceq_s abcdef$ because $abcd\\cdot ef=abcdef$.",
+      "pitfalls": [
+        "A suffix must occur at the end of the word.",
+        "In the definition, the completion word occurs before the suffix."
+      ],
+      "related": [
+        "Prefix",
+        "Infix",
+        "Partial order",
+        "Concatenation"
+      ],
+      "heading": "4. Präfix, Suffix und Infix"
+    },
+    {
+      "id": "ds-09-k17",
+      "term": "Infix (Infix)",
+      "kind": "definition",
+      "short": "A word u is an infix of v if it occurs in v as a contiguous substring.",
+      "explanation": "For $u,v\\in\\Sigma^*$, $u\\preceq_i v\\Longleftrightarrow\\exists w,w'\\in\\Sigma^*:\\ wuw'=v$. The completion words may be empty, so both the whole word and the empty word are infixes. The infix relation is reflexive, antisymmetric, and transitive, so it is a partial order.",
+      "example": "$bc\\preceq_i abcd$ because $a\\cdot bc\\cdot d=abcd$.",
+      "pitfalls": [
+        "An infix must be contiguous; $ac$ is not an infix of $abc$.",
+        "An infix need not occur at the beginning or end."
+      ],
+      "related": [
+        "Prefix",
+        "Suffix",
+        "Partial order",
+        "Concatenation"
+      ],
+      "heading": "4. Präfix, Suffix und Infix"
+    },
+    {
+      "id": "ds-09-k18",
+      "term": "Conjugacy (Konjugation)",
+      "kind": "definition",
+      "short": "Two words are conjugate if one can be split into two parts and the parts swapped to obtain the other.",
+      "explanation": "We have $u\\cong_c v\\Longleftrightarrow\\exists w,w'\\in\\Sigma^*:\\ u=ww'\\land v=w'w$. This corresponds to a cyclic shift of the word. Conjugacy is reflexive, symmetric, and transitive, and hence is an equivalence relation.",
+      "example": "$abc$ and $bca$ are conjugate because, for $w=a$ and $w'=bc$, $abc=ww'$ and $bca=w'w$.",
+      "pitfalls": [
+        "Conjugacy allows cyclic shifts, but not arbitrary permutations.",
+        "$abc$ and $acb$ are not conjugate."
+      ],
+      "related": [
+        "Equivalence relation",
+        "Equivalence class",
+        "Quotient A/R"
+      ],
+      "heading": "5. Konjugation: zyklisch verschieben"
+    },
+    {
+      "id": "ds-09-k19",
+      "term": "Identity relation Id_A (Identitätsrelation)",
+      "kind": "notation",
+      "short": "The identity relation Id_A contains exactly the pairs whose entries are equal.",
+      "explanation": "Formally, $\\operatorname{Id}_A=\\{(a,a)\\mid a\\in A\\}$. It contains a self-relation for every element of the underlying set. As the zeroth power of a relation, it gives the paths of length zero.",
+      "example": "For $A=\\{1,2\\}$, $\\operatorname{Id}_A=\\{(1,1),(2,2)\\}$.",
+      "pitfalls": [
+        "The identity relation does not contain every pair in $A\\times A$."
+      ],
+      "related": [
+        "Reflexivity",
+        "Relation power Rᵏ",
+        "Reflexive-transitive closure R*"
+      ],
+      "heading": "6. Transitive und reflexiv-transitive Abschlüsse"
+    },
+    {
+      "id": "ds-09-k20",
+      "term": "Relation power Rᵏ (Relationpotenz)",
+      "kind": "notation",
+      "short": "The k-th power of a relation contains pairs connected by a path of exactly k relation steps.",
+      "explanation": "For $k\\geq1$, $R^k$ is the k-fold composition of $R$ with itself. We have $(a,b)\\in R^k$ if there is a path of length exactly $k$ from $a$ to $b$. The zeroth power is $R^0=\\operatorname{Id}_A$ and describes paths of length zero.",
+      "example": "If $1R3$, $3R2$, and $2R4$, then $(1,4)\\in R^3$.",
+      "pitfalls": [
+        "$R^k$ counts relation steps; it does not mean raising matrix entries to ordinary powers."
+      ],
+      "related": [
+        "Identity relation Id_A",
+        "Reachability",
+        "Transitive closure R⁺"
+      ],
+      "heading": "6. Transitive und reflexiv-transitive Abschlüsse"
+    },
+    {
+      "id": "ds-09-k21",
+      "term": "Reachability (Erreichbarkeit)",
+      "kind": "concept",
+      "short": "An element is reachable from another if there is a directed path between them.",
+      "explanation": "A path of exactly $k$ steps corresponds to a pair in $R^k$. Reachability in at least one step is described by $R^+$, while reachability in zero or more steps is described by $R^*$. Thus, paths in a directed graph can be expressed as relation pairs.",
+      "example": "From $1\\to3$, $3\\to2$, and $2\\to4$, it follows that 4 is reachable from 1 by a path of length 3.",
+      "pitfalls": [
+        "A path of length zero leads only from an element to itself.",
+        "$R^+$ and $R^*$ differ in whether paths of length zero are allowed."
+      ],
+      "related": [
+        "Relation power Rᵏ",
+        "Transitive closure R⁺",
+        "Reflexive-transitive closure R*",
+        "Paths and path length",
+        "Directed graphs"
+      ],
+      "heading": "6. Transitive und reflexiv-transitive Abschlüsse"
+    },
+    {
+      "id": "ds-09-k22",
+      "term": "Transitive closure R⁺ (transitiver Abschluss)",
+      "kind": "notation",
+      "short": "The transitive closure R⁺ contains exactly the pairs connected by at least one R-step.",
+      "explanation": "It is defined as $R^+=\\bigcup_{k\\geq1}R^k$. It contains the original pairs and adds the pairs required for transitivity. It is the smallest transitive relation containing $R$.",
+      "example": "If $1R2$ and $2R3$, then $R^+$ also contains $(1,3)$.",
+      "pitfalls": [
+        "$R^+$ does not add self-relations merely because of a path of length zero.",
+        "A positive-length path can still produce a self-pair if there is a cycle."
+      ],
+      "related": [
+        "Relation power Rᵏ",
+        "Reachability",
+        "Reflexive-transitive closure R*"
+      ],
+      "heading": "6. Transitive und reflexiv-transitive Abschlüsse"
+    },
+    {
+      "id": "ds-09-k23",
+      "term": "Reflexive-transitive closure R* (reflexiv-transitiver Abschluss)",
+      "kind": "notation",
+      "short": "The reflexive-transitive closure R* contains all pairs connected by zero or more R-steps.",
+      "explanation": "It is defined as $R^*=\\bigcup_{k\\geq0}R^k=\\operatorname{Id}_A\\cup R^+$. It contains the original relations, those needed for transitivity, and all self-relations arising from paths of length zero. It is the smallest reflexive and transitive relation containing $R$.",
+      "example": "Even if vertex 4 has no outgoing edges, $R^*$ contains the pair $(4,4)$ because of the path of length zero.",
+      "pitfalls": [
+        "The star includes paths of length zero; the plus does not do so automatically."
+      ],
+      "related": [
+        "Identity relation Id_A",
+        "Relation power Rᵏ",
+        "Reachability",
+        "Transitive closure R⁺"
+      ],
+      "heading": "6. Transitive und reflexiv-transitive Abschlüsse"
+    },
+    {
+      "id": "ds-09-k24",
+      "term": "Squaring to compute R* (Quadrieren zur Berechnung von R*)",
+      "kind": "method",
+      "short": "For the four-element underlying set used in the example, squaring Id_A ∪ R twice captures all paths for R*.",
+      "explanation": "The relation power $(\\operatorname{Id}_A\\cup R)^2$ captures paths of length at most 2. Squaring once more captures paths of length at most 4. In the example with $|A|=4$, these paths suffice to determine all pairs in $R^*$. The powers are relation compositions, so they compute the existence of paths rather than ordinary products of matrix entries.",
+      "example": "For the graph in the lecture notes, $((\\operatorname{Id}_A\\cup R)^2)^2=\\operatorname{Id}_A\\cup R\\cup R^2\\cup R^3\\cup R^4=R^*$.",
+      "pitfalls": [
+        "The stated number of squarings suffices for the four-vertex example; for a different underlying set, the required path length must be justified again."
+      ],
+      "related": [
+        "Identity relation Id_A",
+        "Relation power Rᵏ",
+        "Reflexive-transitive closure R*",
+        "Boolean matrix multiplication"
+      ],
+      "heading": "6. Transitive und reflexiv-transitive Abschlüsse"
+    },
+    {
+      "id": "ds-09-k25",
+      "term": "Equivalence class (Äquivalenzklasse)",
+      "kind": "definition",
+      "short": "The equivalence class of a contains all elements related to a by the given equivalence relation.",
+      "explanation": "For an equivalence relation $R$ on $A$, $[a]_R:=\\{b\\in A\\mid aRb\\}$. By reflexivity, the class always contains $a$. Equivalent elements have the same equivalence class.",
+      "example": "For conjugacy on $A=\\{abc,bca,cab\\}$, $[abc]_R=\\{abc,bca,cab\\}$.",
+      "pitfalls": [
+        "$[a]_R$ is a subset of $A$, not the relation $R$.",
+        "Different representatives can denote the same class."
+      ],
+      "related": [
+        "Equivalence relation",
+        "Quotient A/R",
+        "Partition",
+        "System of representatives"
+      ],
+      "heading": "7. Äquivalenzklassen, Quotient und Partition"
+    },
+    {
+      "id": "ds-09-k26",
+      "term": "Quotient A/R (Quotient)",
+      "kind": "notation",
+      "short": "The quotient A/R is the set of all equivalence classes of an equivalence relation R on A.",
+      "explanation": "We have $A/R:=\\{[a]_R\\mid a\\in A\\}$. Each element of $A/R$ is itself a subset of $A$. For an equivalence relation, $A/R$ forms a partition of $A$.",
+      "example": "If $K_1=\\{abc,bca,cab\\}$ and $K_2=\\{xyz,yzx,zxy\\}$ are the classes, then $A/R=\\{K_1,K_2\\}$.",
+      "pitfalls": [
+        "The quotient is the set of classes, not the underlying set of the original elements.",
+        "A class appears only once in the quotient, even if several representatives describe it."
+      ],
+      "related": [
+        "Equivalence class",
+        "Partition",
+        "System of representatives"
+      ],
+      "heading": "7. Äquivalenzklassen, Quotient und Partition"
+    },
+    {
+      "id": "ds-09-k27",
+      "term": "Partition (Partition)",
+      "kind": "definition",
+      "short": "A partition of A is a set of nonempty, pairwise disjoint subsets whose union is A.",
+      "explanation": "The subsets are called blocks or classes. Every element of $A$ belongs to exactly one block. For an equivalence relation, its equivalence classes are exactly the blocks of the corresponding partition.",
+      "example": "$\\{\\{1,2\\},\\{3\\}\\}$ is a partition of $\\{1,2,3\\}$.",
+      "pitfalls": [
+        "The blocks of a partition are nonempty and pairwise disjoint.",
+        "Together, the blocks must cover the entire underlying set."
+      ],
+      "related": [
+        "Equivalence relation",
+        "Equivalence class",
+        "Quotient A/R",
+        "Partitions"
+      ],
+      "heading": "7. Äquivalenzklassen, Quotient und Partition"
+    },
+    {
+      "id": "ds-09-k28",
+      "term": "System of representatives (Repräsentantensystem)",
+      "kind": "definition",
+      "short": "A system of representatives selects exactly one element from each equivalence class.",
+      "explanation": "For a partition of $A$, a system of representatives consists of one selected element from each block. For equivalence classes, it therefore selects exactly one representative per class. The choice does not change the classes.",
+      "example": "For the classes $\\{abc,bca,cab\\}$ and $\\{xyz,yzx,zxy\\}$, $\\{abc,xyz\\}$ is a system of representatives.",
+      "pitfalls": [
+        "One element is selected per class, not per element of the underlying set."
+      ],
+      "related": [
+        "Equivalence class",
+        "Quotient A/R",
+        "Partition"
+      ],
+      "heading": "7. Äquivalenzklassen, Quotient und Partition"
+    },
+    {
+      "id": "ds-09-k29",
+      "term": "Classifying a relation systematically (Eine Relation systematisch einordnen)",
+      "kind": "method",
+      "short": "Check the relation properties one at a time, then determine the type of relation from the conditions it satisfies.",
+      "explanation": "Check reflexivity and irreflexivity by examining the self-relations of every element. Check symmetry, antisymmetry, and asymmetry by examining reverse relations and whether the elements are equal. Check transitivity for all sequences $aRb$ and $bRc$. A relation is an equivalence relation if it is reflexive, symmetric, and transitive; it is a partial order if it is reflexive, antisymmetric, and transitive.",
+      "example": "On $A=\\{1,2,3\\}$, let $R=\\{(1,1),(2,2),(3,3),(1,2),(2,1)\\}$. The relation is reflexive, symmetric, and transitive, so it is an equivalence relation; because of $1R2$ and $2R1$, it is not antisymmetric.",
+      "pitfalls": [
+        "Check the relation on the specified underlying set.",
+        "A single concrete counterexample suffices to disprove a property."
+      ],
+      "related": [
+        "Reflexivity",
+        "Symmetry",
+        "Antisymmetry",
+        "Asymmetry",
+        "Transitivity",
+        "Equivalence relation",
+        "Partial order"
+      ],
+      "heading": "8. Eine Relation systematisch einordnen"
+    }
+  ],
+  "generator": {
+    "model": "gpt-6-luna",
+    "effort": "xhigh",
+    "promptVersion": "k1",
+    "generatedAt": "2026-11-12T00:02:57.359Z"
+  }
+}
