@@ -7,6 +7,8 @@
  *   📡 Status (/status) = laufender/letzte Läufe, dort auch 📖 Wissenssammlung nachholen.
  *
  * Bedienung über Buttons: /start (oder irgendeine Nachricht ohne offenen Schritt) zeigt das Menü.
+ * Codex/Lehrer/Artemis: siehe codexBot.ts (🧠 Codex, 📚 Lehrer, /jobs, /artemis).
+ *
  *   📝 Neuer Newsletter → Betreff schicken → Inhalt schicken (Text = Markdown, oder Datei .md/.html/.txt)
  *   Entwurf-Karte: Betreff ändern · Inhalt ersetzen · Testmail + Vorschau · Senden (mit Rückfrage) · Löschen
  *   📂 Entwürfe · 📊 Übersicht
@@ -18,6 +20,7 @@ import { getDb } from './db/index.ts';
 import { newsletterIssues, pipelineState } from './db/schema.ts';
 import { subscriberCounts } from './lib/account.ts';
 import { previewHtml, render, sendIssue, sendTest, type Format, type Issue } from './lib/newsletter.ts';
+import { createCodexBot } from './codexBot.ts';
 import { FETCH_TEXT, MODE_LABEL, recentRuns, runningRunId, runProgress, runRow, STATUS_LABEL, triggerPipeline, type TriggerMode } from './lib/botPipeline.ts';
 
 const TOKEN = process.env.TELEGRAM_BOT_TOKEN?.trim() ?? '';
@@ -87,17 +90,21 @@ const getAwait = (): Await | null => {
 };
 const setAwait = (a: Await | null) => setKV('bot.await', JSON.stringify(a));
 
+const codex = createCodexBot({ show, tg, getKV, setKV, chat: ADMIN_CHAT });
+
 // ---------- Bildschirme ----------
 const MENU: Keyboard = [
   [btn('🔄 Neue Inhalte holen', 'fetch')],
   [btn('🔍 Was ist neu?', 'dry'), btn('📡 Status', 'status')],
   [btn('📝 Neuer Newsletter', 'new'), btn('📂 Entwürfe', 'drafts')],
+  [btn('🧠 Codex', 'cx:home'), btn('📚 Lehrer', 'cx:lehrer')],
   [btn('📊 Übersicht', 'overview'), btn('❓ Hilfe', 'help')],
 ];
 const back = (to = 'menu', label = '⬅️ Menü') => [btn(label, to)];
 
 function menu(editId?: number) {
   setAwait(null);
+  codex.clearAwait();
   const c = subscriberCounts(db);
   const n = drafts().length;
   return show(`<b>🤖 LernQuest</b>\n📬 Newsletter: ${c.confirmed ?? 0} Abonnenten · ${n} ${n === 1 ? 'Entwurf' : 'Entwürfe'}\n🔄 Neue Vorlesungen holen: sofort per Button, sonst automatisch um 00:00\n\nWas möchtest du tun?`, MENU, editId);
@@ -114,6 +121,13 @@ const HELP = `<b>❓ So geht’s</b>
 2. Inhalt schicken: einfach als Nachricht (Markdown: <code>**fett**</code>, <code># Überschrift</code>, Links) oder als Datei <b>.md</b>, <b>.html</b>, <b>.txt</b>
 3. <b>🧪 Testmail</b> → geht an ${esc(TEST_TO)}, die HTML-Vorschau kommt hier in den Chat
 4. <b>🚀 Senden</b> → mit Rückfrage an alle bestätigten Abonnenten
+
+<b>Codex vom Handy</b>
+• <b>🧠 Codex</b> (/codex): Modell, Reasoning, Ordner wählen → Aufgabe schicken. Schnell: <code>/codex m=luna r=xhigh d=lernquest Aufgabe…</code>
+• Nach der Antwort einfach weiterschreiben oder auf die Antwort antworten → derselbe Thread macht weiter
+• <b>📋 Jobs</b> (/jobs): laufende Jobs ansehen/stoppen
+• <b>📚 Lehrer</b> (/lehrer Frage): lernen mit deinen Mitschriften, <code>/lehrer neu</code> = neues Gespräch
+• <b>📅 Artemis</b> (/artemis): Hausaufgaben-Stand ERA/EIP
 
 Absender ist news.quest@varialbe.xyz. Footer mit Abmeldelink, Impressum und Datenschutz kommt automatisch dazu.`;
 
@@ -273,6 +287,10 @@ async function statusScreen(editId?: number) {
 
 // ---------- Buttons ----------
 async function onButton(data: string, editId: number) {
+  if (data.startsWith('cx:')) {
+    setAwait(null);
+    return codex.onButton(data.slice(3), editId);
+  }
   const [action = '', idStr] = data.split(':');
   const id = Number(idStr);
   if (action === 'menu') return menu(editId);
@@ -363,7 +381,7 @@ async function handleCommand(text: string) {
 
 type Update = {
   update_id: number;
-  message?: { chat: { id: number }; text?: string; caption?: string; document?: { file_id: string; file_name?: string; file_size?: number } };
+  message?: { chat: { id: number }; reply_to_message?: { message_id: number }; text?: string; caption?: string; document?: { file_id: string; file_name?: string; file_size?: number } };
   callback_query?: { id: string; data?: string; message?: { chat: { id: number }; message_id: number } };
 };
 
@@ -404,8 +422,13 @@ async function handle(u: Update) {
   if (/^\/(neu|dry)(@\w+)?\b/i.test(text)) return startRun('dry-run');
   if (/^\/(status|pipeline)(@\w+)?\b/i.test(text)) return statusScreen();
   if (/^\/(wissen|knowledge)(@\w+)?\b/i.test(text)) return startRun('knowledge');
+  if (/^\//.test(text) && (await codex.onCommand(text))) {
+    setAwait(null);
+    return;
+  }
   if (text.startsWith('/')) return menu(); // /start, /help, /menu …
   if (!text.trim()) return;
+  if (msg.reply_to_message && (await codex.onText(text, msg.reply_to_message.message_id))) return;
   if (waiting?.kind === 'new') return createDraft(text.trim());
   if (waiting?.kind === 'subject') {
     if (!draftById(waiting.id)) return menu();
@@ -414,6 +437,7 @@ async function handle(u: Update) {
     return draftCard(draftById(waiting.id)!, undefined, '✏️ Betreff geändert.');
   }
   if (waiting?.kind === 'content') return setContent(waiting.id, text, 'md', 'Nachricht als Markdown');
+  if (await codex.onText(text)) return;
   if (FETCH_TEXT.test(text)) return startRun('run');
   return menu();
 }
@@ -429,10 +453,20 @@ async function main() {
       { command: 'status', description: '📡 Pipeline-Status' },
       { command: 'neu', description: '🔍 Was ist neu? (Vorschau)' },
       { command: 'wissen', description: '📖 Wissenssammlung nachholen' },
-      { command: 'start', description: 'Menü (Newsletter & Pipeline)' },
+      ...codex.commands,
+      { command: 'start', description: 'Menü (Newsletter, Pipeline, Codex)' },
     ],
   }).catch((e) => log(e));
   setInterval(() => void tickWatchers().catch((e) => log('watch', e)), 20_000);
+  let codexTicking = false;
+  setInterval(() => {
+    if (codexTicking) return;
+    codexTicking = true;
+    void codex
+      .tick()
+      .catch((e) => log('codex', e))
+      .finally(() => (codexTicking = false));
+  }, 10_000);
   await tg('setChatMenuButton', { chat_id: Number(ADMIN_CHAT), menu_button: { type: 'commands' } }).catch((e) => log(e));
   log('Bot läuft (Long-Polling).');
   let offset = Number(getKV('bot.offset') ?? 0);
