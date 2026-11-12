@@ -6,6 +6,9 @@
  * 📚 Lehrer (/lehrer <Frage>): Codex mit dem Skill `lehrer` im Studium-Repo; Gespräch läuft weiter, bis /lehrer neu.
  * 📋 Jobs (/jobs): laufende und letzte Jobs, Stop.   📅 Artemis (/artemis): Hausaufgaben-Stand.
  * 📄 /md: alles aus Artemis als .md (artemis export: Überblick, Abgaben, Tests, Aufgabenstellungen).
+ * 🎬 Video (/video [Idee]): Claude Code im Video-Studio (~/viral-videos, Skill viral-remotion-director) schlägt Ideen vor,
+ *   produziert, schickt Updates per `tg` und das fertige Video; Antworten/Revision/Fertig gehen in dieselbe Claude-Sitzung.
+ *   n8n stößt jeden Tag um 10:00 eine Idee an (POST 127.0.0.1:3462/video/idea, Bearer PIPELINE_TOKEN).
  * Nach einer Antwort: einfach weiterschreiben oder auf die Antwort antworten → derselbe Codex-Thread macht weiter.
  *
  * Jeder Job läuft als eigene systemd-User-Unit (codex-tg-<id>), nicht im Bot-Prozess: kein 300-MB-Limit des Bots,
@@ -50,6 +53,24 @@ const DIR_PRESETS: [string, string][] = [
 ];
 const LEHRER_PREFIX = `Nutze den Skill \`lehrer\` (~/.codex/skills/lehrer/SKILL.md) und halte dich strikt daran. Kontext: Telegram – kurze Nachrichten, kein LaTeX, kein Mermaid. Ändere nichts im Studium-Repo.\n\nIch: `;
 
+// ---------- Video-Studio (Claude Code + Skill viral-remotion-director, Rendern auf dem VPS) ----------
+const CLAUDE = process.env.CLAUDE_BIN || path.join(HOME, '.local/bin/claude');
+const VIDEO_DIR = process.env.VIDEO_STUDIO || path.join(HOME, 'viral-videos');
+const VIDEO_MODEL = process.env.VIDEO_MODEL || 'opus';
+const VIDEO_RULES = `Du bist mein Video-Produzent für die TikTok-Cartoon-Serie. Arbeitsordner: ${VIDEO_DIR} (Studio unter studio/, Projekte unter projects/, fertige Videos unter out/).
+Regeln:
+- Nutze den Skill \`viral-remotion-director\` und alle Serienregeln darin (learnings.md, Asset-Bibliothek, Audio-Pipeline, visueller Stil). Assets wiederverwenden und erweitern.
+- Stimmen, Musik und Isolator über die ElevenLabs-Tools (ToolSearch "ElevenLabs"). Gerendert wird HIER auf dem VPS (npx remotion render im studio/), nie in der Cloud.
+- Ich bin am Handy auf Telegram. Schick mir Zwischenstände mit dem Befehl \`tg\` (liegt in ${VIDEO_DIR}/bin, im PATH):
+  tg msg "Text" · tg photo bild.png "Caption" · tg audio take.mp3 "Caption" · tg video datei.mp4 "Caption" (komprimiert automatisch für Telegram) · tg doc datei "Caption"
+  Updates an sinnvollen Stellen, z. B. Skript fertig (Text schicken), Stimmen gewählt, Kontaktbogen/Vorschau, fertiges Video. Nicht spammen: etwa 3–6 Updates pro Video.
+- Fertiges Video: neue Versionsnummer (out/<slug>-vN.mp4, nie überschreiben) und per \`tg video\` schicken.
+- Brauchst du eine Entscheidung von mir (z. B. Stimmwahl): Optionen per tg schicken, die Frage als letzte Antwort stellen und aufhören. Ich antworte per Telegram, dann geht es in dieser Sitzung weiter.
+- Deine letzte Antwort ist kurz (Telegram): was du gemacht hast und was als Nächstes kommt. Kein LaTeX.`;
+const VIDEO_IDEA_PROMPT = `${VIDEO_RULES}
+
+Aufgabe jetzt: Schlag mir genau EINE neue Video-Idee vor. Schau dir dafür learnings.md, die bisherigen Videos (projects/) und was gut lief an. Format: Titel, Hook (erste 2 Sekunden), Ablauf in 4–6 Stichpunkten, warum das funktioniert, welche vorhandenen Assets du nutzt. Noch nichts bauen – warte auf meine Antwort.`;
+
 type Settings = { model: string; effort: string; cwd: string };
 type Meta = Settings & {
   id: string;
@@ -58,12 +79,14 @@ type Meta = Settings & {
   threadId?: string;
   parent?: string;
   lehrer?: boolean;
+  engine?: 'codex' | 'claude';
+  video?: 'idea' | 'produce';
   runner: 'systemd' | 'spawn';
   unit?: string;
   pid?: number;
   messageId?: number;
 };
-type Await = { kind: 'prompt' } | { kind: 'lehrer' } | { kind: 'cwd' } | { kind: 'continue'; id: string } | null;
+type Await = { kind: 'prompt' } | { kind: 'lehrer' } | { kind: 'video' } | { kind: 'cwd' } | { kind: 'continue'; id: string } | null;
 
 const esc = (s: string) => s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
 const btn = (text: string, data: string): Button => ({ text, callback_data: `cx:${data}`.slice(0, 64) });
@@ -163,29 +186,52 @@ export function createCodexBot(ctx: Ctx) {
   }
 
   const sq = (s: string) => `'${s.replace(/'/g, `'\\''`)}'`;
-  function startJob(o: { prompt: string; s: Settings; resumeOf?: Meta; lehrer?: boolean }): Meta {
+  function startJob(o: { prompt: string; s: Settings; resumeOf?: Meta; lehrer?: boolean; engine?: 'codex' | 'claude'; video?: Meta['video'] }): Meta {
     fs.mkdirSync(ROOT, { recursive: true });
     const id = Date.now().toString(36);
     const dir = jobDir(id);
     fs.mkdirSync(dir);
     const cwd = o.resumeOf?.cwd ?? o.s.cwd;
+    const engine = o.engine ?? o.resumeOf?.engine ?? 'codex';
     const fullPrompt = o.lehrer && !o.resumeOf ? LEHRER_PREFIX + o.prompt : o.prompt;
     fs.writeFileSync(path.join(dir, 'prompt.txt'), fullPrompt);
-    const common = ['--json', '--skip-git-repo-check', '--dangerously-bypass-approvals-and-sandbox', '-m', o.s.model, '-c', `model_reasoning_effort="${o.s.effort}"`, '-o', path.join(dir, 'last.txt')];
-    const args = o.resumeOf?.threadId ? ['exec', 'resume', ...common, o.resumeOf.threadId, '-'] : ['exec', ...common, '-C', cwd, '-'];
+    let bin: string;
+    let args: string[];
+    if (engine === 'claude') {
+      // Claude Code headless; Rechte kommen aus <cwd>/.claude/settings.json (Freigabeliste), alles andere wird abgelehnt
+      bin = CLAUDE;
+      args = ['-p', '--output-format', 'stream-json', '--verbose', '--model', o.s.model, '--permission-mode', 'acceptEdits', ...(o.resumeOf?.threadId ? ['--resume', o.resumeOf.threadId] : [])];
+    } else {
+      bin = CODEX;
+      const common = ['--json', '--skip-git-repo-check', '--dangerously-bypass-approvals-and-sandbox', '-m', o.s.model, '-c', `model_reasoning_effort="${o.s.effort}"`, '-o', path.join(dir, 'last.txt')];
+      args = o.resumeOf?.threadId ? ['exec', 'resume', ...common, o.resumeOf.threadId, '-'] : ['exec', ...common, '-C', cwd, '-'];
+    }
+    const pathEnv = engine === 'claude' ? `${VIDEO_DIR}/bin:${PATH_ENV}` : PATH_ENV;
     const script = [
       '#!/bin/bash',
-      `export PATH=${sq(PATH_ENV)}`,
+      `export PATH=${sq(pathEnv)}`,
       `cd ${sq(cwd)} || { echo 1 > ${sq(path.join(dir, 'exit'))}; exit 1; }`,
-      `${sq(CODEX)} ${args.map(sq).join(' ')} < ${sq(path.join(dir, 'prompt.txt'))} > ${sq(path.join(dir, 'events.jsonl'))} 2> ${sq(path.join(dir, 'stderr.log'))}`,
+      `${sq(bin)} ${args.map(sq).join(' ')} < ${sq(path.join(dir, 'prompt.txt'))} > ${sq(path.join(dir, 'events.jsonl'))} 2> ${sq(path.join(dir, 'stderr.log'))}`,
       `echo $? > ${sq(path.join(dir, 'exit'))}`,
     ].join('\n');
     const runSh = path.join(dir, 'run.sh');
     fs.writeFileSync(runSh, script, { mode: 0o755 });
-    const meta: Meta = { ...o.s, cwd, id, prompt: o.prompt, started: Date.now(), parent: o.resumeOf?.id, threadId: o.resumeOf?.threadId, lehrer: o.lehrer || o.resumeOf?.lehrer, runner: 'systemd' };
+    const meta: Meta = {
+      ...o.s,
+      cwd,
+      id,
+      prompt: o.prompt,
+      started: Date.now(),
+      parent: o.resumeOf?.id,
+      threadId: o.resumeOf?.threadId,
+      lehrer: o.lehrer || o.resumeOf?.lehrer,
+      engine,
+      video: o.video ?? o.resumeOf?.video,
+      runner: 'systemd',
+    };
     const unit = `codex-tg-${id}`;
     try {
-      execFileSync('systemd-run', ['--user', '--collect', '--quiet', `--unit=${unit}`, '-p', 'MemoryMax=6G', '-p', `WorkingDirectory=${cwd}`, '/bin/bash', runSh], { env: JOB_ENV, stdio: 'pipe' });
+      execFileSync('systemd-run', ['--user', '--collect', '--quiet', `--unit=${unit}`, '-p', `MemoryMax=${meta.video ? '9G' : '6G'}`, '-p', `WorkingDirectory=${cwd}`, '/bin/bash', runSh], { env: JOB_ENV, stdio: 'pipe' });
       meta.unit = unit;
     } catch (e) {
       log('systemd-run nicht möglich, Fallback spawn:', (e as Error).message.split('\n')[0]);
@@ -234,6 +280,37 @@ export function createCodexBot(ctx: Ctx) {
       } catch {
         continue;
       }
+      // ---- Claude Code (stream-json) ----
+      if (ev.type === 'system' && ev.subtype === 'init') {
+        out.threadId = ev.session_id;
+        continue;
+      }
+      if (ev.type === 'assistant' && ev.message?.content) {
+        for (const c of ev.message.content as Record<string, any>[]) {
+          if (c.type === 'text' && String(c.text).trim()) {
+            out.lastMsg = c.text;
+            items.set(`t${items.size}`, `💬 ${String(c.text).split('\n')[0]!.slice(0, 140)}`);
+          } else if (c.type === 'tool_use') {
+            const inp = (c.input ?? {}) as Record<string, any>;
+            const what = inp.command ?? inp.file_path ?? inp.pattern ?? inp.query ?? inp.description ?? inp.prompt ?? '';
+            const name = String(c.name).replace(/^mcp__claude_ai_ElevenLabs__/, '🎙 ').replace(/^mcp__/, '🔧 ');
+            items.set(c.id ?? `u${items.size}`, `${c.name === 'Bash' ? '$' : name} ${String(what).replace(/\s+/g, ' ').slice(0, 140)}`);
+            if (c.name === 'TodoWrite' && Array.isArray(inp.todos)) {
+              out.todo = (inp.todos as { content: string; status: string }[]).map((t) => `${t.status === 'completed' ? '☑' : t.status === 'in_progress' ? '▶' : '☐'} ${t.content}`).join('\n');
+            }
+          }
+        }
+        continue;
+      }
+      if (ev.type === 'result') {
+        if (ev.result) out.lastMsg = ev.result;
+        if (ev.is_error) out.error = String(ev.result || ev.subtype || 'Fehler');
+        const u = ev.usage ?? {};
+        out.tokens = (u.input_tokens ?? 0) + (u.output_tokens ?? 0) + (u.cache_read_input_tokens ?? 0);
+        if (ev.session_id) out.threadId = ev.session_id;
+        continue;
+      }
+      // ---- Codex (exec --json) ----
       if (ev.type === 'thread.started') out.threadId = ev.thread_id;
       else if (ev.type === 'turn.completed') out.tokens = (out.tokens ?? 0) + (ev.usage?.input_tokens ?? 0) + (ev.usage?.output_tokens ?? 0);
       else if (ev.type === 'turn.failed') out.error = ev.error?.message ?? 'Turn fehlgeschlagen';
@@ -299,7 +376,7 @@ export function createCodexBot(ctx: Ctx) {
       /* egal */
     }
     const lines = [
-      `<b>${head} · ${m.lehrer ? '📚 Lehrer' : '🧠 Codex'}</b> · ${fmtDur(elapsed)}${p.tokens ? ` · ${Math.round(p.tokens / 1000)}k Tokens` : ''}`,
+      `<b>${head} · ${m.video ? (m.video === 'idea' ? '🎬 Video-Idee' : '🎬 Video') : m.lehrer ? '📚 Lehrer' : '🧠 Codex'}</b> · ${fmtDur(elapsed)}${p.tokens ? ` · ${Math.round(p.tokens / 1000)}k Tokens` : ''}`,
       `<code>${esc(m.model)}</code> · ${esc(m.effort)} · ${esc(tilde(m.cwd))}${m.parent ? ' · ↪️ Fortsetzung' : ''} · #${m.id}`,
       `<i>${esc(m.prompt.slice(0, 220))}${m.prompt.length > 220 ? ' …' : ''}</i>`,
     ];
@@ -317,7 +394,9 @@ export function createCodexBot(ctx: Ctx) {
     }
     const kb: Keyboard = running
       ? [[btn('⏹ Stop', `stop:${m.id}`), btn('🔁 Aktualisieren', `open:${m.id}`)]]
-      : [
+      : m.video
+        ? videoKb(m)
+        : [
           [btn('↪️ Weiterschreiben', `cont:${m.id}`), btn('🔁 Nochmal', `again:${m.id}`)],
           [btn('📜 Antwort erneut', `ans:${m.id}`), btn('🧠 Codex', 'home')],
         ];
@@ -366,14 +445,17 @@ export function createCodexBot(ctx: Ctx) {
     }
     if (!answer) answer = '(keine Antwort)';
     const parts = chunks(answer);
-    const kb: Keyboard = [[btn('↪️ Weiterschreiben', `cont:${m.id}`), btn('🧠 Codex', 'home')]];
+    const kb: Keyboard = m.video ? videoKb(m) : [[btn('↪️ Weiterschreiben', `cont:${m.id}`), btn('🧠 Codex', 'home')]];
     for (let i = 0; i < parts.length; i++) {
       const last = i === parts.length - 1;
       const body = { chat_id: ctx.chat, disable_web_page_preview: true, ...(last ? { reply_markup: { inline_keyboard: kb } } : {}) };
-      const header = i === 0 ? `${m.lehrer ? '📚' : '🧠'} <b>#${m.id}</b>${parts.length > 1 ? ` (1/${parts.length})` : ''}\n\n` : '';
+      const icon = m.video ? '🎬' : m.lehrer ? '📚' : '🧠';
+      const hint = m.video && last ? '\n\n<i>Antworte einfach mit Text (Änderung, Feedback, eigene Idee) oder nimm einen Button.</i>' : '';
+      const header = i === 0 ? `${icon} <b>#${m.id}</b>${parts.length > 1 ? ` (1/${parts.length})` : ''}\n\n` : '';
+      const html = header + mdToHtml(parts[i]!) + hint;
       let sent: { message_id: number };
       try {
-        sent = await ctx.tg<{ message_id: number }>('sendMessage', { ...body, text: header + mdToHtml(parts[i]!), parse_mode: 'HTML' });
+        sent = await ctx.tg<{ message_id: number }>('sendMessage', { ...body, text: html, parse_mode: 'HTML' });
       } catch {
         sent = await ctx.tg<{ message_id: number }>('sendMessage', { ...body, text: parts[i]!.slice(0, 4000) });
       }
@@ -548,13 +630,62 @@ export function createCodexBot(ctx: Ctx) {
       return ctx.show('⏳ Dieser Thread arbeitet noch – warte auf die Antwort oder stoppe ihn unter 📋 Jobs.', [[btn('📋 Jobs', 'jobs')]]);
     }
     if (opts.resumeOf && !opts.resumeOf.threadId) {
+      // threadId steht evtl. erst in den Events (Codex: thread.started, Claude: system/init)
       const p = parse(opts.resumeOf);
-      if (!p.threadId) return ctx.show('Zu diesem Job gibt es keinen Codex-Thread zum Fortsetzen.', [[btn('🧠 Codex', 'home')]]);
+      if (!p.threadId) return ctx.show('Zu diesem Job gibt es keine Sitzung zum Fortsetzen.', [[btn('🧠 Codex', 'home')]]);
       opts.resumeOf = { ...opts.resumeOf, threadId: p.threadId };
     }
     setAwait(null);
     const m = startJob({ prompt, s, ...opts });
     return showJob(m);
+  }
+
+  // ---------------- Video-Studio ----------------
+  const videoSettings = (): Settings => ({ model: VIDEO_MODEL, effort: 'claude', cwd: VIDEO_DIR });
+  function videoKb(m: Meta): Keyboard {
+    return m.video === 'idea'
+      ? [
+          [btn('🎬 Los, produzieren', `vgo:${m.id}`), btn('💡 Andere Idee', 'vnew')],
+          [btn('✏️ Eigene Idee', 'vown'), btn('📋 Jobs', 'jobs')],
+        ]
+      : [
+          [btn('🔁 Revision', `vrev:${m.id}`), btn('✅ Fertig', `vdone:${m.id}`)],
+          [btn('💡 Neue Idee', 'vnew'), btn('📜 Verlauf', `open:${m.id}`)],
+        ];
+  }
+  function videoScreen(editId?: number) {
+    const running = allJobs().filter((j) => j.video && isRunning(j));
+    return ctx.show(
+      [
+        '<b>🎬 Video-Studio</b>',
+        'Claude produziert auf dem VPS mit dem Skill viral-remotion-director: Idee → Skript → Stimmen (ElevenLabs) → Remotion-Render → Video hier im Chat.',
+        'Jeden Tag um 10:00 kommt automatisch ein Vorschlag.',
+        running.length ? `\n⏳ Läuft gerade: ${running.map((j) => `#${j.id}`).join(', ')}` : '',
+        '',
+        'Schnell: <code>/video Döner-Preise in Berlin als Doku</code>',
+      ]
+        .filter(Boolean)
+        .join('\n'),
+      [[btn('💡 Idee vorschlagen', 'vnew'), btn('✏️ Eigene Idee', 'vown')], [btn('📋 Jobs', 'jobs'), { text: '⬅️ Menü', callback_data: 'menu' }]],
+      editId,
+    );
+  }
+  /** neue Claude-Sitzung, die eine Idee vorschlägt (Button, /video idee, n8n um 10:00) */
+  function videoIdea(note = '') {
+    const m = startJob({ prompt: VIDEO_IDEA_PROMPT, s: videoSettings(), engine: 'claude', video: 'idea' });
+    return showJob(m, undefined, note);
+  }
+  function videoOwn(text: string) {
+    const prompt = `${VIDEO_RULES}\n\nIch will dieses Video:\n${text}\n\nSchick mir zuerst per \`tg msg\` dein Konzept in Kurzform (Titel, Hook, Ablauf) und produziere es dann direkt komplett – nicht auf eine Antwort warten, außer etwas Wichtiges ist wirklich unklar.`;
+    return showJob(startJob({ prompt, s: videoSettings(), engine: 'claude', video: 'produce' }));
+  }
+  /** Antwort auf einen Video-Job → gleiche Claude-Sitzung, ab jetzt Produktionsphase */
+  function videoContinue(prev: Meta, text: string) {
+    const extra =
+      prev.video === 'idea'
+        ? '\n\n(Ist das eine Freigabe oder Änderung der Idee: produziere das Video jetzt komplett nach den Regeln, mit tg-Updates und am Ende dem fertigen Video. Will ich eine andere Idee: schlag eine neue vor und warte.)'
+        : '\n\n(Setz das um. Bei Änderungen am Video: neu rendern als nächste Version und per tg video schicken.)';
+    return run(`Meine Antwort (Telegram): ${text}${extra}`, sameAs(prev), { resumeOf: { ...prev, video: 'produce' } });
   }
 
   /** "/codex m=luna r=high d=lernquest Aufgabe" → einmalige Einstellungen + Aufgabe */
@@ -671,17 +802,44 @@ export function createCodexBot(ctx: Ctx) {
         return artemisScreen(editId, arg === 'r');
       case 'amd':
         return artemisExport(editId);
+      case 'video':
+        return videoScreen(editId);
+      case 'vnew':
+        return videoIdea();
+      case 'vown':
+        setAwait({ kind: 'video' });
+        return ctx.show('✏️ Beschreib dein Video (Thema, Gag, Ort, Figuren – so grob oder genau wie du willst).', [[btn('Abbrechen', 'video')]]);
+      case 'vgo': {
+        const m = readMeta(arg);
+        return m ? videoContinue(m, 'Go, passt so – produzieren!') : videoScreen(editId);
+      }
+      case 'vrev': {
+        const m = readMeta(arg);
+        if (!m) return videoScreen(editId);
+        setAwait({ kind: 'continue', id: m.id });
+        return ctx.show(`🔁 Was soll an #${m.id} anders werden? Schick es als Nachricht.`, [[btn('Abbrechen', 'video')]]);
+      }
+      case 'vdone': {
+        const m = readMeta(arg);
+        return m
+          ? run('Fertig, passt so. Trag die Learnings aus diesem Video in learnings.md ein (was gut lief, was ich geändert haben wollte), räum temporäre Dateien auf und bestätige kurz.', sameAs(m), { resumeOf: m })
+          : videoScreen(editId);
+      }
     }
     return home(editId);
   }
 
   /** Slash-Befehle; true = erledigt */
   async function onCommand(text: string): Promise<boolean> {
-    const m = /^\/(codex|cx|c|lehrer|l|jobs|artemis|md|export)(?:@\w+)?(?:\s+([\s\S]*))?$/i.exec(text.trim());
+    const m = /^\/(codex|cx|c|lehrer|l|jobs|artemis|md|export|video|v)(?:@\w+)?(?:\s+([\s\S]*))?$/i.exec(text.trim());
     if (!m) return false;
     const cmd = m[1]!.toLowerCase();
     const rest = (m[2] ?? '').trim();
-    if (cmd === 'jobs') await jobsScreen();
+    if (cmd === 'video' || cmd === 'v') {
+      if (!rest) await videoScreen();
+      else if (/^(idee|idea|vorschlag)$/i.test(rest)) await videoIdea();
+      else await videoOwn(rest);
+    } else if (cmd === 'jobs') await jobsScreen();
     else if (cmd === 'artemis') await artemisScreen();
     else if (cmd === 'md' || cmd === 'export') await artemisExport();
     else if (cmd === 'lehrer' || cmd === 'l') await lehrer(rest);
@@ -703,7 +861,8 @@ export function createCodexBot(ctx: Ctx) {
       const id = ctx.getKV(`codex.msg.${replyToId}`);
       const prev = id ? readMeta(id) : null;
       if (prev) {
-        await run(text, sameAs(prev), { resumeOf: prev });
+        if (prev.video) await videoContinue(prev, text);
+        else await run(text, sameAs(prev), { resumeOf: prev });
         return true;
       }
       return false;
@@ -724,10 +883,15 @@ export function createCodexBot(ctx: Ctx) {
       await run(text, settings());
       return true;
     }
+    if (a.kind === 'video') {
+      await videoOwn(text);
+      return true;
+    }
     if (a.kind === 'continue') {
       const prev = readMeta(a.id);
       if (!prev) return false;
-      await run(text, sameAs(prev), { resumeOf: prev });
+      if (prev.video) await videoContinue(prev, text);
+      else await run(text, sameAs(prev), { resumeOf: prev });
       return true;
     }
     return false;
@@ -737,6 +901,7 @@ export function createCodexBot(ctx: Ctx) {
     onButton,
     onCommand,
     onText,
+    videoIdea,
     tick,
     clearAwait: () => setAwait(null),
   };

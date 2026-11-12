@@ -1,0 +1,44 @@
+{
+  "id": "videoDailyIdea01",
+  "name": "Video-Idee täglich 10:00",
+  "active": true,
+  "settings": { "executionOrder": "v1", "timezone": "Europe/Berlin", "saveManualExecutions": true },
+  "nodes": [
+    {
+      "id": "7b2c0d4e-0001-4000-8000-000000000001",
+      "name": "Jeden Tag 10:00",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [0, 0],
+      "parameters": { "rule": { "interval": [{ "field": "cronExpression", "expression": "0 10 * * *" }] } }
+    },
+    {
+      "id": "7b2c0d4e-0002-4000-8000-000000000002",
+      "name": "Manuell testen",
+      "type": "n8n-nodes-base.manualTrigger",
+      "typeVersion": 1,
+      "position": [0, 200],
+      "parameters": {}
+    },
+    {
+      "id": "7b2c0d4e-0003-4000-8000-000000000003",
+      "name": "Claude: Idee vorschlagen",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [260, 100],
+      "notes": "Telegram-Bot (lernquest-bot) startet eine Claude-Sitzung im Video-Studio; Idee + Buttons kommen im Admin-Chat.",
+      "parameters": {
+        "method": "POST",
+        "url": "http://127.0.0.1:3462/video/idea",
+        "sendHeaders": true,
+        "headerParameters": { "parameters": [{ "name": "Authorization", "value": "={{ 'Bearer ' + $env.PIPELINE_TOKEN }}" }] },
+        "options": { "timeout": 15000 }
+      }
+    }
+  ],
+  "connections": {
+    "Jeden Tag 10:00": { "main": [[{ "node": "Claude: Idee vorschlagen", "type": "main", "index": 0 }]] },
+    "Manuell testen": { "main": [[{ "node": "Claude: Idee vorschlagen", "type": "main", "index": 0 }]] }
+  },
+  "pinData": {}
+}

@@ -15,6 +15,7 @@
  * Die alten Befehle (/newsletter new|draft|subject|test|send|overview|delete) funktionieren weiter als Abkürzung.
  */
 import './env.ts';
+import { createServer } from 'node:http';
 import { desc, eq } from 'drizzle-orm';
 import { getDb } from './db/index.ts';
 import { newsletterIssues, pipelineState } from './db/schema.ts';
@@ -96,7 +97,7 @@ const codex = createCodexBot({ show, tg, getKV, setKV, chat: ADMIN_CHAT });
 /** Hauptmenü: vier Bereiche – Lernen, Agent, LernQuest, Newsletter */
 const MENU: Keyboard = [
   [btn('📚 Lehrer', 'cx:lehrer'), btn('📅 Artemis', 'cx:artemis'), btn('📄 Artemis .md', 'cx:amd')],
-  [btn('🧠 Codex', 'cx:home'), btn('📋 Jobs', 'cx:jobs')],
+  [btn('🎬 Video', 'cx:video'), btn('🧠 Codex', 'cx:home'), btn('📋 Jobs', 'cx:jobs')],
   [btn('🎮 LernQuest', 'lq'), btn('📬 Newsletter', 'nl')],
   [btn('❓ Hilfe', 'help')],
 ];
@@ -112,6 +113,7 @@ function menu(editId?: number) {
       '<b>🤖 Steuerzentrale</b>',
       '',
       '<b>📚 Lernen</b> – Lehrer, Hausaufgaben-Stand, alles aus Artemis als .md',
+      '<b>🎬 Video</b> – Claude produziert TikTok-Videos auf dem VPS (täglich 10:00 eine Idee)',
       '<b>🧠 Agent</b> – Codex mit Modell/Reasoning/Ordner, laufende Jobs',
       '<b>🎮 LernQuest</b> – neue Vorlesungen holen (sonst automatisch 00:00)',
       `<b>📬 Newsletter</b> – ${c.confirmed ?? 0} Abonnenten · ${n} ${n === 1 ? 'Entwurf' : 'Entwürfe'}`,
@@ -146,6 +148,7 @@ const COMMANDS = [
   { command: 'lehrer', description: '📚 Lernen mit deinen Mitschriften' },
   { command: 'artemis', description: '📅 Hausaufgaben-Stand ERA/EIP' },
   { command: 'md', description: '📄 Alles aus Artemis als .md' },
+  { command: 'video', description: '🎬 Video-Studio: Idee, eigenes Video' },
   { command: 'codex', description: '🧠 Codex-Agent: Aufgabe, Modell, Reasoning' },
   { command: 'jobs', description: '📋 Laufende und letzte Codex-Jobs' },
   { command: 'fetch', description: '🎮 LernQuest: neue Inhalte holen' },
@@ -160,6 +163,12 @@ const HELP = `<b>❓ Alle Befehle</b>
 • /lehrer <i>Frage</i> – lernen mit deinen Mitschriften (erklären, abfragen, Hausaufgaben-Hinweise). Gespräch läuft weiter, <code>/lehrer neu</code> startet frisch
 • /artemis – Hausaufgaben-Stand ERA/EIP: Deadlines, Abgaben, Punkte
 • /md – <b>alles</b> aus Artemis als .md: Überblick, jede Abgabe, jedes Testergebnis mit Fehlermeldung, alle Aufgabenstellungen
+
+<b>🎬 Video</b>
+• Jeden Tag um 10:00 schlägt Claude eine neue Video-Idee vor
+• Antworte einfach mit Text (Änderung, Freigabe) oder 🎬 Los → Claude produziert, schickt Updates und am Ende das Video
+• Danach: 🔁 Revision (Text schicken) oder ✅ Fertig (Learnings werden eingetragen)
+• /video <i>Idee</i> – eigenes Video sofort starten · /video idee – Vorschlag holen
 
 <b>🧠 Agent</b>
 • /codex – Modell, Reasoning, Ordner wählen → Aufgabe als Nachricht schicken
@@ -493,6 +502,28 @@ async function handle(u: Update) {
   return menu();
 }
 
+/** Lokaler Trigger für n8n (nur 127.0.0.1, Bearer PIPELINE_TOKEN): POST /video/idea → Claude schlägt ein Video vor */
+function startHttp() {
+  const port = Number(process.env.BOT_HTTP_PORT ?? 3462);
+  const token = process.env.PIPELINE_TOKEN?.trim() ?? '';
+  if (!token) return log('PIPELINE_TOKEN fehlt – kein HTTP-Trigger.');
+  createServer((req, res) => {
+    const reply = (code: number, body: unknown) => {
+      res.writeHead(code, { 'content-type': 'application/json' });
+      res.end(JSON.stringify(body));
+    };
+    if (req.headers.authorization !== `Bearer ${token}`) return reply(401, { ok: false });
+    if (req.method === 'GET' && req.url === '/health') return reply(200, { ok: true });
+    if (req.method === 'POST' && req.url === '/video/idea') {
+      void codex.videoIdea('☀️ <b>Guten Morgen – neue Video-Idee kommt</b>').catch((e) => log('video', e));
+      return reply(202, { ok: true });
+    }
+    reply(404, { ok: false });
+  })
+    .on('error', (e) => log('http', e))
+    .listen(port, '127.0.0.1', () => log(`HTTP-Trigger auf 127.0.0.1:${port}`));
+}
+
 async function main() {
   if (!TOKEN || !ADMIN_CHAT) {
     log('TELEGRAM_BOT_TOKEN/TELEGRAM_CHAT_ID fehlen – Bot startet nicht.');
@@ -510,6 +541,7 @@ async function main() {
       .finally(() => (codexTicking = false));
   }, 10_000);
   await tg('setChatMenuButton', { chat_id: Number(ADMIN_CHAT), menu_button: { type: 'commands' } }).catch((e) => log(e));
+  startHttp();
   log('Bot läuft (Long-Polling).');
   let offset = Number(getKV('bot.offset') ?? 0);
   for (;;) {
