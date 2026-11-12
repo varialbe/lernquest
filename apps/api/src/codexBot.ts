@@ -515,6 +515,9 @@ export function createCodexBot(ctx: Ctx) {
   }
 
   // ---------------- Starten ----------------
+  /** Fortsetzung/Wiederholung: gleiches Modell, Reasoning und Ordner wie der ursprüngliche Job */
+  const sameAs = (m: Meta): Settings => ({ model: m.model, effort: m.effort, cwd: m.cwd });
+
   async function run(prompt: string, s: Settings, opts: { resumeOf?: Meta; lehrer?: boolean } = {}) {
     if (opts.resumeOf && allJobs().some((j) => j.threadId === opts.resumeOf!.threadId && isRunning(j))) {
       return ctx.show('⏳ Dieser Thread arbeitet noch – warte auf die Antwort oder stoppe ihn unter 📋 Jobs.', [[btn('📋 Jobs', 'jobs')]]);
@@ -576,7 +579,7 @@ export function createCodexBot(ctx: Ctx) {
       /* neu */
     }
     const prev = last && Date.now() - last.at < 12 * 3600_000 ? readMeta(last.id) : null;
-    return prev ? run(t, settings(), { resumeOf: prev, lehrer: true }) : run(t, { ...settings(), cwd: STUDIUM }, { lehrer: true });
+    return prev ? run(t, sameAs(prev), { resumeOf: prev, lehrer: true }) : run(t, { ...settings(), cwd: STUDIUM }, { lehrer: true });
   }
 
   // ---------------- Öffentliche Schnittstelle ----------------
@@ -627,7 +630,7 @@ export function createCodexBot(ctx: Ctx) {
       }
       case 'again': {
         const m = readMeta(arg);
-        return m ? run(m.prompt, { model: settings().model, effort: settings().effort, cwd: m.cwd }, { lehrer: m.lehrer }) : home(editId);
+        return m ? run(m.prompt, sameAs(m), { lehrer: m.lehrer }) : home(editId);
       }
       case 'ans': {
         const m = readMeta(arg);
@@ -672,7 +675,7 @@ export function createCodexBot(ctx: Ctx) {
       const id = ctx.getKV(`codex.msg.${replyToId}`);
       const prev = id ? readMeta(id) : null;
       if (prev) {
-        await run(text, settings(), { resumeOf: prev });
+        await run(text, sameAs(prev), { resumeOf: prev });
         return true;
       }
       return false;
@@ -696,7 +699,7 @@ export function createCodexBot(ctx: Ctx) {
     if (a.kind === 'continue') {
       const prev = readMeta(a.id);
       if (!prev) return false;
-      await run(text, settings(), { resumeOf: prev });
+      await run(text, sameAs(prev), { resumeOf: prev });
       return true;
     }
     return false;
