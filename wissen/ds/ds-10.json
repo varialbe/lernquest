@@ -1,0 +1,598 @@
+{
+  "schemaVersion": 1,
+  "unitId": "ds-10",
+  "module": "DS",
+  "unitNumber": 10,
+  "unitTitle": "Äquivalenzrelationen und Ordnungen",
+  "sourceSha": "272db4af51a3554b4d43770ac580653a84f51dc8e471bcdf0bead897a3f76207",
+  "overview": "Die Unit behandelt Äquivalenzrelationen als Mittel, Elemente zu Klassen zusammenzufassen: Diese Klassen bilden Partitionen und den Quotienten. Ordnungsrelationen vergleichen Elemente; Hasse-Diagramme stellen bei endlichen partiellen Ordnungen die unmittelbaren Beziehungen dar.",
+  "entries": [
+    {
+      "id": "ds-10-k01",
+      "term": "Reflexivität",
+      "kind": "definition",
+      "short": "Eine Relation auf A ist reflexiv, wenn jedes Element von A zu sich selbst in Relation steht.",
+      "explanation": "Eine Relation $R$ auf $A$ ist reflexiv, wenn $(a,a)\\in R$ für jedes $a\\in A$ gilt. Als Relationsinklusion schreibt man $\\operatorname{Id}_A\\subseteq R$. Im gerichteten Graphen hat jeder Knoten eine Schleife.",
+      "example": "Die Relation $\\leq$ auf $\\mathbb{Z}$ ist reflexiv, weil $a\\leq a$ für jedes $a\\in\\mathbb{Z}$ gilt.",
+      "pitfalls": [
+        "Eine Schleife bei einigen Elementen genügt nicht; Reflexivität verlangt sie bei allen Elementen der Grundmenge."
+      ],
+      "related": [
+        "Äquivalenzrelation",
+        "Partielle Ordnung"
+      ],
+      "heading": "1. Zwei Arten von Relationen: „gleichwertig“ vs. „steht vor“"
+    },
+    {
+      "id": "ds-10-k02",
+      "term": "Symmetrie",
+      "kind": "definition",
+      "short": "Eine Relation ist symmetrisch, wenn mit jeder Beziehung auch die umgekehrte Beziehung gilt.",
+      "explanation": "Eine Relation $R$ auf $A$ ist symmetrisch, wenn aus $aRb$ stets $bRa$ folgt. Gleichwertig gilt $R=R^\\top$. Symmetrie ist eine der drei Eigenschaften einer Äquivalenzrelation.",
+      "example": "Aus $a\\equiv_m b$ folgt $b\\equiv_m a$.",
+      "pitfalls": [
+        "Symmetrie bedeutet nicht, dass jedes Elementpaar in Relation steht."
+      ],
+      "related": [
+        "Äquivalenzrelation",
+        "Antisymmetrie"
+      ],
+      "heading": "1. Zwei Arten von Relationen: „gleichwertig“ vs. „steht vor“"
+    },
+    {
+      "id": "ds-10-k03",
+      "term": "Antisymmetrie",
+      "kind": "definition",
+      "short": "Eine Relation ist antisymmetrisch, wenn Hin- und Rückbeziehung nur bei gleichen Elementen zugleich gelten.",
+      "explanation": "Eine Relation $R$ auf $A$ ist antisymmetrisch, wenn aus $aRb$ und $bRa$ folgt, dass $a=b$. Als Relationsinklusion gilt $R\\cap R^\\top\\subseteq\\operatorname{Id}_A$. Schleifen sind dabei erlaubt.",
+      "example": "Die Inklusion ist antisymmetrisch: Aus $X\\subseteq Y$ und $Y\\subseteq X$ folgt $X=Y$.",
+      "pitfalls": [
+        "Antisymmetrie ist nicht Asymmetrie; antisymmetrische Relationen dürfen Schleifen enthalten."
+      ],
+      "related": [
+        "Partielle Ordnung",
+        "Symmetrie"
+      ],
+      "heading": "1. Zwei Arten von Relationen: „gleichwertig“ vs. „steht vor“"
+    },
+    {
+      "id": "ds-10-k04",
+      "term": "Transitivität",
+      "kind": "definition",
+      "short": "Eine Relation ist transitiv, wenn zwei aufeinanderfolgende Beziehungen auch die direkte Beziehung ergeben.",
+      "explanation": "Eine Relation $R$ ist transitiv, wenn aus $aRb$ und $bRc$ stets $aRc$ folgt. Als Relationsinklusion schreibt man $RR\\subseteq R$. Transitivität gehört sowohl zu Äquivalenzrelationen als auch zu partiellen Ordnungen.",
+      "example": "Aus $2\\mid 6$ und $6\\mid 18$ folgt $2\\mid 18$.",
+      "pitfalls": [
+        "Transitivität allein verlangt weder Reflexivität noch Symmetrie."
+      ],
+      "related": [
+        "Äquivalenzrelation",
+        "Partielle Ordnung"
+      ],
+      "heading": "1. Zwei Arten von Relationen: „gleichwertig“ vs. „steht vor“"
+    },
+    {
+      "id": "ds-10-k05",
+      "term": "Äquivalenzrelation",
+      "kind": "definition",
+      "short": "Eine Äquivalenzrelation ist reflexiv, symmetrisch und transitiv.",
+      "explanation": "Für eine nichtleere Menge $A$ ist $R\\subseteq A\\times A$ eine Äquivalenzrelation, wenn $\\operatorname{Id}_A\\subseteq R$, $R=R^\\top$ und $RR\\subseteq R$ gelten. Sie drückt aus, dass Elemente im betrachteten Zusammenhang als gleichwertig behandelt werden. Ihre Klassen bilden eine Partition von $A$.",
+      "example": "Die Gleichheit auf $\\mathbb{Z}$ ist eine Äquivalenzrelation; jede Zahl bildet eine eigene Klasse.",
+      "pitfalls": [
+        "Reflexivität und Transitivität allein genügen nicht; zusätzlich ist Symmetrie nötig.",
+        "Symmetrie darf nicht mit Antisymmetrie verwechselt werden."
+      ],
+      "related": [
+        "Reflexivität",
+        "Symmetrie",
+        "Transitivität",
+        "Äquivalenzklasse [a]ᵣ",
+        "Quotient A/R"
+      ],
+      "heading": "2. Äquivalenzrelationen"
+    },
+    {
+      "id": "ds-10-k06",
+      "term": "Standardbeispiele für Äquivalenzrelationen",
+      "kind": "concept",
+      "short": "Gleichheit, Kongruenz modulo m und Konjugation fassen Objekte zusammen, die im jeweiligen Sinn gleichwertig sind.",
+      "explanation": "Bei Gleichheit ist jedes Element nur zu sich selbst äquivalent. Kongruenz modulo $m$ gruppiert ganze Zahlen mit gleichem Rest. Zwei Wörter sind konjugiert, wenn eines durch zyklisches Verschieben des anderen entsteht.",
+      "example": "Die Wörter `abc` und `bca` sind konjugiert, weil `bca` durch zyklisches Verschieben von `abc` entsteht.",
+      "pitfalls": [
+        "Äquivalent bedeutet nicht zwingend identisch; es hängt davon ab, welche Relation betrachtet wird."
+      ],
+      "related": [
+        "Äquivalenzrelation",
+        "Kongruenz modulo m"
+      ],
+      "heading": "Die Standardbeispiele"
+    },
+    {
+      "id": "ds-10-k07",
+      "term": "Kongruenz modulo m",
+      "kind": "definition",
+      "short": "Zwei ganze Zahlen sind modulo m kongruent, wenn ihre Differenz durch m teilbar ist.",
+      "explanation": "Für eine positive ganze Zahl $m$ gilt $a\\equiv_m b$ genau dann, wenn $m\\mid(a-b)$. Diese Relation ist eine Äquivalenzrelation auf $\\mathbb{Z}$. Ihre Klassen sind die $m$ verschiedenen Restklassen modulo $m$.",
+      "example": "$17\\equiv_5 2$, weil $17-2=15$ durch $5$ teilbar ist.",
+      "pitfalls": [
+        "Kongruenz modulo $m$ ist eine Relation zwischen Zahlen, nicht deren Gleichheit.",
+        "Für die übliche Einteilung in $m$ Restklassen wird $m>0$ vorausgesetzt."
+      ],
+      "related": [
+        "Äquivalenzrelation",
+        "Restklasse modulo m",
+        "Quotient A/R"
+      ],
+      "heading": "Kongruenz modulo m: die Restklassen"
+    },
+    {
+      "id": "ds-10-k08",
+      "term": "Restklasse modulo m",
+      "kind": "notation",
+      "short": "Die Restklasse von a modulo m enthält alle ganzen Zahlen, die zu a modulo m kongruent sind.",
+      "explanation": "Die Restklasse von $a$ ist $a+m\\mathbb{Z}=\\{a+mz\\mid z\\in\\mathbb{Z}\\}$. Sie ist die Äquivalenzklasse $[a]_{\\equiv_m}$. Die verschiedenen Restklassen bilden eine Partition von $\\mathbb{Z}$.",
+      "example": "$2+5\\mathbb{Z}=\\{\\ldots,-8,-3,2,7,12,\\ldots\\}$.",
+      "pitfalls": [
+        "Verschiedene Zahlen können dieselbe Restklasse bezeichnen, etwa $2+5\\mathbb{Z}=7+5\\mathbb{Z}$."
+      ],
+      "related": [
+        "Kongruenz modulo m",
+        "Äquivalenzklasse [a]ᵣ",
+        "Partition"
+      ],
+      "heading": "Kongruenz modulo m: die Restklassen"
+    },
+    {
+      "id": "ds-10-k09",
+      "term": "Gröbste und feinste Partition",
+      "kind": "concept",
+      "short": "Die gröbste Partition hat nur den Block A, während die feinste aus allen einelementigen Blöcken besteht.",
+      "explanation": "Eine Partition ist gröber, wenn sie weniger und größere Blöcke hat, und feiner, wenn sie mehr und kleinere Blöcke hat. Die gröbste Partition von $A$ ist $\\{A\\}$ und entspricht der Relation $A\\times A$. Die feinste ist $\\{\\{a\\}\\mid a\\in A\\}$ und entspricht der Identitätsrelation $\\operatorname{Id}_A$.",
+      "example": "Auf $\\mathbb{Z}$ erzeugt $\\equiv_1$ die gröbste Partition; Gleichheit erzeugt die feinste.",
+      "pitfalls": [
+        "„Gröbste“ und „feinste“ beschreiben die Größen und Anzahl der Blöcke, keine Rangfolge der Elemente."
+      ],
+      "related": [
+        "Partition",
+        "Äquivalenzrelation"
+      ],
+      "heading": "Gröbste und feinste Partition"
+    },
+    {
+      "id": "ds-10-k10",
+      "term": "Äquivalenzklasse [a]ᵣ",
+      "kind": "notation",
+      "short": "Die Äquivalenzklasse [a]ᵣ besteht aus genau den Elementen, die zu a in Relation R stehen.",
+      "explanation": "Für eine Äquivalenzrelation $R$ auf $A$ ist $[a]_R=\\{x\\in A\\mid aRx\\}$. Wegen der Symmetrie ist dies zugleich $\\{x\\in A\\mid xRa\\}$; die Nachfolger- und Vorgängermengen von $a$ stimmen also überein. Zwei Klassen sind entweder gleich oder disjunkt.",
+      "example": "Bei Kongruenz modulo $3$ gilt $[1]_{\\equiv_3}=1+3\\mathbb{Z}$.",
+      "pitfalls": [
+        "Die Klasse $[a]_R$ ist eine Teilmenge von $A$, kein einzelnes Element.",
+        "Es gilt $[a]_R=[b]_R$ genau dann, wenn $aRb$."
+      ],
+      "related": [
+        "Äquivalenzrelation",
+        "Quotient A/R",
+        "Partition"
+      ],
+      "heading": "3. Äquivalenzklasse, Quotient, Repräsentantensystem"
+    },
+    {
+      "id": "ds-10-k11",
+      "term": "Quotient A/R",
+      "kind": "notation",
+      "short": "Der Quotient A/R ist die Menge aller Äquivalenzklassen einer Relation R auf A.",
+      "explanation": "Für eine Äquivalenzrelation $R$ auf $A$ bezeichnet $A/R=\\{[a]_R\\mid a\\in A\\}$ die Menge ihrer Klassen. Man liest $A/R$ als „A modulo R“. Im Quotienten werden alle Elemente derselben Klasse als identifiziert betrachtet.",
+      "example": "$\\mathbb{Z}/\\equiv_3=\\{3\\mathbb{Z},1+3\\mathbb{Z},2+3\\mathbb{Z}\\}$.",
+      "pitfalls": [
+        "$A/R$ ist eine Menge von Teilmengen von $A$, nicht die Menge der einzelnen Elemente von $A$."
+      ],
+      "related": [
+        "Äquivalenzklasse [a]ᵣ",
+        "Partition",
+        "Repräsentantensystem"
+      ],
+      "heading": "3. Äquivalenzklasse, Quotient, Repräsentantensystem"
+    },
+    {
+      "id": "ds-10-k12",
+      "term": "Repräsentantensystem",
+      "kind": "definition",
+      "short": "Ein Repräsentantensystem enthält aus jeder Äquivalenzklasse genau ein Element.",
+      "explanation": "Eine Teilmenge $X_R\\subseteq A$ ist ein Repräsentantensystem für $R$, wenn jede Klasse genau ein Element aus $X_R$ enthält. Dieses Element vertritt die ganze Klasse. Je nach Relation kann es mehrere verschiedene Repräsentantensysteme geben.",
+      "example": "Für Kongruenz modulo $3$ sind $\\{0,1,2\\}$ und $\\{-1,0,1\\}$ Repräsentantensysteme.",
+      "pitfalls": [
+        "Aus keiner Klasse darf ein Vertreter fehlen oder mehr als ein Vertreter gewählt werden.",
+        "Die Vertreter müssen nicht die kleinsten nichtnegativen Zahlen sein."
+      ],
+      "related": [
+        "Äquivalenzklasse [a]ᵣ",
+        "Quotient A/R",
+        "Kongruenz modulo m"
+      ],
+      "heading": "3. Äquivalenzklasse, Quotient, Repräsentantensystem"
+    },
+    {
+      "id": "ds-10-k13",
+      "term": "Äquivalenzrelationen und Partitionen",
+      "kind": "theorem",
+      "short": "Äquivalenzrelationen auf A entsprechen genau den Partitionen von A.",
+      "explanation": "Die Klassen einer Äquivalenzrelation bilden eine Partition: Sie sind nichtleer, überdecken $A$ und sind paarweise disjunkt. Umgekehrt erzeugt eine Partition $P$ die Relation $\\bigcup\\{K\\times K\\mid K\\in P\\}$, bei der zwei Elemente genau dann in Relation stehen, wenn sie im selben Block liegen. Die Zuordnungen sind invers zueinander.",
+      "example": "Die Partition $\\{\\{1,2\\},\\{3\\}\\}$ auf $\\{1,2,3\\}$ erzeugt die Relation, die 1 und 2 miteinander verbindet und 3 nur mit sich selbst.",
+      "pitfalls": [
+        "Die Blöcke müssen die ganze Grundmenge überdecken und paarweise disjunkt sein.",
+        "Ein Block darf mehr als ein Element enthalten."
+      ],
+      "related": [
+        "Äquivalenzrelation",
+        "Partition",
+        "Quotient A/R"
+      ],
+      "heading": "Fakten: Äquivalenzrelationen und Partitionen gehören zusammen"
+    },
+    {
+      "id": "ds-10-k14",
+      "term": "Partition",
+      "kind": "definition",
+      "short": "Eine Partition von A ist eine Menge nichtleerer, paarweise disjunkter Teilmengen, deren Vereinigung A ist.",
+      "explanation": "Die Teilmengen einer Partition heißen Blöcke. Jedes Element von $A$ liegt in genau einem Block. Die Äquivalenzklassen einer Äquivalenzrelation sind eine Partition, und jede Partition definiert eine Äquivalenzrelation.",
+      "example": "$\\{\\{1,2\\},\\{3\\}\\}$ ist eine Partition von $\\{1,2,3\\}$.",
+      "pitfalls": [
+        "Leere Blöcke sind nicht erlaubt.",
+        "Paarweise Disjunktheit allein genügt nicht; die Blöcke müssen auch ganz $A$ überdecken."
+      ],
+      "related": [
+        "Äquivalenzrelation",
+        "Äquivalenzklasse [a]ᵣ",
+        "Quotient A/R"
+      ],
+      "heading": "Fakten: Äquivalenzrelationen und Partitionen gehören zusammen"
+    },
+    {
+      "id": "ds-10-k15",
+      "term": "Signed- und Unsigned-Darstellung als Repräsentantensysteme",
+      "kind": "example",
+      "short": "Signed und unsigned n-Bit-Zahlen wählen verschiedene Vertreter derselben Restklassen modulo 2ⁿ.",
+      "explanation": "Beide Darstellungen rechnen mit Restklassen modulo $2^n$. Die unsigned Vertreter sind $\\{0,1,\\ldots,2^n-1\\}$; die üblichen signed Vertreter im Zweierkomplement sind $\\{-2^{n-1},\\ldots,2^{n-1}-1\\}$. Die Bitmuster bezeichnen dieselben Klassen, aber die gewählten Zahlenvertreter unterscheiden sich.",
+      "example": "Für $n=8$ steht `11111111` für die Klasse $255+256\\mathbb{Z}=-1+256\\mathbb{Z}$; unsigned ist der Vertreter $255$, signed der Vertreter $-1$.",
+      "pitfalls": [
+        "Die Wahl von signed oder unsigned ändert die Interpretation des Bitmusters, nicht das Bitmuster selbst."
+      ],
+      "related": [
+        "Kongruenz modulo m",
+        "Repräsentantensystem",
+        "Quotient A/R"
+      ],
+      "heading": "Anwendung: signed vs. unsigned n-bit Integers"
+    },
+    {
+      "id": "ds-10-k16",
+      "term": "Äquivalenzrelationen als Färbungen",
+      "kind": "concept",
+      "short": "Die Klassen einer Äquivalenzrelation können als Farben verstanden werden, die Elemente nach ihrer Gleichwertigkeit gruppieren.",
+      "explanation": "Jede Äquivalenzklasse entspricht einer Farbe. Im Relationsgraphen sind alle Knoten derselben Farbe einschließlich ihrer Schleifen in beide Richtungen verbunden; zwischen verschiedenen Farben gibt es keine Kanten. Der Quotient identifiziert Elemente derselben Farbe und abstrahiert von anderen Eigenschaften.",
+      "example": "Die Partition $\\{\\{a,b\\},\\{c\\}\\}$ gibt $a$ und $b$ dieselbe Farbe; im Graphen gibt es zwischen $a$ und $b$ Kanten in beide Richtungen sowie bei jedem Knoten eine Schleife.",
+      "pitfalls": [
+        "Die Gruppierung hängt von der gewählten Relation ab; sie muss keine sichtbare Eigenschaft der Elemente widerspiegeln."
+      ],
+      "related": [
+        "Äquivalenzrelation",
+        "Partition",
+        "Quotient A/R"
+      ],
+      "heading": "Äquivalenzrelationen als Färbungen"
+    },
+    {
+      "id": "ds-10-k17",
+      "term": "Äquivalenz von Termen, Formeln und Programmen",
+      "kind": "concept",
+      "short": "Verschiedene Terme, Formeln oder Programme können bezüglich ihrer Bedeutung oder ihres Verhaltens äquivalent sein.",
+      "explanation": "Zwei Terme können verschieden geschrieben sein und für alle zulässigen Eingaben denselben Wert liefern. Auch verschiedene Mengenformeln können dieselbe Menge beschreiben; etwa gilt $(A\\cap\\overline C)\\setminus B=A\\cap\\overline{B\\cup C}$. Bei Programmen hängt Äquivalenz davon ab, welches Verhalten verglichen wird; im Allgemeinen ist Programmäquivalenz nicht entscheidbar.",
+      "example": "Für reelle $x,y$ liefern $(x+y)^2$ und $x^2+2xy+y^2$ denselben Wert.",
+      "pitfalls": [
+        "Gleiche Schreibweise und gleiche Bedeutung sind verschiedene Kriterien.",
+        "Für Programme muss festgelegt sein, welches Verhalten als gleich gilt."
+      ],
+      "related": [
+        "Äquivalenzrelation"
+      ],
+      "heading": "Weitere wichtige Äquivalenzrelationen: Terme, Formeln, Programme"
+    },
+    {
+      "id": "ds-10-k18",
+      "term": "Reflexiv-transitiver Abschluss",
+      "kind": "notation",
+      "short": "Der reflexiv-transitive Abschluss R* enthält genau die Paare, die durch einen R-Pfad der Länge null oder größer verbunden sind.",
+      "explanation": "$R^*$ ergänzt $R$ um Identitätspaare und alle Beziehungen, die durch Pfade entstehen. Er ist reflexiv und transitiv. Ist $R$ bereits reflexiv und transitiv, gilt $R=R^*$.",
+      "example": "Für $R=\\{(0,1),(1,2)\\}$ enthält $R^*$ die Paare $(0,0),(1,1),(2,2)$ sowie $(0,1),(1,2),(0,2)$.",
+      "pitfalls": [
+        "Der transitive Abschluss $R^+$ enthält nicht automatisch Identitätspaare; der reflexiv-transitive Abschluss $R^*$ schon."
+      ],
+      "related": [
+        "Transitive Abschluss",
+        "Erreichbarkeit",
+        "Relationpotenz"
+      ],
+      "heading": "1. Zwei Arten von Relationen: „gleichwertig“ vs. „steht vor“"
+    },
+    {
+      "id": "ds-10-k19",
+      "term": "Transitive Abschluss",
+      "kind": "notation",
+      "short": "Der transitive Abschluss R⁺ ist die kleinste transitive Relation, die R enthält.",
+      "explanation": "$R^+$ enthält die Paare, die durch einen $R$-Pfad positiver Länge verbunden sind. Im Unterschied zu $R^*$ werden Identitätspaare nicht eigens ergänzt, können aber durch Zyklen enthalten sein. Wenn $R$ schon transitiv ist, gilt $R^+=R$.",
+      "example": "Für $R=\\{(0,1),(1,2)\\}$ enthält $R^+$ auch $(0,2)$.",
+      "pitfalls": [
+        "$R^+$ und $R^*$ unterscheiden sich darin, ob Pfade der Länge null berücksichtigt werden."
+      ],
+      "related": [
+        "Reflexiv-transitiver Abschluss",
+        "Erreichbarkeit",
+        "Relationpotenz"
+      ],
+      "heading": "1. Zwei Arten von Relationen: „gleichwertig“ vs. „steht vor“"
+    },
+    {
+      "id": "ds-10-k20",
+      "term": "Äquivalenzrelation aus einer Relation erzeugen",
+      "kind": "method",
+      "short": "Die kleinste Äquivalenzrelation, die S enthält, ist der reflexiv-transitive Abschluss von S zusammen mit seiner Umkehrrelation.",
+      "explanation": "Eine Relation $R$ ist genau dann eine Äquivalenzrelation, wenn $R^*\\subseteq R$ und $R^\\top\\subseteq R$ gelten. Für eine beliebige Relation $S$ ist $(S\\cup S^\\top)^*$ die kleinste Äquivalenzrelation, die $S$ enthält. Die Relation $S^*\\cap(S^\\top)^*$ ist die größte Äquivalenzrelation, die in $S^*$ enthalten ist; sie verbindet genau die Elemente, die sich gegenseitig erreichen.",
+      "example": "Für $S=\\{(1,2),(2,3),(3,2)\\}$ auf $\\{1,2,3\\}$ erzeugt $(S\\cup S^\\top)^*$ eine Klasse $\\{1,2,3\\}$; $S^*\\cap(S^\\top)^*$ erzeugt die Klassen $\\{1\\}$ und $\\{2,3\\}$.",
+      "pitfalls": [
+        "$S^*$ allein ist im Allgemeinen nicht symmetrisch.",
+        "Die kleinste Äquivalenzrelation muss alle Paare aus $S$ enthalten."
+      ],
+      "related": [
+        "Äquivalenzrelation",
+        "Reflexiv-transitiver Abschluss",
+        "Erreichbarkeit"
+      ],
+      "heading": "4. Äquivalenzrelationen aus gegebenen Relationen bauen"
+    },
+    {
+      "id": "ds-10-k21",
+      "term": "Schnitt zweier Äquivalenzrelationen",
+      "kind": "theorem",
+      "short": "Der Schnitt zweier Äquivalenzrelationen auf derselben Menge ist wieder eine Äquivalenzrelation.",
+      "explanation": "Sind $R$ und $S$ Äquivalenzrelationen auf $A$, dann ist $R\\cap S$ reflexiv, symmetrisch und transitiv. Für jedes $a\\in A$ gilt $[a]_{R\\cap S}=[a]_R\\cap[a]_S$. Der Schnitt verlangt, dass zwei Elemente bezüglich beider Relationen äquivalent sind.",
+      "example": "Auf $\\mathbb{Z}$ gilt $\\equiv_2\\cap\\equiv_3=\\equiv_6$.",
+      "pitfalls": [
+        "Der Schnitt zweier beliebiger Klassen kann leer sein; die Klassenformel bezieht sich auf Klassen desselben Elements $a$."
+      ],
+      "related": [
+        "Äquivalenzrelation",
+        "Äquivalenzklasse [a]ᵣ",
+        "Kongruenz modulo m"
+      ],
+      "heading": "Schnitt und Vereinigung von Äquivalenzrelationen"
+    },
+    {
+      "id": "ds-10-k22",
+      "term": "Vereinigung zweier Äquivalenzrelationen",
+      "kind": "concept",
+      "short": "Die Vereinigung zweier Äquivalenzrelationen ist im Allgemeinen nicht transitiv.",
+      "explanation": "Für Äquivalenzrelationen $R$ und $S$ ist $R\\cup S$ reflexiv und symmetrisch, kann aber die Transitivität verletzen. Der reflexiv-transitive Abschluss $(R\\cup S)^*$ ist wieder eine Äquivalenzrelation. Die Vereinigung ist nur in besonderen Fällen selbst transitiv.",
+      "example": "Es gilt $0\\equiv_2 2$ und $2\\equiv_3 5$, aber weder $0\\equiv_2 5$ noch $0\\equiv_3 5$; daher ist $\\equiv_2\\cup\\equiv_3$ nicht transitiv.",
+      "pitfalls": [
+        "Dass beide Ausgangsrelationen Äquivalenzrelationen sind, macht ihre Vereinigung nicht automatisch zu einer Äquivalenzrelation."
+      ],
+      "related": [
+        "Äquivalenzrelation",
+        "Reflexiv-transitiver Abschluss",
+        "Transitivität"
+      ],
+      "heading": "Schnitt und Vereinigung von Äquivalenzrelationen"
+    },
+    {
+      "id": "ds-10-k23",
+      "term": "Partielle Ordnung",
+      "kind": "definition",
+      "short": "Eine partielle Ordnung ist eine reflexive, antisymmetrische und transitive Relation.",
+      "explanation": "Eine Relation $R\\subseteq A\\times A$ ist eine partielle Ordnung, wenn $\\operatorname{Id}_A\\subseteq R$, $R\\cap R^\\top\\subseteq\\operatorname{Id}_A$ und $RR\\subseteq R$ gelten. Sie ordnet vergleichbare Elemente, lässt aber unvergleichbare Paare zu. Beispiele sind $\\leq$ auf $\\mathbb{Z}$, Teilbarkeit auf $\\mathbb{N}$ und $\\subseteq$ auf Mengen.",
+      "example": "Bei Teilbarkeit auf $\\mathbb{N}$ sind $2$ und $3$ unvergleichbar: Weder $2\\mid3$ noch $3\\mid2$.",
+      "pitfalls": [
+        "Nicht jedes Paar muss vergleichbar sein.",
+        "Antisymmetrie erlaubt Schleifen."
+      ],
+      "related": [
+        "Reflexivität",
+        "Antisymmetrie",
+        "Transitivität",
+        "Totalordnung"
+      ],
+      "heading": "5. Ordnungsrelationen"
+    },
+    {
+      "id": "ds-10-k24",
+      "term": "Vergleichbarkeit",
+      "kind": "definition",
+      "short": "Zwei Elemente sind bezüglich R vergleichbar, wenn eines von ihnen in Relation zum anderen steht.",
+      "explanation": "Elemente $a,b\\in A$ sind vergleichbar, wenn $aRb$ oder $bRa$ gilt; andernfalls sind sie unvergleichbar. In einer partiellen Ordnung gilt bei vergleichbaren Elementen genau eine der Möglichkeiten: $a=b$, oder $a\\neq b$ und $aRb$, oder $a\\neq b$ und $bRa$. Diese Dreiteilung folgt aus der Antisymmetrie.",
+      "example": "In der Teilbarkeitsordnung sind $2$ und $4$ vergleichbar, $2$ und $3$ dagegen unvergleichbar.",
+      "pitfalls": [
+        "Gleiche Elemente sind vergleichbar, da Reflexivität gilt."
+      ],
+      "related": [
+        "Partielle Ordnung",
+        "Totalordnung"
+      ],
+      "heading": "5. Ordnungsrelationen"
+    },
+    {
+      "id": "ds-10-k25",
+      "term": "Duale Ordnung",
+      "kind": "definition",
+      "short": "Die Umkehrrelation einer partiellen Ordnung ist ebenfalls eine partielle Ordnung.",
+      "explanation": "Die Umkehrrelation $R^\\top$ entsteht, indem jedes Paar $(a,b)$ durch $(b,a)$ ersetzt wird. Ist $R$ eine partielle Ordnung, erfüllt auch $R^\\top$ Reflexivität, Antisymmetrie und Transitivität. Die Umkehrung kehrt die Richtung der Ordnung um, ohne die Grundmenge zu ändern.",
+      "example": "Die Umkehrung von $\\leq_{\\mathbb{Z}}$ ist $\\geq_{\\mathbb{Z}}$.",
+      "pitfalls": [
+        "Die Umkehrrelation ändert die Richtung der Beziehungen, nicht die Grundmenge."
+      ],
+      "related": [
+        "Partielle Ordnung",
+        "Antisymmetrie"
+      ],
+      "heading": "5. Ordnungsrelationen"
+    },
+    {
+      "id": "ds-10-k26",
+      "term": "Präfix-, Suffix- und Infixordnung",
+      "kind": "definition",
+      "short": "Diese partiellen Ordnungen vergleichen Wörter danach, ob eines am Anfang, am Ende oder als zusammenhängendes Teilstück des anderen vorkommt.",
+      "explanation": "Für Wörter $u,v$ gilt $u\\preceq_p v$, wenn $u$ ein Präfix von $v$ ist, $u\\preceq_s v$, wenn $u$ ein Suffix ist, und $u\\preceq_i v$, wenn $u$ ein zusammenhängendes Infix ist. Jede dieser Relationen ist eine partielle Ordnung auf der jeweiligen Wortmenge. Da Pfade Folgen von Knoten sind, gelten dieselben Begriffe für Anfangsstücke, Endstücke und zusammenhängende Teilpfade.",
+      "example": "Für den Pfad $\\pi=1243$ ist $12$ ein Präfix, $43$ ein Suffix und $24$ ein Infix; $14$ ist kein Infix.",
+      "pitfalls": [
+        "Ein Infix muss zusammenhängend sein; ausgelassene Zeichen sind nicht erlaubt.",
+        "Auf einer ungeordneten Menge von Relationspaaren gibt es keine Präfix- oder Suffixordnung."
+      ],
+      "related": [
+        "Partielle Ordnung",
+        "Pfade und Pfadlänge"
+      ],
+      "heading": "Präfix, Suffix und Infix bei Pfaden und Relationen"
+    },
+    {
+      "id": "ds-10-k27",
+      "term": "Totalordnung",
+      "kind": "definition",
+      "short": "Eine Totalordnung ist eine partielle Ordnung, in der jedes Elementpaar vergleichbar ist.",
+      "explanation": "Eine partielle Ordnung $R$ auf $A$ ist total, wenn $A\\times A=R\\cup R^\\top$ gilt. Für alle $a,b\\in A$ steht dann mindestens $aRb$ oder $bRa$. Die übliche Ordnung $\\leq$ auf $\\mathbb{Z}$ ist total.",
+      "example": "Die Ordnung $\\leq$ auf $\\mathbb{Z}$ ist total; Teilbarkeit auf $\\mathbb{N}$ ist nicht total.",
+      "pitfalls": [
+        "Eine Totalordnung muss auch reflexiv, antisymmetrisch und transitiv sein."
+      ],
+      "related": [
+        "Partielle Ordnung",
+        "Vergleichbarkeit",
+        "Lexikographische Ordnung"
+      ],
+      "heading": "6. Totale Ordnung und strikte Ordnung"
+    },
+    {
+      "id": "ds-10-k28",
+      "term": "Striktordnung",
+      "kind": "definition",
+      "short": "Eine Striktordnung ist eine asymmetrische und transitive Relation.",
+      "explanation": "Eine Relation $R$ ist eine strikte, starke oder strenge Ordnung, wenn $R\\cap R^\\top=\\emptyset$ und $RR\\subseteq R$ gelten. Asymmetrie schließt Schleifen aus. Aus einer partiellen Ordnung erhält man eine Striktordnung, indem man alle Identitätspaare entfernt: $R\\setminus\\operatorname{Id}_A$.",
+      "example": "Die Ordnung $<_{\\mathbb{Z}}$ entsteht aus $\\leq_{\\mathbb{Z}}$ durch Entfernen der Schleifen.",
+      "pitfalls": [
+        "Eine Striktordnung ist nicht reflexiv.",
+        "Das Entfernen der Schleifen macht unvergleichbare Elemente nicht vergleichbar."
+      ],
+      "related": [
+        "Partielle Ordnung",
+        "Asymmetrie"
+      ],
+      "heading": "6. Totale Ordnung und strikte Ordnung"
+    },
+    {
+      "id": "ds-10-k29",
+      "term": "Strikte schwache Ordnung",
+      "kind": "definition",
+      "short": "Eine strikte schwache Ordnung ist eine Striktordnung, deren Unvergleichbarkeit eine Äquivalenzrelation ist.",
+      "explanation": "Die Unvergleichbarkeit gruppiert Elemente in Gleichstandsklassen. Zwischen verschiedenen Klassen besteht eine strikte Reihenfolge, sodass die Klassen selbst total geordnet sind. Damit beschreibt die Relation geordnete Gruppen mit Gleichstand innerhalb jeder Gruppe.",
+      "example": "Beim Ranking nach Punktzahl kann $a<b$ bedeuten, dass $a$ weniger Punkte hat als $b$; Personen mit gleicher Punktzahl sind unvergleichbar.",
+      "pitfalls": [
+        "Unvergleichbarkeit ist hier eine Relation zwischen gleichrangigen, möglicherweise verschiedenen Elementen; sie ist nicht dasselbe wie Gleichheit."
+      ],
+      "related": [
+        "Striktordnung",
+        "Äquivalenzrelation",
+        "Totalordnung"
+      ],
+      "heading": "6. Totale Ordnung und strikte Ordnung"
+    },
+    {
+      "id": "ds-10-k30",
+      "term": "Schnitt und Vereinigung partieller Ordnungen",
+      "kind": "theorem",
+      "short": "Der Schnitt zweier partieller Ordnungen ist wieder eine partielle Ordnung, ihre Vereinigung im Allgemeinen nicht.",
+      "explanation": "Sind $R$ und $S$ partielle Ordnungen auf derselben Menge, dann ist $R\\cap S$ reflexiv, antisymmetrisch und transitiv. Auch der Schnitt einer partiellen Ordnung mit einer Äquivalenzrelation ist eine partielle Ordnung. Die Vereinigung kann dagegen Transitivität oder Antisymmetrie verletzen.",
+      "example": "Auf einer Menge bleiben in $R\\cap S$ genau die Beziehungen erhalten, die sowohl in $R$ als auch in $S$ vorkommen.",
+      "pitfalls": [
+        "Aus der Gültigkeit für den Schnitt folgt keine entsprechende Aussage für die Vereinigung."
+      ],
+      "related": [
+        "Partielle Ordnung",
+        "Äquivalenzrelation",
+        "Transitivität"
+      ],
+      "heading": "6. Totale Ordnung und strikte Ordnung"
+    },
+    {
+      "id": "ds-10-k31",
+      "term": "Hasse-Diagramm",
+      "kind": "definition",
+      "short": "Ein Hasse-Diagramm stellt eine partielle Ordnung durch ihre unmittelbaren Beziehungen ohne Schleifen und transitive Kanten dar.",
+      "explanation": "Eine Relation $S$ ist ein Hasse-Diagramm einer Ordnung $R$, wenn $S$ irreflexiv ist, keine transitiven Kanten enthält und $S^*=R$ gilt. Die nicht eingezeichneten Beziehungen folgen durch Wege. Für $\\leq$ auf $\\mathbb{N}_0$ genügen etwa die Kanten $i\\to i+1$.",
+      "example": "In der üblichen Ordnung auf $\\mathbb{N}_0$ ergibt die Kette $0\\to1\\to2\\to3\\to\\cdots$ durch reflexiv-transitiven Abschluss die ganze Ordnung.",
+      "pitfalls": [
+        "Nicht jede Beziehung der Ordnung wird als Kante eingezeichnet.",
+        "Für $(\\mathbb{Q},\\leq)$ gibt es kein solches Hasse-Diagramm, da zwischen zwei rationalen Zahlen stets eine weitere liegt."
+      ],
+      "related": [
+        "Partielle Ordnung",
+        "Reflexiv-transitiver Abschluss",
+        "Erreichbarkeit"
+      ],
+      "heading": "7. Hasse-Diagramme"
+    },
+    {
+      "id": "ds-10-k32",
+      "term": "Hasse-Diagramm einer endlichen Ordnung bilden",
+      "kind": "method",
+      "short": "Bei einer endlichen partiellen Ordnung entfernt man zuerst alle Schleifen und danach alle transitiven Kanten.",
+      "explanation": "Sei $R$ eine partielle Ordnung auf einer endlichen Menge $A$ und $R_s=R\\setminus\\operatorname{Id}_A$. Die unmittelbaren Beziehungen sind $S=R_s\\setminus(R_sR_s)$. Zeichne für jedes Paar in $S$ eine Kante; häufig werden kleinere Elemente unten und größere oben angeordnet.",
+      "example": "Bei Teilbarkeit auf den Teilern von $30$ sind die Kanten $1\\to2,1\\to3,1\\to5,2\\to6,2\\to10,3\\to6,3\\to15,5\\to10,5\\to15,6\\to30,10\\to30,15\\to30$.",
+      "pitfalls": [
+        "Transitive Kanten werden anhand der Relation entfernt, nicht anhand der optischen Position der Knoten."
+      ],
+      "related": [
+        "Hasse-Diagramm",
+        "Partielle Ordnung",
+        "Relationpotenz"
+      ],
+      "heading": "7. Hasse-Diagramme"
+    },
+    {
+      "id": "ds-10-k33",
+      "term": "Lexikographische Ordnung",
+      "kind": "definition",
+      "short": "Die lexikographische Ordnung vergleicht Wörter an der ersten unterschiedlichen Stelle und ordnet ein Präfix vor dem längeren Wort.",
+      "explanation": "Sei $\\leq$ eine Totalordnung auf einem Alphabet $\\Sigma$. Zwei Wörter werden von links verglichen; an der ersten unterschiedlichen Stelle entscheidet die Ordnung ihrer Zeichen. Ist ein Wort Präfix des anderen, kommt das kürzere zuerst. Damit ist die lexikographische Ordnung auf $\\Sigma^*$ total.",
+      "example": "Für $a<b$ gilt $\\varepsilon<a<aab<ab<b<ba$.",
+      "pitfalls": [
+        "Die lexikographische Ordnung sortiert nicht nach Wortlänge.",
+        "Bei einem Präfixpaar gilt die Regel, dass das kürzere Wort zuerst kommt."
+      ],
+      "related": [
+        "Totalordnung",
+        "Präfix-, Suffix- und Infixordnung"
+      ],
+      "heading": "Lexikographische Ordnung"
+    },
+    {
+      "id": "ds-10-k34",
+      "term": "Äquivalenzrelationen auf [3] nach Inklusion",
+      "kind": "example",
+      "short": "Die Äquivalenzrelationen auf [3], geordnet durch Inklusion, bilden eine partielle Ordnung, die den Partitionen von [3] entspricht.",
+      "explanation": "Betrachtet man alle Äquivalenzrelationen auf $[3]=\\{1,2,3\\}$ und ordnet sie mit $\\subseteq$, erhält man eine partielle Ordnung. Die feinste Partition entspricht der Identitätsrelation unten, die gröbste Partition der Relation $[3]\\times[3]$ oben. Die drei Partitionen mit einem Zweierblock liegen dazwischen und sind paarweise unvergleichbar.",
+      "example": "Die Partition $\\{\\{1\\},\\{2,3\\}\\}$ liegt zwischen $\\{\\{1\\},\\{2\\},\\{3\\}\\}$ und $\\{\\{1,2,3\\}\\}$.",
+      "pitfalls": [
+        "Die drei mittleren Äquivalenzrelationen sind untereinander unvergleichbar."
+      ],
+      "related": [
+        "Äquivalenzrelationen und Partitionen",
+        "Gröbste und feinste Partition",
+        "Partielle Ordnung"
+      ],
+      "heading": "⊆ auf den Äquivalenzrelationen über {1,2,3}"
+    }
+  ],
+  "generator": {
+    "model": "gpt-6-luna",
+    "effort": "xhigh",
+    "promptVersion": "k1",
+    "generatedAt": "2026-11-13T23:29:29.239Z"
+  }
+}
