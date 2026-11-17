@@ -1,0 +1,518 @@
+{
+  "schemaVersion": 1,
+  "unitId": "eip-10",
+  "module": "EIP",
+  "unitNumber": 10,
+  "unitTitle": "Vererbung und Polymorphie",
+  "sourceSha": "1c3794fde04347f157e6679f337f4e5a0041466cd29f08e86176ecaf62694a2e",
+  "overview": "Diese Unit behandelt Java-Vererbung, Konstruktorverkettung und den Unterschied zwischen statischer Typprüfung und dynamischer Methodenauswahl. Du lernst, wie Sichtbarkeit und Invarianten den Objektzustand schützen, wie Unterklassen den Verhaltensvertrag ihrer Oberklasse einhalten und wie Felder, Referenzen und Gleichheit funktionieren.",
+  "entries": [
+    {
+      "id": "eip-10-k01",
+      "term": "Oberklasse, Unterklasse und is-a-Beziehung",
+      "kind": "concept",
+      "short": "Eine Unterklasse erweitert eine allgemeinere Oberklasse und beschreibt eine speziellere Art von ihr.",
+      "explanation": "Mit `extends` wird eine Unterklasse von einer Oberklasse abgeleitet. Sie erbt deren zugängliche Mitglieder und kann eigenen Zustand und eigenes Verhalten ergänzen oder geerbte Instanzmethoden überschreiben. Die Beziehung soll fachlich eine is-a-Beziehung ausdrücken: Jedes `Dictionary` ist ein `Book`. In einem UML-Klassendiagramm zeigt das leere Dreieck auf die Oberklasse.",
+      "example": "```java\nclass Dictionary extends Book { }\n```",
+      "pitfalls": [
+        "Vererbung sollte eine echte is-a-Beziehung ausdrücken.",
+        "Eine has-a-Beziehung bedeutet, dass ein Objekt eine Referenz auf ein anderes Objekt besitzt."
+      ],
+      "related": [
+        "Konstruktion eines Unterklassenobjekts",
+        "Vererbungshierarchie der Konten"
+      ],
+      "heading": "1. Warum Vererbung?"
+    },
+    {
+      "id": "eip-10-k02",
+      "term": "Konstruktion eines Unterklassenobjekts",
+      "kind": "concept",
+      "short": "Ein Unterklassenobjekt ist ein einzelnes Objekt mit Zustand aus Ober- und Unterklasse.",
+      "explanation": "Bei `new Dictionary(...)` wird ein `Dictionary`-Objekt angelegt, das Felder aus `Book` und eigene Felder aus `Dictionary` enthält. `super()` erzeugt kein separates Oberklassenobjekt, sondern ruft den Oberklassenkonstruktor für den Oberklassenteil desselben Objekts auf. Zunächst erhalten die Instanzfelder Standardwerte; anschließend werden die Klassenbestandteile in der Konstruktorverkettung initialisiert.",
+      "example": "Im `Book`- und `Dictionary`-Beispiel setzt `Book()` `pages` auf `150`, danach verdoppelt der `Dictionary`-Konstruktor den Wert auf `300`.",
+      "pitfalls": [
+        "Der Aufruf `super()` erzeugt kein zweites Objekt.",
+        "Oberklassenfelder gehören auch dann zum Unterklassenobjekt, wenn sie `private` sind."
+      ],
+      "related": [
+        "Oberklasse, Unterklasse und is-a-Beziehung",
+        "Konstruktorverkettung mit super(...) und this(...)",
+        "Initialisierungsreihenfolge"
+      ],
+      "heading": "2. Konstruktion eines Unterklassenobjekts"
+    },
+    {
+      "id": "eip-10-k03",
+      "term": "Konstruktorverkettung mit super(...) und this(...)",
+      "kind": "method",
+      "short": "`super(...)` ruft einen Konstruktor der direkten Oberklasse auf, während `this(...)` einen anderen Konstruktor derselben Klasse aufruft.",
+      "explanation": "`super(argumente)` wählt einen passenden Konstruktor der direkten Oberklasse; `this(argumente)` delegiert an einen anderen Konstruktor der aktuellen Klasse. Eine `this(...)`-Kette muss schließlich die Oberklasse initialisieren. `this` bezeichnet außerdem das aktuelle Objekt, während `super.methode()` die Oberklassenimplementierung an diesem Objekt auswählt. Im Java-25-Beispiel dürfen bestimmte Prüfungen vor `super(...)` stehen, solange sie nicht auf den noch nicht initialisierten Objektzustand zugreifen.",
+      "example": "```java\npublic Dictionary(int pages, int defs) {\n    super(pages);\n    this.defs = defs;\n}\n```",
+      "pitfalls": [
+        "`super(...)` muss einen tatsächlich verfügbaren Konstruktor der direkten Oberklasse aufrufen.",
+        "`super` ist keine eigenständige Referenz auf ein zweites Objekt."
+      ],
+      "related": [
+        "Konstruktion eines Unterklassenobjekts",
+        "Parameterloser Konstruktor",
+        "Überschreiben einer geerbten Methode (Overriding)"
+      ],
+      "heading": "39 – Inheritance and Construction"
+    },
+    {
+      "id": "eip-10-k04",
+      "term": "Parameterloser Konstruktor",
+      "kind": "definition",
+      "short": "Java erzeugt einen parameterlosen Konstruktor nur, wenn die Klasse selbst keinen Konstruktor deklariert.",
+      "explanation": "Deklariert eine Klasse keinen Konstruktor, stellt Java automatisch einen parameterlosen Konstruktor bereit. Sobald die Klasse einen eigenen Konstruktor deklariert, etwa `Book(int x)`, wird kein parameterloser Konstruktor zusätzlich erzeugt. Ein Unterklassenkonstruktor ohne explizites `super(...)` benötigt einen aufrufbaren parameterlosen Konstruktor der Oberklasse.",
+      "example": "Wenn `Book` nur `Book(int x)` deklariert, kann `Child()` nicht implizit `super()` aufrufen.",
+      "pitfalls": [
+        "Ein vorhandener Konstruktor mit Parametern bedeutet nicht, dass es auch einen parameterlosen Konstruktor gibt."
+      ],
+      "related": [
+        "Konstruktorverkettung mit super(...) und this(...)",
+        "Konstruktion eines Unterklassenobjekts"
+      ],
+      "heading": "39 – Inheritance and Construction"
+    },
+    {
+      "id": "eip-10-k05",
+      "term": "Überschreiben einer geerbten Methode (Overriding)",
+      "kind": "definition",
+      "short": "Beim Overriding definiert eine Unterklasse eine geerbte Instanzmethode mit passender Signatur neu.",
+      "explanation": "Eine Unterklasse überschreibt eine geerbte Instanzmethode, indem sie eine passende Methodensignatur bereitstellt. Bei einem Aufruf über eine Oberklassenreferenz kann die Unterklassenimplementierung zur Laufzeit ausgeführt werden. Mit `super.methode()` lässt sich innerhalb der Unterklasse ausdrücklich die Oberklassenimplementierung am selben Objekt aufrufen.",
+      "example": "```java\n@Override\npublic String languageDescription() {\n    return super.languageDescription() + \" → German\";\n}\n```",
+      "pitfalls": [
+        "Ein anderer Rückgabetyp allein macht eine Methode nicht zu einer Überladung.",
+        "`super.methode()` ruft die Oberklassenimplementierung am selben Objekt auf."
+      ],
+      "related": [
+        "Überladen einer Methode (Overloading)",
+        "@Override",
+        "Upcasting und dynamische Bindung",
+        "Liskov Substitution Principle (LSP)"
+      ],
+      "heading": "4. Eine geerbte Methode überschreiben"
+    },
+    {
+      "id": "eip-10-k06",
+      "term": "Überladen einer Methode (Overloading)",
+      "kind": "definition",
+      "short": "Beim Overloading haben mehrere Methoden denselben Namen, aber unterschiedliche Parameterlisten.",
+      "explanation": "Überladene Methoden unterscheiden sich durch ihre Parameterlisten, etwa durch eine andere Anzahl oder andere Typen von Parametern. Die Auswahl einer Überladung erfolgt anhand der beim Aufruf bekannten Typen und Argumente. Ein anderer Rückgabetyp allein genügt nicht, um eine Methode zu überladen.",
+      "example": "```java\nString languageDescription();\nString languageDescription(String separator);\n```",
+      "pitfalls": [
+        "Overloading ist nicht dasselbe wie Overriding.",
+        "Der Rückgabetyp allein unterscheidet keine Überladung."
+      ],
+      "related": [
+        "Überschreiben einer geerbten Methode (Overriding)",
+        "equals(Object)"
+      ],
+      "heading": "Overriding vs. Overloading"
+    },
+    {
+      "id": "eip-10-k07",
+      "term": "@Override",
+      "kind": "notation",
+      "short": "`@Override` weist den Compiler an zu prüfen, ob die folgende Methode tatsächlich eine geerbte Methode überschreibt.",
+      "explanation": "Die Annotation steht direkt vor einer Methodenimplementierung, die als Override gedacht ist. Der Compiler meldet einen Fehler, wenn keine passende Methode zum Überschreiben gefunden wird, etwa wegen eines Tippfehlers im Namen oder einer falschen Parameterliste. Die Annotation ist optional, macht die Absicht aber überprüfbar.",
+      "example": "```java\n@Override\npublic boolean withdraw(double amount) { ... }\n```",
+      "pitfalls": [
+        "`@Override` bewirkt nicht selbst die dynamische Methodenauswahl.",
+        "Die Annotation kennzeichnet kein Overloading."
+      ],
+      "related": [
+        "Überschreiben einer geerbten Methode (Overriding)",
+        "Überladen einer Methode (Overloading)"
+      ],
+      "heading": "4. Eine geerbte Methode überschreiben"
+    },
+    {
+      "id": "eip-10-k08",
+      "term": "Upcasting und dynamische Bindung",
+      "kind": "concept",
+      "short": "Ein Upcast erlaubt eine Unterklassenreferenz als Oberklassenreferenz, während überschriebene Instanzmethoden anhand der Laufzeitklasse ausgewählt werden.",
+      "explanation": "Eine Unterklassenreferenz kann automatisch einer Oberklassenreferenz zugewiesen werden, etwa `Book b = new Dictionary()`. Der deklarierte Referenztyp (`Book`) bestimmt, welche Methoden der Compiler beim Aufruf zulässt. Bei überschriebenen Instanzmethoden bestimmt dagegen die tatsächliche Objektklasse (`Dictionary`), welche Implementierung zur Laufzeit ausgeführt wird. Der Upcast erstellt keine Kopie und ändert die Laufzeitklasse nicht.",
+      "example": "Über `Book b = new Dictionary()` ist `b.languageDescription()` erlaubt und kann den `Dictionary`-Override aufrufen; eine nur in `Dictionary` deklarierte Methode ist über `b` nicht direkt aufrufbar.",
+      "pitfalls": [
+        "Der deklarierte Typ und die Laufzeitklasse können verschieden sein.",
+        "Ein Upcast schränkt die über die Referenz verfügbaren Aufrufe ein, wandelt aber das Objekt nicht um."
+      ],
+      "related": [
+        "Überschreiben einer geerbten Methode (Overriding)",
+        "Referenz und Aliasing",
+        "Polymorphie",
+        "Field Hiding"
+      ],
+      "heading": "5. Upcasting und dynamische Bindung"
+    },
+    {
+      "id": "eip-10-k09",
+      "term": "Sichtbarkeit und Kapselung",
+      "kind": "concept",
+      "short": "Sichtbarkeitsmodifizierer legen fest, welcher Code auf Mitglieder zugreifen darf, und Kapselung schützt den internen Zustand einer Klasse.",
+      "explanation": "`public` erlaubt den Zugriff auch aus anderen Klassen, `private` nur aus der deklarierenden Klasse und `protected` unter anderem aus Unterklassen. Ohne Modifizierer gilt Package-Sichtbarkeit. Private Felder bleiben Bestandteil eines Unterklassenobjekts, sind aber in der Unterklasse nicht direkt zugänglich. Kapselung bedeutet, Zustand gezielt über Methoden zugänglich zu machen, damit Regeln für Änderungen kontrolliert werden.",
+      "example": "Eine Unterklasse darf ein geerbtes `protected`-Feld verwenden, aber nicht direkt das `private`-Feld der Oberklasse lesen.",
+      "pitfalls": [
+        "`private` bedeutet nicht, dass das Feld im Unterklassenobjekt fehlt.",
+        "`protected` gibt nicht pauschal allen fremden Klassen Zugriff."
+      ],
+      "related": [
+        "Invariante",
+        "Konstruktion eines Unterklassenobjekts",
+        "Array-Stack"
+      ],
+      "heading": "6. Sichtbarkeit und Kapselung"
+    },
+    {
+      "id": "eip-10-k10",
+      "term": "Invariante",
+      "kind": "definition",
+      "short": "Eine Invariante ist eine Eigenschaft, die für jeden gültigen Zustand eines Objekts gelten soll.",
+      "explanation": "Ein Konstruktor soll ein Objekt in einen Zustand bringen, in dem seine Invarianten gelten. Öffentliche Methoden müssen die Invarianten bei jeder zulässigen Zustandsänderung bewahren. Private Felder und gezielte öffentliche Methoden helfen dabei, ungültige Änderungen von außen zu verhindern.",
+      "example": "Bei einem Array-Stack gilt typischerweise $0 \\leq \\text{size} \\leq \\text{a.length}$; bei einem rationalen Bruch darf der Nenner nicht `0` sein.",
+      "pitfalls": [
+        "Eine Invariante ist nicht nur eine Prüfung im Konstruktor; sie muss auch nach Methodenaufrufen gelten."
+      ],
+      "related": [
+        "Sichtbarkeit und Kapselung",
+        "Array-Stack"
+      ],
+      "heading": "7. Invarianten und saubere Schnittstellen"
+    },
+    {
+      "id": "eip-10-k11",
+      "term": "Vererbungshierarchie der Konten",
+      "kind": "concept",
+      "short": "Die Kontoklassen teilen gemeinsamen Zustand über Vererbung und können zusätzlich separate Objekte referenzieren.",
+      "explanation": "`Savings_Account` ist ein `Bank_Account`, und `Bonus_Saver_Account` ist ein `Savings_Account`. `Checking_Account` ist ebenfalls ein `Bank_Account`, besitzt aber zusätzlich eine Referenz auf ein separates `Savings_Account` als Ersatzkonto. Die Vererbung beschreibt eine is-a-Beziehung; die Referenz auf das Ersatzkonto beschreibt eine has-a-Beziehung.",
+      "example": "`Checking_Account` kann ein separates Sparkonto als Überziehungsreserve speichern.",
+      "pitfalls": [
+        "Das Ersatzkonto ist ein eigenes Objekt und kein zusätzlicher Feldteil desselben Checking-Objekts."
+      ],
+      "related": [
+        "Oberklasse, Unterklasse und is-a-Beziehung",
+        "Bank_Account",
+        "Checking_Account"
+      ],
+      "heading": "8. Vererbungshierarchie der Konten"
+    },
+    {
+      "id": "eip-10-k12",
+      "term": "Bank_Account",
+      "kind": "definition",
+      "short": "`Bank_Account` bündelt Kontonummer und Kontostand sowie gemeinsame Einzahlungs- und Auszahlungsmethoden.",
+      "explanation": "Die Oberklasse stellt Felder wie `account` und `balance` bereit. `deposit(amount)` erhöht den Kontostand; `withdraw(amount)` prüft zunächst, ob genügend Guthaben vorhanden ist, und bucht nur bei Erfolg ab. Die Vorlesungsbeispiele setzen gültige, nichtnegative und endliche Beträge voraus.",
+      "example": "Bei einem Kontostand von `100` liefert `withdraw(30)` `true` und setzt den Kontostand auf `70`.",
+      "pitfalls": [
+        "Ohne Eingabevalidierung könnte etwa eine negative Auszahlung den Kontostand unerwünscht erhöhen."
+      ],
+      "related": [
+        "Savings_Account",
+        "Bonus_Saver_Account",
+        "Checking_Account",
+        "Liskov Substitution Principle (LSP)"
+      ],
+      "heading": "9. Gemeinsamkeiten:"
+    },
+    {
+      "id": "eip-10-k13",
+      "term": "Savings_Account",
+      "kind": "definition",
+      "short": "`Savings_Account` erweitert ein Bankkonto um einen Zinssatz und eine Zinsgutschrift.",
+      "explanation": "Das Sparkonto erbt Kontonummer, Kontostand und die gemeinsamen Kontomethoden von `Bank_Account`. Bei `add_interest()` wird der Kontostand mit dem Faktor $1+r$ multipliziert, wobei $r$ der Zinssatz ist. Der Zinssatz wird im Konstruktor gesetzt.",
+      "example": "Bei einem Guthaben von `100` und $r=0.25$ ergibt sich nach der Zinsgutschrift ein Guthaben von `125`.",
+      "pitfalls": [
+        "Ein Zinssatz von `0.25` bedeutet in dieser Berechnung 25 Prozent, nicht 0,25 Prozent."
+      ],
+      "related": [
+        "Bank_Account",
+        "Bonus_Saver_Account",
+        "Polymorphie"
+      ],
+      "heading": "Savings Account"
+    },
+    {
+      "id": "eip-10-k14",
+      "term": "Bonus_Saver_Account",
+      "kind": "definition",
+      "short": "`Bonus_Saver_Account` überschreibt Auszahlung und Zinsgutschrift eines Sparkontos um Gebühr und Bonus zu ergänzen.",
+      "explanation": "Das Bonus-Sparkonto erweitert `Savings_Account` um eine Abhebegebühr und einen Zinsbonus. Bei `withdraw(amount)` delegiert es an `super.withdraw(amount + penalty)`. Bei `add_interest()` verwendet es den normalen Zinssatz zuzüglich Bonus.",
+      "example": "Bei einer Gebühr von `20` versucht `withdraw(80)`, insgesamt `100` abzuziehen; reicht das Guthaben nicht, bleibt es unverändert und der Aufruf liefert `false`.",
+      "pitfalls": [
+        "Die Gebühr wird bei einem fehlgeschlagenen Basis-Auszahlungsversuch nicht teilweise abgezogen.",
+        "Die überschriebenen Methoden müssen weiterhin den Vertrag von `Bank_Account` erfüllen."
+      ],
+      "related": [
+        "Savings_Account",
+        "Überschreiben einer geerbten Methode (Overriding)",
+        "Liskov Substitution Principle (LSP)"
+      ],
+      "heading": "Bonus Saver Account"
+    },
+    {
+      "id": "eip-10-k15",
+      "term": "Checking_Account",
+      "kind": "method",
+      "short": "`Checking_Account` versucht bei Unterdeckung, den fehlenden Betrag aus einem separaten Sparkonto zu decken.",
+      "explanation": "Zuerst versucht `withdraw` die Auszahlung mit `super.withdraw(amount)` vom Checking-Konto. Falls das scheitert, berechnet die Methode den Fehlbetrag als `amount - balance` und fordert diesen Betrag vom Ersatzkonto an. Bei Erfolg setzt sie den Checking-Kontostand auf `0` und liefert `true`; falls auch das Ersatzkonto ablehnt, liefert sie `false`. Das Ersatzkonto wird bei einer abgelehnten Auszahlung nicht belastet.",
+      "example": "Bei `50` auf dem Checking-Konto, `200` auf dem Sparkonto und einer Auszahlung von `100` werden `50` aus dem Sparkonto entnommen; danach stehen auf den Konten `0` und `150`.",
+      "pitfalls": [
+        "Die Reserve deckt nur den Fehlbetrag, nicht den gesamten Auszahlungsbetrag.",
+        "Eine fehlgeschlagene Reserveauszahlung darf keine Teilbuchung hinterlassen."
+      ],
+      "related": [
+        "Bank_Account",
+        "Savings_Account",
+        "Polymorphie",
+        "Liskov Substitution Principle (LSP)"
+      ],
+      "heading": "Checking Account: Ersatzkonto bei Unterdeckung"
+    },
+    {
+      "id": "eip-10-k16",
+      "term": "Polymorphie",
+      "kind": "concept",
+      "short": "Polymorphie erlaubt denselben Methodenaufruf über einen Oberklassentyp mit unterschiedlichem Verhalten je nach Laufzeitklasse.",
+      "explanation": "Ein Array vom Typ `Bank_Account[]` kann Objekte verschiedener Unterklassen enthalten. Ein Aufruf wie `accounts[i].withdraw(amount)` ist für alle Elemente gleich geschrieben, aber Java führt bei überschriebenen Instanzmethoden jeweils die Implementierung der tatsächlichen Objektklasse aus. So kann gemeinsamer Code verschiedene Kontotypen behandeln.",
+      "example": "Ein Schleifenaufruf auf `Bank_Account[]` kann bei einem `Bonus_Saver_Account` die Gebühr und bei einem `Checking_Account` das Ersatzkonto berücksichtigen.",
+      "pitfalls": [
+        "Der deklarierte Referenztyp begrenzt, welche Methoden im Quellcode aufrufbar sind.",
+        "Dynamische Auswahl gilt für überschriebenen Instanzmethoden, nicht für Felder."
+      ],
+      "related": [
+        "Upcasting und dynamische Bindung",
+        "Überschreiben einer geerbten Methode (Overriding)",
+        "Liskov Substitution Principle (LSP)",
+        "Field Hiding"
+      ],
+      "heading": "10. Polymorphie: derselbe Aufruf, anderes Verhalten"
+    },
+    {
+      "id": "eip-10-k17",
+      "term": "Liskov Substitution Principle (LSP)",
+      "kind": "concept",
+      "short": "Ein Unterklassenobjekt muss überall dort einsetzbar sein, wo die Oberklasse erwartet wird, ohne deren Verhaltensvertrag zu verletzen.",
+      "explanation": "Eine Unterklasse muss die zugesicherten Regeln der Oberklasse einhalten. Für `withdraw(amount)` gilt in den Beispielen: Bei `true` wurde die Auszahlung durchgeführt; bei `false` bleiben alle betroffenen Kontostände unverändert. Eine Unterklasse darf den Vertrag nicht durch Teilbuchungen verletzen, wenn sie anschließend `false` zurückgibt. Der Compiler prüft Methodensignaturen, aber nicht automatisch den vollständigen Verhaltensvertrag.",
+      "example": "Wenn ein Override erst eine Gebühr abbucht und danach die eigentliche Auszahlung ablehnt, liefert es `false`, obwohl sich der Kontostand geändert hat.",
+      "pitfalls": [
+        "Eine passende Signatur allein garantiert keine LSP-konforme Unterklasse.",
+        "Ein Override darf keine stärkeren Vorbedingungen oder schwächeren Zusagen einführen."
+      ],
+      "related": [
+        "Bank_Account",
+        "Überschreiben einer geerbten Methode (Overriding)",
+        "Polymorphie",
+        "Bonus_Saver_Account"
+      ],
+      "heading": "11. Liskov Substitution Principle (LSP)"
+    },
+    {
+      "id": "eip-10-k18",
+      "term": "Field Hiding",
+      "kind": "definition",
+      "short": "Field Hiding entsteht, wenn eine Unterklasse ein Feld mit demselben Namen wie ein Oberklassenfeld deklariert.",
+      "explanation": "Bei gleichnamigen Feldern entstehen zwei getrennte Speicherplätze im selben Objekt: eines im Oberklassenteil und eines im Unterklassenteil. Innerhalb der Unterklasse bezeichnet `a` normalerweise das Unterklassenfeld; `super.a` bezeichnet das Oberklassenfeld. Welches Feld ein Zugriff auswählt, hängt statisch vom Ausdruckstyp beziehungsweise von `super` ab.",
+      "example": "Wenn `Child` sein Feld `a` auf `2` und `super.a` auf `3` setzt, können `this.a` und `super.a` am selben Objekt unterschiedliche Werte liefern.",
+      "pitfalls": [
+        "Field Hiding ist kein dynamisches Überschreiben wie bei Instanzmethoden.",
+        "Gleichnamige Felder können sogar unterschiedliche Typen haben, sind aber schwer zu überblicken."
+      ],
+      "related": [
+        "Upcasting und dynamische Bindung",
+        "Initialisierungsreihenfolge",
+        "Konstruktion eines Unterklassenobjekts"
+      ],
+      "heading": "12. Field Hiding ≠ Method Overriding"
+    },
+    {
+      "id": "eip-10-k19",
+      "term": "Initialisierungsreihenfolge",
+      "kind": "concept",
+      "short": "Instanzfelder erhalten Standardwerte, danach werden Oberklasse und Unterklasse in festgelegter Reihenfolge initialisiert.",
+      "explanation": "Zuerst erhalten alle Instanzfelder Standardwerte wie `0`, `false` oder `null`. Danach laufen die Feldinitialisierer und der Konstruktor der Oberklasse. Anschließend laufen die Feldinitialisierer der Unterklasse in Quelltextreihenfolge und zuletzt der restliche Rumpf ihres Konstruktors.",
+      "example": "Im Vorlesungsbeispiel erhält `a` zuerst den Standardwert `0`, wird durch den Oberklassenfeldinitialisierer auf `5` gesetzt und später durch den dynamischen Aufruf von `Child.inc()` auf `7` erhöht.",
+      "pitfalls": [
+        "Unterklassenfeldinitialisierer laufen erst nach dem Oberklassenkonstruktor.",
+        "Ein Unterklassenfeld kann daher während eines Oberklassenkonstruktor-Aufrufs noch den Standardwert haben."
+      ],
+      "related": [
+        "Konstruktion eines Unterklassenobjekts",
+        "Field Hiding",
+        "Dynamischer Methodenaufruf im Oberklassenkonstruktor"
+      ],
+      "heading": "13. Initialisierungsreihenfolge"
+    },
+    {
+      "id": "eip-10-k20",
+      "term": "Dynamischer Methodenaufruf im Oberklassenkonstruktor",
+      "kind": "concept",
+      "short": "Ein überschreibbarer Methodenaufruf im Oberklassenkonstruktor kann bereits die Unterklassenimplementierung ausführen.",
+      "explanation": "Auch wenn der Aufruf im Konstruktor der Oberklasse steht, wird eine überschriebene Instanzmethode dynamisch anhand der tatsächlichen Objektklasse ausgewählt. Der Unterklassenteil kann zu diesem Zeitpunkt noch nicht vollständig initialisiert sein. Im Vorlesungsbeispiel addiert `Child.inc()` jeweils `2`, sodass `a=7` und `b=35` gelten und die Summe `42` beträgt.",
+      "example": "Ruft `Parent()` `inc()` auf und überschreibt `Child` die Methode, kann `Child.inc()` laufen, bevor die Initialisierung von `Child` abgeschlossen ist.",
+      "pitfalls": [
+        "Überschreibbare Methoden in Oberklassenkonstruktoren können auf noch nicht initialisierten Unterklassenzustand treffen."
+      ],
+      "related": [
+        "Initialisierungsreihenfolge",
+        "Upcasting und dynamische Bindung",
+        "Überschreiben einer geerbten Methode (Overriding)"
+      ],
+      "heading": "Klausurbeispiel aus der Vorlesung"
+    },
+    {
+      "id": "eip-10-k21",
+      "term": "Object",
+      "kind": "definition",
+      "short": "`Object` ist die gemeinsame Oberklasse aller Java-Klassen, die keine andere Oberklasse angeben.",
+      "explanation": "Eine Klasse ohne ausdrücklich angegebene Oberklasse erbt direkt von `Object`. Dadurch stehen Methoden wie `toString()`, `equals(Object)` und `hashCode()` grundsätzlich zur Verfügung. Eine Referenz vom Typ `Object` kann auf ein Objekt einer spezielleren Klasse zeigen, erlaubt aber nur Aufrufe, die der deklarierte Typ kennt.",
+      "example": "`Object x = new Rational(2, 8);` erlaubt `x.toString()`, aber nicht `x.numerator()` ohne passenden Cast.",
+      "pitfalls": [
+        "Der deklarierte Typ `Object` ändert nicht die Laufzeitklasse des referenzierten Objekts."
+      ],
+      "related": [
+        "instanceof",
+        "Referenz-Cast",
+        "toString()",
+        "equals(Object)",
+        "hashCode()-Vertrag"
+      ],
+      "heading": "44 – Object, Reference Types, and Equality"
+    },
+    {
+      "id": "eip-10-k22",
+      "term": "toString()",
+      "kind": "method",
+      "short": "`toString()` liefert eine textuelle Darstellung eines Objekts und kann in einer Klasse überschrieben werden.",
+      "explanation": "`toString()` ist eine von `Object` geerbte Methode. Eine Unterklasse kann sie überschreiben, um eine für ihre Objekte passende Zeichenkettendarstellung bereitzustellen. Im Vorlesungsbeispiel gibt `Rational.toString()` für `new Rational(2, 8)` den Text `2/8` zurück.",
+      "example": "```java\nObject x = new Rational(2, 8);\nx.toString(); // \"2/8\"\n```",
+      "pitfalls": [
+        "Ein Referenztyp `Object` verhindert den Aufruf von `toString()` nicht, weil die Methode in `Object` deklariert ist."
+      ],
+      "related": [
+        "Object",
+        "Überschreiben einer geerbten Methode (Overriding)",
+        "Upcasting und dynamische Bindung"
+      ],
+      "heading": "14.         : gemeinsame Oberklasse"
+    },
+    {
+      "id": "eip-10-k23",
+      "term": "Referenz und Aliasing",
+      "kind": "concept",
+      "short": "Aliasing liegt vor, wenn mehrere Referenzen dasselbe Objekt bezeichnen.",
+      "explanation": "Eine Referenz speichert nicht das Objekt selbst, sondern ermöglicht den Zugriff darauf. Wird eine Referenz zugewiesen oder upgecastet, können danach mehrere Variablen auf dasselbe Objekt zeigen. Eine Mutation über eine dieser Referenzen ist deshalb über die anderen ebenfalls sichtbar.",
+      "example": "`Dictionary d = new Dictionary(...); Book b = d;` lässt `d` und `b` dasselbe Objekt bezeichnen.",
+      "pitfalls": [
+        "Eine Referenzzuweisung erzeugt keine unabhängige Objektkopie.",
+        "Aliasing beschreibt gemeinsame Referenzen und ist nicht dasselbe wie Wertgleichheit."
+      ],
+      "related": [
+        "Upcasting und dynamische Bindung",
+        "Konstruktion eines Unterklassenobjekts",
+        "Array-Referenzen und Aliasing"
+      ],
+      "heading": "44 – Object, Reference Types, and Equality"
+    },
+    {
+      "id": "eip-10-k24",
+      "term": "instanceof",
+      "kind": "notation",
+      "short": "`referenz instanceof Typ` prüft zur Laufzeit, ob das referenzierte Objekt zu diesem Typ oder einer Unterklasse gehört.",
+      "explanation": "`instanceof` liefert `true`, wenn die Referenz auf ein Objekt der angegebenen Klasse oder einer ihrer Unterklassen zeigt. Für `null` liefert der Ausdruck `false`. Die Prüfung wird oft vor einem Cast verwendet, damit anschließend klassenspezifische Methoden zugänglich sind.",
+      "example": "```java\nif (x instanceof Rational) {\n    Rational r = (Rational) x;\n}\n```",
+      "pitfalls": [
+        "`null instanceof Rational` ist `false`.",
+        "`instanceof` verändert weder die Referenz noch das Objekt."
+      ],
+      "related": [
+        "Referenz-Cast",
+        "Object",
+        "Upcasting und dynamische Bindung"
+      ],
+      "heading": "15.              und Cast"
+    },
+    {
+      "id": "eip-10-k25",
+      "term": "Referenz-Cast",
+      "kind": "notation",
+      "short": "`(Typ) referenz` prüft oder ändert die statische Typsicht auf eine Referenz, ohne das Objekt zu kopieren oder umzuwandeln.",
+      "explanation": "Ein Cast auf einen kompatiblen Untertyp erlaubt Aufrufe, die der vorherige Referenztyp nicht kannte. Ist das Objekt zur Laufzeit nicht mit dem Zieltyp kompatibel, wirft Java eine `ClassCastException`. Der Cast von `null` ergibt `null`; ein anschließender Methodenaufruf auf dieser Referenz führt zu einer `NullPointerException`.",
+      "example": "`Rational r = (Rational) x;` ändert nicht das Objekt, auf das `x` zeigt.",
+      "pitfalls": [
+        "Ein Cast ist keine Objektkopie.",
+        "Ein inkompatibler Referenz-Cast kann erst zur Laufzeit scheitern."
+      ],
+      "related": [
+        "instanceof",
+        "Object",
+        "Upcasting und dynamische Bindung"
+      ],
+      "heading": "15.              und Cast"
+    },
+    {
+      "id": "eip-10-k26",
+      "term": "Objektidentität und Wertgleichheit",
+      "kind": "concept",
+      "short": "Identität fragt, ob zwei Referenzen dasselbe Objekt bezeichnen, während Wertgleichheit fragt, ob die Objekte fachlich gleiche Inhalte haben.",
+      "explanation": "Zwei Referenzen können auf dasselbe Objekt zeigen oder auf zwei verschiedene Objekte mit gleichem Inhalt. Bei Objektreferenzen prüft `==` die Identität. Wertgleichheit wird häufig durch eine passend überschriebene `equals`-Methode definiert; das geerbte `Object.equals` prüft standardmäßig ebenfalls Identität.",
+      "example": "Zwei getrennt erzeugte Brüche `new Rational(2, 8)` und `new Rational(1, 4)` sind nicht identisch, können aber wertgleich sein.",
+      "pitfalls": [
+        "`==` bedeutet bei Objektreferenzen nicht automatisch gleicher Inhalt.",
+        "Zwei wertgleiche Objekte müssen nicht dasselbe Objekt sein."
+      ],
+      "related": [
+        "Referenz und Aliasing",
+        "equals(Object)",
+        "hashCode()-Vertrag",
+        "Stringvergleich mit equals"
+      ],
+      "heading": "16.      vs."
+    },
+    {
+      "id": "eip-10-k27",
+      "term": "equals(Object)",
+      "kind": "definition",
+      "short": "`equals(Object)` ist die allgemeine Gleichheitsmethode aus `Object`, die eine Klasse für fachliche Wertgleichheit überschreiben kann.",
+      "explanation": "Eine Überschreibung muss die Signatur `equals(Object other)` verwenden, damit sie tatsächlich die Methode aus `Object` überschreibt. Im Bruchbeispiel prüft die Methode mit `instanceof`, ob das andere Objekt ein `Rational` ist, castet es und delegiert an die spezifischere `equals(Rational)`-Methode. Für rationale Werte kann Gleichheit bei gültigen, von null verschiedenen Nennern über das Kreuzprodukt geprüft werden: $u/v=s/t$ genau dann, wenn $u \\cdot t=s \\cdot v$.",
+      "example": "```java\n@Override\npublic boolean equals(Object other) {\n    if (!(other instanceof Rational)) return false;\n    Rational r = (Rational) other;\n    return equals(r);\n}\n```",
+      "pitfalls": [
+        "`equals(Rational)` ist eine Überladung und überschreibt `equals(Object)` nicht.",
+        "Ein `equals`-Vergleich sollte `null` und Objekte anderer Typen korrekt behandeln."
+      ],
+      "related": [
+        "Objektidentität und Wertgleichheit",
+        "Überladen einer Methode (Overloading)",
+        "instanceof",
+        "hashCode()-Vertrag"
+      ],
+      "heading": "16.      vs."
+    },
+    {
+      "id": "eip-10-k28",
+      "term": "hashCode()-Vertrag",
+      "kind": "theorem",
+      "short": "Wenn zwei Objekte laut `equals` gleich sind, müssen sie denselben `hashCode()` besitzen.",
+      "explanation": "Für alle Objekte $a$ und $c$ gilt: Wenn `a.equals(c)` `true` ist, muss auch `a.hashCode() == c.hashCode()` gelten. Der umgekehrte Schluss gilt nicht: Gleiche Hashwerte beweisen keine Gleichheit, weil Hashkollisionen möglich sind. Der Vertrag ist wichtig für Hashtabellen und andere hashbasierte Sammlungen.",
+      "example": "`a.equals(c) == true` erfordert gleiche Hashwerte, auch wenn `a` und `c` verschiedene Objekte sind.",
+      "pitfalls": [
+        "Gleiche Hashwerte garantieren nicht, dass `equals` `true` liefert.",
+        "Wird `equals` überschrieben, muss die Implementierung von `hashCode` dazu passen."
+      ],
+      "related": [
+        "equals(Object)",
+        "Objektidentität und Wertgleichheit",
+        "Object"
+      ],
+      "heading": "16.      vs."
+    }
+  ],
+  "generator": {
+    "model": "gpt-6-luna",
+    "effort": "xhigh",
+    "promptVersion": "k1",
+    "generatedAt": "2026-11-17T23:25:31.288Z"
+  }
+}
