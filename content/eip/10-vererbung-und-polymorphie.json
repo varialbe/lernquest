@@ -1,0 +1,2015 @@
+{
+  "schemaVersion": 1,
+  "id": "eip-10",
+  "module": "EIP",
+  "number": 10,
+  "slug": "vererbung-und-polymorphie",
+  "title": "Vererbung und Polymorphie",
+  "summary": "Du lernst, wie Java-Klassen gemeinsamen Zustand und Verhalten über Vererbung teilen und wie Konstruktoren dabei zusammenarbeiten. Außerdem unterscheidest du dynamischen Methodenaufruf von statischem Feldzugriff und übst Sichtbarkeit, Kapselung, Casting und Gleichheit.",
+  "concepts": [
+    "Vererbung und is-a-Beziehung",
+    "Konstruktorverkettung",
+    "Methodenüberschreibung (Overriding)",
+    "Überladung (Overloading)",
+    "Sichtbarkeit und Kapselung",
+    "Invarianten",
+    "Polymorphie und dynamische Bindung",
+    "Liskov Substitution Principle",
+    "Field Hiding",
+    "Objektinitialisierung",
+    "Referenztypen und Upcasting",
+    "instanceof und Casting",
+    "Referenz und Aliasing",
+    "Objektidentität und Wertgleichheit",
+    "equals und hashCode"
+  ],
+  "keyFacts": [
+    "Eine Unterklasse mit `extends` ist eine speziellere Klasse und steht in einer is-a-Beziehung zur Oberklasse.",
+    "Ein Unterklassenobjekt enthält Ober- und Unterklassenzustand; `super()` erzeugt kein zweites Objekt.",
+    "`super(...)` ruft einen Konstruktor der direkten Oberklasse auf; `this(...)` ruft einen anderen Konstruktor derselben Klasse auf.",
+    "Java erzeugt einen parameterlosen Konstruktor nur dann automatisch, wenn die Klasse selbst keinen Konstruktor deklariert.",
+    "Overriding verwendet in der Unterklasse dieselbe Methodensignatur; Overloading verwendet denselben Namen mit einer anderen Parameterliste.",
+    "`@Override` lässt den Compiler prüfen, ob eine passende Methode überschrieben wird.",
+    "Der deklarierte Referenztyp bestimmt, welche Methoden aufgerufen werden dürfen.",
+    "Bei überschriebenen Instanzmethoden bestimmt die tatsächliche Objektklasse die ausgeführte Implementierung.",
+    "Ein Upcast von einer Unterklassen- zu einer Oberklassenreferenz ist automatisch und erzeugt keine Kopie.",
+    "`private`-Felder bleiben Teil des Unterklassenobjekts, sind aber direkt nur in der deklarierenden Klasse zugänglich.",
+    "Konstruktoren stellen Invarianten her; öffentliche Methoden sollen sie bewahren.",
+    "Ein Unterklassenobjekt muss den Verhaltensvertrag der Oberklasse einhalten (Liskov Substitution Principle).",
+    "Gleichnamige Felder in Ober- und Unterklasse sind zwei getrennte Speicherplätze.",
+    "Felder werden nach dem Typ des Ausdrucks statisch ausgewählt; überschriebene Instanzmethoden werden dynamisch ausgewählt.",
+    "Instanzfelder erhalten zuerst Standardwerte, dann werden Oberklasse und anschließend Unterklasse initialisiert.",
+    "Ein Aufruf einer überschriebenen Methode im Oberklassenkonstruktor kann bereits die Unterklassenimplementierung ausführen.",
+    "Klassen ohne ausdrücklich angegebene Oberklasse erben direkt von `Object`.",
+    "`instanceof` ist bei `null` falsch; ein Cast prüft oder ändert die Typsicht auf eine Referenz, nicht das Objekt.",
+    "`==` prüft bei Objektreferenzen die Identität; `equals` kann Wertgleichheit prüfen.",
+    "Wenn zwei Objekte laut `equals` gleich sind, müssen sie denselben `hashCode` besitzen."
+  ],
+  "tags": [
+    "uni/tum",
+    "eidip",
+    "java",
+    "oop",
+    "vererbung",
+    "klausur"
+  ],
+  "links": [],
+  "source": {
+    "file": "EIP/01_Vorlesungen/EIP VO10.md",
+    "sha256": "1c3794fde04347f157e6679f337f4e5a0041466cd29f08e86176ecaf62694a2e",
+    "commit": "4a452f9e65ab67e9f38f4857fe724f132c93cf9a"
+  },
+  "generator": {
+    "model": "gpt-6-luna",
+    "effort": "xhigh",
+    "reviewEffort": "high",
+    "promptVersion": "v3",
+    "generatedAt": "2026-11-17T23:12:07.309Z",
+    "review": {
+      "checked": 44,
+      "fixed": 2,
+      "removed": 0,
+      "notes": "44 Fragen geprüft. Die nicht zulässige Quellenüberschrift der Beispiel-Codefrage auf eine erlaubte Überschrift gesetzt und einen Grammatikfehler korrigiert. Rechenwege, Distraktoren, Selbstständigkeit, Diagramme und vorhandene Prüfscripte geprüft."
+    }
+  },
+  "levels": [
+    {
+      "id": "eip-10-l1",
+      "index": 1,
+      "kind": "basics",
+      "title": "Grundlagen",
+      "questions": [
+        {
+          "id": "eip-10-l1-q01",
+          "type": "single",
+          "prompt": "Welche Aussage beschreibt eine Oberklasse am besten?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Sie ist immer eine Unterklasse von `String`."
+            },
+            {
+              "id": "b",
+              "text": "Sie enthält gemeinsame Merkmale, die speziellere Unterklassen erben können."
+            },
+            {
+              "id": "c",
+              "text": "Sie darf keine Methoden enthalten."
+            },
+            {
+              "id": "d",
+              "text": "Sie wird für jedes Unterklassenobjekt als zweites Objekt angelegt."
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "Eine Oberklasse bündelt gemeinsame Eigenschaften und Verhalten. Ein Unterklassenobjekt enthält ihren Zustand, aber es wird dabei kein separates Oberklassenobjekt erzeugt.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO10.md",
+            "heading": "1. Warum Vererbung?"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Vererbung und is-a-Beziehung"
+          ]
+        },
+        {
+          "id": "eip-10-l1-q02",
+          "type": "multi",
+          "prompt": "Wähle alle richtigen Aussagen zu `Superclass` und `Subclass`.",
+          "options": [
+            {
+              "id": "a",
+              "text": "Gemeinsames Verhalten kann in der Oberklasse definiert werden."
+            },
+            {
+              "id": "b",
+              "text": "Eine Unterklasse kann Besonderheiten ergänzen."
+            },
+            {
+              "id": "c",
+              "text": "`extends` drückt eine is-a-Beziehung aus."
+            },
+            {
+              "id": "d",
+              "text": "Eine Unterklasse muss unabhängig von ihrer Oberklasse neu implementiert werden."
+            }
+          ],
+          "correct": [
+            "a",
+            "b",
+            "c"
+          ],
+          "explanation": "Vererbung bündelt Gemeinsamkeiten in der Oberklasse und lässt Unterklassen Besonderheiten ergänzen. Bei einer is-a-Beziehung ist ein Objekt der Unterklasse auch als Oberklassenobjekt verwendbar.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO10.md",
+            "heading": "1. Warum Vererbung?"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Vererbung und is-a-Beziehung"
+          ]
+        },
+        {
+          "id": "eip-10-l1-q03",
+          "type": "cloze",
+          "prompt": "Java erzeugt automatisch einen parameterlosen Konstruktor, wenn die Klasse ___ selbst deklariert hat.",
+          "options": [
+            {
+              "id": "a",
+              "text": "ein `private`-Feld"
+            },
+            {
+              "id": "b",
+              "text": "keinen Konstruktor"
+            },
+            {
+              "id": "c",
+              "text": "eine `main`-Methode"
+            },
+            {
+              "id": "d",
+              "text": "genau einen Konstruktor mit Parameter"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "Sobald eine Klasse selbst einen Konstruktor deklariert, erzeugt Java keinen zusätzlichen parameterlosen Konstruktor.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO10.md",
+            "heading": "3. Konstruktoren:              vs."
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Konstruktorverkettung"
+          ]
+        },
+        {
+          "id": "eip-10-l1-q04",
+          "type": "truefalse",
+          "prompt": "Ein `private`-Feld der Oberklasse bleibt Teil des Unterklassenobjekts, ist aber in der Unterklasse nicht direkt zugänglich.",
+          "options": [
+            {
+              "id": "true",
+              "text": "Wahr"
+            },
+            {
+              "id": "false",
+              "text": "Falsch"
+            }
+          ],
+          "correct": [
+            "true"
+          ],
+          "explanation": "`private` begrenzt den direkten Zugriff auf Code der deklarierenden Klasse. Das Feld verschwindet nicht aus dem Zustand des Objekts.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO10.md",
+            "heading": "6. Sichtbarkeit und Kapselung"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Sichtbarkeit und Kapselung"
+          ]
+        },
+        {
+          "id": "eip-10-l1-q05",
+          "type": "single",
+          "prompt": "Wozu dient `@Override` vor einer Methode?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Die Annotation erzeugt automatisch eine Oberklasse."
+            },
+            {
+              "id": "b",
+              "text": "Sie erzwingt, dass die Methode `static` ist."
+            },
+            {
+              "id": "c",
+              "text": "Sie macht alle Felder der Oberklasse `public`."
+            },
+            {
+              "id": "d",
+              "text": "Der Compiler prüft, ob die Methode tatsächlich eine geerbte Methode überschreibt."
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "`@Override` ist eine Compilerprüfung für beabsichtigtes Overriding. Die Annotation selbst bewirkt nicht die dynamische Methodenauswahl.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO10.md",
+            "heading": "4. Eine geerbte Methode überschreiben"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Methodenüberschreibung (Overriding)"
+          ]
+        },
+        {
+          "id": "eip-10-l1-q06",
+          "type": "multi",
+          "prompt": "Wähle alle richtigen Aussagen zu Overriding und Overloading.",
+          "options": [
+            {
+              "id": "a",
+              "text": "Overriding stellt in einer Unterklasse eine Methode mit derselben Signatur bereit."
+            },
+            {
+              "id": "b",
+              "text": "Overloading verwendet denselben Namen mit einer anderen Parameterliste."
+            },
+            {
+              "id": "c",
+              "text": "`@Override` kennzeichnet eine Methode, die nur überladen wird."
+            },
+            {
+              "id": "d",
+              "text": "Overriding und Overloading bedeuten dasselbe."
+            },
+            {
+              "id": "e",
+              "text": "Ein anderer Rückgabetyp allein reicht für Overloading nicht aus."
+            }
+          ],
+          "correct": [
+            "a",
+            "b",
+            "e"
+          ],
+          "explanation": "Overriding bezieht sich auf eine geerbte Methode mit passender Signatur. Beim Overloading unterscheidet sich die Parameterliste; der Rückgabetyp allein genügt nicht.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO10.md",
+            "heading": "Overriding vs. Overloading"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Methodenüberschreibung (Overriding)",
+            "Überladung (Overloading)"
+          ]
+        },
+        {
+          "id": "eip-10-l1-q07",
+          "type": "diagram",
+          "prompt": "Welche Regelkombination zeigt das Diagramm?",
+          "context": {
+            "type": "mermaid",
+            "content": "flowchart LR\n  A[\"Instanzmethoden\"] --> B[\"dynamische Auswahl\"]\n  C[\"Felder\"] --> D[\"statische Auswahl\"]",
+            "caption": "Auswahlregeln für Methoden und Felder"
+          },
+          "options": [
+            {
+              "id": "a",
+              "text": "Methoden werden dynamisch ausgewählt, Felder statisch."
+            },
+            {
+              "id": "b",
+              "text": "Felder und Methoden werden ausschließlich nach Sichtbarkeit ausgewählt."
+            },
+            {
+              "id": "c",
+              "text": "Methoden werden statisch, Felder dynamisch ausgewählt."
+            },
+            {
+              "id": "d",
+              "text": "Methoden und Felder werden immer dynamisch ausgewählt."
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "Überschriebene Instanzmethoden folgen dem Laufzeittyp. Feldzugriffe folgen dem Typ des Ausdrucks beziehungsweise einem expliziten `super`.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO10.md",
+            "heading": "12. Field Hiding ≠ Method Overriding"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Field Hiding",
+            "Polymorphie und dynamische Bindung"
+          ]
+        },
+        {
+          "id": "eip-10-l1-q08",
+          "type": "single",
+          "prompt": "Was passiert bei einem Upcast von `Dictionary` nach `Book`?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Das `Dictionary`-Objekt wird in ein neues `Book`-Objekt kopiert."
+            },
+            {
+              "id": "b",
+              "text": "Die Laufzeitklasse des Objekts ändert sich zu `Book`."
+            },
+            {
+              "id": "c",
+              "text": "Die Referenz wird als `Book` verwendet; das Objekt bleibt dasselbe."
+            },
+            {
+              "id": "d",
+              "text": "Das Objekt verliert seine Unterklassenfelder."
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Ein Upcast ändert die Typsicht der Referenz, nicht das Objekt. Die Laufzeitklasse bleibt `Dictionary`.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO10.md",
+            "heading": "5. Upcasting und dynamische Bindung"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Referenztypen und Upcasting"
+          ]
+        },
+        {
+          "id": "eip-10-l1-q09",
+          "type": "multi",
+          "prompt": "Wähle alle richtigen Aussagen zu Sichtbarkeit.",
+          "options": [
+            {
+              "id": "a",
+              "text": "Unterklassen können geschützte (`protected`) Mitglieder verwenden."
+            },
+            {
+              "id": "b",
+              "text": "`public`-Mitglieder dürfen auch von anderen Klassen verwendet werden."
+            },
+            {
+              "id": "c",
+              "text": "`private`-Mitglieder sind direkt nur in der deklarierenden Klasse zugänglich."
+            },
+            {
+              "id": "d",
+              "text": "Ein fehlender Modifier bedeutet immer `private`."
+            }
+          ],
+          "correct": [
+            "a",
+            "b",
+            "c"
+          ],
+          "explanation": "Die Beispiele unterscheiden `public`, `private` und `protected`. Ohne Modifier gilt Package-Sichtbarkeit, nicht `private`.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO10.md",
+            "heading": "6. Sichtbarkeit und Kapselung"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Sichtbarkeit und Kapselung"
+          ]
+        },
+        {
+          "id": "eip-10-l1-q10",
+          "type": "truefalse",
+          "prompt": "Bei `Book b = new Dictionary();` bestimmt `Book`, welche Methoden der Compiler über `b` zulässt; eine überschriebene Instanzmethode kann trotzdem aus `Dictionary` ausgeführt werden.",
+          "options": [
+            {
+              "id": "true",
+              "text": "Wahr"
+            },
+            {
+              "id": "false",
+              "text": "Falsch"
+            }
+          ],
+          "correct": [
+            "true"
+          ],
+          "explanation": "Der deklarierte Referenztyp bestimmt die verfügbaren Aufrufe. Die tatsächliche Objektklasse bestimmt die Implementierung einer überschriebenen Instanzmethode.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO10.md",
+            "heading": "5. Upcasting und dynamische Bindung"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Referenztypen und Upcasting",
+            "Polymorphie und dynamische Bindung"
+          ]
+        },
+        {
+          "id": "eip-10-l1-q11",
+          "type": "single",
+          "prompt": "Welche Bedingung gilt für `hashCode()`, wenn `equals` überschrieben wurde?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Gleiche Hashwerte müssen immer bedeuten, dass `equals` wahr ist."
+            },
+            {
+              "id": "b",
+              "text": "`equals` darf nur bei identischen Referenzen wahr sein."
+            },
+            {
+              "id": "c",
+              "text": "Wenn `a.equals(b)` wahr ist, müssen `a` und `b` denselben Hashwert haben."
+            },
+            {
+              "id": "d",
+              "text": "`hashCode()` muss für jedes Objekt eindeutig sein."
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Der Vertrag verlangt gleiche Hashwerte für `equals`-gleiche Objekte. Umgekehrt können gleiche Hashwerte auch bei verschiedenen Werten auftreten.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO10.md",
+            "heading": "16.      vs."
+          },
+          "difficulty": 2,
+          "concepts": [
+            "equals und hashCode",
+            "Objektidentität und Wertgleichheit"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "eip-10-l2",
+      "index": 2,
+      "kind": "apply",
+      "title": "Anwenden",
+      "questions": [
+        {
+          "id": "eip-10-l2-q01",
+          "type": "code_output",
+          "prompt": "Was gibt der Code aus?\n\n```java\nclass Book {\n    protected int pages;\n    public Book() { pages = 150; }\n}\nclass Dictionary extends Book {\n    private int defs;\n    public Dictionary(int x) {\n        pages = 2 * pages;\n        defs = x;\n    }\n    public void show() {\n        MiniJava.write(\"Number of pages: \" + pages);\n        MiniJava.write(\"Number of defs: \" + defs);\n        MiniJava.write(\"Defs per page: \" + defs / pages);\n    }\n}\nDictionary d = new Dictionary(12400);\nd.show();\n```",
+          "options": [
+            {
+              "id": "a",
+              "text": "Number of pages: 0\nNumber of defs: 12400\nDefs per page: 0"
+            },
+            {
+              "id": "b",
+              "text": "Number of pages: 150\nNumber of defs: 12400\nDefs per page: 82"
+            },
+            {
+              "id": "c",
+              "text": "Number of pages: 300\nNumber of defs: 12400\nDefs per page: 41"
+            },
+            {
+              "id": "d",
+              "text": "Number of pages: 300\nNumber of defs: 12400\nDefs per page: 41.33"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "`Book()` setzt `pages` zuerst auf 150; danach verdoppelt der Unterklassenkonstruktor den Wert auf 300. Die Division von zwei `int`-Werten ergibt 41.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO10.md",
+            "heading": "1. Warum Vererbung?"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Konstruktorverkettung",
+            "Objektinitialisierung"
+          ]
+        },
+        {
+          "id": "eip-10-l2-q02-r1",
+          "type": "calc",
+          "prompt": "Ein Bonus Saver Account hat ein Guthaben von 100 und eine Gebühr von 20. Bei `withdraw(amount)` ruft der Override die geerbte Methode mit `amount + Gebühr` auf. Die geerbte Methode zieht den angeforderten Betrag ab und liefert `true`, wenn er höchstens so groß wie das Guthaben ist. Andernfalls liefert sie `false` und lässt das Guthaben unverändert. Was liefern `withdraw(80)` und der resultierende Kontostand?",
+          "options": [
+            {
+              "id": "a",
+              "text": "true, Endstand 20"
+            },
+            {
+              "id": "b",
+              "text": "true, Endstand 0"
+            },
+            {
+              "id": "c",
+              "text": "false, Endstand 100"
+            },
+            {
+              "id": "d",
+              "text": "false, Endstand 0"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "Der Override fordert `80 + 20 = 100` an. Das Guthaben reicht genau aus; die geerbte Methode zieht 100 ab und liefert `true`.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO10.md",
+            "heading": "Bonus Saver Account"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Bonus Saver Account",
+            "überschriebene withdraw-Methode",
+            "Gebühr bei Auszahlung"
+          ]
+        },
+        {
+          "id": "eip-10-l2-q03",
+          "type": "single",
+          "prompt": "`Book` deklariert `page_message()` und `languageDescription()`. `Dictionary extends Book` ergänzt `defs_message()` und überschreibt `languageDescription()`. Was gilt für `Book b = new Dictionary();`?",
+          "options": [
+            {
+              "id": "a",
+              "text": "`b.languageDescription()` ist nicht erlaubt, weil das Objekt ein `Dictionary` ist."
+            },
+            {
+              "id": "b",
+              "text": "`b.defs_message()` ist nicht erlaubt; `b.languageDescription()` ist erlaubt und verwendet den Override aus `Dictionary`."
+            },
+            {
+              "id": "c",
+              "text": "Der Compiler ändert den Typ von `b` automatisch zu `Dictionary`."
+            },
+            {
+              "id": "d",
+              "text": "`b.defs_message()` ist erlaubt; `languageDescription()` läuft aus `Book`."
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "Der statische Typ `Book` erlaubt nur dort deklarierte Methoden. Der virtuelle Aufruf der überschriebenen Methode verwendet dennoch `Dictionary`.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO10.md",
+            "heading": "5. Upcasting und dynamische Bindung"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Referenztypen und Upcasting",
+            "Polymorphie und dynamische Bindung"
+          ]
+        },
+        {
+          "id": "eip-10-l2-q04",
+          "type": "single",
+          "prompt": "In `Parent` steht `protected int a;`. `Child extends Parent` deklariert ebenfalls `protected int a;`. Im `Child`-Konstruktor gilt `a = 2; super.a = 3;`. Welchen Wert bezeichnet `super.a` danach?",
+          "options": [
+            {
+              "id": "a",
+              "text": "2"
+            },
+            {
+              "id": "b",
+              "text": "3"
+            },
+            {
+              "id": "c",
+              "text": "Beide Felder bezeichnen denselben Speicherplatz."
+            },
+            {
+              "id": "d",
+              "text": "5"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "`super.a` bezeichnet das Feld aus `Parent`; es ist getrennt vom gleichnamigen Feld `Child.a`.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO10.md",
+            "heading": "12. Field Hiding ≠ Method Overriding"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Field Hiding"
+          ]
+        },
+        {
+          "id": "eip-10-l2-q05-r1",
+          "type": "diagram",
+          "prompt": "Ein Checking Account hat ein Guthaben von 50. Sein separates Savings-Ersatzkonto hat ein Guthaben von 200. Für ein Konto gilt: `withdraw(x)` zieht `x` ab und liefert `true`, wenn `x` höchstens dem Guthaben entspricht; andernfalls liefert es `false` und lässt das Konto unverändert. Der Checking Account folgt dem Ablaufdiagramm. Welche Zustandsänderung entsteht bei `withdraw(100)`?",
+          "context": {
+            "type": "mermaid",
+            "content": "flowchart TD\n  A[\"withdraw(amount)\"] --> B{\"Checking reicht?\"}\n  B -- Ja --> C[\"Checking withdraw(amount) gelingt\"]\n  B -- Nein --> D[\"Fehlbetrag = amount - Checking-Guthaben\"]\n  D --> E[\"Savings withdraw(Fehlbetrag)\"]\n  E -- Ja --> F[\"Checking auf 0 setzen; true\"]\n  E -- Nein --> G[\"Beide Konten unverändert; false\"]",
+            "caption": "Ablauf der Auszahlung mit separatem Savings-Ersatzkonto"
+          },
+          "options": [
+            {
+              "id": "a",
+              "text": "Die Auszahlung gelingt; Checking steht auf 50 und Savings auf 100."
+            },
+            {
+              "id": "b",
+              "text": "Die Auszahlung gelingt; Checking steht auf −50 und Savings bleibt 200."
+            },
+            {
+              "id": "c",
+              "text": "Die Auszahlung scheitert; beide Konten bleiben unverändert."
+            },
+            {
+              "id": "d",
+              "text": "Die Auszahlung gelingt; Checking steht auf 0 und Savings auf 150."
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Checking kann 100 nicht selbst abheben. Der Fehlbetrag ist `100 − 50 = 50`; das Savings-Konto zieht diese 50 ab. Danach wird Checking auf 0 gesetzt und die Auszahlung gelingt.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO10.md",
+            "heading": "Checking Account: Ersatzkonto bei Unterdeckung"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Checking Account",
+            "Ersatzkonto",
+            "Fehlbetrag bei Unterdeckung"
+          ]
+        },
+        {
+          "id": "eip-10-l2-q06-r1",
+          "type": "calc",
+          "prompt": "Ein Savings Account hat ein Guthaben von 100 und einen Zinssatz von `r = 0,25` (also 25 % als Dezimalzahl). Ein Aufruf von `add_interest()` berechnet den neuen Kontostand mit `Guthaben = Guthaben · (1 + r)`. Wie hoch ist das Guthaben nach einem Aufruf?",
+          "options": [
+            {
+              "id": "a",
+              "text": "125"
+            },
+            {
+              "id": "b",
+              "text": "100,25"
+            },
+            {
+              "id": "c",
+              "text": "25"
+            },
+            {
+              "id": "d",
+              "text": "150"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "Die Vorschrift ergibt `100 · (1 + 0,25) = 100 · 1,25 = 125`.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO10.md",
+            "heading": "Savings Account"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Savings Account",
+            "Zinsberechnung",
+            "add_interest"
+          ]
+        },
+        {
+          "id": "eip-10-l2-q07",
+          "type": "single",
+          "prompt": "`Book` deklariert nur `Book(int x)`. `Child extends Book` hat einen parameterlosen Konstruktor ohne expliziten `super(...)`-Aufruf. Was ist die Folge?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Der Code kompiliert; Java setzt `x` automatisch auf 0."
+            },
+            {
+              "id": "b",
+              "text": "Der Code kompiliert nicht, weil das implizite `super()` keinen passenden Konstruktor findet."
+            },
+            {
+              "id": "c",
+              "text": "Java erzeugt ein zweites `Book`-Objekt."
+            },
+            {
+              "id": "d",
+              "text": "Java ruft automatisch `super(1)` auf."
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "Das implizite `super()` benötigt einen parameterlosen Oberklassenkonstruktor. Wenn nur `Book(int x)` existiert, muss die Unterklasse explizit einen passenden Wert übergeben.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO10.md",
+            "heading": "3. Konstruktoren:              vs."
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Konstruktorverkettung"
+          ]
+        },
+        {
+          "id": "eip-10-l2-q08",
+          "type": "truefalse",
+          "prompt": "Die Zuweisung `Rational r = (Rational) null;` liefert zunächst `null`; erst ein anschließender Methodenaufruf über `r` führt zu einer `NullPointerException`.",
+          "options": [
+            {
+              "id": "true",
+              "text": "Wahr"
+            },
+            {
+              "id": "false",
+              "text": "Falsch"
+            }
+          ],
+          "correct": [
+            "true"
+          ],
+          "explanation": "Ein Referenz-Cast von `null` ergibt weiterhin `null`. Der Fehler entsteht erst beim Zugriff auf das nicht vorhandene Objekt.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO10.md",
+            "heading": "15.              und Cast"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "instanceof und Casting"
+          ]
+        },
+        {
+          "id": "eip-10-l2-q09",
+          "type": "multi",
+          "prompt": "Wähle alle richtigen Aussagen zu dieser Hierarchie: `Savings_Account extends Bank_Account`, `Bonus_Saver_Account extends Savings_Account` und `Checking_Account extends Bank_Account`; jedes Checking Account hält außerdem eine Referenz auf ein separates `Savings_Account`-Objekt.",
+          "options": [
+            {
+              "id": "a",
+              "text": "Ein `Savings_Account` ist ein `Bank_Account`."
+            },
+            {
+              "id": "b",
+              "text": "Das Ersatzkonto ist ein Feld desselben Savings-Objekts, das zugleich Checking ist."
+            },
+            {
+              "id": "c",
+              "text": "Ein `Bonus_Saver_Account` ist ein `Savings_Account`."
+            },
+            {
+              "id": "d",
+              "text": "Das Ersatzkonto eines Checking Accounts ist ein separates Objekt."
+            }
+          ],
+          "correct": [
+            "a",
+            "c",
+            "d"
+          ],
+          "explanation": "Die Vererbung beschreibt is-a-Beziehungen. Die Referenz `overdraft` ist dagegen eine has-a-Beziehung zu einem separaten Objekt.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO10.md",
+            "heading": "8. Vererbungshierarchie der Konten"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Vererbung und is-a-Beziehung",
+            "Referenz und Aliasing"
+          ]
+        },
+        {
+          "id": "eip-10-l2-q10",
+          "type": "code_output",
+          "prompt": "Was gibt dieser Code aus?\n\n```java\nclass Book {\n    public String languageDescription() { return \"English\"; }\n}\nclass Dictionary extends Book {\n    @Override\n    public String languageDescription() {\n        return super.languageDescription() + \" → German\";\n    }\n}\nBook b = new Dictionary();\nMiniJava.write(b.languageDescription());\n```",
+          "options": [
+            {
+              "id": "a",
+              "text": "English → German"
+            },
+            {
+              "id": "b",
+              "text": "German"
+            },
+            {
+              "id": "c",
+              "text": "Der Aufruf ist wegen des Referenztyps `Book` nicht erlaubt."
+            },
+            {
+              "id": "d",
+              "text": "English"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "Der Aufruf ist über den `Book`-Referenztyp erlaubt. Zur Laufzeit wird der Override aus `Dictionary` ausgeführt, der den Oberklassenwert ergänzt.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO10.md",
+            "heading": "4. Eine geerbte Methode überschreiben"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Methodenüberschreibung (Overriding)",
+            "Polymorphie und dynamische Bindung"
+          ]
+        },
+        {
+          "id": "eip-10-l2-q11",
+          "type": "calc",
+          "prompt": "`Book(int x)` setzt `pages = x`. `Dictionary(int p, int d)` ruft `super(p)` auf und setzt `defs = d`. Welche Feldwerte hat `new Dictionary(540, 36600)`?",
+          "options": [
+            {
+              "id": "a",
+              "text": "`pages = 540`, `defs = 36600`"
+            },
+            {
+              "id": "b",
+              "text": "`pages = 0`, `defs = 36600`"
+            },
+            {
+              "id": "c",
+              "text": "`pages = 540`, `defs = 0`"
+            },
+            {
+              "id": "d",
+              "text": "`pages = 36600`, `defs = 540`"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "`super(p)` ruft `Book(int x)` mit `p = 540` auf. Danach setzt der Unterklassenkonstruktor `defs` auf 36600.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO10.md",
+            "heading": "3. Konstruktoren:              vs."
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Konstruktorverkettung"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "eip-10-l3",
+      "index": 3,
+      "kind": "deepen",
+      "title": "Vertiefen",
+      "questions": [
+        {
+          "id": "eip-10-l3-q01",
+          "type": "code_output",
+          "prompt": "Was schreibt der Code aus?\n\n```java\nclass Parent {\n    protected int a = 5;\n    protected int b;\n    protected void inc() { a = a + 1; b = b + 1; }\n    public Parent(int x) { b = x; inc(); }\n}\nclass Child extends Parent {\n    @Override\n    protected void inc() { a = a + 2; b = b + 2; }\n    public Child() { super(33); }\n}\nChild y = new Child();\nMiniJava.write(y.a + y.b);\n```",
+          "options": [
+            {
+              "id": "a",
+              "text": "40"
+            },
+            {
+              "id": "b",
+              "text": "42"
+            },
+            {
+              "id": "c",
+              "text": "41"
+            },
+            {
+              "id": "d",
+              "text": "35"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "Der Oberklassenkonstruktor setzt `b` auf 33 und ruft dann dynamisch `Child.inc()` auf. Dadurch werden `a = 7` und `b = 35`; ihre Summe ist 42.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO10.md",
+            "heading": "Klausurbeispiel aus der Vorlesung"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Objektinitialisierung",
+            "Polymorphie und dynamische Bindung"
+          ]
+        },
+        {
+          "id": "eip-10-l3-q02",
+          "type": "multi",
+          "prompt": "Wähle alle richtigen Schritte der Instanzinitialisierung aus den Konstruktorbeispielen.",
+          "options": [
+            {
+              "id": "a",
+              "text": "Der Unterklassenkonstruktor läuft vollständig, bevor der Oberklassenkonstruktor beginnt."
+            },
+            {
+              "id": "b",
+              "text": "Danach laufen Feldinitialisierer der Unterklasse in Quelltextreihenfolge."
+            },
+            {
+              "id": "c",
+              "text": "Instanzfelder erhalten zuerst Standardwerte."
+            },
+            {
+              "id": "d",
+              "text": "Die Oberklasse wird vor den Feldinitialisierern der Unterklasse initialisiert."
+            },
+            {
+              "id": "e",
+              "text": "Felder vom Typ `int` erhalten niemals einen Standardwert."
+            }
+          ],
+          "correct": [
+            "b",
+            "c",
+            "d"
+          ],
+          "explanation": "Zuerst erhalten Instanzfelder Standardwerte. Danach werden Oberklasse und Unterklasse initialisiert; Feldinitialisierer der Unterklasse laufen vor dem restlichen Unterklassenkonstruktor.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO10.md",
+            "heading": "13. Initialisierungsreihenfolge"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Objektinitialisierung",
+            "Konstruktorverkettung"
+          ]
+        },
+        {
+          "id": "eip-10-l3-q03",
+          "type": "truefalse",
+          "prompt": "Wenn ein Oberklassenkonstruktor eine überschreibbare Instanzmethode aufruft, wird automatisch die Oberklassenimplementierung verwendet, weil der Oberklassenkonstruktor gerade aktiv ist.",
+          "options": [
+            {
+              "id": "true",
+              "text": "Wahr"
+            },
+            {
+              "id": "false",
+              "text": "Falsch"
+            }
+          ],
+          "correct": [
+            "false"
+          ],
+          "explanation": "Instanzmethoden werden dynamisch ausgewählt. Daher kann bereits im Oberklassenkonstruktor der Override aus der Unterklasse laufen, obwohl deren Initialisierung noch nicht abgeschlossen ist.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO10.md",
+            "heading": "13. Initialisierungsreihenfolge"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Objektinitialisierung",
+            "Polymorphie und dynamische Bindung"
+          ]
+        },
+        {
+          "id": "eip-10-l3-q04",
+          "type": "truefalse",
+          "prompt": "Der Compiler prüft bei einem kompatiblen Methoden-Override automatisch, ob alle Verhaltensregeln der Oberklasse eingehalten werden.",
+          "options": [
+            {
+              "id": "true",
+              "text": "Wahr"
+            },
+            {
+              "id": "false",
+              "text": "Falsch"
+            }
+          ],
+          "correct": [
+            "false"
+          ],
+          "explanation": "Der Compiler prüft kompatible Methodentypen, aber nicht den vollständigen Verhaltensvertrag. Eine Unterklasse kann deshalb trotz erfolgreicher Kompilierung das Liskov-Prinzip verletzen.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO10.md",
+            "heading": "11. Liskov Substitution Principle (LSP)"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Liskov Substitution Principle"
+          ]
+        },
+        {
+          "id": "eip-10-l3-q05",
+          "type": "diagram",
+          "prompt": "Checking hat 50, das Ersatzkonto hat 39. Bei `withdraw(90)` kann Checking 90 nicht zahlen; der Fehlbetrag beträgt 40. Welche Folge zeigt der erfolglose Ersatzkonto-Pfad?",
+          "context": {
+            "type": "mermaid",
+            "content": "flowchart TD\n  A[\"withdraw(amount)\"] --> B{\"Checking reicht?\"}\n  B -- Ja --> C[\"true\"]\n  B -- Nein --> D[\"Fehlbetrag berechnen\"]\n  D --> E{\"Savings reicht?\"}\n  E -- Ja --> F[\"Checking auf 0, true\"]\n  E -- Nein --> G[\"beide unverändert, false\"]",
+            "caption": "Der zweite Auszahlungsschritt scheitert"
+          },
+          "options": [
+            {
+              "id": "a",
+              "text": "Rückgabe `true`; Savings wird auf 0 gesetzt."
+            },
+            {
+              "id": "b",
+              "text": "Rückgabe `false`; Checking bleibt 50 und Savings bleibt 39."
+            },
+            {
+              "id": "c",
+              "text": "Rückgabe `true`; Checking wird negativ."
+            },
+            {
+              "id": "d",
+              "text": "Rückgabe `false`; Checking sinkt auf 0 und Savings bleibt 39."
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "Das Ersatzkonto kann den Fehlbetrag von 40 nicht decken. Bei `false` bleiben nach dem Vertrag alle betroffenen Kontostände unverändert.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO10.md",
+            "heading": "Checking Account: Ersatzkonto bei Unterdeckung"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Liskov Substitution Principle",
+            "Polymorphie und dynamische Bindung"
+          ]
+        },
+        {
+          "id": "eip-10-l3-q06",
+          "type": "multi",
+          "prompt": "Eine Klasse `Rational` überschreibt `equals(Object)` und vergleicht Brüche per Kreuzprodukt. Wähle alle richtigen Aussagen.",
+          "options": [
+            {
+              "id": "a",
+              "text": "`equals(Object)` überschreibt die geerbte Methode aus `Object`."
+            },
+            {
+              "id": "b",
+              "text": "Wenn `a.equals(c)` wahr ist, müssen beide denselben `hashCode` haben."
+            },
+            {
+              "id": "c",
+              "text": "`equals(Object)` und `equals(Rational)` haben dieselbe Parameterliste."
+            },
+            {
+              "id": "d",
+              "text": "`equals(Rational)` ist eine Überladung mit spezifischerem Parameter."
+            },
+            {
+              "id": "e",
+              "text": "Gleiche Hashwerte garantieren immer `equals`-Gleichheit."
+            }
+          ],
+          "correct": [
+            "a",
+            "b",
+            "d"
+          ],
+          "explanation": "`equals(Object)` überschreibt die Standardmethode; `equals(Rational)` ist wegen der anderen Parameterliste überladen. Der Hash-Vertrag gilt von `equals` zu `hashCode`, aber nicht umgekehrt.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO10.md",
+            "heading": "16.      vs."
+          },
+          "difficulty": 4,
+          "concepts": [
+            "equals und hashCode",
+            "Überladung (Overloading)",
+            "Objektidentität und Wertgleichheit"
+          ]
+        },
+        {
+          "id": "eip-10-l3-q07",
+          "type": "single",
+          "prompt": "In `Parent` ist `protected int pages;` und `private String language;` deklariert. Welche direkte Zuweisung ist in `Child extends Parent` erlaubt?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Beide Zuweisungen sind erlaubt."
+            },
+            {
+              "id": "b",
+              "text": "Beide Zuweisungen sind verboten."
+            },
+            {
+              "id": "c",
+              "text": "`pages = 42;`"
+            },
+            {
+              "id": "d",
+              "text": "`language = \"French\";`"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Die Unterklasse darf das geschützte Feld `pages` verwenden. Das private Feld `language` bleibt direkt nur in `Parent` zugänglich.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO10.md",
+            "heading": "6. Sichtbarkeit und Kapselung"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Sichtbarkeit und Kapselung"
+          ]
+        },
+        {
+          "id": "eip-10-l3-q08",
+          "type": "truefalse",
+          "prompt": "Eine Methode mit demselben Namen, aber nur einem anderen Rückgabetyp, ist bereits eine gültige Überladung.",
+          "options": [
+            {
+              "id": "true",
+              "text": "Wahr"
+            },
+            {
+              "id": "false",
+              "text": "Falsch"
+            }
+          ],
+          "correct": [
+            "false"
+          ],
+          "explanation": "Für Overloading muss sich die Parameterliste unterscheiden. Ein anderer Rückgabetyp allein genügt nicht.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO10.md",
+            "heading": "Overriding vs. Overloading"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Überladung (Overloading)"
+          ]
+        },
+        {
+          "id": "eip-10-l3-q09",
+          "type": "single",
+          "prompt": "Gegeben ist `Object x = new Book();`, wobei `Book` keine Unterklasse von `Dictionary` ist. Was passiert bei `Dictionary d = (Dictionary) x;`?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Das Objekt wird in ein `Dictionary` kopiert."
+            },
+            {
+              "id": "b",
+              "text": "Der Cast liefert `null`."
+            },
+            {
+              "id": "c",
+              "text": "Der Cast gelingt, weil jede Referenz als jede Klasse verwendet werden darf."
+            },
+            {
+              "id": "d",
+              "text": "Der Cast löst zur Laufzeit eine `ClassCastException` aus."
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Ein Referenz-Cast prüft den tatsächlichen Laufzeittyp. Da das Objekt ein `Book` und kein `Dictionary` ist, scheitert die Prüfung zur Laufzeit.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO10.md",
+            "heading": "15.              und Cast"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "instanceof und Casting",
+            "Referenztypen und Upcasting"
+          ]
+        },
+        {
+          "id": "eip-10-l3-q10",
+          "type": "multi",
+          "prompt": "Für `withdraw(amount)` gilt: Die Vorbedingung ist ein endlicher, nichtnegativer Betrag; `true` bedeutet erfolgreiche Auszahlung; bei `false` bleiben alle betroffenen Kontostände unverändert. Wähle alle zutreffenden Aussagen.",
+          "options": [
+            {
+              "id": "a",
+              "text": "Ein negativer Betrag erfüllt die Vorbedingung nicht."
+            },
+            {
+              "id": "b",
+              "text": "Bei Rückgabe `false` müssen alle betroffenen Kontostände unverändert bleiben."
+            },
+            {
+              "id": "c",
+              "text": "Bei Rückgabe `false` darf ein Teilbetrag bereits abgebucht worden sein."
+            },
+            {
+              "id": "d",
+              "text": "Eine erfolgreiche Auszahlung darf Gebühren oder ein Ersatzkonto einbeziehen."
+            }
+          ],
+          "correct": [
+            "a",
+            "b",
+            "d"
+          ],
+          "explanation": "Der Vertrag schließt negative und nicht endliche Beträge aus. Eine erfolgreiche Auszahlung kann Gebühren oder Reserven einbeziehen; ein Fehlschlag darf den Zustand nicht verändern.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO10.md",
+            "heading": "11. Liskov Substitution Principle (LSP)"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Liskov Substitution Principle",
+            "Invarianten"
+          ]
+        },
+        {
+          "id": "eip-10-l3-q11",
+          "type": "single",
+          "prompt": "Welche Methoden sind wichtige, von `Object` geerbte Beispiele?",
+          "options": [
+            {
+              "id": "a",
+              "text": "`instanceof()`, `cast()` und `super()`"
+            },
+            {
+              "id": "b",
+              "text": "`toString()`, `equals(Object)` und `hashCode()`"
+            },
+            {
+              "id": "c",
+              "text": "`deposit()`, `withdraw()` und `add_interest()`"
+            },
+            {
+              "id": "d",
+              "text": "`readInt()`, `write()` und `main()`"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "Die Mitschrift nennt `toString()`, `equals(Object)` und `hashCode()` als wichtige geerbte Methoden von `Object`.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO10.md",
+            "heading": "14.         : gemeinsame Oberklasse"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "equals und hashCode",
+            "Objektidentität und Wertgleichheit"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "eip-10-l4",
+      "index": 4,
+      "kind": "boss",
+      "title": "Boss",
+      "questions": [
+        {
+          "id": "eip-10-l4-q01",
+          "type": "single",
+          "prompt": "Unit 8 behandelt Referenzzuweisungen: `b = a` kopiert bei einem Array die Referenz, nicht das Array. Nun gilt: `Dictionary` erweitert `Book` und überschreibt `languageDescription()`. Für `Dictionary d = new Dictionary(); Book b = d; Book c = b;` gilt: `Book` deklariert außerdem `page_message()`, `Dictionary` ergänzt `defs_message()`. Welche Aussage ist richtig?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Mit der Zuweisung `Book b = d` ändert sich die Laufzeitklasse zu `Book`."
+            },
+            {
+              "id": "b",
+              "text": "`d`, `b` und `c` verweisen auf dasselbe Objekt; `b.languageDescription()` verwendet den Override, aber `b.defs_message()` ist nicht erlaubt."
+            },
+            {
+              "id": "c",
+              "text": "`b.defs_message()` ist erlaubt, weil das Laufzeitobjekt ein `Dictionary` ist."
+            },
+            {
+              "id": "d",
+              "text": "`b` und `c` sind Kopien des `Dictionary`-Objekts und verwenden `Book.languageDescription()`."
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "Die Referenzzuweisungen erzeugen keine Kopie. `Book` begrenzt die über `b` erlaubten Aufrufe, während der Methoden-Dispatch weiterhin die tatsächliche Klasse `Dictionary` berücksichtigt.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO8.md",
+            "heading": null
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Referenz und Aliasing",
+            "Referenztypen und Upcasting",
+            "Polymorphie und dynamische Bindung"
+          ]
+        },
+        {
+          "id": "eip-10-l4-q02",
+          "type": "multi",
+          "prompt": "Unit 9 beschreibt ADTs mit privater Repräsentation und öffentlichen Operationen. Für einen Array-Stack soll die Invariante `0 ≤ size ≤ a.length` gelten. Wähle alle passenden Entwurfsentscheidungen.",
+          "options": [
+            {
+              "id": "a",
+              "text": "`size` öffentlich machen, damit Clients den Stack direkt reparieren können."
+            },
+            {
+              "id": "b",
+              "text": "`a` und `size` privat halten, damit Clients die Repräsentation nicht beliebig verändern."
+            },
+            {
+              "id": "c",
+              "text": "Öffentliche Stack-Operationen bereitstellen, die die Invariante bewahren."
+            },
+            {
+              "id": "d",
+              "text": "Die Invariante ist unwichtig, solange die Methoden `push` und `pop` heißen."
+            }
+          ],
+          "correct": [
+            "b",
+            "c"
+          ],
+          "explanation": "Private Repräsentation schützt die Datenstruktur-Invariante. Clients sollen die öffentlichen Operationen verwenden, die gültige Zustände erhalten.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO9.md",
+            "heading": null
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Sichtbarkeit und Kapselung",
+            "Invarianten"
+          ]
+        },
+        {
+          "id": "eip-10-l4-q03",
+          "type": "code_output",
+          "prompt": "Was gibt der Code aus?\n\n```java\nclass Parent {\n    protected int a = 1;\n    public int getA() { return a; }\n}\nclass Child extends Parent {\n    protected int a = 2;\n    @Override\n    public int getA() { return a; }\n}\nParent p = new Child();\nMiniJava.write(p.a);\nMiniJava.write(p.getA());\n```",
+          "options": [
+            {
+              "id": "a",
+              "text": "2\n2"
+            },
+            {
+              "id": "b",
+              "text": "1\n1"
+            },
+            {
+              "id": "c",
+              "text": "2\n1"
+            },
+            {
+              "id": "d",
+              "text": "1\n2"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "`p.a` wird anhand des statischen Typs `Parent` ausgewählt und liefert 1. `p.getA()` wird dynamisch an `Child` gebunden und liefert 2.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO10.md",
+            "heading": "12. Field Hiding ≠ Method Overriding"
+          },
+          "difficulty": 5,
+          "concepts": [
+            "Field Hiding",
+            "Polymorphie und dynamische Bindung"
+          ]
+        },
+        {
+          "id": "eip-10-l4-q04",
+          "type": "single",
+          "prompt": "Ein `Bank_Account`-Vertrag verlangt: Wenn `withdraw` `false` zurückgibt, bleiben alle Kontostände unverändert. Ein Override zieht bei Kontostand 120 zuerst eine Gebühr von 25 ab und versucht danach, 110 abzuheben. Welche Folgerung ist richtig?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Der Compiler verhindert diese Vertragsverletzung automatisch."
+            },
+            {
+              "id": "b",
+              "text": "Die Auszahlung gelingt und der Endstand ist 10."
+            },
+            {
+              "id": "c",
+              "text": "Der Override verletzt den Vertrag: Er gibt `false` zurück, obwohl der Kontostand von 120 auf 95 gesunken ist."
+            },
+            {
+              "id": "d",
+              "text": "Der Override hält den Vertrag ein, weil die Gebühr kleiner als die gewünschte Auszahlung ist."
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Nach der Gebühr bleiben 95; die gewünschte Auszahlung von 110 scheitert. Die Rückgabe ist also `false`, aber der Zustand hat sich verändert – eine Verletzung des Liskov-Vertrags.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO10.md",
+            "heading": "11. Liskov Substitution Principle (LSP)"
+          },
+          "difficulty": 5,
+          "concepts": [
+            "Liskov Substitution Principle",
+            "Invarianten"
+          ]
+        },
+        {
+          "id": "eip-10-l4-q05",
+          "type": "single",
+          "prompt": "Ein `Bank_Account[]` enthält der Reihe nach: `Savings_Account` mit 100, `Bonus_Saver_Account` mit 100 und Gebühr 20 sowie `Checking_Account` mit 10 und separater Reserve 100. Bei `withdrawAll(accounts, 20)` zieht Savings den Betrag ab, Bonus den Betrag plus Gebühr, und Checking versucht zuerst das eigene Guthaben und dann den Fehlbetrag aus der Reserve. Welche Endstände entstehen?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Savings 60, Bonus 80, Checking 10, Reserve 90"
+            },
+            {
+              "id": "b",
+              "text": "Savings 80, Bonus 60, Checking 10, Reserve 80"
+            },
+            {
+              "id": "c",
+              "text": "Savings 80, Bonus 60, Checking 0, Reserve 90"
+            },
+            {
+              "id": "d",
+              "text": "Savings 80, Bonus 80, Checking 0, Reserve 100"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Savings zieht 20 ab. Bonus zieht 20 plus 20 Gebühr ab. Checking hat einen Fehlbetrag von 10; dieser wird aus der separaten Reserve entnommen und Checking anschließend auf 0 gesetzt.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO10.md",
+            "heading": "10. Polymorphie: derselbe Aufruf, anderes Verhalten"
+          },
+          "difficulty": 5,
+          "concepts": [
+            "Polymorphie und dynamische Bindung",
+            "Vererbung und is-a-Beziehung"
+          ]
+        },
+        {
+          "id": "eip-10-l4-q06",
+          "type": "single",
+          "prompt": "`Object x = new Rational(2, 8);` und `Rational` deklariert `numerator()`. Welche Aussage gilt?",
+          "options": [
+            {
+              "id": "a",
+              "text": "`instanceof Rational` ist für jedes `Object` wahr."
+            },
+            {
+              "id": "b",
+              "text": "`x.numerator()` ist erlaubt, weil die Laufzeitklasse `Rational` ist."
+            },
+            {
+              "id": "c",
+              "text": "Der Cast erzeugt eine Kopie des Rational-Objekts."
+            },
+            {
+              "id": "d",
+              "text": "`x.numerator()` ist nicht erlaubt; nach erfolgreichem `instanceof Rational` und Cast ist `r.numerator()` erlaubt."
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Der statische Typ `Object` kennt `numerator()` nicht. Der Laufzeittyp bleibt `Rational`; nach einer passenden Prüfung kann eine `Rational`-Referenz verwendet werden, ohne das Objekt zu kopieren.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO10.md",
+            "heading": "15.              und Cast"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Referenztypen und Upcasting",
+            "instanceof und Casting"
+          ]
+        },
+        {
+          "id": "eip-10-l4-q07",
+          "type": "multi",
+          "prompt": "Es seien `x = new Rational(2, 8)` und `y = new Rational(1, 4)`. `Rational.equals` vergleicht Brüche per Kreuzprodukt und beide Referenzen zeigen auf getrennte Objekte. Wähle alle richtigen Aussagen.",
+          "options": [
+            {
+              "id": "a",
+              "text": "Weil `x.equals(y)` wahr ist, muss auch `x == y` wahr sein."
+            },
+            {
+              "id": "b",
+              "text": "`x.equals(y)` ist `true`."
+            },
+            {
+              "id": "c",
+              "text": "Beide Objekte müssen denselben `hashCode` haben."
+            },
+            {
+              "id": "d",
+              "text": "`x == y` ist `false`."
+            }
+          ],
+          "correct": [
+            "b",
+            "c",
+            "d"
+          ],
+          "explanation": "Die Referenzen bezeichnen verschiedene Objekte, daher ist `==` falsch. Die Kreuzprodukte sind gleich (`2·4 = 1·8`), und laut Hash-Vertrag müssen `equals`-gleiche Objekte denselben Hashwert haben.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO10.md",
+            "heading": "16.      vs."
+          },
+          "difficulty": 5,
+          "concepts": [
+            "Objektidentität und Wertgleichheit",
+            "equals und hashCode"
+          ]
+        },
+        {
+          "id": "eip-10-l4-q08",
+          "type": "calc",
+          "prompt": "Eine Variable vom statischen Typ `Bank_Account` verweist auf ein `Checking_Account` mit 30 Guthaben und ein separates Savings-Ersatzkonto mit 50. Der Aufruf `withdraw(70)` wird ausgeführt. Welche Rückgabe und Endstände gelten?",
+          "options": [
+            {
+              "id": "a",
+              "text": "`true`; Checking 30, Savings 0"
+            },
+            {
+              "id": "b",
+              "text": "`false`; Checking 30, Savings 50"
+            },
+            {
+              "id": "c",
+              "text": "`false`; Checking 0, Savings 10"
+            },
+            {
+              "id": "d",
+              "text": "`true`; Checking 0, Savings 10"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Der Checking-Override läuft trotz des Referenztyps `Bank_Account`. Checking kann 70 nicht allein zahlen; der Fehlbetrag 40 wird aus Savings entnommen, und Checking wird auf 0 gesetzt.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO10.md",
+            "heading": "Checking Account: Ersatzkonto bei Unterdeckung"
+          },
+          "difficulty": 5,
+          "concepts": [
+            "Polymorphie und dynamische Bindung",
+            "Liskov Substitution Principle"
+          ]
+        },
+        {
+          "id": "eip-10-l4-q09",
+          "type": "single",
+          "prompt": "`Book` besitzt nur `Book(int p)`. `Child()` ruft `this(5)` auf; `Child(int p)` ruft `super(p)` auf. Welchen Wert hat `pages` nach `new Child()`?",
+          "options": [
+            {
+              "id": "a",
+              "text": "0"
+            },
+            {
+              "id": "b",
+              "text": "Der Code kompiliert nicht, weil Java keinen parameterlosen Unterklassenkonstruktor erlaubt."
+            },
+            {
+              "id": "c",
+              "text": "Der Code kompiliert nicht, da `this(...)` keinen Oberklassenkonstruktor aufrufen darf."
+            },
+            {
+              "id": "d",
+              "text": "5"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "`this(5)` delegiert an den zweiten `Child`-Konstruktor, der mit `super(5)` die Oberklasse initialisiert. So führt die Konstruktorverkettung zum Oberklassenkonstruktor.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO10.md",
+            "heading": "3. Konstruktoren:              vs."
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Konstruktorverkettung"
+          ]
+        },
+        {
+          "id": "eip-10-l4-q10",
+          "type": "single",
+          "prompt": "`Book` deklariert `languageDescription()` ohne Parameter. Eine Unterklasse deklariert `@Override languageDescription(String separator)`. Wie ist das einzuordnen?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Es ist Overloading; wegen `@Override` meldet der Compiler aber, dass keine passende Methode überschrieben wird."
+            },
+            {
+              "id": "b",
+              "text": "Es ist gültig, weil ein anderer Parameter durch `@Override` erlaubt wird."
+            },
+            {
+              "id": "c",
+              "text": "Es ist Overriding, weil der Methodenname gleich ist."
+            },
+            {
+              "id": "d",
+              "text": "Es ist eine Felddeklaration und keine Methode."
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "Die Parameterliste unterscheidet sich, daher wäre die Methode eine Überladung. `@Override` passt dazu nicht und lässt den Compiler den Fehler erkennen.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO10.md",
+            "heading": "Overriding vs. Overloading"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Überladung (Overloading)",
+            "Methodenüberschreibung (Overriding)"
+          ]
+        },
+        {
+          "id": "eip-10-l4-q11",
+          "type": "diagram",
+          "prompt": "Die Referenz `b` hat den deklarierten Typ `Book` und zeigt auf ein `Dictionary`-Objekt. Welche Aussage zur Methode `languageDescription()` wird durch das Diagramm dargestellt?",
+          "context": {
+            "type": "mermaid",
+            "content": "flowchart LR\n  R[\"Book b\"] --> O[\"Dictionary-Objekt\"]\n  O --> M[\"Dictionary.languageDescription()\"]\n  R --> S[\"sichtbare Methoden: Book\"]",
+            "caption": "Statischer Referenztyp und Laufzeitklasse"
+          },
+          "options": [
+            {
+              "id": "a",
+              "text": "Die Referenzzuweisung ändert das Objekt zu einem `Book`."
+            },
+            {
+              "id": "b",
+              "text": "Der Aufruf führt zwingend die `Book`-Implementierung aus."
+            },
+            {
+              "id": "c",
+              "text": "Der Aufruf ist über `b` erlaubt und führt den Override aus `Dictionary` aus."
+            },
+            {
+              "id": "d",
+              "text": "Der Aufruf ist nicht erlaubt, weil `b` als `Book` deklariert ist."
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "`Book` deklariert die Methode und erlaubt den Aufruf. Die Laufzeitklasse `Dictionary` bestimmt, dass ihre überschreibende Implementierung ausgeführt wird.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO10.md",
+            "heading": "5. Upcasting und dynamische Bindung"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Referenztypen und Upcasting",
+            "Polymorphie und dynamische Bindung"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "eip-10-l5",
+      "index": 5,
+      "kind": "bonus",
+      "title": "Praxis: Code, Konten, Alltag",
+      "questions": [
+        {
+          "id": "eip-10-l5-q01",
+          "type": "single",
+          "prompt": "Du baust einen Routenplaner. `Radroute` und `Fußroute` sind beides `Route`-Objekte und überschreiben `dauer()`. Eine Liste vom Typ `Route` ruft für jedes Element `dauer()` auf. Welches Konzept sorgt dafür, dass jeweils die passende Routenberechnung läuft?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Dynamische Bindung: Die tatsächliche Objektklasse bestimmt die aufgerufene Überschreibung."
+            },
+            {
+              "id": "b",
+              "text": "Field Hiding: Der Referenztyp wählt die passende Methode."
+            },
+            {
+              "id": "c",
+              "text": "Wertgleichheit: `equals` vergleicht die Routen."
+            },
+            {
+              "id": "d",
+              "text": "Overloading: Die Parameterliste wählt zur Laufzeit die passende Methode."
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "Der gemeinsame Typ `Route` erlaubt denselben Aufruf für verschiedene Routen. Welche überschriebene `dauer()`-Methode läuft, entscheidet die tatsächliche Objektklasse.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO10.md",
+            "heading": "5. Upcasting und dynamische Bindung"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Polymorphie und dynamische Bindung",
+            "Methodenüberschreibung (Overriding)"
+          ]
+        },
+        {
+          "id": "eip-10-l5-q02",
+          "type": "single",
+          "prompt": "Du entwickelst ein Spiel: `Coin`, `Key` und `Potion` sollen überall dort verwendbar sein, wo ein `Collectible` erwartet wird. Welche Modellierung passt zur Aussage „Eine Münze ist ein Sammelobjekt“?",
+          "options": [
+            {
+              "id": "a",
+              "text": "`Collectible` erweitert jede der drei konkreten Klassen."
+            },
+            {
+              "id": "b",
+              "text": "Alle Klassen erhalten gleichnamige Felder; das erzeugt die is-a-Beziehung."
+            },
+            {
+              "id": "c",
+              "text": "Jedes Objekt enthält zusätzlich eine Referenz auf ein separates `Collectible`."
+            },
+            {
+              "id": "d",
+              "text": "`Coin`, `Key` und `Potion` erweitern `Collectible`."
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Eine Münze ist ein Sammelobjekt: Das ist eine is-a-Beziehung und passt zu `extends`. Die Unterklassen können den gemeinsamen Typ `Collectible` verwenden und Besonderheiten ergänzen.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO10.md",
+            "heading": "1. Warum Vererbung?"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Vererbung und is-a-Beziehung"
+          ]
+        },
+        {
+          "id": "eip-10-l5-q03",
+          "type": "estimate",
+          "prompt": "Du testest einen Bonus-Sparer mit 100 € Guthaben. Für die Zinsrunde gilt: neuer Stand = alter Stand × (1 + Zinssatz + Bonus). Zinssatz und Bonus betragen jeweils 25 %. Wie viele Euro zeigt das Konto danach?",
+          "options": [],
+          "correct": [],
+          "slider": {
+            "min": 0,
+            "max": 250,
+            "step": 1,
+            "answer": 150,
+            "tolerance": 0,
+            "unit": "€",
+            "scale": "linear"
+          },
+          "explanation": "Die beiden Anteile ergeben zusammen 50 %. Daher steigt der Stand auf 100 × (1 + 0,25 + 0,25) = 150 €.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO10.md",
+            "heading": "Bonus Saver Account"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Methodenüberschreibung (Overriding)",
+            "Polymorphie und dynamische Bindung"
+          ]
+        },
+        {
+          "id": "eip-10-l5-q04",
+          "type": "multi",
+          "prompt": "Du baust eine Wallet-App. Der Kontostand darf nie durch eine beliebige Änderung der Oberfläche ungültig werden. Welche zwei Entscheidungen helfen, diese Invariante zu schützen?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Öffentliche Einzahlungs- und Auszahlungsmethoden anbieten, die Beträge prüfen."
+            },
+            {
+              "id": "b",
+              "text": "Der Oberfläche erlauben, den Kontostand direkt auf einen beliebigen Wert zu setzen."
+            },
+            {
+              "id": "c",
+              "text": "Eine öffentliche Methode `setBalance` anbieten, die jeden übergebenen Wert übernimmt."
+            },
+            {
+              "id": "d",
+              "text": "Den Kontostand als `private` speichern."
+            }
+          ],
+          "correct": [
+            "a",
+            "d"
+          ],
+          "explanation": "Ein privates Feld verhindert direkte Änderungen von außen. Gezielte öffentliche Methoden können Eingaben prüfen und so die Invariante bei jeder Änderung bewahren.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO10.md",
+            "heading": "7. Invarianten und saubere Schnittstellen"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Sichtbarkeit und Kapselung",
+            "Invarianten"
+          ]
+        },
+        {
+          "id": "eip-10-l5-q05",
+          "type": "truefalse",
+          "prompt": "Ein Kontotyp erbt `withdraw(amount)` mit diesem Vertrag: Wenn die Auszahlung `false` zurückgibt, bleiben alle betroffenen Kontostände unverändert. Eine Unterklasse zieht vor der Prüfung eine Gebühr ab und gibt danach bei zu wenig Guthaben `false` zurück. Diese Unterklasse hält den Verhaltensvertrag ein.",
+          "options": [
+            {
+              "id": "true",
+              "text": "Wahr"
+            },
+            {
+              "id": "false",
+              "text": "Falsch"
+            }
+          ],
+          "correct": [
+            "false"
+          ],
+          "explanation": "Die Gebühr verändert den Kontostand, obwohl die Methode `false` meldet. Damit verletzt die Unterklasse den zugesicherten Vertrag der Oberklasse und das Liskov Substitution Principle.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO10.md",
+            "heading": "11. Liskov Substitution Principle (LSP)"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Liskov Substitution Principle",
+            "Methodenüberschreibung (Overriding)"
+          ]
+        },
+        {
+          "id": "eip-10-l5-q06",
+          "type": "estimate",
+          "prompt": "Ein `withdrawAll`-Durchlauf ruft `withdraw(20)` für drei Konten auf: ein Sparkonto mit 100 €, ein Bonus-Sparkonto mit 100 € und 20 € Gebühr sowie ein Checking-Konto mit 10 €. Das Checking-Konto kann den Fehlbetrag aus einem separaten Sparkonto mit 100 € decken; bei Erfolg wird sein eigener Stand auf 0 gesetzt. Wie hoch ist der gemeinsame Endstand aller vier Konten?",
+          "options": [],
+          "correct": [],
+          "slider": {
+            "min": 0,
+            "max": 400,
+            "step": 1,
+            "answer": 230,
+            "tolerance": 0,
+            "unit": "€",
+            "scale": "linear"
+          },
+          "explanation": "Das Sparkonto endet bei 80 €, das Bonuskonto bei 60 €. Checking verwendet 10 € aus seiner Reserve und endet bei 0 €, die Reserve bei 90 €. Zusammen sind das 230 €.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO10.md",
+            "heading": "10. Polymorphie: derselbe Aufruf, anderes Verhalten"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Polymorphie und dynamische Bindung",
+            "Methodenüberschreibung (Overriding)"
+          ]
+        },
+        {
+          "id": "eip-10-l5-q07",
+          "type": "single",
+          "prompt": "Ein Cache verwendet zwei verschiedene `CustomerKey`-Objekte für dieselbe Kundennummer. Ihre `equals`-Methode liefert `true`. Was muss für die zuverlässige Verwendung in einer Java-`HashSet` zusätzlich gelten?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Beide Referenzen müssen mit `==` identisch sein."
+            },
+            {
+              "id": "b",
+              "text": "Beide Objekte müssen denselben `hashCode()` liefern."
+            },
+            {
+              "id": "c",
+              "text": "Jedes Objekt muss einen einzigartigen `hashCode()` haben."
+            },
+            {
+              "id": "d",
+              "text": "`HashSet` darf nur `equals` verwenden und `hashCode` ignorieren."
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "Wenn `equals` zwei Schlüssel als gleich bewertet, müssen sie denselben Hashwert haben. Sonst können Hash-Sammlungen gleiche Schlüssel an unterschiedlichen Stellen suchen.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO10.md",
+            "heading": null
+          },
+          "difficulty": 3,
+          "concepts": [
+            "equals und hashCode",
+            "Objektidentität und Wertgleichheit"
+          ]
+        },
+        {
+          "id": "eip-10-l5-q08",
+          "type": "estimate",
+          "prompt": "Ein Plugin-Manager erzeugt ein `Thermostat`-Objekt genau einmal und speichert Referenzen darauf in 12 Variablen vom Typ `Object` oder `Device`. Wie viele verschiedene Geräteobjekte gibt es, wenn diese Variablen alle auf dasselbe Objekt zeigen?",
+          "options": [],
+          "correct": [],
+          "slider": {
+            "min": 0,
+            "max": 12,
+            "step": 1,
+            "answer": 1,
+            "tolerance": 0,
+            "unit": "Objekte",
+            "scale": "linear"
+          },
+          "explanation": "Upcasting und Zuweisungen erzeugen keine Kopien. Zwölf Referenzen können daher dasselbe einzelne Geräteobjekt bezeichnen.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO10.md",
+            "heading": null
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Referenztypen und Upcasting",
+            "Referenz und Aliasing"
+          ]
+        },
+        {
+          "id": "eip-10-l5-q09",
+          "type": "single",
+          "prompt": "Eine Smart-Home-App speichert Geräte zunächst als `Object`. Sie prüft mit `instanceof`, ob ein Gerät ein `Thermostat` ist, und castet es dann zu `Thermostat`. Was bewirkt ein erfolgreicher Cast?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Er erzeugt eine Kopie des Thermostats."
+            },
+            {
+              "id": "b",
+              "text": "Er überspringt die Laufzeitprüfung auf den tatsächlichen Typ."
+            },
+            {
+              "id": "c",
+              "text": "Er erlaubt dem Code, die Referenz als `Thermostat` zu verwenden; das Objekt bleibt dasselbe."
+            },
+            {
+              "id": "d",
+              "text": "Er ändert die tatsächliche Klasse des Geräteobjekts."
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Der Cast ändert die Typsicht auf die Referenz, nicht das Objekt selbst. `instanceof` hilft vorher zu prüfen, ob der Cast passt.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO10.md",
+            "heading": null
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Referenztypen und Upcasting",
+            "instanceof und Casting",
+            "Referenz und Aliasing"
+          ]
+        },
+        {
+          "id": "eip-10-l5-q10",
+          "type": "single",
+          "prompt": "Beim Code-Review einer UI-Bibliothek fällt dir auf: Der Konstruktor von `Widget` ruft eine überschreibbare Methode `prepare()` auf. `AnimatedWidget` überschreibt sie und erwartet, dass sein Feld `frameCount` bereits durch einen Feldinitialisierer gesetzt wurde. Welche Gefahr solltest du markieren?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Der Aufruf erzeugt ein zweites `Widget`-Objekt."
+            },
+            {
+              "id": "b",
+              "text": "Der Feldinitialisierer von `frameCount` läuft dadurch zweimal."
+            },
+            {
+              "id": "c",
+              "text": "`AnimatedWidget.prepare()` kann laufen, bevor der Feldinitialisierer von `frameCount` ausgeführt wurde."
+            },
+            {
+              "id": "d",
+              "text": "Java ruft im Oberklassenkonstruktor immer die Oberklassenmethode auf, nie eine Überschreibung."
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Ein Aufruf einer überschriebenen Methode kann schon im Oberklassenkonstruktor dynamisch zur Unterklasse verzweigen. Deren Feldinitialisierer sind zu diesem Zeitpunkt noch nicht gelaufen.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO10.md",
+            "heading": "13. Initialisierungsreihenfolge"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Objektinitialisierung",
+            "Polymorphie und dynamische Bindung"
+          ]
+        }
+      ]
+    }
+  ]
+}
