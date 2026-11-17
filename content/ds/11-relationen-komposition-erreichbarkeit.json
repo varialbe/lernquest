@@ -1,0 +1,1933 @@
+{
+  "schemaVersion": 1,
+  "id": "ds-11",
+  "module": "DS",
+  "number": 11,
+  "slug": "relationen-komposition-erreichbarkeit",
+  "title": "Relationen, Komposition und Erreichbarkeit",
+  "summary": "Du lernst, binäre Relationen als gerichtete Graphen und 0/1-Matrizen darzustellen. Durch Komposition werden aufeinanderfolgende Schritte verbunden; Relationpotenzen beschreiben Wege mit genau festgelegter Länge. Dabei übst du, Pfade, Erreichbarkeit und typische Fallen bei Matrizen und Rechenregeln auseinanderzuhalten.",
+  "concepts": [
+    "Binäre Relation",
+    "Gerichteter Graph",
+    "Kleiner-gleich-Relation",
+    "Relationsmatrix",
+    "Umkehrrelation",
+    "Relationales Produkt",
+    "Boolesche Matrizenmultiplikation",
+    "Kompositionseigenschaften",
+    "Relationpotenzen",
+    "Pfade",
+    "Erreichbarkeit",
+    "Endlichkeitsschranke"
+  ],
+  "keyFacts": [
+    "Eine binäre Relation E auf V ist eine Teilmenge von V×V; eine Kante x→y entspricht dem Paar (x,y)∈E.",
+    "Die geometrische Lage der Knoten in einer Graphzeichnung verändert die Relation nicht.",
+    "Die Relation kleiner-gleich auf ℕ₀ lässt sich als {(a,a+b) | a,b∈ℕ₀} definieren und enthält alle Schleifen.",
+    "Für fest aufgezählte Mengen A und B hat die Relationsmatrix zu R⊆A×B die Größe |A|×|B|; Zeilen stehen für Start-, Spalten für Zielelemente.",
+    "Die Matrix der Umkehrrelation Rᵀ ist bei vertauschten Mengenaufzählungen die transponierte Matrix M_Rᵀ.",
+    "Beim relationalen Produkt RS wird zuerst R und dann S ausgeführt; ein Zwischenknoten muss beide Schritte verbinden.",
+    "Boolesche Matrizenmultiplikation verknüpft Einträge mit UND und fasst mögliche Zwischenknoten mit ODER zusammen; sie zählt Wege nicht.",
+    "Komposition ist assoziativ, hat Identitätsrelationen als neutrale Elemente, verteilt sich über Vereinigung und ist monoton.",
+    "Relationales Produkt ist im Allgemeinen nicht kommutativ und verteilt sich im Allgemeinen nicht über Schnitt.",
+    "Für eine Endorelation gilt R⁰=Id_A und Rᵏ beschreibt Wege mit genau k Schritten.",
+    "R^{≤k} ist die Vereinigung der Potenzen von R von R⁰ bis Rᵏ; R^{<k} umfasst die Potenzen von R⁰ bis Rᵏ⁻¹.",
+    "Ein Pfad der Länge k hat k Kanten und k+1 Knoteneinträge; die Relation Rᵏ speichert nur Start- und Endknoten.",
+    "Ein Paar liegt genau dann in Rᵏ, wenn ein Pfad der Länge genau k zwischen seinen Elementen existiert.",
+    "Auf einer endlichen Knotenmenge A mit n Knoten gilt R^{<n}=R^{<k} für jedes k≥n.",
+    "Die Endlichkeitsschranke bezieht sich auf Vereinigungen von Potenzen und bedeutet nicht, dass einzelne Potenzen ab einem bestimmten Index gleich sind."
+  ],
+  "tags": [
+    "uni/tum",
+    "ds",
+    "diskrete-strukturen",
+    "relationen",
+    "graphentheorie",
+    "vorlesung/11"
+  ],
+  "links": [],
+  "source": {
+    "file": "DS/01_Vorlesungen/DS VO11.md",
+    "sha256": "e99352753655172f6b2590a8f11dca38719b2f4974f6d11e33b40723b7631ef3",
+    "commit": "4a452f9e65ab67e9f38f4857fe724f132c93cf9a"
+  },
+  "generator": {
+    "model": "gpt-6-luna",
+    "effort": "xhigh",
+    "reviewEffort": "high",
+    "promptVersion": "v3",
+    "generatedAt": "2026-11-17T23:39:38.863Z",
+    "review": {
+      "checked": 42,
+      "fixed": 4,
+      "removed": 0,
+      "notes": "Matrix-Transponierungsfrage präzisiert; Prüfskript zur Matrixdimension ergänzt. Prüfskripte zur Diagrammfrage in Vertiefen und zum reflexiv-transitiven Abschluss korrigiert. VO8/VO9-Wiederholungsfragen behalten; source.heading ist dort null."
+    }
+  },
+  "levels": [
+    {
+      "id": "ds-11-l1",
+      "index": 1,
+      "kind": "basics",
+      "title": "Grundlagen",
+      "questions": [
+        {
+          "id": "ds-11-l1-q01",
+          "type": "single",
+          "prompt": "Eine binäre Relation $E$ auf einer Knotenmenge $V$ wird als gerichteter Graph dargestellt. Wann gibt es eine Kante $x\\to y$?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Genau dann, wenn $x=y$."
+            },
+            {
+              "id": "b",
+              "text": "Genau dann, wenn $x$ oder $y$ nicht in $V$ liegt."
+            },
+            {
+              "id": "c",
+              "text": "Genau dann, wenn $(y,x)\\in E$."
+            },
+            {
+              "id": "d",
+              "text": "Genau dann, wenn $(x,y)\\in E$."
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Die gerichtete Kante führt vom ersten zum zweiten Eintrag des Relationspaares. Ein Rückpfeil entspricht dem vertauschten Paar.",
+          "source": {
+            "file": "DS/01_Vorlesungen/DS VO11.md",
+            "heading": "1. Graphen als Darstellung binärer Relationen (Folie 110)"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Binäre Relation",
+            "Gerichteter Graph"
+          ]
+        },
+        {
+          "id": "ds-11-l1-q02",
+          "type": "truefalse",
+          "prompt": "Wenn die Knoten in einer Graphzeichnung anders angeordnet werden, ändert sich dadurch die dargestellte Relation.",
+          "options": [
+            {
+              "id": "true",
+              "text": "Wahr"
+            },
+            {
+              "id": "false",
+              "text": "Falsch"
+            }
+          ],
+          "correct": [
+            "false"
+          ],
+          "explanation": "Für die Relation zählen die gerichteten Kanten. Die geometrische Lage und das Kreuzen von Kanten sind keine mathematische Information.",
+          "source": {
+            "file": "DS/01_Vorlesungen/DS VO11.md",
+            "heading": "1. Graphen als Darstellung binärer Relationen (Folie 110)"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Gerichteter Graph"
+          ]
+        },
+        {
+          "id": "ds-11-l1-q03",
+          "type": "cloze",
+          "prompt": "Für fest aufgezählte Mengen $A=\\{a_1,\\ldots,a_m\\}$ und $B=\\{b_1,\\ldots,b_n\\}$ gilt für die Relationsmatrix: $r_{i,j}=1$ genau dann, wenn ___.",
+          "options": [
+            {
+              "id": "a",
+              "text": "$i=j$"
+            },
+            {
+              "id": "b",
+              "text": "$(a_i,b_j)\\in R$"
+            },
+            {
+              "id": "c",
+              "text": "$(b_j,a_i)\\in R$"
+            },
+            {
+              "id": "d",
+              "text": "$a_i=b_j$"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "Eine Eins markiert ein Paar, dessen erster Eintrag das Element der Zeile und dessen zweiter Eintrag das Element der Spalte ist.",
+          "source": {
+            "file": "DS/01_Vorlesungen/DS VO11.md",
+            "heading": "3. Endliche Relationen als Matrizen (Folie 112)"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Relationsmatrix"
+          ]
+        },
+        {
+          "id": "ds-11-l1-q04",
+          "type": "single",
+          "prompt": "Welche Paare enthält die Umkehrrelation $R^\\top$ aus einem Paar $(x,y)\\in R$?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Nur das ursprüngliche Paar $(x,y)$."
+            },
+            {
+              "id": "b",
+              "text": "Die beiden Paare $(x,x)$ und $(y,y)$."
+            },
+            {
+              "id": "c",
+              "text": "Das vertauschte Paar $(y,x)$."
+            },
+            {
+              "id": "d",
+              "text": "Das Paar $(x,y,z)$."
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Die Umkehrrelation vertauscht in jedem Paar die Einträge. Bei festgelegten Aufzählungen entspricht das dem Transponieren der Matrix.",
+          "source": {
+            "file": "DS/01_Vorlesungen/DS VO11.md",
+            "heading": "3. Endliche Relationen als Matrizen (Folie 112)"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Umkehrrelation",
+            "Relationsmatrix"
+          ]
+        },
+        {
+          "id": "ds-11-l1-q05",
+          "type": "multi",
+          "prompt": "Welche Aussagen über die Relationsmatrix $M_R$ einer Relation $R\\subseteq A\\times B$ sind richtig? Wähle alle richtigen Aussagen; mehrere können richtig sein.",
+          "options": [
+            {
+              "id": "a",
+              "text": "Die Zeilen stehen für Elemente der Ausgangsmenge $A$."
+            },
+            {
+              "id": "b",
+              "text": "Jede Relationsmatrix muss quadratisch sein."
+            },
+            {
+              "id": "c",
+              "text": "Bei $|A|=m$ und $|B|=n$ hat sie $m$ Zeilen und $n$ Spalten."
+            },
+            {
+              "id": "d",
+              "text": "Eine andere Reihenfolge der Aufzählung kann die Matrix ändern, obwohl $R$ gleich bleibt."
+            }
+          ],
+          "correct": [
+            "a",
+            "c",
+            "d"
+          ],
+          "explanation": "Die Dimensionen folgen aus den Aufzählungen von A und B. Eine Matrix muss nur dann quadratisch sein, wenn beide Mengen gleich viele Elemente haben.",
+          "source": {
+            "file": "DS/01_Vorlesungen/DS VO11.md",
+            "heading": "3. Endliche Relationen als Matrizen (Folie 112)"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Relationsmatrix"
+          ]
+        },
+        {
+          "id": "ds-11-l1-q06",
+          "type": "single",
+          "prompt": "Welche Definition beschreibt die Relation kleiner-gleich auf $\\mathbb{N}_0$?",
+          "options": [
+            {
+              "id": "a",
+              "text": "$\\{(a,b)\\mid a>b\\}$"
+            },
+            {
+              "id": "b",
+              "text": "$\\{(a,a+b)\\mid a,b\\in\\mathbb{N}_0\\}$"
+            },
+            {
+              "id": "c",
+              "text": "$\\{(a,a-b)\\mid a,b\\in\\mathbb{N}_0\\}$"
+            },
+            {
+              "id": "d",
+              "text": "$\\{(a,b)\\mid a\\ne b\\}$"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "Da $b\\ge 0$ ist, gilt $a\\le a+b$. Umgekehrt lässt sich jedes Paar $a\\le c$ mit $b=c-a$ in dieser Form schreiben.",
+          "source": {
+            "file": "DS/01_Vorlesungen/DS VO11.md",
+            "heading": "2. Kleiner-gleich als Relation (Folie 111)"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Kleiner-gleich-Relation",
+            "Binäre Relation"
+          ]
+        },
+        {
+          "id": "ds-11-l1-q07-r1",
+          "type": "diagram",
+          "prompt": "Welche der folgenden gerichteten Kanten ist im dargestellten Graphen direkt vorhanden?",
+          "context": {
+            "type": "mermaid",
+            "content": "flowchart LR\n  A((A)) --> B((B))\n  B --> C((C))",
+            "caption": "Die Pfeile geben Richtung und direkte Kanten an."
+          },
+          "options": [
+            {
+              "id": "a",
+              "text": "$(C,B)$"
+            },
+            {
+              "id": "b",
+              "text": "$(B,A)$"
+            },
+            {
+              "id": "c",
+              "text": "$(A,B)$"
+            },
+            {
+              "id": "d",
+              "text": "$(A,C)$"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Eine gerichtete Kante von $u$ nach $v$ entspricht dem Relationspaar $(u,v)$. Direkt vorhanden ist die Kante $A\\to B$. Der Weg von $A$ über $B$ nach $C$ ist keine direkte Kante von $A$ nach $C$.",
+          "source": {
+            "file": "DS/01_Vorlesungen/DS VO11.md",
+            "heading": "1. Graphen als Darstellung binärer Relationen (Folie 110)"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Gerichteter Graph",
+            "Kanten als Relationspaare"
+          ]
+        },
+        {
+          "id": "ds-11-l1-q08-r1",
+          "type": "cloze",
+          "prompt": "Für das relationale Produkt gelte $(a,d)\\in RS$ genau dann, wenn es ein $x$ mit $(a,x)\\in R$ und $(x,d)\\in S$ gibt. Ergänze: Ein durch $RS$ beschriebener Weg beginnt mit einem Schritt aus ___.",
+          "options": [
+            {
+              "id": "a",
+              "text": "$R^\\top$"
+            },
+            {
+              "id": "b",
+              "text": "$R$ und $S$ gleichzeitig"
+            },
+            {
+              "id": "c",
+              "text": "$R$"
+            },
+            {
+              "id": "d",
+              "text": "$S$"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Nach der angegebenen Definition führt der erste Schritt von $a$ nach $x$ über $R$. Erst danach führt der Schritt von $x$ nach $d$ über $S$.",
+          "source": {
+            "file": "DS/01_Vorlesungen/DS VO11.md",
+            "heading": "4.1 Definition und Reihenfolge"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Relationales Produkt",
+            "Reihenfolge der Komposition"
+          ]
+        },
+        {
+          "id": "ds-11-l1-q09",
+          "type": "single",
+          "prompt": "Wie wird ein Eintrag bei der booleschen Matrizenmultiplikation berechnet?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Die Matrixeinträge unabhängig vom Zwischenknoten miteinander vergleichen."
+            },
+            {
+              "id": "b",
+              "text": "Für jeden Zwischenknoten UND der beiden Einträge bilden und die Ergebnisse mit ODER zusammenfassen."
+            },
+            {
+              "id": "c",
+              "text": "Für jeden Zwischenknoten die Einträge addieren und alle Summen multiplizieren."
+            },
+            {
+              "id": "d",
+              "text": "Die Zeilen der beiden Matrizen addieren."
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "Ein gemeinsamer Zwischenknoten braucht eine Eins in beiden beteiligten Einträgen. Ein Ergebnis ist eins, sobald mindestens ein solcher Zwischenknoten existiert.",
+          "source": {
+            "file": "DS/01_Vorlesungen/DS VO11.md",
+            "heading": "4.2 Matrizen: boolesche Multiplikation"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Boolesche Matrizenmultiplikation",
+            "Relationales Produkt"
+          ]
+        },
+        {
+          "id": "ds-11-l1-q10",
+          "type": "truefalse",
+          "prompt": "Wenn zwei verschiedene Zwischenknoten einen Start und ein Ziel verbinden, ist der entsprechende Eintrag des booleschen Produkts $2$.",
+          "options": [
+            {
+              "id": "true",
+              "text": "Wahr"
+            },
+            {
+              "id": "false",
+              "text": "Falsch"
+            }
+          ],
+          "correct": [
+            "false"
+          ],
+          "explanation": "Die boolesche Multiplikation prüft nur, ob mindestens ein Zwischenknoten passt. Mehrere Wege ergeben weiterhin den Eintrag 1.",
+          "source": {
+            "file": "DS/01_Vorlesungen/DS VO11.md",
+            "heading": "4.2 Matrizen: boolesche Multiplikation"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Boolesche Matrizenmultiplikation"
+          ]
+        },
+        {
+          "id": "ds-11-l1-q11",
+          "type": "single",
+          "prompt": "Was ist $R^0$ für eine Endorelation $R$ auf $A$?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Die Umkehrrelation $R^\\top$."
+            },
+            {
+              "id": "b",
+              "text": "Die leere Relation."
+            },
+            {
+              "id": "c",
+              "text": "Die Vereinigung $R\\cup R^2$."
+            },
+            {
+              "id": "d",
+              "text": "Die Identitätsrelation $\\mathrm{Id}_A$."
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Die nullte Potenz beschreibt null Schritte. Jeder Knoten ist daher mit sich selbst verbunden, also gilt $R^0=\\mathrm{Id}_A$.",
+          "source": {
+            "file": "DS/01_Vorlesungen/DS VO11.md",
+            "heading": "6. Potenzen von Relationen (Folie 119)"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Relationpotenzen",
+            "Erreichbarkeit"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ds-11-l2",
+      "index": 2,
+      "kind": "apply",
+      "title": "Anwenden",
+      "questions": [
+        {
+          "id": "ds-11-l2-q01",
+          "type": "calc",
+          "prompt": "Gegeben sind $R=\\{(p,q),(r,q),(s,p)\\}$ und $S=\\{(q,u),(p,v)\\}$. Bestimme das relationale Produkt $RS$.",
+          "options": [
+            {
+              "id": "a",
+              "text": "$RS=\\{(u,p),(u,r),(v,s)\\}$"
+            },
+            {
+              "id": "b",
+              "text": "$RS=\\{(p,v),(r,v),(s,u)\\}$"
+            },
+            {
+              "id": "c",
+              "text": "$RS=\\{(p,u),(r,u),(s,v)\\}$"
+            },
+            {
+              "id": "d",
+              "text": "$RS=\\{(p,q),(r,q),(s,p)\\}$"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Für p und r führt der R-Schritt nach q, von dort führt S nach u. Für s führt R nach p und S anschließend nach v.",
+          "source": {
+            "file": "DS/01_Vorlesungen/DS VO11.md",
+            "heading": "4.1 Definition und Reihenfolge"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Relationales Produkt"
+          ]
+        },
+        {
+          "id": "ds-11-l2-q02-r1",
+          "type": "diagram",
+          "prompt": "Ein Paar $(u,v)$ liegt in $RS$, wenn es einen Weg von $u$ nach $v$ gibt, der zuerst eine mit $R$ und danach eine mit $S$ beschriftete Kante durchläuft. Welches der folgenden Paare liegt in $RS$?",
+          "context": {
+            "type": "mermaid",
+            "content": "flowchart LR\n  p((p)) -->|R| q((q))\n  q -->|S| s((s))\n  q -->|R| t((t))",
+            "caption": "Die Beschriftung jedes Pfeils gibt die zugehörige Relation an."
+          },
+          "options": [
+            {
+              "id": "a",
+              "text": "$(p,s)$"
+            },
+            {
+              "id": "b",
+              "text": "$(q,t)$"
+            },
+            {
+              "id": "c",
+              "text": "$(p,t)$"
+            },
+            {
+              "id": "d",
+              "text": "$(s,p)$"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "Der Weg $p\\xrightarrow{R}q\\xrightarrow{S}s$ zeigt, dass $(p,s)\\in RS$. Die Kante von $q$ nach $t$ ist mit $R$ beschriftet und kann daher nicht den erforderlichen zweiten Schritt aus $S$ bilden.",
+          "source": {
+            "file": "DS/01_Vorlesungen/DS VO11.md",
+            "heading": "4.1 Definition und Reihenfolge"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Relationales Produkt",
+            "Zwischenknoten",
+            "Kantenbeschriftung"
+          ]
+        },
+        {
+          "id": "ds-11-l2-q03",
+          "type": "calc",
+          "prompt": "Berechne die Transponierte der Matrix $M_R=\\begin{pmatrix}1&0&1\\\\0&1&0\\end{pmatrix}$.",
+          "options": [
+            {
+              "id": "a",
+              "text": "$\\begin{pmatrix}1&0\\\\0&1\\\\1&0\\end{pmatrix}$"
+            },
+            {
+              "id": "b",
+              "text": "$\\begin{pmatrix}1&0\\\\1&0\\\\0&1\\end{pmatrix}$"
+            },
+            {
+              "id": "c",
+              "text": "$\\begin{pmatrix}0&1\\\\1&0\\\\0&1\\end{pmatrix}$"
+            },
+            {
+              "id": "d",
+              "text": "$\\begin{pmatrix}1&0&1\\\\0&1&0\\end{pmatrix}$"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "Beim Transponieren werden Zeilen und Spalten vertauscht. Die 2×3-Matrix wird dadurch zu einer 3×2-Matrix.",
+          "source": {
+            "file": "DS/01_Vorlesungen/DS VO11.md",
+            "heading": "3. Endliche Relationen als Matrizen (Folie 112)"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Relationsmatrix",
+            "Umkehrrelation"
+          ]
+        },
+        {
+          "id": "ds-11-l2-q04",
+          "type": "truefalse",
+          "prompt": "Für $R=\\{(a,b),(b,c)\\}$ gilt $(a,c)\\in R^2$, aber $(a,c)\\notin R$.",
+          "options": [
+            {
+              "id": "true",
+              "text": "Wahr"
+            },
+            {
+              "id": "false",
+              "text": "Falsch"
+            }
+          ],
+          "correct": [
+            "true"
+          ],
+          "explanation": "Der Weg $a\\to b\\to c$ hat genau zwei Kanten und belegt die Zugehörigkeit zu $R^2$. Eine direkte Kante von a nach c ist in R nicht enthalten.",
+          "source": {
+            "file": "DS/01_Vorlesungen/DS VO11.md",
+            "heading": "7.2 Pfade der Länge 0, 1 und 2"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Relationpotenzen",
+            "Pfade"
+          ]
+        },
+        {
+          "id": "ds-11-l2-q05",
+          "type": "calc",
+          "prompt": "Berechne das boolesche Skalarprodukt der Zeile $(1,0,1)$ und der Spalte $(0,1,1)^\\top$. Verknüpfe mit UND und fasse mit ODER zusammen.",
+          "options": [
+            {
+              "id": "a",
+              "text": "$1$"
+            },
+            {
+              "id": "b",
+              "text": "$0$"
+            },
+            {
+              "id": "c",
+              "text": "$3$"
+            },
+            {
+              "id": "d",
+              "text": "$2$"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "Die drei UND-Ergebnisse sind 0, 0 und 1. Ihr ODER ist 1; die Treffer werden nicht zu 2 oder 3 addiert.",
+          "source": {
+            "file": "DS/01_Vorlesungen/DS VO11.md",
+            "heading": "4.2 Matrizen: boolesche Multiplikation"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Boolesche Matrizenmultiplikation"
+          ]
+        },
+        {
+          "id": "ds-11-l2-q06",
+          "type": "single",
+          "prompt": "Eine Relation hat die Ausgangsmenge $A$ mit 2 Elementen und die Zielmenge $B$ mit 3 Elementen. Welche Dimension hat ihre Relationsmatrix?",
+          "options": [
+            {
+              "id": "a",
+              "text": "$2\\times3$"
+            },
+            {
+              "id": "b",
+              "text": "$3\\times2$"
+            },
+            {
+              "id": "c",
+              "text": "$3\\times3$"
+            },
+            {
+              "id": "d",
+              "text": "$2\\times2$"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "Die Zeilen entsprechen A und die Spalten B. Die Matrix hat deshalb 2 Zeilen und 3 Spalten.",
+          "source": {
+            "file": "DS/01_Vorlesungen/DS VO11.md",
+            "heading": "3. Endliche Relationen als Matrizen (Folie 112)"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Relationsmatrix"
+          ]
+        },
+        {
+          "id": "ds-11-l2-q07",
+          "type": "multi",
+          "prompt": "Welche Aussagen zur relationalen Komposition gelten allgemein? Wähle alle richtigen Aussagen; mehrere können richtig sein.",
+          "options": [
+            {
+              "id": "a",
+              "text": "Identitätsrelationen wirken als neutrale Relationen."
+            },
+            {
+              "id": "b",
+              "text": "Die Komposition ist assoziativ."
+            },
+            {
+              "id": "c",
+              "text": "Die Komposition verteilt sich beidseitig über Vereinigung."
+            },
+            {
+              "id": "d",
+              "text": "Die Komposition ist immer kommutativ."
+            }
+          ],
+          "correct": [
+            "a",
+            "b",
+            "c"
+          ],
+          "explanation": "Assoziativität, Neutralität und beide Distributivgesetze über Vereinigung gelten. Die Reihenfolge der Schritte kann jedoch entscheidend sein, daher ist Komposition nicht allgemein kommutativ.",
+          "source": {
+            "file": "DS/01_Vorlesungen/DS VO11.md",
+            "heading": "5. Rechenregeln der Komposition (Folie 118)"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Kompositionseigenschaften",
+            "Relationales Produkt"
+          ]
+        },
+        {
+          "id": "ds-11-l2-q08",
+          "type": "calc",
+          "prompt": "Auf $A=\\{x,y\\}$ sei $R=\\{(x,y)\\}$. Bestimme $R^{<1}$.",
+          "options": [
+            {
+              "id": "a",
+              "text": "$\\{(x,x),(y,y),(x,y)\\}$"
+            },
+            {
+              "id": "b",
+              "text": "$\\{(x,x),(y,y)\\}$"
+            },
+            {
+              "id": "c",
+              "text": "$\\varnothing$"
+            },
+            {
+              "id": "d",
+              "text": "$\\{(x,y)\\}$"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "$R^{<1}$ ist die Vereinigung von $R^0$ bis $R^0$ und damit nur die Identitätsrelation auf A. Die Kante aus R wird nicht einbezogen.",
+          "source": {
+            "file": "DS/01_Vorlesungen/DS VO11.md",
+            "heading": "6. Potenzen von Relationen (Folie 119)"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Relationpotenzen"
+          ]
+        },
+        {
+          "id": "ds-11-l2-q09",
+          "type": "single",
+          "prompt": "Ein Pfad der Länge 2 hat welche Form?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Zwei Knoteneinträge und eine Kante; in $R^2$ wird der Pfad vollständig gespeichert."
+            },
+            {
+              "id": "b",
+              "text": "Zwei Knoteneinträge und zwei Kanten; in $R^2$ wird auch der Zwischenknoten gespeichert."
+            },
+            {
+              "id": "c",
+              "text": "Drei Knoteneinträge und drei Kanten."
+            },
+            {
+              "id": "d",
+              "text": "Drei Knoteneinträge und zwei Kanten; in $R^2$ wird nur das Paar aus Start und Ziel festgehalten."
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Die Pfadlänge zählt Kanten, also enthält ein Pfad der Länge 2 drei Knoteneinträge. Das Relationspaar enthält nur Anfang und Ende.",
+          "source": {
+            "file": "DS/01_Vorlesungen/DS VO11.md",
+            "heading": "7.2 Pfade der Länge 0, 1 und 2"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Pfade",
+            "Relationpotenzen"
+          ]
+        },
+        {
+          "id": "ds-11-l2-q10",
+          "type": "calc",
+          "prompt": "Auf $A=\\{p,q,r\\}$ sei $R=\\{(p,q),(q,q),(q,r)\\}$. Bestimme $R^2$.",
+          "options": [
+            {
+              "id": "a",
+              "text": "$\\{(p,q),(q,q),(q,r)\\}$"
+            },
+            {
+              "id": "b",
+              "text": "$\\{(p,r),(q,p),(q,r)\\}$"
+            },
+            {
+              "id": "c",
+              "text": "$\\{(p,r),(q,r)\\}$"
+            },
+            {
+              "id": "d",
+              "text": "$\\{(p,q),(p,r),(q,q),(q,r)\\}$"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Von p geht es über q nach q oder r. Von q geht es über q nach q oder r. r hat keinen ausgehenden Schritt.",
+          "source": {
+            "file": "DS/01_Vorlesungen/DS VO11.md",
+            "heading": "6. Potenzen von Relationen (Folie 119)"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Relationpotenzen",
+            "Pfade"
+          ]
+        },
+        {
+          "id": "ds-11-l2-q11",
+          "type": "truefalse",
+          "prompt": "Für jede Endorelation $R$ gilt $R^2=\\mathrm{Id}_A$, weil zwei Schritte zum Ausgangsknoten zurückführen müssen.",
+          "options": [
+            {
+              "id": "true",
+              "text": "Wahr"
+            },
+            {
+              "id": "false",
+              "text": "Falsch"
+            }
+          ],
+          "correct": [
+            "false"
+          ],
+          "explanation": "$R^2$ enthält alle Start-Ziel-Paare, die über einen Zwischenknoten mit genau zwei R-Schritten verbunden sind. Eine Rückkehr zum Start ist nicht erforderlich.",
+          "source": {
+            "file": "DS/01_Vorlesungen/DS VO11.md",
+            "heading": "6. Potenzen von Relationen (Folie 119)"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Relationpotenzen",
+            "Pfade"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ds-11-l3",
+      "index": 3,
+      "kind": "deepen",
+      "title": "Vertiefen",
+      "questions": [
+        {
+          "id": "ds-11-l3-q01",
+          "type": "multi",
+          "prompt": "Welche Aussagen zur Verteilung der Komposition über Schnitt sind richtig? Wähle alle richtigen Aussagen; mehrere können richtig sein.",
+          "options": [
+            {
+              "id": "a",
+              "text": "Komposition verteilt sich über Schnitt immer genau wie über Vereinigung."
+            },
+            {
+              "id": "b",
+              "text": "Auf der linken Seite muss dieselbe S-Kante zu $S_1$ und $S_2$ gehören."
+            },
+            {
+              "id": "c",
+              "text": "Die Gleichheit $R(S_1\\cap S_2)=(RS_1)\\cap(RS_2)$ gilt im Allgemeinen nicht."
+            },
+            {
+              "id": "d",
+              "text": "Auf der rechten Seite können zwei verschiedene Zwischenknoten verwendet werden."
+            }
+          ],
+          "correct": [
+            "b",
+            "c",
+            "d"
+          ],
+          "explanation": "Für die linke Seite muss eine gemeinsame S-Kante existieren. Rechts dürfen zwei verschiedene Zwischenknoten denselben Anfang und dasselbe Ziel verbinden, weshalb die Seiten verschieden sein können.",
+          "source": {
+            "file": "DS/01_Vorlesungen/DS VO11.md",
+            "heading": "Was im Allgemeinen **nicht** gilt"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Kompositionseigenschaften",
+            "Relationales Produkt"
+          ]
+        },
+        {
+          "id": "ds-11-l3-q02",
+          "type": "calc",
+          "prompt": "Gegeben sind $R=\\{(0,1),(0,2)\\}$, $S_1=\\{(1,3)\\}$ und $S_2=\\{(2,3)\\}$. Bestimme beide Seiten von $R(S_1\\cap S_2)=(RS_1)\\cap(RS_2)$.",
+          "options": [
+            {
+              "id": "a",
+              "text": "Beide Seiten sind $\\varnothing$."
+            },
+            {
+              "id": "b",
+              "text": "Links $\\varnothing$, rechts $\\{(0,3)\\}$."
+            },
+            {
+              "id": "c",
+              "text": "Beide Seiten sind $\\{(0,3)\\}$."
+            },
+            {
+              "id": "d",
+              "text": "Links $\\{(0,3)\\}$, rechts $\\varnothing$."
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "$S_1$ und $S_2$ haben keine gemeinsame Kante, daher ist die linke Seite leer. Rechts entstehen beide Male das Paar $(0,3)$, aber über unterschiedliche Zwischenknoten.",
+          "source": {
+            "file": "DS/01_Vorlesungen/DS VO11.md",
+            "heading": "Was im Allgemeinen **nicht** gilt"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Kompositionseigenschaften",
+            "Relationales Produkt"
+          ]
+        },
+        {
+          "id": "ds-11-l3-q03",
+          "type": "diagram",
+          "prompt": "Liegt $(u,w)$ in $R^2$? Ein Eintrag liegt genau dann in $R^2$, wenn ein Weg mit genau zwei R-Kanten existiert.",
+          "context": {
+            "type": "mermaid",
+            "content": "flowchart LR\n  u((u)) --> v((v))\n  v --> w((w))\n  u --> x((x))\n  x --> z((z))",
+            "caption": "Gerichteter Graph R"
+          },
+          "options": [
+            {
+              "id": "a",
+              "text": "Ja, über den Zwischenknoten $v$."
+            },
+            {
+              "id": "b",
+              "text": "Nein, denn es gibt nur einen Weg mit zwei Kanten."
+            },
+            {
+              "id": "c",
+              "text": "Ja, aber nur über den Knoten $z$."
+            },
+            {
+              "id": "d",
+              "text": "Nein, weil $u$ keine ausgehende Kante hat."
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "Der Weg $u\\to v\\to w$ verwendet genau zwei Kanten. Damit gehört das Start-Ziel-Paar $(u,w)$ zu $R^2$.",
+          "source": {
+            "file": "DS/01_Vorlesungen/DS VO11.md",
+            "heading": "7. Pfade und Erreichbarkeit (Folien 120–121)"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Relationpotenzen",
+            "Pfade"
+          ]
+        },
+        {
+          "id": "ds-11-l3-q04",
+          "type": "truefalse",
+          "prompt": "Ein Paar in $R^k$ beschreibt Erreichbarkeit mit höchstens $k$ Schritten.",
+          "options": [
+            {
+              "id": "true",
+              "text": "Wahr"
+            },
+            {
+              "id": "false",
+              "text": "Falsch"
+            }
+          ],
+          "correct": [
+            "false"
+          ],
+          "explanation": "$R^k$ steht für genau k Schritte. Höchstens k Schritte fasst die Vereinigung $R^0\\cup R^1\\cup\\cdots\\cup R^k$ zusammen.",
+          "source": {
+            "file": "DS/01_Vorlesungen/DS VO11.md",
+            "heading": "6. Potenzen von Relationen (Folie 119)"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Relationpotenzen",
+            "Erreichbarkeit"
+          ]
+        },
+        {
+          "id": "ds-11-l3-q05",
+          "type": "cloze",
+          "prompt": "Für eine Endorelation auf einer endlichen Menge mit $n$ Knoten gilt für jedes $k\\ge n$: $R^{<k}=___$.",
+          "options": [
+            {
+              "id": "a",
+              "text": "$R^{<n-1}$"
+            },
+            {
+              "id": "b",
+              "text": "$R^n$"
+            },
+            {
+              "id": "c",
+              "text": "$R^{<n}$"
+            },
+            {
+              "id": "d",
+              "text": "$R^{k-1}$"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Jedes erreichbare Paar kann bei n Knoten durch einen Pfad mit weniger als n Kanten verbunden werden. Das Lemma betrifft die Vereinigung der Potenzen.",
+          "source": {
+            "file": "DS/01_Vorlesungen/DS VO11.md",
+            "heading": "7.4 Schranke bei endlichen Knotenmengen"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Endlichkeitsschranke",
+            "Erreichbarkeit"
+          ]
+        },
+        {
+          "id": "ds-11-l3-q06",
+          "type": "single",
+          "prompt": "Was bedeutet $(a,b)\\in R^2$?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Es gibt genau zwei verschiedene Pfade von $a$ nach $b$."
+            },
+            {
+              "id": "b",
+              "text": "Die Relation enthält dieselbe Kante $(a,b)$ zweimal."
+            },
+            {
+              "id": "c",
+              "text": "Es gibt einen Zwischenknoten $x$ mit $aRx$ und $xRb$; die beiden Kanten müssen nicht identisch sein."
+            },
+            {
+              "id": "d",
+              "text": "Es gibt einen Pfad von $a$ nach $b$ mit höchstens zwei Kanten."
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Die zweite Potenz verbindet zwei aufeinanderfolgende R-Schritte über einen Zwischenknoten. Sie zählt weder Kantenwiederholungen noch die Zahl der möglichen Pfade.",
+          "source": {
+            "file": "DS/01_Vorlesungen/DS VO11.md",
+            "heading": "6. Potenzen von Relationen (Folie 119)"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Relationpotenzen",
+            "Pfade"
+          ]
+        },
+        {
+          "id": "ds-11-l3-q07",
+          "type": "calc",
+          "prompt": "Auf $A=\\{a,b,c\\}$ sei $R=\\{(a,b)\\}$. Bestimme $R^{\\le1}$.",
+          "options": [
+            {
+              "id": "a",
+              "text": "$\\{(a,b)\\}$"
+            },
+            {
+              "id": "b",
+              "text": "$\\{(a,b),(b,a)\\}$"
+            },
+            {
+              "id": "c",
+              "text": "$\\{(a,a),(b,b),(c,c),(a,b)\\}$"
+            },
+            {
+              "id": "d",
+              "text": "$\\{(a,a),(b,b),(c,c)\\}$"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "$R^{\\le1}=R^0\\cup R^1$. Dazu kommen die Identitätspaare auf allen drei Knoten und die eine Kante aus R.",
+          "source": {
+            "file": "DS/01_Vorlesungen/DS VO11.md",
+            "heading": "6. Potenzen von Relationen (Folie 119)"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Relationpotenzen",
+            "Erreichbarkeit"
+          ]
+        },
+        {
+          "id": "ds-11-l3-q08",
+          "type": "truefalse",
+          "prompt": "Relationale Komposition ist kommutativ, weil sie assoziativ ist.",
+          "options": [
+            {
+              "id": "true",
+              "text": "Wahr"
+            },
+            {
+              "id": "false",
+              "text": "Falsch"
+            }
+          ],
+          "correct": [
+            "false"
+          ],
+          "explanation": "Assoziativität erlaubt nur, Klammern anders zu setzen. Sie erlaubt nicht, die Reihenfolge der Relationen zu vertauschen; allgemein kann $RS\\ne SR$ gelten.",
+          "source": {
+            "file": "DS/01_Vorlesungen/DS VO11.md",
+            "heading": "Was im Allgemeinen **nicht** gilt"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Kompositionseigenschaften"
+          ]
+        },
+        {
+          "id": "ds-11-l3-q09",
+          "type": "multi",
+          "prompt": "Welche Aussagen erklären, warum die Komposition assoziativ ist? Wähle alle richtigen Aussagen; mehrere können richtig sein.",
+          "options": [
+            {
+              "id": "a",
+              "text": "Assoziativität folgt daraus, dass die Komposition kommutativ ist."
+            },
+            {
+              "id": "b",
+              "text": "Ein Paar liegt auf beiden Seiten genau dann vor, wenn passende Zwischenknoten $b,c$ die Schritte $aRb$, $bSc$, $cTd$ verbinden."
+            },
+            {
+              "id": "c",
+              "text": "In beiden Klammerungen werden die Schritte zuerst mit $R$, dann mit $S$, dann mit $T$ ausgeführt."
+            },
+            {
+              "id": "d",
+              "text": "Die Reihenfolge der Relationen bleibt unverändert; nur die Klammerung ändert sich."
+            }
+          ],
+          "correct": [
+            "b",
+            "c",
+            "d"
+          ],
+          "explanation": "Beide Seiten beschreiben dieselbe Folge von drei Schritten und dieselben Existenzbedingungen für Zwischenknoten. Dazu ist kein Vertauschen der Relationen nötig.",
+          "source": {
+            "file": "DS/01_Vorlesungen/DS VO11.md",
+            "heading": "Warum Assoziativität funktioniert (kurzer Beweisansatz)"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Kompositionseigenschaften",
+            "Relationales Produkt"
+          ]
+        },
+        {
+          "id": "ds-11-l3-q10",
+          "type": "single",
+          "prompt": "Es gelte $R_1\\subseteq R_2$ und $S_1\\subseteq S_2$. Welche Inklusion folgt aus der Monotonie der Komposition?",
+          "options": [
+            {
+              "id": "a",
+              "text": "$R_2S_2\\subseteq R_1S_1$"
+            },
+            {
+              "id": "b",
+              "text": "$R_1S_1\\subseteq R_2S_2$"
+            },
+            {
+              "id": "c",
+              "text": "$R_1S_2\\subseteq R_2S_1$"
+            },
+            {
+              "id": "d",
+              "text": "$R_1S_1=R_2S_2$"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "Jeder Zwischenknoten, der für das kleinere Relationspaar funktioniert, funktioniert auch in den jeweils größeren Relationen. Daher bleibt jedes Produktpaar enthalten.",
+          "source": {
+            "file": "DS/01_Vorlesungen/DS VO11.md",
+            "heading": "5. Rechenregeln der Komposition (Folie 118)"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Kompositionseigenschaften"
+          ]
+        },
+        {
+          "id": "ds-11-l3-q11",
+          "type": "calc",
+          "prompt": "Gegeben sind $R=\\{(0,1),(0,2)\\}$, $S_1=\\{(1,3)\\}$ und $S_2=\\{(2,3)\\}$. Welche Werte haben $R(S_1\\cap S_2)$ und $(RS_1)\\cap(RS_2)$?",
+          "options": [
+            {
+              "id": "a",
+              "text": "$\\{(0,3)\\}$ und $\\{(0,3)\\}$"
+            },
+            {
+              "id": "b",
+              "text": "$\\{(0,3)\\}$ und $\\varnothing$"
+            },
+            {
+              "id": "c",
+              "text": "$\\varnothing$ und $\\varnothing$"
+            },
+            {
+              "id": "d",
+              "text": "$\\varnothing$ und $\\{(0,3)\\}$"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Der Schnitt $S_1\\cap S_2$ ist leer. In den beiden Produkten rechts kann dagegen derselbe Start-Ziel-Paarwert über zwei verschiedene Zwischenknoten entstehen.",
+          "source": {
+            "file": "DS/01_Vorlesungen/DS VO11.md",
+            "heading": "Was im Allgemeinen **nicht** gilt"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Relationales Produkt",
+            "Kompositionseigenschaften"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ds-11-l4",
+      "index": 4,
+      "kind": "boss",
+      "title": "Boss",
+      "questions": [
+        {
+          "id": "ds-11-l4-q01",
+          "type": "diagram",
+          "prompt": "Welche der folgenden Relationen enthält das Paar $(1,4)$? Gesucht ist die Potenz mit genau drei Schritten.",
+          "context": {
+            "type": "mermaid",
+            "content": "flowchart LR\n  n1((1)) --> n3((3))\n  n3 --> n1\n  n3 --> n2((2))\n  n2 --> n1\n  n2 --> n4((4))",
+            "caption": "Gerichteter Graph R"
+          },
+          "options": [
+            {
+              "id": "a",
+              "text": "Keine davon"
+            },
+            {
+              "id": "b",
+              "text": "$R$"
+            },
+            {
+              "id": "c",
+              "text": "$R^2$"
+            },
+            {
+              "id": "d",
+              "text": "$R^3$"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Der Weg $1\\to3\\to2\\to4$ hat genau drei Kanten. Damit liegt $(1,4)$ in $R^3$, aber nicht in $R$ oder $R^2$.",
+          "source": {
+            "file": "DS/01_Vorlesungen/DS VO11.md",
+            "heading": "7.1 Foliengraph"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Relationpotenzen",
+            "Pfade",
+            "Erreichbarkeit"
+          ]
+        },
+        {
+          "id": "ds-11-l4-q02",
+          "type": "calc",
+          "prompt": "Auf $A=\\{p,q,r,s\\}$ sei $R=\\{(p,q),(q,r),(q,s),(s,p)\\}$. Bestimme $R^2$.",
+          "options": [
+            {
+              "id": "a",
+              "text": "$\\{(p,q),(q,r),(q,s),(s,p)\\}$"
+            },
+            {
+              "id": "b",
+              "text": "$\\{(p,p),(q,q),(r,r),(s,s)\\}$"
+            },
+            {
+              "id": "c",
+              "text": "$\\{(p,r),(q,s),(s,p)\\}$"
+            },
+            {
+              "id": "d",
+              "text": "$\\{(p,r),(p,s),(q,p),(s,q)\\}$"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Von p geht es über q nach r oder s; von q geht es über s nach p; von s geht es über p nach q. r hat keinen ausgehenden Schritt.",
+          "source": {
+            "file": "DS/01_Vorlesungen/DS VO11.md",
+            "heading": "6. Potenzen von Relationen (Folie 119)"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Relationpotenzen",
+            "Pfade"
+          ]
+        },
+        {
+          "id": "ds-11-l4-q03",
+          "type": "multi",
+          "prompt": "Für eine Endorelation $R$ auf $A$ gelten $R^0=\\mathrm{Id}_A$, $R^{<1}=\\bigcup_{i=0}^{0}R^i$ und $R^{\\le1}=\\bigcup_{i=0}^{1}R^i$. Welche Aussagen stimmen? Wähle alle richtigen Aussagen; mehrere können richtig sein.",
+          "options": [
+            {
+              "id": "a",
+              "text": "$R^{\\le1}=\\mathrm{Id}_A\\cup R$."
+            },
+            {
+              "id": "b",
+              "text": "$R^{<1}=\\mathrm{Id}_A$."
+            },
+            {
+              "id": "c",
+              "text": "$R^0=\\varnothing$."
+            },
+            {
+              "id": "d",
+              "text": "$R^1=R$."
+            }
+          ],
+          "correct": [
+            "a",
+            "b",
+            "d"
+          ],
+          "explanation": "Die Vereinigungsgrenzen zeigen, dass $R^{<1}$ nur R⁰ enthält und $R^{\\le1}$ R⁰ und R¹ umfasst. R⁰ ist die Identität, R¹ ist R.",
+          "source": {
+            "file": "DS/01_Vorlesungen/DS VO11.md",
+            "heading": "6. Potenzen von Relationen (Folie 119)"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Relationpotenzen"
+          ]
+        },
+        {
+          "id": "ds-11-l4-q04",
+          "type": "truefalse",
+          "prompt": "Für einen Graphen mit $n$ Knoten gilt: Jedes erreichbare Paar besitzt einen Pfad mit weniger als $n$ Kanten; daraus folgt aber nicht allgemein $R^n=R^{n-1}$.",
+          "options": [
+            {
+              "id": "true",
+              "text": "Wahr"
+            },
+            {
+              "id": "false",
+              "text": "Falsch"
+            }
+          ],
+          "correct": [
+            "true"
+          ],
+          "explanation": "Ein erreichbares Paar kann über einen Pfad ohne wiederholte Knoten verbunden werden, der höchstens n−1 Kanten hat. Das Lemma vergleicht Vereinigungen von Potenzen und nicht einzelne Potenzen.",
+          "source": {
+            "file": "DS/01_Vorlesungen/DS VO11.md",
+            "heading": "7.4 Schranke bei endlichen Knotenmengen"
+          },
+          "difficulty": 5,
+          "concepts": [
+            "Endlichkeitsschranke",
+            "Relationpotenzen",
+            "Erreichbarkeit"
+          ]
+        },
+        {
+          "id": "ds-11-l4-q05",
+          "type": "single",
+          "prompt": "Eine Relation $R$ enthält auf $A=\\{a,b,c\\}$ genau die Paare $(a,b)$ und $(b,c)$. Transitivität bedeutet hier: Aus $xRy$ und $yRz$ muss $xRz$ folgen. Welche Beurteilung ist richtig?",
+          "options": [
+            {
+              "id": "a",
+              "text": "$R$ ist transitiv, weil $(a,c)$ automatisch zu $R^2$ gehört."
+            },
+            {
+              "id": "b",
+              "text": "$R$ ist nicht transitiv, weil $(a,c)$ fehlt."
+            },
+            {
+              "id": "c",
+              "text": "$R$ ist weder transitiv noch eine Relation."
+            },
+            {
+              "id": "d",
+              "text": "$R$ ist transitiv, weil beide vorhandenen Paare verschieden sind."
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "Aus $aRb$ und $bRc$ müsste nach der angegebenen Bedingung auch $aRc$ folgen. Dieses Paar fehlt in R.",
+          "source": {
+            "file": "DS/01_Vorlesungen/Diskrete Strukturen VO8.md",
+            "heading": null
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Relationales Produkt",
+            "Relationpotenzen"
+          ]
+        },
+        {
+          "id": "ds-11-l4-q06-r1",
+          "type": "calc",
+          "prompt": "Sei $A=\\{x,y\\}$ und $R=\\{(x,y)\\}$. Definiere $R^+=\\bigcup_{k\\ge1}R^k$ als die Menge aller Paare, die durch einen Pfad positiver Länge verbunden sind, und $R^*=\\mathrm{Id}_A\\cup R^+$. Bestimme $R^*$.",
+          "options": [
+            {
+              "id": "a",
+              "text": "$\\{(x,x),(y,y),(x,y)\\}$"
+            },
+            {
+              "id": "b",
+              "text": "$\\{(x,y)\\}$"
+            },
+            {
+              "id": "c",
+              "text": "$\\{(x,x),(y,y)\\}$"
+            },
+            {
+              "id": "d",
+              "text": "$\\{(x,y),(y,x)\\}$"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "Ein Schritt führt von $x$ nach $y$, also enthält $R^+$ das Paar $(x,y)$. Weitere Schritte sind nicht möglich. Die Identitätsrelation auf $A$ fügt $(x,x)$ und $(y,y)$ hinzu.",
+          "source": {
+            "file": "DS/01_Vorlesungen/DS VO11.md",
+            "heading": "6. Potenzen von Relationen (Folie 119)"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Relationspotenzen",
+            "Identitätsrelation",
+            "Erreichbarkeit"
+          ]
+        },
+        {
+          "id": "ds-11-l4-q07",
+          "type": "multi",
+          "prompt": "Bei boolescher Matrizenmultiplikation werden Zeile und Spalte über mögliche Zwischenknoten verglichen. Welche Aussagen stimmen? Wähle alle richtigen Aussagen; mehrere können richtig sein.",
+          "options": [
+            {
+              "id": "a",
+              "text": "Zwei passende Zwischenknoten machen den Ergebnis-Eintrag zu zwei."
+            },
+            {
+              "id": "b",
+              "text": "Ein passender Zwischenknoten benötigt in beiden beteiligten Einträgen eine Eins."
+            },
+            {
+              "id": "c",
+              "text": "Ein Produkt-Eintrag ist eins, wenn mindestens ein Zwischenknoten passt."
+            },
+            {
+              "id": "d",
+              "text": "Die Operation beschreibt Existenz, nicht die Anzahl der Wege."
+            }
+          ],
+          "correct": [
+            "b",
+            "c",
+            "d"
+          ],
+          "explanation": "UND prüft einen einzelnen Zwischenknoten, ODER fasst alle Möglichkeiten zusammen. Daher wird nur festgehalten, ob ein Weg existiert, nicht wie viele es gibt.",
+          "source": {
+            "file": "DS/01_Vorlesungen/DS VO11.md",
+            "heading": "4.2 Matrizen: boolesche Multiplikation"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Boolesche Matrizenmultiplikation",
+            "Relationales Produkt"
+          ]
+        },
+        {
+          "id": "ds-11-l4-q08",
+          "type": "single",
+          "prompt": "Was bedeutet $R^{\\le2}$ für eine Endorelation $R$?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Erreichbarkeit mit genau 2 R-Schritten."
+            },
+            {
+              "id": "b",
+              "text": "Erreichbarkeit mit mindestens 2 R-Schritten."
+            },
+            {
+              "id": "c",
+              "text": "Erreichbarkeit mit 0, 1 oder 2 R-Schritten."
+            },
+            {
+              "id": "d",
+              "text": "Erreichbarkeit mit weniger als 2 R-Schritten, aber ohne null Schritte."
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "$R^{\\le2}=R^0\\cup R^1\\cup R^2$. Der Index ≤ erlaubt alle Längen von null bis einschließlich zwei.",
+          "source": {
+            "file": "DS/01_Vorlesungen/DS VO11.md",
+            "heading": "6. Potenzen von Relationen (Folie 119)"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Relationpotenzen",
+            "Erreichbarkeit"
+          ]
+        },
+        {
+          "id": "ds-11-l4-q09",
+          "type": "truefalse",
+          "prompt": "Wenn für eine endliche Menge $A$ mit $n$ Elementen die Gleichheit $R^{<n}=R^{<k}$ für alle $k\\ge n$ gilt, müssen auch die einzelnen Potenzen $R^n$ und $R^{n-1}$ gleich sein.",
+          "options": [
+            {
+              "id": "true",
+              "text": "Wahr"
+            },
+            {
+              "id": "false",
+              "text": "Falsch"
+            }
+          ],
+          "correct": [
+            "false"
+          ],
+          "explanation": "Die Endlichkeitsschranke betrifft die kumulierten Vereinigungen $R^{<n}$ und $R^{<k}$. Sie macht keine Aussage über Gleichheit einzelner Potenzen.",
+          "source": {
+            "file": "DS/01_Vorlesungen/DS VO11.md",
+            "heading": "7.4 Schranke bei endlichen Knotenmengen"
+          },
+          "difficulty": 5,
+          "concepts": [
+            "Endlichkeitsschranke",
+            "Relationpotenzen"
+          ]
+        },
+        {
+          "id": "ds-11-l4-q10-r1",
+          "type": "calc",
+          "prompt": "Für Relationen gilt hier: $(a,d)\\in XY$ genau dann, wenn es ein $x$ mit $(a,x)\\in X$ und $(x,d)\\in Y$ gibt; in $XY$ kommt also zuerst ein $X$-Schritt und danach ein $Y$-Schritt. Gegeben sind $R=\\{(0,1)\\}$ und $S=\\{(1,2)\\}$. Bestimme $RS$ und $SR$.",
+          "options": [
+            {
+              "id": "a",
+              "text": "$RS=SR=\\{(0,2)\\}$"
+            },
+            {
+              "id": "b",
+              "text": "$RS=\\varnothing$ und $SR=\\{(0,2)\\}$"
+            },
+            {
+              "id": "c",
+              "text": "$RS=SR=\\varnothing$"
+            },
+            {
+              "id": "d",
+              "text": "$RS=\\{(0,2)\\}$ und $SR=\\varnothing$"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Für $RS$ führt der $R$-Schritt von $0$ nach $1$, danach führt der $S$-Schritt von $1$ nach $2$. Für $SR$ müsste der erste Schritt aus $S$ anschließend mit einem $R$-Schritt fortgesetzt werden; von $2$ geht aber keine $R$-Kante aus.",
+          "source": {
+            "file": "DS/01_Vorlesungen/DS VO11.md",
+            "heading": "5. Rechenregeln der Komposition (Folie 118)"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Relationales Produkt",
+            "Reihenfolge der Komposition",
+            "Nichtkommutativität"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ds-11-l5",
+      "index": 5,
+      "kind": "bonus",
+      "title": "Praxis: Wege, Netze und Aha-Zahlen",
+      "questions": [
+        {
+          "id": "ds-11-l5-q01",
+          "type": "single",
+          "prompt": "Du planst eine Route mit genau zwei Fahrabschnitten. Der Zielort des ersten Abschnitts muss der Startort des zweiten sein. Welche Idee beschreibt, welche Start-Ziel-Paare dadurch möglich werden?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Kleiner-gleich-Relation: Orte nach Namen sortieren"
+            },
+            {
+              "id": "b",
+              "text": "Relationales Produkt: zwei aufeinanderfolgende Schritte über einen gemeinsamen Zwischenort verbinden"
+            },
+            {
+              "id": "c",
+              "text": "Identitätsrelation: an jedem Ort stehen bleiben"
+            },
+            {
+              "id": "d",
+              "text": "Umkehrrelation: bei jedem Abschnitt Start und Ziel vertauschen"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "Bei der Routenplanung müssen zwei Abschnitte am selben Zwischenort anschließen. Das ist die Idee des relationalen Produkts: Es verbindet einen Schritt mit dem darauffolgenden.",
+          "source": {
+            "file": "DS/01_Vorlesungen/DS VO11.md",
+            "heading": "4.1 Definition und Reihenfolge"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Relationales Produkt",
+            "Gerichteter Graph"
+          ]
+        },
+        {
+          "id": "ds-11-l5-q02",
+          "type": "truefalse",
+          "prompt": "In einem sozialen Netzwerk bedeutet $F$ „folgt“. A folgt B und B folgt C. $F^2$ beschreibt hier Paare, die durch genau zwei aufeinanderfolgende Folge-Kanten verbunden sind. Stimmt die Aussage: Dann liegt $(A,C)$ in $F^2$, aber das beweist nicht, dass A C direkt folgt?",
+          "options": [
+            {
+              "id": "true",
+              "text": "Wahr"
+            },
+            {
+              "id": "false",
+              "text": "Falsch"
+            }
+          ],
+          "correct": [
+            "true"
+          ],
+          "explanation": "Die zwei Folge-Kanten bilden einen Weg von A über B nach C, also liegt $(A,C)$ in $F^2$. Das Paar muss deshalb nicht schon in der direkten Folgen-Relation $F$ liegen.",
+          "source": {
+            "file": "DS/01_Vorlesungen/DS VO11.md",
+            "heading": "6. Potenzen von Relationen (Folie 119)"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Relationpotenzen",
+            "Pfade"
+          ]
+        },
+        {
+          "id": "ds-11-l5-q03",
+          "type": "estimate",
+          "prompt": "Du legst eine 0/1-Relationsmatrix für 4 Startsysteme und 7 Zielsysteme an. Wie viele Zellen hat die Matrix?",
+          "options": [],
+          "correct": [],
+          "slider": {
+            "min": 1,
+            "max": 70,
+            "step": 1,
+            "answer": 28,
+            "tolerance": 0,
+            "unit": "Zellen",
+            "scale": "linear"
+          },
+          "explanation": "Jede Zeile gehört zu einem Startsystem und jede Spalte zu einem Zielsystem. Die Matrix hat daher $4\\cdot7=28$ Zellen.",
+          "source": {
+            "file": "DS/01_Vorlesungen/DS VO11.md",
+            "heading": "3. Endliche Relationen als Matrizen (Folie 112)"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Relationsmatrix"
+          ]
+        },
+        {
+          "id": "ds-11-l5-q04",
+          "type": "single",
+          "prompt": "Du verknüpfst in einer Datenbank Mitarbeitende mit Teams und Teams mit Büros. Ein Bericht soll für jedes Mitarbeiter-Büro-Paar „Ja“ ausgeben, wenn mindestens ein gemeinsames Team dazwischenliegt – auch wenn mehrere Teams passen. Welches Konzept passt als Mengenmodell?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Normale Matrizenmultiplikation: passende Zwischenwerte werden als Anzahl ausgegeben"
+            },
+            {
+              "id": "b",
+              "text": "Umkehrrelation: alle Zuordnungen werden in Gegenrichtung gelesen"
+            },
+            {
+              "id": "c",
+              "text": "Relationales Produkt: ein gemeinsamer Zwischeneintrag verbindet zwei Zuordnungen"
+            },
+            {
+              "id": "d",
+              "text": "Relationpotenz $R^3$: es müssen genau drei Zuordnungen folgen"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Das Team ist der gemeinsame Zwischenpunkt zwischen Mitarbeitendem und Büro. Das relationale Produkt fragt, ob mindestens ein solcher Zwischenpunkt existiert; mehrere Treffer ergeben weiterhin ein Ja.",
+          "source": {
+            "file": "DS/01_Vorlesungen/DS VO11.md",
+            "heading": "4.2 Matrizen: boolesche Multiplikation"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Relationales Produkt",
+            "Boolesche Matrizenmultiplikation"
+          ]
+        },
+        {
+          "id": "ds-11-l5-q05",
+          "type": "estimate",
+          "prompt": "Ein kleines Verkehrsnetz hat die Knoten P, Q, R und S sowie die gerichteten Kanten P→Q, P→R, Q→S, R→S und S→P. $R^2$ enthält Paare, die durch genau zwei Kanten verbunden sind; gleiche Start-Ziel-Paare zählen nur einmal. Wie viele verschiedene Paare enthält $R^2$?",
+          "options": [],
+          "correct": [],
+          "slider": {
+            "min": 1,
+            "max": 14,
+            "step": 1,
+            "answer": 5,
+            "tolerance": 0,
+            "unit": "Paare",
+            "scale": "linear"
+          },
+          "explanation": "Für jedes mögliche Zwischenziel wird geprüft, ob erst eine Kante dorthin und danach eine weitere Kante zum Endziel führt. So entstehen die Paare (P,S), (Q,P), (R,P), (S,Q) und (S,R): insgesamt 5; zwei verschiedene Wege von P nach S ergeben dabei nur ein Paar.",
+          "source": {
+            "file": "DS/01_Vorlesungen/DS VO11.md",
+            "heading": "7. Pfade und Erreichbarkeit (Folien 120–121)"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Relationpotenzen",
+            "Pfade",
+            "Boolesche Matrizenmultiplikation"
+          ]
+        },
+        {
+          "id": "ds-11-l5-q06",
+          "type": "single",
+          "prompt": "In einem Spiel führt jeder benutzte Portalübergang von einer Zone in eine andere; diese Schritt-Relation heißt $R$. $R^3$ bedeutet, dass drei solche Übergänge nacheinander ausgeführt werden. Welche Paare beschreibt $R^3$?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Zonen, die durch genau drei Portalübergänge verbunden sind"
+            },
+            {
+              "id": "b",
+              "text": "Zonen, die durch höchstens drei Portalübergänge verbunden sind"
+            },
+            {
+              "id": "c",
+              "text": "Zonen, zwischen denen ein direkter Portalübergang besteht"
+            },
+            {
+              "id": "d",
+              "text": "Die Anzahl aller möglichen Portalrouten"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "Eine Relationpotenz $R^k$ beschreibt Wege mit genau $k$ Schritten. Für $R^3$ sind das also Start- und Zielzonen, zwischen denen genau drei Portalübergänge liegen.",
+          "source": {
+            "file": "DS/01_Vorlesungen/DS VO11.md",
+            "heading": "6. Potenzen von Relationen (Folie 119)"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Relationpotenzen",
+            "Pfade"
+          ]
+        },
+        {
+          "id": "ds-11-l5-q07",
+          "type": "estimate",
+          "prompt": "Ein gerichtetes Abhängigkeitsnetz hat 8 Pakete. Wenn ein Paket von einem anderen erreichbar ist, kann man wiederholte Pakete aus einer passenden Abhängigkeitskette entfernen. Wie viele Pfeile kann eine solche Kette höchstens noch haben?",
+          "options": [],
+          "correct": [],
+          "slider": {
+            "min": 0,
+            "max": 20,
+            "step": 1,
+            "answer": 7,
+            "tolerance": 0,
+            "unit": "Pfeile",
+            "scale": "linear"
+          },
+          "explanation": "Nach dem Entfernen von Wiederholungen hat der Pfad höchstens 8 verschiedene Knoten. Zwischen 8 Knoten liegen höchstens 7 aufeinanderfolgende Kanten, also 7 Pfeile.",
+          "source": {
+            "file": "DS/01_Vorlesungen/DS VO11.md",
+            "heading": "7.4 Schranke bei endlichen Knotenmengen"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Pfade",
+            "Endlichkeitsschranke"
+          ]
+        },
+        {
+          "id": "ds-11-l5-q08",
+          "type": "single",
+          "prompt": "Ein Admin-Dashboard zeigt eine 0/1-Matrix: Zeilen sind anfragende Server, Spalten sind erreichbare Zielserver; eine 1 steht für eine direkte erlaubte Verbindung. Du willst dieselben Verbindungen in Gegenrichtung darstellen. Was machst du?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Die Matrix quadrieren: zwei Verbindungen hintereinander kombinieren"
+            },
+            {
+              "id": "b",
+              "text": "Die Matrix transponieren: Zeilen und Spalten tauschen"
+            },
+            {
+              "id": "c",
+              "text": "Nur die Diagonale behalten: Verbindungen eines Servers zu sich selbst"
+            },
+            {
+              "id": "d",
+              "text": "Die Einträge addieren: mehrere Wege zusammenzählen"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "Die Umkehrrelation vertauscht bei jedem Paar Start und Ziel. In der Matrixdarstellung entspricht das dem Transponieren, also dem Tausch von Zeilen und Spalten.",
+          "source": {
+            "file": "DS/01_Vorlesungen/DS VO11.md",
+            "heading": "3. Endliche Relationen als Matrizen (Folie 112)"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Relationsmatrix",
+            "Umkehrrelation"
+          ]
+        },
+        {
+          "id": "ds-11-l5-q09",
+          "type": "estimate",
+          "prompt": "Ein Netzwerk hat 3 Geräte. Eine Relation darauf darf jedes geordnete Geräte-Paar enthalten oder nicht enthalten; auch Schleifen wie Gerät A→Gerät A sind erlaubt. Wie viele verschiedene Relationen sind möglich?",
+          "options": [],
+          "correct": [],
+          "slider": {
+            "min": 8,
+            "max": 2048,
+            "step": 8,
+            "answer": 512,
+            "tolerance": 64,
+            "unit": "Relationen",
+            "scale": "log"
+          },
+          "explanation": "Es gibt $3\\cdot3=9$ mögliche geordnete Paare. Jedes kann unabhängig enthalten sein oder fehlen, also gibt es $2^9=512$ verschiedene Relationen.",
+          "source": {
+            "file": "DS/01_Vorlesungen/DS VO11.md",
+            "heading": "3. Endliche Relationen als Matrizen (Folie 112)"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Binäre Relation",
+            "Relationsmatrix",
+            "Gerichteter Graph"
+          ]
+        },
+        {
+          "id": "ds-11-l5-q10",
+          "type": "single",
+          "prompt": "Ein Paketmanager prüft, ob Paket A ein anderes Paket Z indirekt benötigt. Ein Pfeil $X\\to Y$ bedeutet: Paket X benötigt Paket Y direkt. Zwischen A und Z kann eine Kette solcher direkten Abhängigkeiten liegen. Wonach sucht der Paketmanager?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Nur eine direkte Abhängigkeit zwischen A und Z"
+            },
+            {
+              "id": "b",
+              "text": "Einen Weg mit genau zwei Abhängigkeitsschritten"
+            },
+            {
+              "id": "c",
+              "text": "Die geometrische Lage der Paketnamen in einer Zeichnung"
+            },
+            {
+              "id": "d",
+              "text": "Erreichbarkeit über einen Pfad beliebiger Länge"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Indirekte Abhängigkeit bedeutet, dass ein Pfad von A nach Z existiert. In einem endlichen Netz kann ein erreichbares Paar auch über einen Pfad ohne wiederholte Knoten verbunden werden.",
+          "source": {
+            "file": "DS/01_Vorlesungen/DS VO11.md",
+            "heading": "7.4 Schranke bei endlichen Knotenmengen"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Erreichbarkeit",
+            "Endlichkeitsschranke",
+            "Pfade"
+          ]
+        }
+      ]
+    }
+  ]
+}
