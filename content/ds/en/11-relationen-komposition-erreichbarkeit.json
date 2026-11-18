@@ -1,0 +1,1933 @@
+{
+  "schemaVersion": 1,
+  "id": "ds-11",
+  "module": "DS",
+  "number": 11,
+  "slug": "relationen-komposition-erreichbarkeit",
+  "title": "Relations, Composition, and Reachability",
+  "summary": "You will learn to represent binary relations (binäre Relationen) as directed graphs (gerichtete Graphen) and 0/1 matrices. Composition (Komposition) links consecutive steps; powers of a relation (Relationpotenzen) describe paths of a precisely specified length. You will practice distinguishing paths, reachability (Erreichbarkeit), and common pitfalls involving matrices and algebraic laws.",
+  "concepts": [
+    "Binary relation",
+    "Directed graph",
+    "Less-than-or-equal relation",
+    "Relation matrix",
+    "Converse relation",
+    "Relational product",
+    "Boolean matrix multiplication",
+    "Properties of composition",
+    "Powers of a relation",
+    "Paths",
+    "Reachability",
+    "Finite bound"
+  ],
+  "keyFacts": [
+    "A binary relation E on V is a subset of V×V; an edge x→y corresponds to the pair (x,y)∈E.",
+    "The geometric positions of the vertices in a graph drawing do not change the relation.",
+    "The less-than-or-equal relation on ℕ₀ can be defined as {(a,a+b) | a,b∈ℕ₀} and contains every loop.",
+    "For fixed enumerations of sets A and B, the relation matrix (Relationsmatrix) for R⊆A×B has size |A|×|B|; rows represent starting elements and columns represent destination elements.",
+    "With the set enumerations reversed, the matrix of the converse relation (Umkehrrelation) Rᵀ is the transpose of the matrix M_Rᵀ.",
+    "In the relational product (relationales Produkt) RS, R is applied first and then S; an intermediate vertex must connect both steps.",
+    "Boolean matrix multiplication (boolesche Matrizenmultiplikation) combines entries with AND and aggregates possible intermediate vertices with OR; it does not count paths.",
+    "Composition (Komposition) is associative, has identity relations as neutral elements, distributes over union, and is monotone.",
+    "The relational product is generally not commutative and does not generally distribute over intersection.",
+    "For an endorelation, R⁰=Id_A, and Rᵏ describes paths of exactly k steps.",
+    "R^{≤k} is the union of the powers of R from R⁰ through Rᵏ; R^{<k} includes the powers from R⁰ through Rᵏ⁻¹.",
+    "A path of length k has k edges and k+1 vertex entries; the relation Rᵏ stores only the starting and ending vertices.",
+    "A pair belongs to Rᵏ exactly when there is a path of length exactly k between its elements.",
+    "On a finite vertex set A with n vertices, R^{<n}=R^{<k} for every k≥n.",
+    "The finite bound (Endlichkeitsschranke) applies to unions of powers; it does not mean that individual powers become equal from some index onward."
+  ],
+  "tags": [
+    "uni/tum",
+    "ds",
+    "diskrete-strukturen",
+    "relationen",
+    "graphentheorie",
+    "vorlesung/11"
+  ],
+  "links": [],
+  "source": {
+    "file": "DS/01_Vorlesungen/DS VO11.md",
+    "sha256": "e99352753655172f6b2590a8f11dca38719b2f4974f6d11e33b40723b7631ef3",
+    "commit": "4a452f9e65ab67e9f38f4857fe724f132c93cf9a"
+  },
+  "generator": {
+    "model": "gpt-6-luna",
+    "effort": "xhigh",
+    "reviewEffort": "high",
+    "promptVersion": "v3",
+    "generatedAt": "2026-11-17T23:39:38.863Z",
+    "review": {
+      "checked": 42,
+      "fixed": 4,
+      "removed": 0,
+      "notes": "Matrix-Transponierungsfrage präzisiert; Prüfskript zur Matrixdimension ergänzt. Prüfskripte zur Diagrammfrage in Vertiefen und zum reflexiv-transitiven Abschluss korrigiert. VO8/VO9-Wiederholungsfragen behalten; source.heading ist dort null."
+    }
+  },
+  "levels": [
+    {
+      "id": "ds-11-l1",
+      "index": 1,
+      "kind": "basics",
+      "title": "Fundamentals",
+      "questions": [
+        {
+          "id": "ds-11-l1-q01",
+          "type": "single",
+          "prompt": "A binary relation $E$ on a vertex set $V$ is represented as a directed graph. When is there an edge $x\\to y$?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Exactly when $x=y$."
+            },
+            {
+              "id": "b",
+              "text": "Exactly when $x$ or $y$ is not in $V$."
+            },
+            {
+              "id": "c",
+              "text": "Exactly when $(y,x)\\in E$."
+            },
+            {
+              "id": "d",
+              "text": "Exactly when $(x,y)\\in E$."
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "The directed edge goes from the first to the second entry of the relation pair. A reverse arrow corresponds to the pair with the entries swapped.",
+          "source": {
+            "file": "DS/01_Vorlesungen/DS VO11.md",
+            "heading": "1. Graphen als Darstellung binärer Relationen (Folie 110)"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Binary relation",
+            "Directed graph"
+          ]
+        },
+        {
+          "id": "ds-11-l1-q02",
+          "type": "truefalse",
+          "prompt": "If the vertices are arranged differently in a graph drawing, the relation represented by the graph changes.",
+          "options": [
+            {
+              "id": "true",
+              "text": "True"
+            },
+            {
+              "id": "false",
+              "text": "False"
+            }
+          ],
+          "correct": [
+            "false"
+          ],
+          "explanation": "The directed edges determine the relation. The geometric positions and edge crossings carry no mathematical information.",
+          "source": {
+            "file": "DS/01_Vorlesungen/DS VO11.md",
+            "heading": "1. Graphen als Darstellung binärer Relationen (Folie 110)"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Directed graph"
+          ]
+        },
+        {
+          "id": "ds-11-l1-q03",
+          "type": "cloze",
+          "prompt": "For fixed enumerations of the sets $A=\\{a_1,\\ldots,a_m\\}$ and $B=\\{b_1,\\ldots,b_n\\}$, the relation matrix satisfies: $r_{i,j}=1$ exactly when ___.",
+          "options": [
+            {
+              "id": "a",
+              "text": "$i=j$"
+            },
+            {
+              "id": "b",
+              "text": "$(a_i,b_j)\\in R$"
+            },
+            {
+              "id": "c",
+              "text": "$(b_j,a_i)\\in R$"
+            },
+            {
+              "id": "d",
+              "text": "$a_i=b_j$"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "A 1 marks a pair whose first entry is the element indexing the row and whose second entry is the element indexing the column.",
+          "source": {
+            "file": "DS/01_Vorlesungen/DS VO11.md",
+            "heading": "3. Endliche Relationen als Matrizen (Folie 112)"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Relation matrix"
+          ]
+        },
+        {
+          "id": "ds-11-l1-q04",
+          "type": "single",
+          "prompt": "Which pairs does the converse relation $R^\\top$ contain if a pair $(x,y)\\in R$ is given?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Only the original pair $(x,y)$."
+            },
+            {
+              "id": "b",
+              "text": "The two pairs $(x,x)$ and $(y,y)$."
+            },
+            {
+              "id": "c",
+              "text": "The pair with entries swapped, $(y,x)$."
+            },
+            {
+              "id": "d",
+              "text": "The pair $(x,y,z)$."
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "The converse relation swaps the entries in every pair. For fixed enumerations, this corresponds to transposing the matrix.",
+          "source": {
+            "file": "DS/01_Vorlesungen/DS VO11.md",
+            "heading": "3. Endliche Relationen als Matrizen (Folie 112)"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Converse relation",
+            "Relation matrix"
+          ]
+        },
+        {
+          "id": "ds-11-l1-q05",
+          "type": "multi",
+          "prompt": "Which statements about the relation matrix $M_R$ of a relation $R\\subseteq A\\times B$ are correct? Select all that apply; more than one may be correct.",
+          "options": [
+            {
+              "id": "a",
+              "text": "The rows represent elements of the source set $A$."
+            },
+            {
+              "id": "b",
+              "text": "Every relation matrix must be square."
+            },
+            {
+              "id": "c",
+              "text": "For $|A|=m$ and $|B|=n$, it has $m$ rows and $n$ columns."
+            },
+            {
+              "id": "d",
+              "text": "A different enumeration order can change the matrix even though $R$ remains the same."
+            }
+          ],
+          "correct": [
+            "a",
+            "c",
+            "d"
+          ],
+          "explanation": "The dimensions follow from the enumerations of A and B. A matrix is square only if the two sets have the same number of elements.",
+          "source": {
+            "file": "DS/01_Vorlesungen/DS VO11.md",
+            "heading": "3. Endliche Relationen als Matrizen (Folie 112)"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Relation matrix"
+          ]
+        },
+        {
+          "id": "ds-11-l1-q06",
+          "type": "single",
+          "prompt": "Which definition describes the less-than-or-equal relation on $\\mathbb{N}_0$?",
+          "options": [
+            {
+              "id": "a",
+              "text": "$\\{(a,b)\\mid a>b\\}$"
+            },
+            {
+              "id": "b",
+              "text": "$\\{(a,a+b)\\mid a,b\\in\\mathbb{N}_0\\}$"
+            },
+            {
+              "id": "c",
+              "text": "$\\{(a,a-b)\\mid a,b\\in\\mathbb{N}_0\\}$"
+            },
+            {
+              "id": "d",
+              "text": "$\\{(a,b)\\mid a\\ne b\\}$"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "Since $b\\ge 0$, we have $a\\le a+b$. Conversely, every pair $a\\le c$ can be written in this form with $b=c-a$.",
+          "source": {
+            "file": "DS/01_Vorlesungen/DS VO11.md",
+            "heading": "2. Kleiner-gleich als Relation (Folie 111)"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Less-than-or-equal relation",
+            "Binary relation"
+          ]
+        },
+        {
+          "id": "ds-11-l1-q07-r1",
+          "type": "diagram",
+          "prompt": "Which of the following directed edges is present directly in the graph shown?",
+          "context": {
+            "type": "mermaid",
+            "content": "flowchart LR\n  A((A)) --> B((B))\n  B --> C((C))",
+            "caption": "The arrows indicate direction and direct edges."
+          },
+          "options": [
+            {
+              "id": "a",
+              "text": "$(C,B)$"
+            },
+            {
+              "id": "b",
+              "text": "$(B,A)$"
+            },
+            {
+              "id": "c",
+              "text": "$(A,B)$"
+            },
+            {
+              "id": "d",
+              "text": "$(A,C)$"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "A directed edge from $u$ to $v$ corresponds to the relation pair $(u,v)$. The edge $A\\to B$ is present directly. The path from $A$ through $B$ to $C$ is not a direct edge from $A$ to $C$.",
+          "source": {
+            "file": "DS/01_Vorlesungen/DS VO11.md",
+            "heading": "1. Graphen als Darstellung binärer Relationen (Folie 110)"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Directed graph",
+            "Edges as relation pairs"
+          ]
+        },
+        {
+          "id": "ds-11-l1-q08-r1",
+          "type": "cloze",
+          "prompt": "Suppose the relational product is defined by $(a,d)\\in RS$ exactly when there is an $x$ such that $(a,x)\\in R$ and $(x,d)\\in S$. Complete the sentence: A path described by $RS$ begins with a step from ___.",
+          "options": [
+            {
+              "id": "a",
+              "text": "$R^\\top$"
+            },
+            {
+              "id": "b",
+              "text": "$R$ and $S$ at the same time"
+            },
+            {
+              "id": "c",
+              "text": "$R$"
+            },
+            {
+              "id": "d",
+              "text": "$S$"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "By the given definition, the first step goes from $a$ to $x$ via $R$. Only then does the step from $x$ to $d$ via $S$ follow.",
+          "source": {
+            "file": "DS/01_Vorlesungen/DS VO11.md",
+            "heading": "4.1 Definition und Reihenfolge"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Relational product",
+            "Order of composition"
+          ]
+        },
+        {
+          "id": "ds-11-l1-q09",
+          "type": "single",
+          "prompt": "How is an entry computed in Boolean matrix multiplication?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Compare the matrix entries independently of the intermediate vertex."
+            },
+            {
+              "id": "b",
+              "text": "For each intermediate vertex, take the AND of the two entries and combine the results with OR."
+            },
+            {
+              "id": "c",
+              "text": "For each intermediate vertex, add the entries and multiply all the sums."
+            },
+            {
+              "id": "d",
+              "text": "Add the rows of the two matrices."
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "A shared intermediate vertex requires a 1 in both corresponding entries. The result is 1 as soon as at least one such intermediate vertex exists.",
+          "source": {
+            "file": "DS/01_Vorlesungen/DS VO11.md",
+            "heading": "4.2 Matrizen: boolesche Multiplikation"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Boolean matrix multiplication",
+            "Relational product"
+          ]
+        },
+        {
+          "id": "ds-11-l1-q10",
+          "type": "truefalse",
+          "prompt": "If two different intermediate vertices connect a start and a destination, the corresponding entry of the Boolean product is $2$.",
+          "options": [
+            {
+              "id": "true",
+              "text": "True"
+            },
+            {
+              "id": "false",
+              "text": "False"
+            }
+          ],
+          "correct": [
+            "false"
+          ],
+          "explanation": "Boolean multiplication checks only whether at least one intermediate vertex works. Multiple paths still give an entry of 1.",
+          "source": {
+            "file": "DS/01_Vorlesungen/DS VO11.md",
+            "heading": "4.2 Matrizen: boolesche Multiplikation"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Boolean matrix multiplication"
+          ]
+        },
+        {
+          "id": "ds-11-l1-q11",
+          "type": "single",
+          "prompt": "What is $R^0$ for an endorelation $R$ on $A$?",
+          "options": [
+            {
+              "id": "a",
+              "text": "The converse relation $R^\\top$."
+            },
+            {
+              "id": "b",
+              "text": "The empty relation."
+            },
+            {
+              "id": "c",
+              "text": "The union $R\\cup R^2$."
+            },
+            {
+              "id": "d",
+              "text": "The identity relation $\\mathrm{Id}_A$."
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "The zeroth power describes zero steps. Therefore, every vertex is connected to itself, so $R^0=\\mathrm{Id}_A$.",
+          "source": {
+            "file": "DS/01_Vorlesungen/DS VO11.md",
+            "heading": "6. Potenzen von Relationen (Folie 119)"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Powers of a relation",
+            "Reachability"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ds-11-l2",
+      "index": 2,
+      "kind": "apply",
+      "title": "Apply",
+      "questions": [
+        {
+          "id": "ds-11-l2-q01",
+          "type": "calc",
+          "prompt": "Given $R=\\{(p,q),(r,q),(s,p)\\}$ and $S=\\{(q,u),(p,v)\\}$, determine the relational product $RS$.",
+          "options": [
+            {
+              "id": "a",
+              "text": "$RS=\\{(u,p),(u,r),(v,s)\\}$"
+            },
+            {
+              "id": "b",
+              "text": "$RS=\\{(p,v),(r,v),(s,u)\\}$"
+            },
+            {
+              "id": "c",
+              "text": "$RS=\\{(p,u),(r,u),(s,v)\\}$"
+            },
+            {
+              "id": "d",
+              "text": "$RS=\\{(p,q),(r,q),(s,p)\\}$"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "For p and r, the R-step leads to q, and from there S leads to u. For s, R leads to p, and then S leads to v.",
+          "source": {
+            "file": "DS/01_Vorlesungen/DS VO11.md",
+            "heading": "4.1 Definition und Reihenfolge"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Relational product"
+          ]
+        },
+        {
+          "id": "ds-11-l2-q02-r1",
+          "type": "diagram",
+          "prompt": "A pair $(u,v)$ belongs to $RS$ if there is a path from $u$ to $v$ that first traverses an edge labeled $R$ and then one labeled $S$. Which of the following pairs belongs to $RS$?",
+          "context": {
+            "type": "mermaid",
+            "content": "flowchart LR\n  p((p)) -->|R| q((q))\n  q -->|S| s((s))\n  q -->|R| t((t))",
+            "caption": "The label on each arrow indicates the corresponding relation."
+          },
+          "options": [
+            {
+              "id": "a",
+              "text": "$(p,s)$"
+            },
+            {
+              "id": "b",
+              "text": "$(q,t)$"
+            },
+            {
+              "id": "c",
+              "text": "$(p,t)$"
+            },
+            {
+              "id": "d",
+              "text": "$(s,p)$"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "The path $p\\xrightarrow{R}q\\xrightarrow{S}s$ shows that $(p,s)\\in RS$. The edge from $q$ to $t$ is labeled $R$, so it cannot serve as the required second step from $S$.",
+          "source": {
+            "file": "DS/01_Vorlesungen/DS VO11.md",
+            "heading": "4.1 Definition und Reihenfolge"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Relational product",
+            "Intermediate vertex",
+            "Edge label"
+          ]
+        },
+        {
+          "id": "ds-11-l2-q03",
+          "type": "calc",
+          "prompt": "Compute the transpose of the matrix $M_R=\\begin{pmatrix}1&0&1\\\\0&1&0\\end{pmatrix}$.",
+          "options": [
+            {
+              "id": "a",
+              "text": "$\\begin{pmatrix}1&0\\\\0&1\\\\1&0\\end{pmatrix}$"
+            },
+            {
+              "id": "b",
+              "text": "$\\begin{pmatrix}1&0\\\\1&0\\\\0&1\\end{pmatrix}$"
+            },
+            {
+              "id": "c",
+              "text": "$\\begin{pmatrix}0&1\\\\1&0\\\\0&1\\end{pmatrix}$"
+            },
+            {
+              "id": "d",
+              "text": "$\\begin{pmatrix}1&0&1\\\\0&1&0\\end{pmatrix}$"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "Transposing swaps rows and columns. The 2×3 matrix therefore becomes a 3×2 matrix.",
+          "source": {
+            "file": "DS/01_Vorlesungen/DS VO11.md",
+            "heading": "3. Endliche Relationen als Matrizen (Folie 112)"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Relation matrix",
+            "Converse relation"
+          ]
+        },
+        {
+          "id": "ds-11-l2-q04",
+          "type": "truefalse",
+          "prompt": "For $R=\\{(a,b),(b,c)\\}$, $(a,c)\\in R^2$, but $(a,c)\\notin R$.",
+          "options": [
+            {
+              "id": "true",
+              "text": "True"
+            },
+            {
+              "id": "false",
+              "text": "False"
+            }
+          ],
+          "correct": [
+            "true"
+          ],
+          "explanation": "The path $a\\to b\\to c$ has exactly two edges and shows that the pair belongs to $R^2$. A direct edge from a to c is not in R.",
+          "source": {
+            "file": "DS/01_Vorlesungen/DS VO11.md",
+            "heading": "7.2 Pfade der Länge 0, 1 und 2"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Powers of a relation",
+            "Paths"
+          ]
+        },
+        {
+          "id": "ds-11-l2-q05",
+          "type": "calc",
+          "prompt": "Compute the Boolean dot product of the row $(1,0,1)$ and the column $(0,1,1)^\\top$. Combine with AND and aggregate with OR.",
+          "options": [
+            {
+              "id": "a",
+              "text": "$1$"
+            },
+            {
+              "id": "b",
+              "text": "$0$"
+            },
+            {
+              "id": "c",
+              "text": "$3$"
+            },
+            {
+              "id": "d",
+              "text": "$2$"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "The three AND results are 0, 0, and 1. Their OR is 1; the matches are not added to get 2 or 3.",
+          "source": {
+            "file": "DS/01_Vorlesungen/DS VO11.md",
+            "heading": "4.2 Matrizen: boolesche Multiplikation"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Boolean matrix multiplication"
+          ]
+        },
+        {
+          "id": "ds-11-l2-q06",
+          "type": "single",
+          "prompt": "A relation has a source set $A$ with 2 elements and a target set $B$ with 3 elements. What are the dimensions of its relation matrix?",
+          "options": [
+            {
+              "id": "a",
+              "text": "$2\\times3$"
+            },
+            {
+              "id": "b",
+              "text": "$3\\times2$"
+            },
+            {
+              "id": "c",
+              "text": "$3\\times3$"
+            },
+            {
+              "id": "d",
+              "text": "$2\\times2$"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "The rows correspond to A and the columns to B. The matrix therefore has 2 rows and 3 columns.",
+          "source": {
+            "file": "DS/01_Vorlesungen/DS VO11.md",
+            "heading": "3. Endliche Relationen als Matrizen (Folie 112)"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Relation matrix"
+          ]
+        },
+        {
+          "id": "ds-11-l2-q07",
+          "type": "multi",
+          "prompt": "Which statements about relational composition hold in general? Select all that apply; more than one may be correct.",
+          "options": [
+            {
+              "id": "a",
+              "text": "Identity relations act as neutral relations."
+            },
+            {
+              "id": "b",
+              "text": "Composition is associative."
+            },
+            {
+              "id": "c",
+              "text": "Composition distributes over union on both sides."
+            },
+            {
+              "id": "d",
+              "text": "Composition is always commutative."
+            }
+          ],
+          "correct": [
+            "a",
+            "b",
+            "c"
+          ],
+          "explanation": "Associativity, the identity property, and both distributive laws over union hold. However, the order of the steps can matter, so composition is not generally commutative.",
+          "source": {
+            "file": "DS/01_Vorlesungen/DS VO11.md",
+            "heading": "5. Rechenregeln der Komposition (Folie 118)"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Properties of composition",
+            "Relational product"
+          ]
+        },
+        {
+          "id": "ds-11-l2-q08",
+          "type": "calc",
+          "prompt": "On $A=\\{x,y\\}$, let $R=\\{(x,y)\\}$. Determine $R^{<1}$.",
+          "options": [
+            {
+              "id": "a",
+              "text": "$\\{(x,x),(y,y),(x,y)\\}$"
+            },
+            {
+              "id": "b",
+              "text": "$\\{(x,x),(y,y)\\}$"
+            },
+            {
+              "id": "c",
+              "text": "$\\varnothing$"
+            },
+            {
+              "id": "d",
+              "text": "$\\{(x,y)\\}$"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "$R^{<1}$ is the union of $R^0$ through $R^0$ and is therefore just the identity relation on A. The edge from R is not included.",
+          "source": {
+            "file": "DS/01_Vorlesungen/DS VO11.md",
+            "heading": "6. Potenzen von Relationen (Folie 119)"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Powers of a relation"
+          ]
+        },
+        {
+          "id": "ds-11-l2-q09",
+          "type": "single",
+          "prompt": "What form does a path of length 2 have?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Two vertex entries and one edge; in $R^2$, the path is stored in full."
+            },
+            {
+              "id": "b",
+              "text": "Two vertex entries and two edges; in $R^2$, the intermediate vertex is also stored."
+            },
+            {
+              "id": "c",
+              "text": "Three vertex entries and three edges."
+            },
+            {
+              "id": "d",
+              "text": "Three vertex entries and two edges; in $R^2$, only the start–destination pair is recorded."
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Path length counts edges, so a path of length 2 contains three vertex entries. The relation pair contains only the start and end.",
+          "source": {
+            "file": "DS/01_Vorlesungen/DS VO11.md",
+            "heading": "7.2 Pfade der Länge 0, 1 und 2"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Paths",
+            "Powers of a relation"
+          ]
+        },
+        {
+          "id": "ds-11-l2-q10",
+          "type": "calc",
+          "prompt": "On $A=\\{p,q,r\\}$, let $R=\\{(p,q),(q,q),(q,r)\\}$. Determine $R^2$.",
+          "options": [
+            {
+              "id": "a",
+              "text": "$\\{(p,q),(q,q),(q,r)\\}$"
+            },
+            {
+              "id": "b",
+              "text": "$\\{(p,r),(q,p),(q,r)\\}$"
+            },
+            {
+              "id": "c",
+              "text": "$\\{(p,r),(q,r)\\}$"
+            },
+            {
+              "id": "d",
+              "text": "$\\{(p,q),(p,r),(q,q),(q,r)\\}$"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "From p, the path goes via q to q or r. From q, it goes via q to q or r. r has no outgoing step.",
+          "source": {
+            "file": "DS/01_Vorlesungen/DS VO11.md",
+            "heading": "6. Potenzen von Relationen (Folie 119)"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Powers of a relation",
+            "Paths"
+          ]
+        },
+        {
+          "id": "ds-11-l2-q11",
+          "type": "truefalse",
+          "prompt": "For every endorelation $R$, $R^2=\\mathrm{Id}_A$ holds because two steps must return to the starting vertex.",
+          "options": [
+            {
+              "id": "true",
+              "text": "True"
+            },
+            {
+              "id": "false",
+              "text": "False"
+            }
+          ],
+          "correct": [
+            "false"
+          ],
+          "explanation": "$R^2$ contains all start–destination pairs connected through an intermediate vertex by exactly two R-steps. Returning to the start is not required.",
+          "source": {
+            "file": "DS/01_Vorlesungen/DS VO11.md",
+            "heading": "6. Potenzen von Relationen (Folie 119)"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Powers of a relation",
+            "Paths"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ds-11-l3",
+      "index": 3,
+      "kind": "deepen",
+      "title": "Deepen Your Understanding",
+      "questions": [
+        {
+          "id": "ds-11-l3-q01",
+          "type": "multi",
+          "prompt": "Which statements about composition distributing over intersection are correct? Select all that apply; more than one may be correct.",
+          "options": [
+            {
+              "id": "a",
+              "text": "Composition always distributes over intersection exactly as it does over union."
+            },
+            {
+              "id": "b",
+              "text": "On the left-hand side, the same S-edge must belong to $S_1$ and $S_2$."
+            },
+            {
+              "id": "c",
+              "text": "The equality $R(S_1\\cap S_2)=(RS_1)\\cap(RS_2)$ does not hold in general."
+            },
+            {
+              "id": "d",
+              "text": "On the right-hand side, two different intermediate vertices may be used."
+            }
+          ],
+          "correct": [
+            "b",
+            "c",
+            "d"
+          ],
+          "explanation": "For the left-hand side, a shared S-edge must exist. On the right-hand side, two different intermediate vertices may connect the same start and destination, so the two sides can differ.",
+          "source": {
+            "file": "DS/01_Vorlesungen/DS VO11.md",
+            "heading": "Was im Allgemeinen **nicht** gilt"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Properties of composition",
+            "Relational product"
+          ]
+        },
+        {
+          "id": "ds-11-l3-q02",
+          "type": "calc",
+          "prompt": "Given $R=\\{(0,1),(0,2)\\}$, $S_1=\\{(1,3)\\}$, and $S_2=\\{(2,3)\\}$, determine both sides of $R(S_1\\cap S_2)=(RS_1)\\cap(RS_2)$.",
+          "options": [
+            {
+              "id": "a",
+              "text": "Both sides are $\\varnothing$."
+            },
+            {
+              "id": "b",
+              "text": "Left: $\\varnothing$; right: $\\{(0,3)\\}$."
+            },
+            {
+              "id": "c",
+              "text": "Both sides are $\\{(0,3)\\}$."
+            },
+            {
+              "id": "d",
+              "text": "Left: $\\{(0,3)\\}$; right: $\\varnothing$."
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "$S_1$ and $S_2$ have no edge in common, so the left-hand side is empty. On the right, both products yield the pair $(0,3)$, but via different intermediate vertices.",
+          "source": {
+            "file": "DS/01_Vorlesungen/DS VO11.md",
+            "heading": "Was im Allgemeinen **nicht** gilt"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Properties of composition",
+            "Relational product"
+          ]
+        },
+        {
+          "id": "ds-11-l3-q03",
+          "type": "diagram",
+          "prompt": "Does $(u,w)$ belong to $R^2$? An entry belongs to $R^2$ exactly when there is a path with exactly two R-edges.",
+          "context": {
+            "type": "mermaid",
+            "content": "flowchart LR\n  u((u)) --> v((v))\n  v --> w((w))\n  u --> x((x))\n  x --> z((z))",
+            "caption": "Directed graph R"
+          },
+          "options": [
+            {
+              "id": "a",
+              "text": "Yes, via the intermediate vertex $v$."
+            },
+            {
+              "id": "b",
+              "text": "No, because there is only one path with two edges."
+            },
+            {
+              "id": "c",
+              "text": "Yes, but only via vertex $z$."
+            },
+            {
+              "id": "d",
+              "text": "No, because $u$ has no outgoing edge."
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "The path $u\\to v\\to w$ uses exactly two edges. Therefore, the start–destination pair $(u,w)$ belongs to $R^2$.",
+          "source": {
+            "file": "DS/01_Vorlesungen/DS VO11.md",
+            "heading": "7. Pfade und Erreichbarkeit (Folien 120–121)"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Powers of a relation",
+            "Paths"
+          ]
+        },
+        {
+          "id": "ds-11-l3-q04",
+          "type": "truefalse",
+          "prompt": "A pair in $R^k$ describes reachability in at most $k$ steps.",
+          "options": [
+            {
+              "id": "true",
+              "text": "True"
+            },
+            {
+              "id": "false",
+              "text": "False"
+            }
+          ],
+          "correct": [
+            "false"
+          ],
+          "explanation": "$R^k$ represents exactly k steps. Reachability in at most k steps is captured by the union $R^0\\cup R^1\\cup\\cdots\\cup R^k$.",
+          "source": {
+            "file": "DS/01_Vorlesungen/DS VO11.md",
+            "heading": "6. Potenzen von Relationen (Folie 119)"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Powers of a relation",
+            "Reachability"
+          ]
+        },
+        {
+          "id": "ds-11-l3-q05",
+          "type": "cloze",
+          "prompt": "For an endorelation on a finite set with $n$ vertices, the following holds for every $k\\ge n$: $R^{<k}=___$.",
+          "options": [
+            {
+              "id": "a",
+              "text": "$R^{<n-1}$"
+            },
+            {
+              "id": "b",
+              "text": "$R^n$"
+            },
+            {
+              "id": "c",
+              "text": "$R^{<n}$"
+            },
+            {
+              "id": "d",
+              "text": "$R^{k-1}$"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "With n vertices, every reachable pair can be connected by a path with fewer than n edges. The lemma concerns the union of the powers.",
+          "source": {
+            "file": "DS/01_Vorlesungen/DS VO11.md",
+            "heading": "7.4 Schranke bei endlichen Knotenmengen"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Finite bound",
+            "Reachability"
+          ]
+        },
+        {
+          "id": "ds-11-l3-q06",
+          "type": "single",
+          "prompt": "What does $(a,b)\\in R^2$ mean?",
+          "options": [
+            {
+              "id": "a",
+              "text": "There are exactly two distinct paths from $a$ to $b$."
+            },
+            {
+              "id": "b",
+              "text": "The relation contains the same edge $(a,b)$ twice."
+            },
+            {
+              "id": "c",
+              "text": "There is an intermediate vertex $x$ such that $aRx$ and $xRb$; the two edges need not be identical."
+            },
+            {
+              "id": "d",
+              "text": "There is a path from $a$ to $b$ with at most two edges."
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "The second power connects two consecutive R-steps through an intermediate vertex. It counts neither repeated edges nor the number of possible paths.",
+          "source": {
+            "file": "DS/01_Vorlesungen/DS VO11.md",
+            "heading": "6. Potenzen von Relationen (Folie 119)"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Powers of a relation",
+            "Paths"
+          ]
+        },
+        {
+          "id": "ds-11-l3-q07",
+          "type": "calc",
+          "prompt": "On $A=\\{a,b,c\\}$, let $R=\\{(a,b)\\}$. Determine $R^{\\le1}$.",
+          "options": [
+            {
+              "id": "a",
+              "text": "$\\{(a,b)\\}$"
+            },
+            {
+              "id": "b",
+              "text": "$\\{(a,b),(b,a)\\}$"
+            },
+            {
+              "id": "c",
+              "text": "$\\{(a,a),(b,b),(c,c),(a,b)\\}$"
+            },
+            {
+              "id": "d",
+              "text": "$\\{(a,a),(b,b),(c,c)\\}$"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "$R^{\\le1}=R^0\\cup R^1$. Add the identity pairs for all three vertices and the one edge from R.",
+          "source": {
+            "file": "DS/01_Vorlesungen/DS VO11.md",
+            "heading": "6. Potenzen von Relationen (Folie 119)"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Powers of a relation",
+            "Reachability"
+          ]
+        },
+        {
+          "id": "ds-11-l3-q08",
+          "type": "truefalse",
+          "prompt": "Relational composition is commutative because it is associative.",
+          "options": [
+            {
+              "id": "true",
+              "text": "True"
+            },
+            {
+              "id": "false",
+              "text": "False"
+            }
+          ],
+          "correct": [
+            "false"
+          ],
+          "explanation": "Associativity only allows parentheses to be regrouped. It does not allow the order of the relations to be swapped; in general, $RS\\ne SR$ may hold.",
+          "source": {
+            "file": "DS/01_Vorlesungen/DS VO11.md",
+            "heading": "Was im Allgemeinen **nicht** gilt"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Properties of composition"
+          ]
+        },
+        {
+          "id": "ds-11-l3-q09",
+          "type": "multi",
+          "prompt": "Which statements explain why composition is associative? Select all that apply; more than one may be correct.",
+          "options": [
+            {
+              "id": "a",
+              "text": "Associativity follows from composition being commutative."
+            },
+            {
+              "id": "b",
+              "text": "A pair belongs to both sides exactly when suitable intermediate vertices $b,c$ connect the steps $aRb$, $bSc$, and $cTd$."
+            },
+            {
+              "id": "c",
+              "text": "With either grouping, the steps are performed first with $R$, then with $S$, and then with $T$."
+            },
+            {
+              "id": "d",
+              "text": "The order of the relations stays the same; only the grouping changes."
+            }
+          ],
+          "correct": [
+            "b",
+            "c",
+            "d"
+          ],
+          "explanation": "Both sides describe the same sequence of three steps and the same existence conditions for intermediate vertices. No swapping of the relations is needed.",
+          "source": {
+            "file": "DS/01_Vorlesungen/DS VO11.md",
+            "heading": "Warum Assoziativität funktioniert (kurzer Beweisansatz)"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Properties of composition",
+            "Relational product"
+          ]
+        },
+        {
+          "id": "ds-11-l3-q10",
+          "type": "single",
+          "prompt": "Suppose $R_1\\subseteq R_2$ and $S_1\\subseteq S_2$. Which inclusion follows from the monotonicity of composition?",
+          "options": [
+            {
+              "id": "a",
+              "text": "$R_2S_2\\subseteq R_1S_1$"
+            },
+            {
+              "id": "b",
+              "text": "$R_1S_1\\subseteq R_2S_2$"
+            },
+            {
+              "id": "c",
+              "text": "$R_1S_2\\subseteq R_2S_1$"
+            },
+            {
+              "id": "d",
+              "text": "$R_1S_1=R_2S_2$"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "Every intermediate vertex that works for the smaller pair of relations also works in the respective larger relations. Thus, every pair in the product remains included.",
+          "source": {
+            "file": "DS/01_Vorlesungen/DS VO11.md",
+            "heading": "5. Rechenregeln der Komposition (Folie 118)"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Properties of composition"
+          ]
+        },
+        {
+          "id": "ds-11-l3-q11",
+          "type": "calc",
+          "prompt": "Given $R=\\{(0,1),(0,2)\\}$, $S_1=\\{(1,3)\\}$, and $S_2=\\{(2,3)\\}$, what are the values of $R(S_1\\cap S_2)$ and $(RS_1)\\cap(RS_2)$?",
+          "options": [
+            {
+              "id": "a",
+              "text": "$\\{(0,3)\\}$ and $\\{(0,3)\\}$"
+            },
+            {
+              "id": "b",
+              "text": "$\\{(0,3)\\}$ and $\\varnothing$"
+            },
+            {
+              "id": "c",
+              "text": "$\\varnothing$ and $\\varnothing$"
+            },
+            {
+              "id": "d",
+              "text": "$\\varnothing$ and $\\{(0,3)\\}$"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "The intersection $S_1\\cap S_2$ is empty. In the two products on the right, however, the same start–destination pair can arise via two different intermediate vertices.",
+          "source": {
+            "file": "DS/01_Vorlesungen/DS VO11.md",
+            "heading": "Was im Allgemeinen **nicht** gilt"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Relational product",
+            "Properties of composition"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ds-11-l4",
+      "index": 4,
+      "kind": "boss",
+      "title": "Boss",
+      "questions": [
+        {
+          "id": "ds-11-l4-q01",
+          "type": "diagram",
+          "prompt": "Which of the following relations contains the pair $(1,4)$? We are looking for the power with exactly three steps.",
+          "context": {
+            "type": "mermaid",
+            "content": "flowchart LR\n  n1((1)) --> n3((3))\n  n3 --> n1\n  n3 --> n2((2))\n  n2 --> n1\n  n2 --> n4((4))",
+            "caption": "Directed graph R"
+          },
+          "options": [
+            {
+              "id": "a",
+              "text": "None of these"
+            },
+            {
+              "id": "b",
+              "text": "$R$"
+            },
+            {
+              "id": "c",
+              "text": "$R^2$"
+            },
+            {
+              "id": "d",
+              "text": "$R^3$"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "The path $1\\to3\\to2\\to4$ has exactly three edges. Thus, $(1,4)$ belongs to $R^3$, but not to $R$ or $R^2$.",
+          "source": {
+            "file": "DS/01_Vorlesungen/DS VO11.md",
+            "heading": "7.1 Foliengraph"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Powers of a relation",
+            "Paths",
+            "Reachability"
+          ]
+        },
+        {
+          "id": "ds-11-l4-q02",
+          "type": "calc",
+          "prompt": "On $A=\\{p,q,r,s\\}$, let $R=\\{(p,q),(q,r),(q,s),(s,p)\\}$. Determine $R^2$.",
+          "options": [
+            {
+              "id": "a",
+              "text": "$\\{(p,q),(q,r),(q,s),(s,p)\\}$"
+            },
+            {
+              "id": "b",
+              "text": "$\\{(p,p),(q,q),(r,r),(s,s)\\}$"
+            },
+            {
+              "id": "c",
+              "text": "$\\{(p,r),(q,s),(s,p)\\}$"
+            },
+            {
+              "id": "d",
+              "text": "$\\{(p,r),(p,s),(q,p),(s,q)\\}$"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "From p, the path goes via q to r or s; from q, it goes via s to p; from s, it goes via p to q. r has no outgoing step.",
+          "source": {
+            "file": "DS/01_Vorlesungen/DS VO11.md",
+            "heading": "6. Potenzen von Relationen (Folie 119)"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Powers of a relation",
+            "Paths"
+          ]
+        },
+        {
+          "id": "ds-11-l4-q03",
+          "type": "multi",
+          "prompt": "For an endorelation $R$ on $A$, let $R^0=\\mathrm{Id}_A$, $R^{<1}=\\bigcup_{i=0}^{0}R^i$, and $R^{\\le1}=\\bigcup_{i=0}^{1}R^i$. Which statements are correct? Select all that apply; more than one may be correct.",
+          "options": [
+            {
+              "id": "a",
+              "text": "$R^{\\le1}=\\mathrm{Id}_A\\cup R$."
+            },
+            {
+              "id": "b",
+              "text": "$R^{<1}=\\mathrm{Id}_A$."
+            },
+            {
+              "id": "c",
+              "text": "$R^0=\\varnothing$."
+            },
+            {
+              "id": "d",
+              "text": "$R^1=R$."
+            }
+          ],
+          "correct": [
+            "a",
+            "b",
+            "d"
+          ],
+          "explanation": "The union bounds show that $R^{<1}$ contains only R⁰, while $R^{\\le1}$ includes R⁰ and R¹. R⁰ is the identity, and R¹ is R.",
+          "source": {
+            "file": "DS/01_Vorlesungen/DS VO11.md",
+            "heading": "6. Potenzen von Relationen (Folie 119)"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Powers of a relation"
+          ]
+        },
+        {
+          "id": "ds-11-l4-q04",
+          "type": "truefalse",
+          "prompt": "For a graph with $n$ vertices, every reachable pair has a path with fewer than $n$ edges; however, this does not imply $R^n=R^{n-1}$ in general.",
+          "options": [
+            {
+              "id": "true",
+              "text": "True"
+            },
+            {
+              "id": "false",
+              "text": "False"
+            }
+          ],
+          "correct": [
+            "true"
+          ],
+          "explanation": "A reachable pair can be connected by a path with no repeated vertices and at most n−1 edges. The lemma compares unions of powers, not individual powers.",
+          "source": {
+            "file": "DS/01_Vorlesungen/DS VO11.md",
+            "heading": "7.4 Schranke bei endlichen Knotenmengen"
+          },
+          "difficulty": 5,
+          "concepts": [
+            "Finite bound",
+            "Powers of a relation",
+            "Reachability"
+          ]
+        },
+        {
+          "id": "ds-11-l4-q05",
+          "type": "single",
+          "prompt": "A relation $R$ on $A=\\{a,b,c\\}$ contains exactly the pairs $(a,b)$ and $(b,c)$. Here, transitivity means that $xRy$ and $yRz$ must imply $xRz$. Which assessment is correct?",
+          "options": [
+            {
+              "id": "a",
+              "text": "$R$ is transitive because $(a,c)$ automatically belongs to $R^2$."
+            },
+            {
+              "id": "b",
+              "text": "$R$ is not transitive because $(a,c)$ is missing."
+            },
+            {
+              "id": "c",
+              "text": "$R$ is neither transitive nor a relation."
+            },
+            {
+              "id": "d",
+              "text": "$R$ is transitive because its two existing pairs are different."
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "From $aRb$ and $bRc$, the stated condition also requires $aRc$. This pair is missing from R.",
+          "source": {
+            "file": "DS/01_Vorlesungen/Diskrete Strukturen VO8.md",
+            "heading": null
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Relational product",
+            "Powers of a relation"
+          ]
+        },
+        {
+          "id": "ds-11-l4-q06-r1",
+          "type": "calc",
+          "prompt": "Let $A=\\{x,y\\}$ and $R=\\{(x,y)\\}$. Define $R^+=\\bigcup_{k\\ge1}R^k$ as the set of all pairs connected by a path of positive length, and let $R^*=\\mathrm{Id}_A\\cup R^+$. Determine $R^*$.",
+          "options": [
+            {
+              "id": "a",
+              "text": "$\\{(x,x),(y,y),(x,y)\\}$"
+            },
+            {
+              "id": "b",
+              "text": "$\\{(x,y)\\}$"
+            },
+            {
+              "id": "c",
+              "text": "$\\{(x,x),(y,y)\\}$"
+            },
+            {
+              "id": "d",
+              "text": "$\\{(x,y),(y,x)\\}$"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "One step goes from $x$ to $y$, so $R^+$ contains the pair $(x,y)$. No further steps are possible. The identity relation on $A$ adds $(x,x)$ and $(y,y)$.",
+          "source": {
+            "file": "DS/01_Vorlesungen/DS VO11.md",
+            "heading": "6. Potenzen von Relationen (Folie 119)"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Powers of a relation",
+            "Identity relation",
+            "Reachability"
+          ]
+        },
+        {
+          "id": "ds-11-l4-q07",
+          "type": "multi",
+          "prompt": "In Boolean matrix multiplication, a row and a column are compared across possible intermediate vertices. Which statements are correct? Select all that apply; more than one may be correct.",
+          "options": [
+            {
+              "id": "a",
+              "text": "Two suitable intermediate vertices make the result entry equal to two."
+            },
+            {
+              "id": "b",
+              "text": "A suitable intermediate vertex requires a 1 in both corresponding entries."
+            },
+            {
+              "id": "c",
+              "text": "A product entry is 1 if at least one intermediate vertex works."
+            },
+            {
+              "id": "d",
+              "text": "The operation represents existence, not the number of paths."
+            }
+          ],
+          "correct": [
+            "b",
+            "c",
+            "d"
+          ],
+          "explanation": "AND checks a single intermediate vertex, and OR aggregates all possibilities. Thus, the operation records whether a path exists, not how many paths there are.",
+          "source": {
+            "file": "DS/01_Vorlesungen/DS VO11.md",
+            "heading": "4.2 Matrizen: boolesche Multiplikation"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Boolean matrix multiplication",
+            "Relational product"
+          ]
+        },
+        {
+          "id": "ds-11-l4-q08",
+          "type": "single",
+          "prompt": "What does $R^{\\le2}$ mean for an endorelation $R$?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Reachability in exactly 2 R-steps."
+            },
+            {
+              "id": "b",
+              "text": "Reachability in at least 2 R-steps."
+            },
+            {
+              "id": "c",
+              "text": "Reachability in 0, 1, or 2 R-steps."
+            },
+            {
+              "id": "d",
+              "text": "Reachability in fewer than 2 steps, but with no zero-step paths."
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "$R^{\\le2}=R^0\\cup R^1\\cup R^2$. The index ≤ allows all path lengths from zero through two.",
+          "source": {
+            "file": "DS/01_Vorlesungen/DS VO11.md",
+            "heading": "6. Potenzen von Relationen (Folie 119)"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Powers of a relation",
+            "Reachability"
+          ]
+        },
+        {
+          "id": "ds-11-l4-q09",
+          "type": "truefalse",
+          "prompt": "If, for a finite set $A$ with $n$ elements, the equality $R^{<n}=R^{<k}$ holds for every $k\\ge n$, then the individual powers $R^n$ and $R^{n-1}$ must also be equal.",
+          "options": [
+            {
+              "id": "true",
+              "text": "True"
+            },
+            {
+              "id": "false",
+              "text": "False"
+            }
+          ],
+          "correct": [
+            "false"
+          ],
+          "explanation": "The finite bound concerns the cumulative unions $R^{<n}$ and $R^{<k}$. It does not make any claim about equality of individual powers.",
+          "source": {
+            "file": "DS/01_Vorlesungen/DS VO11.md",
+            "heading": "7.4 Schranke bei endlichen Knotenmengen"
+          },
+          "difficulty": 5,
+          "concepts": [
+            "Finite bound",
+            "Powers of a relation"
+          ]
+        },
+        {
+          "id": "ds-11-l4-q10-r1",
+          "type": "calc",
+          "prompt": "For relations, suppose that $(a,d)\\in XY$ exactly when there is an $x$ such that $(a,x)\\in X$ and $(x,d)\\in Y$; thus in $XY$, an $X$-step comes first, followed by a $Y$-step. Given $R=\\{(0,1)\\}$ and $S=\\{(1,2)\\}$, determine $RS$ and $SR$.",
+          "options": [
+            {
+              "id": "a",
+              "text": "$RS=SR=\\{(0,2)\\}$"
+            },
+            {
+              "id": "b",
+              "text": "$RS=\\varnothing$ and $SR=\\{(0,2)\\}$"
+            },
+            {
+              "id": "c",
+              "text": "$RS=SR=\\varnothing$"
+            },
+            {
+              "id": "d",
+              "text": "$RS=\\{(0,2)\\}$ and $SR=\\varnothing$"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "For $RS$, the $R$-step goes from $0$ to $1$, then the $S$-step goes from $1$ to $2$. For $SR$, the first step would have to be from $S$ and then continue with an $R$-step; however, there is no outgoing $R$-edge from $2$.",
+          "source": {
+            "file": "DS/01_Vorlesungen/DS VO11.md",
+            "heading": "5. Rechenregeln der Komposition (Folie 118)"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Relational product",
+            "Order of composition",
+            "Noncommutativity"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ds-11-l5",
+      "index": 5,
+      "kind": "bonus",
+      "title": "Applications: Paths, Networks, and Surprising Numbers",
+      "questions": [
+        {
+          "id": "ds-11-l5-q01",
+          "type": "single",
+          "prompt": "You are planning a route with exactly two travel segments. The destination of the first segment must be the starting point of the second. Which idea describes the possible start–destination pairs?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Less-than-or-equal relation: sort locations by name"
+            },
+            {
+              "id": "b",
+              "text": "Relational product: connect two consecutive steps through a shared intermediate location"
+            },
+            {
+              "id": "c",
+              "text": "Identity relation: stay at every location"
+            },
+            {
+              "id": "d",
+              "text": "Converse relation: swap the start and destination of every segment"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "When planning the route, the two segments must connect at the same intermediate location. This is the idea of the relational product: it links one step to the next.",
+          "source": {
+            "file": "DS/01_Vorlesungen/DS VO11.md",
+            "heading": "4.1 Definition und Reihenfolge"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Relational product",
+            "Directed graph"
+          ]
+        },
+        {
+          "id": "ds-11-l5-q02",
+          "type": "truefalse",
+          "prompt": "In a social network, $F$ means “follows.” A follows B, and B follows C. Here, $F^2$ describes pairs connected by exactly two consecutive follow edges. Is the following statement true: $(A,C)$ then belongs to $F^2$, but this does not prove that A follows C directly?",
+          "options": [
+            {
+              "id": "true",
+              "text": "True"
+            },
+            {
+              "id": "false",
+              "text": "False"
+            }
+          ],
+          "correct": [
+            "true"
+          ],
+          "explanation": "The two follow edges form a path from A through B to C, so $(A,C)$ belongs to $F^2$. Therefore, the pair need not already belong to the direct follow relation $F$.",
+          "source": {
+            "file": "DS/01_Vorlesungen/DS VO11.md",
+            "heading": "6. Potenzen von Relationen (Folie 119)"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Powers of a relation",
+            "Paths"
+          ]
+        },
+        {
+          "id": "ds-11-l5-q03",
+          "type": "estimate",
+          "prompt": "You are creating a 0/1 relation matrix for 4 source systems and 7 destination systems. How many cells does the matrix have?",
+          "options": [],
+          "correct": [],
+          "slider": {
+            "min": 1,
+            "max": 70,
+            "step": 1,
+            "answer": 28,
+            "tolerance": 0,
+            "unit": "cells",
+            "scale": "linear"
+          },
+          "explanation": "Each row corresponds to a source system and each column to a destination system. The matrix therefore has $4\\cdot7=28$ cells.",
+          "source": {
+            "file": "DS/01_Vorlesungen/DS VO11.md",
+            "heading": "3. Endliche Relationen als Matrizen (Folie 112)"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Relation matrix"
+          ]
+        },
+        {
+          "id": "ds-11-l5-q04",
+          "type": "single",
+          "prompt": "In a database, you link employees to teams and teams to offices. A report should return “Yes” for each employee–office pair if at least one shared team lies between them—even if several teams match. Which concept fits this set-theoretic model?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Ordinary matrix multiplication: matching intermediate values are returned as a count"
+            },
+            {
+              "id": "b",
+              "text": "Converse relation: read all assignments in the opposite direction"
+            },
+            {
+              "id": "c",
+              "text": "Relational product: a shared intermediate entry connects two assignments"
+            },
+            {
+              "id": "d",
+              "text": "Relation power $R^3$: exactly three assignments must follow"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "The team is the shared intermediate point between an employee and an office. The relational product asks whether at least one such intermediate point exists; multiple matches still yield “Yes.”",
+          "source": {
+            "file": "DS/01_Vorlesungen/DS VO11.md",
+            "heading": "4.2 Matrizen: boolesche Multiplikation"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Relational product",
+            "Boolean matrix multiplication"
+          ]
+        },
+        {
+          "id": "ds-11-l5-q05",
+          "type": "estimate",
+          "prompt": "A small traffic network has vertices P, Q, R, and S, and directed edges P→Q, P→R, Q→S, R→S, and S→P. $R^2$ contains pairs connected by exactly two edges; identical start–destination pairs are counted only once. How many distinct pairs does $R^2$ contain?",
+          "options": [],
+          "correct": [],
+          "slider": {
+            "min": 1,
+            "max": 14,
+            "step": 1,
+            "answer": 5,
+            "tolerance": 0,
+            "unit": "pairs",
+            "scale": "linear"
+          },
+          "explanation": "For each possible intermediate destination, check whether one edge leads there and another edge then leads to the final destination. The resulting pairs are (P,S), (Q,P), (R,P), (S,Q), and (S,R): 5 in total. The two different paths from P to S still give only one pair.",
+          "source": {
+            "file": "DS/01_Vorlesungen/DS VO11.md",
+            "heading": "7. Pfade und Erreichbarkeit (Folien 120–121)"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Powers of a relation",
+            "Paths",
+            "Boolean matrix multiplication"
+          ]
+        },
+        {
+          "id": "ds-11-l5-q06",
+          "type": "single",
+          "prompt": "In a game, each portal transition takes you from one zone to another; this step relation is $R$. $R^3$ means that three such transitions are carried out in succession. Which pairs does $R^3$ describe?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Zones connected by exactly three portal transitions"
+            },
+            {
+              "id": "b",
+              "text": "Zones connected by at most three portal transitions"
+            },
+            {
+              "id": "c",
+              "text": "Zones with a direct portal transition between them"
+            },
+            {
+              "id": "d",
+              "text": "The number of all possible portal routes"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "A power of a relation $R^k$ describes paths with exactly $k$ steps. Thus, $R^3$ consists of starting and destination zones connected by exactly three portal transitions.",
+          "source": {
+            "file": "DS/01_Vorlesungen/DS VO11.md",
+            "heading": "6. Potenzen von Relationen (Folie 119)"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Powers of a relation",
+            "Paths"
+          ]
+        },
+        {
+          "id": "ds-11-l5-q07",
+          "type": "estimate",
+          "prompt": "A directed dependency network has 8 packages. If one package is reachable from another, repeated packages can be removed from a suitable dependency chain. How many arrows can such a chain have at most?",
+          "options": [],
+          "correct": [],
+          "slider": {
+            "min": 0,
+            "max": 20,
+            "step": 1,
+            "answer": 7,
+            "tolerance": 0,
+            "unit": "arrows",
+            "scale": "linear"
+          },
+          "explanation": "After removing repetitions, the path has at most 8 distinct vertices. Between 8 vertices there can be at most 7 consecutive edges, so the chain has 7 arrows.",
+          "source": {
+            "file": "DS/01_Vorlesungen/DS VO11.md",
+            "heading": "7.4 Schranke bei endlichen Knotenmengen"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Paths",
+            "Finite bound"
+          ]
+        },
+        {
+          "id": "ds-11-l5-q08",
+          "type": "single",
+          "prompt": "An admin dashboard displays a 0/1 matrix: rows are requesting servers, columns are reachable destination servers, and a 1 indicates a direct permitted connection. You want to represent the same connections in the opposite direction. What do you do?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Square the matrix: combine two consecutive connections"
+            },
+            {
+              "id": "b",
+              "text": "Transpose the matrix: swap rows and columns"
+            },
+            {
+              "id": "c",
+              "text": "Keep only the diagonal: connections from a server to itself"
+            },
+            {
+              "id": "d",
+              "text": "Add the entries: count multiple paths"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "The converse relation swaps the start and destination in every pair. In the matrix representation, this corresponds to transposing the matrix, which swaps its rows and columns.",
+          "source": {
+            "file": "DS/01_Vorlesungen/DS VO11.md",
+            "heading": "3. Endliche Relationen als Matrizen (Folie 112)"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Relation matrix",
+            "Converse relation"
+          ]
+        },
+        {
+          "id": "ds-11-l5-q09",
+          "type": "estimate",
+          "prompt": "A network has 3 devices. A relation on it may contain or omit any ordered pair of devices; loops such as device A→device A are allowed. How many different relations are possible?",
+          "options": [],
+          "correct": [],
+          "slider": {
+            "min": 8,
+            "max": 2048,
+            "step": 8,
+            "answer": 512,
+            "tolerance": 64,
+            "unit": "relations",
+            "scale": "log"
+          },
+          "explanation": "There are $3\\cdot3=9$ possible ordered pairs. Each can independently be included or omitted, so there are $2^9=512$ different relations.",
+          "source": {
+            "file": "DS/01_Vorlesungen/DS VO11.md",
+            "heading": "3. Endliche Relationen als Matrizen (Folie 112)"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Binary relation",
+            "Relation matrix",
+            "Directed graph"
+          ]
+        },
+        {
+          "id": "ds-11-l5-q10",
+          "type": "single",
+          "prompt": "A package manager checks whether package A indirectly depends on another package Z. An arrow $X\\to Y$ means: package X directly depends on package Y. A chain of such direct dependencies may lie between A and Z. What is the package manager looking for?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Only a direct dependency between A and Z"
+            },
+            {
+              "id": "b",
+              "text": "A path with exactly two dependency steps"
+            },
+            {
+              "id": "c",
+              "text": "The geometric positions of package names in a drawing"
+            },
+            {
+              "id": "d",
+              "text": "Reachability via a path of arbitrary length"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "An indirect dependency means that a path from A to Z exists. In a finite network, any reachable pair can also be connected by a path with no repeated vertices.",
+          "source": {
+            "file": "DS/01_Vorlesungen/DS VO11.md",
+            "heading": "7.4 Schranke bei endlichen Knotenmengen"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Reachability",
+            "Finite bound",
+            "Paths"
+          ]
+        }
+      ]
+    }
+  ]
+}
