@@ -1,0 +1,518 @@
+{
+  "schemaVersion": 1,
+  "unitId": "eip-10",
+  "module": "EIP",
+  "unitNumber": 10,
+  "unitTitle": "Inheritance and polymorphism (Vererbung und Polymorphie)",
+  "sourceSha": "1c3794fde04347f157e6679f337f4e5a0041466cd29f08e86176ecaf62694a2e",
+  "overview": "This unit covers Java inheritance, constructor chaining, and the difference between static type checking and dynamic method dispatch. You will learn how visibility and invariants protect object state, how subclasses uphold their superclass’s behavioral contract, and how fields, references, and equality work.",
+  "entries": [
+    {
+      "id": "eip-10-k01",
+      "term": "Superclass, subclass, and the is-a relationship (Oberklasse, Unterklasse und is-a-Beziehung)",
+      "kind": "concept",
+      "short": "A subclass extends a more general superclass and describes a more specific kind of it.",
+      "explanation": "With `extends`, a subclass is derived from a superclass. It inherits its accessible members and can add its own state and behavior or override inherited instance methods. The relationship should express an is-a relationship in the domain: every `Dictionary` is a `Book`. In a UML class diagram, the hollow triangle points to the superclass.",
+      "example": "```java\nclass Dictionary extends Book { }\n```",
+      "pitfalls": [
+        "Inheritance should express a genuine is-a relationship.",
+        "A has-a relationship means that an object holds a reference to another object."
+      ],
+      "related": [
+        "Constructing a subclass object",
+        "Account inheritance hierarchy"
+      ],
+      "heading": "1. Warum Vererbung?"
+    },
+    {
+      "id": "eip-10-k02",
+      "term": "Constructing a subclass object (Konstruktion eines Unterklassenobjekts)",
+      "kind": "concept",
+      "short": "A subclass object is a single object with state from both the superclass and the subclass.",
+      "explanation": "When `new Dictionary(...)` is used, a `Dictionary` object is created, containing fields from `Book` and its own fields from `Dictionary`. `super()` does not create a separate superclass object; it calls the superclass constructor for the superclass part of that same object. Instance fields first receive default values; then the class parts are initialized through constructor chaining.",
+      "example": "In the `Book` and `Dictionary` example, `Book()` sets `pages` to `150`, after which the `Dictionary` constructor doubles the value to `300`.",
+      "pitfalls": [
+        "The call `super()` does not create a second object.",
+        "Superclass fields are part of the subclass object even when they are `private`."
+      ],
+      "related": [
+        "Superclass, subclass, and the is-a relationship",
+        "Constructor chaining with super(...) and this(...)",
+        "Initialization order"
+      ],
+      "heading": "2. Konstruktion eines Unterklassenobjekts"
+    },
+    {
+      "id": "eip-10-k03",
+      "term": "Constructor chaining with super(...) and this(...) (Konstruktorverkettung mit super(...) und this(...))",
+      "kind": "method",
+      "short": "`super(...)` calls a constructor of the direct superclass, while `this(...)` calls another constructor in the same class.",
+      "explanation": "`super(argumente)` selects an appropriate constructor of the direct superclass; `this(argumente)` delegates to another constructor in the current class. A `this(...)` chain must eventually initialize the superclass. `this` also refers to the current object, while `super.methode()` selects the superclass implementation on that object. In the Java 25 example, certain checks may precede `super(...)` as long as they do not access the object state before it has been initialized.",
+      "example": "```java\npublic Dictionary(int pages, int defs) {\n    super(pages);\n    this.defs = defs;\n}\n```",
+      "pitfalls": [
+        "`super(...)` must call a constructor of the direct superclass that is actually available.",
+        "`super` is not an independent reference to a second object."
+      ],
+      "related": [
+        "Constructing a subclass object",
+        "No-argument constructor",
+        "Overriding an inherited method (Overriding)"
+      ],
+      "heading": "39 – Inheritance and Construction"
+    },
+    {
+      "id": "eip-10-k04",
+      "term": "No-argument constructor (Parameterloser Konstruktor)",
+      "kind": "definition",
+      "short": "Java generates a no-argument constructor only if the class itself declares no constructor.",
+      "explanation": "If a class declares no constructor, Java provides a no-argument constructor automatically. Once the class declares its own constructor, such as `Book(int x)`, no additional no-argument constructor is generated. A subclass constructor without an explicit `super(...)` requires an accessible no-argument constructor in the superclass.",
+      "example": "If `Book` declares only `Book(int x)`, `Child()` cannot implicitly call `super()`.",
+      "pitfalls": [
+        "Having a constructor with parameters does not mean that a no-argument constructor also exists."
+      ],
+      "related": [
+        "Constructor chaining with super(...) and this(...)",
+        "Constructing a subclass object"
+      ],
+      "heading": "39 – Inheritance and Construction"
+    },
+    {
+      "id": "eip-10-k05",
+      "term": "Overriding an inherited method (Überschreiben einer geerbten Methode)",
+      "kind": "definition",
+      "short": "In overriding, a subclass redefines an inherited instance method with a matching signature.",
+      "explanation": "A subclass overrides an inherited instance method by providing a matching method signature. When called through a superclass reference, the subclass implementation may run at runtime. With `super.methode()`, code inside the subclass can explicitly call the superclass implementation on the same object.",
+      "example": "```java\n@Override\npublic String languageDescription() {\n    return super.languageDescription() + \" → German\";\n}\n```",
+      "pitfalls": [
+        "A different return type alone does not make a method an overload.",
+        "`super.methode()` calls the superclass implementation on the same object."
+      ],
+      "related": [
+        "Method overloading (Überladen einer Methode)",
+        "@Override",
+        "Upcasting and dynamic binding (Upcasting und dynamische Bindung)",
+        "Liskov substitution principle (LSP)"
+      ],
+      "heading": "4. Eine geerbte Methode überschreiben"
+    },
+    {
+      "id": "eip-10-k06",
+      "term": "Method overloading (Überladen einer Methode)",
+      "kind": "definition",
+      "short": "In overloading, multiple methods have the same name but different parameter lists.",
+      "explanation": "Overloaded methods differ in their parameter lists, for example by having a different number or types of parameters. The overload is selected based on the types known at the call site and the arguments. A different return type alone is not enough to overload a method.",
+      "example": "```java\nString languageDescription();\nString languageDescription(String separator);\n```",
+      "pitfalls": [
+        "Overloading is not the same as overriding.",
+        "The return type alone does not distinguish overloaded methods."
+      ],
+      "related": [
+        "Overriding an inherited method",
+        "equals(Object)"
+      ],
+      "heading": "Overriding vs. Overloading"
+    },
+    {
+      "id": "eip-10-k07",
+      "term": "@Override",
+      "kind": "notation",
+      "short": "`@Override` instructs the compiler to check whether the following method actually overrides an inherited method.",
+      "explanation": "The annotation appears directly before a method implementation intended to override another method. The compiler reports an error if no matching method to override is found, for example because of a typo in the name or an incorrect parameter list. The annotation is optional, but it makes the intent verifiable.",
+      "example": "```java\n@Override\npublic boolean withdraw(double amount) { ... }\n```",
+      "pitfalls": [
+        "`@Override` does not itself cause dynamic method dispatch.",
+        "The annotation does not mark method overloading."
+      ],
+      "related": [
+        "Overriding an inherited method",
+        "Method overloading"
+      ],
+      "heading": "4. Eine geerbte Methode überschreiben"
+    },
+    {
+      "id": "eip-10-k08",
+      "term": "Upcasting and dynamic binding (Upcasting und dynamische Bindung)",
+      "kind": "concept",
+      "short": "An upcast allows a subclass reference to be used as a superclass reference, while overridden instance methods are selected based on the runtime class.",
+      "explanation": "A subclass reference can be assigned to a superclass reference automatically, for example `Book b = new Dictionary()`. The declared reference type (`Book`) determines which method calls the compiler permits. For overridden instance methods, by contrast, the actual class of the object (`Dictionary`) determines which implementation runs at runtime. An upcast neither creates a copy nor changes the runtime class.",
+      "example": "Through `Book b = new Dictionary()`, `b.languageDescription()` is permitted and can call the `Dictionary` override; a method declared only in `Dictionary` cannot be called directly through `b`.",
+      "pitfalls": [
+        "The declared type and the runtime class can differ.",
+        "An upcast restricts the calls available through the reference, but it does not transform the object."
+      ],
+      "related": [
+        "Overriding an inherited method",
+        "References and aliasing",
+        "Polymorphism",
+        "Field hiding"
+      ],
+      "heading": "5. Upcasting und dynamische Bindung"
+    },
+    {
+      "id": "eip-10-k09",
+      "term": "Visibility and encapsulation (Sichtbarkeit und Kapselung)",
+      "kind": "concept",
+      "short": "Access modifiers determine which code may access members, while encapsulation protects a class’s internal state.",
+      "explanation": "`public` allows access from other classes, `private` allows access only from the declaring class, and `protected` allows access from subclasses, among others. Without a modifier, package access applies. Private fields remain part of a subclass object, but are not directly accessible in the subclass. Encapsulation means exposing state selectively through methods so that rules for changes can be enforced.",
+      "example": "A subclass may use an inherited `protected` field, but it cannot directly read the superclass’s `private` field.",
+      "pitfalls": [
+        "`private` does not mean that the field is absent from the subclass object.",
+        "`protected` does not grant unrestricted access to all other classes."
+      ],
+      "related": [
+        "Invariant",
+        "Constructing a subclass object",
+        "Array-based stack"
+      ],
+      "heading": "6. Sichtbarkeit und Kapselung"
+    },
+    {
+      "id": "eip-10-k10",
+      "term": "Invariant (Invariante)",
+      "kind": "definition",
+      "short": "An invariant is a property that should hold for every valid state of an object.",
+      "explanation": "A constructor should bring an object into a state in which its invariants hold. Public methods must preserve the invariants after every permitted state change. Private fields and carefully chosen public methods help prevent invalid changes from outside the class.",
+      "example": "For an array-based stack, typically $0 \\leq \\text{size} \\leq \\text{a.length}$ holds; for a rational fraction, the denominator must not be `0`.",
+      "pitfalls": [
+        "An invariant is not just a check in the constructor; it must also hold after method calls."
+      ],
+      "related": [
+        "Visibility and encapsulation",
+        "Array-based stack"
+      ],
+      "heading": "7. Invarianten und saubere Schnittstellen"
+    },
+    {
+      "id": "eip-10-k11",
+      "term": "Account inheritance hierarchy (Vererbungshierarchie der Konten)",
+      "kind": "concept",
+      "short": "The account classes share state through inheritance and can also reference separate objects.",
+      "explanation": "`Savings_Account` is a `Bank_Account`, and `Bonus_Saver_Account` is a `Savings_Account`. `Checking_Account` is also a `Bank_Account`, but additionally holds a reference to a separate `Savings_Account` as a backup account. Inheritance describes an is-a relationship; the reference to the backup account describes a has-a relationship.",
+      "example": "`Checking_Account` can store a separate savings account as an overdraft reserve.",
+      "pitfalls": [
+        "The backup account is a separate object, not an additional field belonging to the same Checking object."
+      ],
+      "related": [
+        "Superclass, subclass, and the is-a relationship",
+        "Bank_Account",
+        "Checking_Account"
+      ],
+      "heading": "8. Vererbungshierarchie der Konten"
+    },
+    {
+      "id": "eip-10-k12",
+      "term": "Bank_Account",
+      "kind": "definition",
+      "short": "`Bank_Account` groups the account number and balance with shared deposit and withdrawal methods.",
+      "explanation": "The superclass provides fields such as `account` and `balance`. `deposit(amount)` increases the balance; `withdraw(amount)` first checks whether sufficient funds are available and deducts the amount only if the check succeeds. The lecture examples assume valid, nonnegative, finite amounts.",
+      "example": "With a balance of `100`, `withdraw(30)` returns `true` and sets the balance to `70`.",
+      "pitfalls": [
+        "Without input validation, for example, a negative withdrawal could undesirably increase the balance."
+      ],
+      "related": [
+        "Savings_Account",
+        "Bonus_Saver_Account",
+        "Checking_Account",
+        "Liskov substitution principle (LSP)"
+      ],
+      "heading": "9. Gemeinsamkeiten:"
+    },
+    {
+      "id": "eip-10-k13",
+      "term": "Savings_Account",
+      "kind": "definition",
+      "short": "`Savings_Account` extends a bank account with an interest rate and interest payment.",
+      "explanation": "The savings account inherits the account number, balance, and shared account methods from `Bank_Account`. In `add_interest()`, the balance is multiplied by the factor $1+r$, where $r$ is the interest rate. The interest rate is set in the constructor.",
+      "example": "With a balance of `100` and $r=0.25$, the balance after interest is credited is `125`.",
+      "pitfalls": [
+        "An interest rate of `0.25` means 25 percent in this calculation, not 0.25 percent."
+      ],
+      "related": [
+        "Bank_Account",
+        "Bonus_Saver_Account",
+        "Polymorphism"
+      ],
+      "heading": "Savings Account"
+    },
+    {
+      "id": "eip-10-k14",
+      "term": "Bonus_Saver_Account",
+      "kind": "definition",
+      "short": "`Bonus_Saver_Account` overrides a savings account’s withdrawal and interest methods to add a fee and a bonus.",
+      "explanation": "The bonus savings account extends `Savings_Account` with a withdrawal fee and an interest bonus. In `withdraw(amount)`, it delegates to `super.withdraw(amount + penalty)`. In `add_interest()`, it uses the regular interest rate plus the bonus.",
+      "example": "With a fee of `20`, `withdraw(80)` attempts to withdraw a total of `100`; if the balance is insufficient, it remains unchanged and the call returns `false`.",
+      "pitfalls": [
+        "The fee is not deducted partially if the underlying withdrawal attempt fails.",
+        "The overridden methods must still satisfy the contract of `Bank_Account`."
+      ],
+      "related": [
+        "Savings_Account",
+        "Overriding an inherited method",
+        "Liskov substitution principle (LSP)"
+      ],
+      "heading": "Bonus Saver Account"
+    },
+    {
+      "id": "eip-10-k15",
+      "term": "Checking_Account",
+      "kind": "method",
+      "short": "`Checking_Account` attempts to cover an insufficient balance by drawing the shortfall from a separate savings account.",
+      "explanation": "First, `withdraw` attempts the withdrawal using `super.withdraw(amount)` from the checking account. If that fails, the method calculates the shortfall as `amount - balance` and requests that amount from the backup account. If successful, it sets the checking balance to `0` and returns `true`; if the backup account also declines the withdrawal, it returns `false`. The backup account is not debited when a withdrawal is declined.",
+      "example": "With `50` in the checking account, `200` in the savings account, and a withdrawal of `100`, `50` is taken from savings; the accounts then hold `0` and `150`.",
+      "pitfalls": [
+        "The reserve covers only the shortfall, not the full withdrawal amount.",
+        "A failed withdrawal from the reserve must not leave a partial transaction."
+      ],
+      "related": [
+        "Bank_Account",
+        "Savings_Account",
+        "Polymorphism",
+        "Liskov substitution principle (LSP)"
+      ],
+      "heading": "Checking Account: Ersatzkonto bei Unterdeckung"
+    },
+    {
+      "id": "eip-10-k16",
+      "term": "Polymorphism",
+      "kind": "concept",
+      "short": "Polymorphism allows the same method call through a superclass type to produce different behavior depending on the runtime class.",
+      "explanation": "An array of type `Bank_Account[]` can contain objects of different subclasses. A call such as `accounts[i].withdraw(amount)` is written the same way for every element, but for overridden instance methods, Java runs the implementation belonging to each object’s actual class. This lets shared code handle different account types.",
+      "example": "A loop call on `Bank_Account[]` can account for the fee for a `Bonus_Saver_Account` and the backup account for a `Checking_Account`.",
+      "pitfalls": [
+        "The declared reference type limits which methods can be called in the source code.",
+        "Dynamic dispatch applies to overridden instance methods, not fields."
+      ],
+      "related": [
+        "Upcasting and dynamic binding",
+        "Overriding an inherited method",
+        "Liskov substitution principle (LSP)",
+        "Field hiding"
+      ],
+      "heading": "10. Polymorphie: derselbe Aufruf, anderes Verhalten"
+    },
+    {
+      "id": "eip-10-k17",
+      "term": "Liskov substitution principle (LSP) (Liskov Substitution Principle)",
+      "kind": "concept",
+      "short": "A subclass object must be usable wherever the superclass is expected without violating the superclass’s behavioral contract.",
+      "explanation": "A subclass must honor the guarantees made by its superclass. For `withdraw(amount)`, the examples require that a withdrawal is completed when `true` and that all affected account balances remain unchanged when `false`. A subclass must not violate the contract through partial transactions if it then returns `false`. The compiler checks method signatures, but does not automatically check the full behavioral contract.",
+      "example": "If an override deducts a fee first and then declines the actual withdrawal, it returns `false` even though the balance has changed.",
+      "pitfalls": [
+        "A matching signature alone does not guarantee an LSP-compliant subclass.",
+        "An override must not introduce stronger preconditions or weaker guarantees."
+      ],
+      "related": [
+        "Bank_Account",
+        "Overriding an inherited method",
+        "Polymorphism",
+        "Bonus_Saver_Account"
+      ],
+      "heading": "11. Liskov Substitution Principle (LSP)"
+    },
+    {
+      "id": "eip-10-k18",
+      "term": "Field hiding (Field Hiding)",
+      "kind": "definition",
+      "short": "Field hiding occurs when a subclass declares a field with the same name as a superclass field.",
+      "explanation": "Fields with the same name occupy two separate storage locations in the same object: one in the superclass part and one in the subclass part. Within the subclass, `a` normally refers to the subclass field; `super.a` refers to the superclass field. Which field an access selects depends statically on the expression type or on `super`.",
+      "example": "If `Child` sets its field `a` to `2` and `super.a` to `3`, then `this.a` and `super.a` can yield different values for the same object.",
+      "pitfalls": [
+        "Field hiding is not dynamic overriding as with instance methods.",
+        "Fields with the same name can even have different types, but they are difficult to keep track of."
+      ],
+      "related": [
+        "Upcasting and dynamic binding",
+        "Initialization order",
+        "Constructing a subclass object"
+      ],
+      "heading": "12. Field Hiding ≠ Method Overriding"
+    },
+    {
+      "id": "eip-10-k19",
+      "term": "Initialization order (Initialisierungsreihenfolge)",
+      "kind": "concept",
+      "short": "Instance fields receive default values first, then the superclass and subclass are initialized in a fixed order.",
+      "explanation": "First, all instance fields receive default values such as `0`, `false`, or `null`. Next, the superclass field initializers and constructor run. Then the subclass field initializers run in source-code order, followed by the rest of its constructor body.",
+      "example": "In the lecture example, `a` first receives the default value `0`, is set to `5` by the superclass field initializer, and is later increased to `7` by the dynamic call to `Child.inc()`.",
+      "pitfalls": [
+        "Subclass field initializers run only after the superclass constructor.",
+        "A subclass field may therefore still have its default value during a call from the superclass constructor."
+      ],
+      "related": [
+        "Constructing a subclass object",
+        "Field hiding",
+        "Dynamic method call in the superclass constructor"
+      ],
+      "heading": "13. Initialisierungsreihenfolge"
+    },
+    {
+      "id": "eip-10-k20",
+      "term": "Dynamic method call in the superclass constructor (Dynamischer Methodenaufruf im Oberklassenkonstruktor)",
+      "kind": "concept",
+      "short": "An overridable method call in the superclass constructor can already execute the subclass implementation.",
+      "explanation": "Even when a call appears in the superclass constructor, an overridden instance method is selected dynamically based on the actual class of the object. The subclass part may not yet be fully initialized at that point. In the lecture example, `Child.inc()` adds `2` each time, so `a=7` and `b=35` hold and their sum is `42`.",
+      "example": "If `Parent()` calls `inc()` and `Child` overrides the method, `Child.inc()` may run before initialization of `Child` is complete.",
+      "pitfalls": [
+        "Overridable methods called from superclass constructors can encounter subclass state that has not yet been initialized."
+      ],
+      "related": [
+        "Initialization order",
+        "Upcasting and dynamic binding",
+        "Overriding an inherited method"
+      ],
+      "heading": "Klausurbeispiel aus der Vorlesung"
+    },
+    {
+      "id": "eip-10-k21",
+      "term": "Object",
+      "kind": "definition",
+      "short": "`Object` is the common superclass of all Java classes that do not specify another superclass.",
+      "explanation": "A class without an explicitly specified superclass directly inherits from `Object`. This makes methods such as `toString()`, `equals(Object)`, and `hashCode()` generally available. A reference of type `Object` can point to an object of a more specific class, but allows only calls known to the declared type.",
+      "example": "`Object x = new Rational(2, 8);` permits `x.toString()`, but not `x.numerator()` without a suitable cast.",
+      "pitfalls": [
+        "The declared type `Object` does not change the runtime class of the referenced object."
+      ],
+      "related": [
+        "instanceof",
+        "Reference cast",
+        "toString()",
+        "equals(Object)",
+        "hashCode() contract"
+      ],
+      "heading": "44 – Object, Reference Types, and Equality"
+    },
+    {
+      "id": "eip-10-k22",
+      "term": "toString()",
+      "kind": "method",
+      "short": "`toString()` provides a textual representation of an object and can be overridden in a class.",
+      "explanation": "`toString()` is a method inherited from `Object`. A subclass can override it to provide a string representation suited to its objects. In the lecture example, `Rational.toString()` returns the text `2/8` for `new Rational(2, 8)`.",
+      "example": "```java\nObject x = new Rational(2, 8);\nx.toString(); // \"2/8\"\n```",
+      "pitfalls": [
+        "A reference type of `Object` does not prevent calling `toString()`, because the method is declared in `Object`."
+      ],
+      "related": [
+        "Object",
+        "Overriding an inherited method",
+        "Upcasting and dynamic binding"
+      ],
+      "heading": "14.         : gemeinsame Oberklasse"
+    },
+    {
+      "id": "eip-10-k23",
+      "term": "References and aliasing (Referenz und Aliasing)",
+      "kind": "concept",
+      "short": "Aliasing occurs when multiple references designate the same object.",
+      "explanation": "A reference does not store the object itself; it provides access to it. After a reference is assigned or upcast, multiple variables can point to the same object. A mutation through one of these references is therefore also visible through the others.",
+      "example": "`Dictionary d = new Dictionary(...); Book b = d;` makes `d` and `b` refer to the same object.",
+      "pitfalls": [
+        "Assigning a reference does not create an independent copy of the object.",
+        "Aliasing describes shared references and is not the same as value equality."
+      ],
+      "related": [
+        "Upcasting and dynamic binding",
+        "Constructing a subclass object",
+        "Array references and aliasing"
+      ],
+      "heading": "44 – Object, Reference Types, and Equality"
+    },
+    {
+      "id": "eip-10-k24",
+      "term": "instanceof",
+      "kind": "notation",
+      "short": "`referenz instanceof Typ` checks at runtime whether the referenced object belongs to this type or one of its subclasses.",
+      "explanation": "`instanceof` evaluates to `true` if the reference points to an object of the specified class or one of its subclasses. For `null`, the expression evaluates to `false`. The check is often used before a cast so that class-specific methods can then be accessed.",
+      "example": "```java\nif (x instanceof Rational) {\n    Rational r = (Rational) x;\n}\n```",
+      "pitfalls": [
+        "`null instanceof Rational` evaluates to `false`.",
+        "`instanceof` changes neither the reference nor the object."
+      ],
+      "related": [
+        "Reference cast",
+        "Object",
+        "Upcasting and dynamic binding"
+      ],
+      "heading": "15.              und Cast"
+    },
+    {
+      "id": "eip-10-k25",
+      "term": "Reference cast (Referenz-Cast)",
+      "kind": "notation",
+      "short": "`(Typ) referenz` checks or changes the static type view of a reference without copying or transforming the object.",
+      "explanation": "A cast to a compatible subtype permits calls that were unavailable through the previous reference type. If the runtime object is not compatible with the target type, Java throws a `ClassCastException`. Casting `null` results in `null`; a subsequent method call through that reference causes a `NullPointerException`.",
+      "example": "`Rational r = (Rational) x;` does not change the object that `x` points to.",
+      "pitfalls": [
+        "A cast is not an object copy.",
+        "An incompatible reference cast may fail only at runtime."
+      ],
+      "related": [
+        "instanceof",
+        "Object",
+        "Upcasting and dynamic binding"
+      ],
+      "heading": "15.              und Cast"
+    },
+    {
+      "id": "eip-10-k26",
+      "term": "Object identity and value equality (Objektidentität und Wertgleichheit)",
+      "kind": "concept",
+      "short": "Identity asks whether two references designate the same object, while value equality asks whether the objects have the same content in the relevant domain.",
+      "explanation": "Two references may point to the same object or to two different objects with the same content. For object references, `==` checks identity. Value equality is often defined by appropriately overriding the `equals` method; inherited `Object.equals` also checks identity by default.",
+      "example": "Two separately created fractions, `new Rational(2, 8)` and `new Rational(1, 4)`, are not identical but may be equal in value.",
+      "pitfalls": [
+        "For object references, `==` does not automatically mean equal content.",
+        "Two objects equal in value need not be the same object."
+      ],
+      "related": [
+        "References and aliasing",
+        "equals(Object)",
+        "hashCode() contract",
+        "Comparing strings with equals"
+      ],
+      "heading": "16.      vs."
+    },
+    {
+      "id": "eip-10-k27",
+      "term": "equals(Object)",
+      "kind": "definition",
+      "short": "`equals(Object)` is the general equality method from `Object`, which a class can override to define value equality for its domain.",
+      "explanation": "An override must use the signature `equals(Object other)` to actually override the method from `Object`. In the fraction example, the method uses `instanceof` to check whether the other object is a `Rational`, casts it, and delegates to the more specific `equals(Rational)` method. For rational values with valid, nonzero denominators, equality can be checked using cross-multiplication: $u/v=s/t$ if and only if $u \\cdot t=s \\cdot v$.",
+      "example": "```java\n@Override\npublic boolean equals(Object other) {\n    if (!(other instanceof Rational)) return false;\n    Rational r = (Rational) other;\n    return equals(r);\n}\n```",
+      "pitfalls": [
+        "`equals(Rational)` is an overload and does not override `equals(Object)`.",
+        "An `equals` comparison should handle `null` and objects of other types correctly."
+      ],
+      "related": [
+        "Object identity and value equality",
+        "Method overloading",
+        "instanceof",
+        "hashCode() contract"
+      ],
+      "heading": "16.      vs."
+    },
+    {
+      "id": "eip-10-k28",
+      "term": "hashCode() contract (hashCode()-Vertrag)",
+      "kind": "theorem",
+      "short": "If two objects are equal according to `equals`, they must have the same `hashCode()`.",
+      "explanation": "For all objects $a$ and $c$, the following holds: if `a.equals(c)` is `true`, then `a.hashCode() == c.hashCode()` must also hold. The converse does not hold: equal hash values do not prove equality, because hash collisions are possible. This contract matters for hash tables and other hash-based collections.",
+      "example": "`a.equals(c) == true` requires equal hash values, even when `a` and `c` are different objects.",
+      "pitfalls": [
+        "Equal hash values do not guarantee that `equals` returns `true`.",
+        "If `equals` is overridden, its implementation must be consistent with `hashCode`."
+      ],
+      "related": [
+        "equals(Object)",
+        "Object identity and value equality",
+        "Object"
+      ],
+      "heading": "16.      vs."
+    }
+  ],
+  "generator": {
+    "model": "gpt-6-luna",
+    "effort": "xhigh",
+    "promptVersion": "k1",
+    "generatedAt": "2026-11-17T23:25:31.288Z"
+  }
+}

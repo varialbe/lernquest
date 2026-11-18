@@ -1,0 +1,2015 @@
+{
+  "schemaVersion": 1,
+  "id": "eip-10",
+  "module": "EIP",
+  "number": 10,
+  "slug": "vererbung-und-polymorphie",
+  "title": "Inheritance and Polymorphism (Vererbung und Polymorphie)",
+  "summary": "You will learn how Java classes share state and behavior through inheritance and how constructors are chained (Konstruktorverkettung). You will also distinguish dynamic dispatch (dynamische Bindung) from static field access, and practice visibility, encapsulation, casting, and equality.",
+  "concepts": [
+    "Inheritance and the is-a relationship",
+    "Constructor chaining",
+    "Method overriding (Methodenüberschreibung)",
+    "Method overloading (Überladung)",
+    "Visibility and encapsulation",
+    "Invariants (Invarianten)",
+    "Polymorphism and dynamic binding (Polymorphie und dynamische Bindung)",
+    "Liskov Substitution Principle",
+    "Field hiding",
+    "Object initialization (Objektinitialisierung)",
+    "Reference types and upcasting (Referenztypen und Upcasting)",
+    "instanceof and casting",
+    "References and aliasing (Referenz und Aliasing)",
+    "Object identity and value equality (Objektidentität und Wertgleichheit)",
+    "equals and hashCode"
+  ],
+  "keyFacts": [
+    "A subclass using `extends` is a more specialized class and has an is-a relationship with its superclass.",
+    "A subclass object contains both superclass and subclass state; `super()` does not create a second object.",
+    "`super(...)` calls a constructor of the direct superclass; `this(...)` calls another constructor in the same class.",
+    "Java generates a no-argument constructor automatically only if the class itself declares no constructor.",
+    "Overriding uses the same method signature in the subclass; overloading uses the same name with a different parameter list.",
+    "`@Override` asks the compiler to check whether a matching method is being overridden.",
+    "The declared reference type determines which methods can be called.",
+    "For overridden instance methods, the actual class of the object determines which implementation runs.",
+    "An upcast from a subclass reference to a superclass reference is automatic and creates no copy.",
+    "`private` fields remain part of the subclass object, but are directly accessible only within the class that declares them.",
+    "Constructors establish invariants; public methods should preserve them.",
+    "A subclass object must honor the superclass's behavioral contract (the Liskov Substitution Principle).",
+    "Fields with the same name in a superclass and subclass occupy separate storage locations.",
+    "Fields are selected statically based on the type of the expression; overridden instance methods are selected dynamically.",
+    "Instance fields first receive default values; then the superclass and subclass are initialized, in that order.",
+    "A call to an overridden method in a superclass constructor can already run the subclass implementation.",
+    "Classes without an explicitly specified superclass directly inherit from `Object`.",
+    "`instanceof` returns false for `null`; a cast checks or changes the type through which a reference is viewed, not the object.",
+    "`==` checks identity for object references; `equals` can check value equality.",
+    "If two objects are equal according to `equals`, they must have the same `hashCode`."
+  ],
+  "tags": [
+    "uni/tum",
+    "eidip",
+    "java",
+    "oop",
+    "vererbung",
+    "klausur"
+  ],
+  "links": [],
+  "source": {
+    "file": "EIP/01_Vorlesungen/EIP VO10.md",
+    "sha256": "1c3794fde04347f157e6679f337f4e5a0041466cd29f08e86176ecaf62694a2e",
+    "commit": "4a452f9e65ab67e9f38f4857fe724f132c93cf9a"
+  },
+  "generator": {
+    "model": "gpt-6-luna",
+    "effort": "xhigh",
+    "reviewEffort": "high",
+    "promptVersion": "v3",
+    "generatedAt": "2026-11-17T23:12:07.309Z",
+    "review": {
+      "checked": 44,
+      "fixed": 2,
+      "removed": 0,
+      "notes": "44 Fragen geprüft. Die nicht zulässige Quellenüberschrift der Beispiel-Codefrage auf eine erlaubte Überschrift gesetzt und einen Grammatikfehler korrigiert. Rechenwege, Distraktoren, Selbstständigkeit, Diagramme und vorhandene Prüfscripte geprüft."
+    }
+  },
+  "levels": [
+    {
+      "id": "eip-10-l1",
+      "index": 1,
+      "kind": "basics",
+      "title": "Fundamentals",
+      "questions": [
+        {
+          "id": "eip-10-l1-q01",
+          "type": "single",
+          "prompt": "Which statement best describes a superclass?",
+          "options": [
+            {
+              "id": "a",
+              "text": "It is always a subclass of `String`."
+            },
+            {
+              "id": "b",
+              "text": "It contains shared features that more specialized subclasses can inherit."
+            },
+            {
+              "id": "c",
+              "text": "It must not contain methods."
+            },
+            {
+              "id": "d",
+              "text": "A second object is created for every subclass object."
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "A superclass groups shared properties and behavior. A subclass object contains its state, but no separate superclass object is created.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO10.md",
+            "heading": "1. Warum Vererbung?"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Inheritance and the is-a relationship"
+          ]
+        },
+        {
+          "id": "eip-10-l1-q02",
+          "type": "multi",
+          "prompt": "Select all correct statements about `Superclass` and `Subclass`.",
+          "options": [
+            {
+              "id": "a",
+              "text": "Shared behavior can be defined in the superclass."
+            },
+            {
+              "id": "b",
+              "text": "A subclass can add specialized features."
+            },
+            {
+              "id": "c",
+              "text": "`extends` expresses an is-a relationship."
+            },
+            {
+              "id": "d",
+              "text": "A subclass must be reimplemented independently of its superclass."
+            }
+          ],
+          "correct": [
+            "a",
+            "b",
+            "c"
+          ],
+          "explanation": "Inheritance groups shared features in the superclass and allows subclasses to add their own features. With an is-a relationship, an object of the subclass can also be used as an object of the superclass.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO10.md",
+            "heading": "1. Warum Vererbung?"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Inheritance and the is-a relationship"
+          ]
+        },
+        {
+          "id": "eip-10-l1-q03",
+          "type": "cloze",
+          "prompt": "Java automatically generates a no-argument constructor if the class itself has declared ___.",
+          "options": [
+            {
+              "id": "a",
+              "text": "a `private` field"
+            },
+            {
+              "id": "b",
+              "text": "no constructor"
+            },
+            {
+              "id": "c",
+              "text": "a `main` method"
+            },
+            {
+              "id": "d",
+              "text": "exactly one constructor with a parameter"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "Once a class declares a constructor itself, Java does not generate an additional no-argument constructor.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO10.md",
+            "heading": "3. Konstruktoren:              vs."
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Constructor chaining"
+          ]
+        },
+        {
+          "id": "eip-10-l1-q04",
+          "type": "truefalse",
+          "prompt": "A `private` field of the superclass remains part of the subclass object, but is not directly accessible in the subclass.",
+          "options": [
+            {
+              "id": "true",
+              "text": "True"
+            },
+            {
+              "id": "false",
+              "text": "False"
+            }
+          ],
+          "correct": [
+            "true"
+          ],
+          "explanation": "`private` restricts direct access to code in the class that declares the field. The field does not disappear from the object's state.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO10.md",
+            "heading": "6. Sichtbarkeit und Kapselung"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Visibility and encapsulation"
+          ]
+        },
+        {
+          "id": "eip-10-l1-q05",
+          "type": "single",
+          "prompt": "What is `@Override` used for when placed before a method?",
+          "options": [
+            {
+              "id": "a",
+              "text": "The annotation automatically creates a superclass."
+            },
+            {
+              "id": "b",
+              "text": "It requires the method to be `static`."
+            },
+            {
+              "id": "c",
+              "text": "It makes all superclass fields `public`."
+            },
+            {
+              "id": "d",
+              "text": "The compiler checks whether the method actually overrides an inherited method."
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "`@Override` is a compiler check for intended overriding. The annotation itself does not cause dynamic method selection.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO10.md",
+            "heading": "4. Eine geerbte Methode überschreiben"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Method overriding"
+          ]
+        },
+        {
+          "id": "eip-10-l1-q06",
+          "type": "multi",
+          "prompt": "Select all correct statements about overriding and overloading.",
+          "options": [
+            {
+              "id": "a",
+              "text": "Overriding provides a method with the same signature in a subclass."
+            },
+            {
+              "id": "b",
+              "text": "Overloading uses the same name with a different parameter list."
+            },
+            {
+              "id": "c",
+              "text": "`@Override` marks a method that is only overloaded."
+            },
+            {
+              "id": "d",
+              "text": "Overriding and overloading mean the same thing."
+            },
+            {
+              "id": "e",
+              "text": "A different return type alone is not enough for overloading."
+            }
+          ],
+          "correct": [
+            "a",
+            "b",
+            "e"
+          ],
+          "explanation": "Overriding applies to an inherited method with a matching signature. In overloading, the parameter list differs; a different return type alone is not sufficient.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO10.md",
+            "heading": "Overriding vs. Overloading"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Method overriding",
+            "Method overloading"
+          ]
+        },
+        {
+          "id": "eip-10-l1-q07",
+          "type": "diagram",
+          "prompt": "Which combination of rules does the diagram show?",
+          "context": {
+            "type": "mermaid",
+            "content": "flowchart LR\n  A[\"Instance methods\"] --> B[\"dynamic selection\"]\n  C[\"Fields\"] --> D[\"static selection\"]",
+            "caption": "Selection rules for methods and fields"
+          },
+          "options": [
+            {
+              "id": "a",
+              "text": "Methods are selected dynamically; fields are selected statically."
+            },
+            {
+              "id": "b",
+              "text": "Fields and methods are selected solely based on visibility."
+            },
+            {
+              "id": "c",
+              "text": "Methods are selected statically; fields are selected dynamically."
+            },
+            {
+              "id": "d",
+              "text": "Methods and fields are always selected dynamically."
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "Overridden instance methods follow the runtime type. Field access follows the type of the expression or an explicit `super`.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO10.md",
+            "heading": "12. Field Hiding ≠ Method Overriding"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Field hiding",
+            "Polymorphism and dynamic binding"
+          ]
+        },
+        {
+          "id": "eip-10-l1-q08",
+          "type": "single",
+          "prompt": "What happens when upcasting from `Dictionary` to `Book`?",
+          "options": [
+            {
+              "id": "a",
+              "text": "The `Dictionary` object is copied into a new `Book` object."
+            },
+            {
+              "id": "b",
+              "text": "The object's runtime class changes to `Book`."
+            },
+            {
+              "id": "c",
+              "text": "The reference is used as a `Book`; the object remains the same."
+            },
+            {
+              "id": "d",
+              "text": "The object loses its subclass fields."
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "An upcast changes how the reference's type is viewed, not the object. The runtime class remains `Dictionary`.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO10.md",
+            "heading": "5. Upcasting und dynamische Bindung"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Reference types and upcasting"
+          ]
+        },
+        {
+          "id": "eip-10-l1-q09",
+          "type": "multi",
+          "prompt": "Select all correct statements about visibility.",
+          "options": [
+            {
+              "id": "a",
+              "text": "Subclasses can use protected (`protected`) members."
+            },
+            {
+              "id": "b",
+              "text": "`public` members can also be used by other classes."
+            },
+            {
+              "id": "c",
+              "text": "`private` members are directly accessible only in the class that declares them."
+            },
+            {
+              "id": "d",
+              "text": "A missing modifier always means `private`."
+            }
+          ],
+          "correct": [
+            "a",
+            "b",
+            "c"
+          ],
+          "explanation": "The examples distinguish `public`, `private`, and `protected`. Without a modifier, package visibility applies, not `private`.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO10.md",
+            "heading": "6. Sichtbarkeit und Kapselung"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Visibility and encapsulation"
+          ]
+        },
+        {
+          "id": "eip-10-l1-q10",
+          "type": "truefalse",
+          "prompt": "With `Book b = new Dictionary();`, `Book` determines which methods the compiler allows you to call through `b`; an overridden instance method can still be executed from `Dictionary`.",
+          "options": [
+            {
+              "id": "true",
+              "text": "True"
+            },
+            {
+              "id": "false",
+              "text": "False"
+            }
+          ],
+          "correct": [
+            "true"
+          ],
+          "explanation": "The declared reference type determines which calls are available. The actual object class determines the implementation of an overridden instance method.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO10.md",
+            "heading": "5. Upcasting und dynamische Bindung"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Reference types and upcasting",
+            "Polymorphism and dynamic binding"
+          ]
+        },
+        {
+          "id": "eip-10-l1-q11",
+          "type": "single",
+          "prompt": "What condition must hold for `hashCode()` if `equals` has been overridden?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Equal hash values must always mean that `equals` is true."
+            },
+            {
+              "id": "b",
+              "text": "`equals` can be true only for identical references."
+            },
+            {
+              "id": "c",
+              "text": "If `a.equals(b)` is true, `a` and `b` must have the same hash value."
+            },
+            {
+              "id": "d",
+              "text": "`hashCode()` must be unique for every object."
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "The contract requires equal hash values for objects that are equal according to `equals`. Conversely, equal hash values can also occur for objects with different values.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO10.md",
+            "heading": "16.      vs."
+          },
+          "difficulty": 2,
+          "concepts": [
+            "equals and hashCode",
+            "Object identity and value equality"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "eip-10-l2",
+      "index": 2,
+      "kind": "apply",
+      "title": "Apply",
+      "questions": [
+        {
+          "id": "eip-10-l2-q01",
+          "type": "code_output",
+          "prompt": "What does the code print?\n\n```java\nclass Book {\n    protected int pages;\n    public Book() { pages = 150; }\n}\nclass Dictionary extends Book {\n    private int defs;\n    public Dictionary(int x) {\n        pages = 2 * pages;\n        defs = x;\n    }\n    public void show() {\n        MiniJava.write(\"Number of pages: \" + pages);\n        MiniJava.write(\"Number of defs: \" + defs);\n        MiniJava.write(\"Defs per page: \" + defs / pages);\n    }\n}\nDictionary d = new Dictionary(12400);\nd.show();\n```",
+          "options": [
+            {
+              "id": "a",
+              "text": "Number of pages: 0\nNumber of defs: 12400\nDefs per page: 0"
+            },
+            {
+              "id": "b",
+              "text": "Number of pages: 150\nNumber of defs: 12400\nDefs per page: 82"
+            },
+            {
+              "id": "c",
+              "text": "Number of pages: 300\nNumber of defs: 12400\nDefs per page: 41"
+            },
+            {
+              "id": "d",
+              "text": "Number of pages: 300\nNumber of defs: 12400\nDefs per page: 41.33"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "`Book()` first sets `pages` to 150; the subclass constructor then doubles the value to 300. Dividing two `int` values gives 41.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO10.md",
+            "heading": "1. Warum Vererbung?"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Constructor chaining",
+            "Object initialization"
+          ]
+        },
+        {
+          "id": "eip-10-l2-q02-r1",
+          "type": "calc",
+          "prompt": "A Bonus Saver Account has a balance of 100 and a fee of 20. For `withdraw(amount)`, the override calls the inherited method with `amount + Gebühr`. The inherited method deducts the requested amount and returns `true` if it is no greater than the balance. Otherwise, it returns `false` and leaves the balance unchanged. What do `withdraw(80)` return, and what is the resulting account balance?",
+          "options": [
+            {
+              "id": "a",
+              "text": "true, ending balance 20"
+            },
+            {
+              "id": "b",
+              "text": "true, ending balance 0"
+            },
+            {
+              "id": "c",
+              "text": "false, ending balance 100"
+            },
+            {
+              "id": "d",
+              "text": "false, ending balance 0"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "The override requests `80 + 20 = 100`. The balance is exactly sufficient; the inherited method deducts 100 and returns `true`.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO10.md",
+            "heading": "Bonus Saver Account"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Bonus Saver Account",
+            "Overridden withdraw method",
+            "Withdrawal fee"
+          ]
+        },
+        {
+          "id": "eip-10-l2-q03",
+          "type": "single",
+          "prompt": "`Book` declares `page_message()` and `languageDescription()`. `Dictionary extends Book` adds `defs_message()` and overrides `languageDescription()`. What applies to `Book b = new Dictionary();`?",
+          "options": [
+            {
+              "id": "a",
+              "text": "`b.languageDescription()` is not allowed because the object is a `Dictionary`."
+            },
+            {
+              "id": "b",
+              "text": "`b.defs_message()` is not allowed; `b.languageDescription()` is allowed and uses the override from `Dictionary`."
+            },
+            {
+              "id": "c",
+              "text": "The compiler automatically changes the type of `b` to `Dictionary`."
+            },
+            {
+              "id": "d",
+              "text": "`b.defs_message()` is allowed; `languageDescription()` runs from `Book`."
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "The static type `Book` allows only methods declared there. The virtual call to the overridden method still uses `Dictionary`.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO10.md",
+            "heading": "5. Upcasting und dynamische Bindung"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Reference types and upcasting",
+            "Polymorphism and dynamic binding"
+          ]
+        },
+        {
+          "id": "eip-10-l2-q04",
+          "type": "single",
+          "prompt": "`Parent` declares `protected int a;`. `Child extends Parent` also declares `protected int a;`. In the `Child` constructor, `a = 2; super.a = 3;`. What value does `super.a` refer to afterward?",
+          "options": [
+            {
+              "id": "a",
+              "text": "2"
+            },
+            {
+              "id": "b",
+              "text": "3"
+            },
+            {
+              "id": "c",
+              "text": "Both fields refer to the same storage location."
+            },
+            {
+              "id": "d",
+              "text": "5"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "`super.a` refers to the field from `Parent`; it is separate from the field with the same name, `Child.a`.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO10.md",
+            "heading": "12. Field Hiding ≠ Method Overriding"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Field hiding"
+          ]
+        },
+        {
+          "id": "eip-10-l2-q05-r1",
+          "type": "diagram",
+          "prompt": "A Checking Account has a balance of 50. Its separate Savings backup account has a balance of 200. For an account, `withdraw(x)` deducts `x` and returns `true` if `x` is no greater than the balance; otherwise, it returns `false` and leaves the account unchanged. The Checking Account follows the flowchart. What state change results from `withdraw(100)`?",
+          "context": {
+            "type": "mermaid",
+            "content": "flowchart TD\n  A[\"withdraw(amount)\"] --> B{\"Is Checking sufficient?\"}\n  B -- Yes --> C[\"Checking withdraw(amount) succeeds\"]\n  B -- No --> D[\"shortfall = amount - Checking balance\"]\n  D --> E[\"Savings withdraw(shortfall)\"]\n  E -- Yes --> F[\"Set Checking to 0; true\"]\n  E -- No --> G[\"Both accounts unchanged; false\"]",
+            "caption": "Withdrawal flow with a separate Savings backup account"
+          },
+          "options": [
+            {
+              "id": "a",
+              "text": "The withdrawal succeeds; Checking has 50 and Savings has 100."
+            },
+            {
+              "id": "b",
+              "text": "The withdrawal succeeds; Checking has −50 and Savings remains at 200."
+            },
+            {
+              "id": "c",
+              "text": "The withdrawal fails; both accounts remain unchanged."
+            },
+            {
+              "id": "d",
+              "text": "The withdrawal succeeds; Checking has 0 and Savings has 150."
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Checking cannot withdraw 100 on its own. The shortfall is `100 − 50 = 50`; the Savings account deducts this 50. Checking is then set to 0, and the withdrawal succeeds.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO10.md",
+            "heading": "Checking Account: Ersatzkonto bei Unterdeckung"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Checking Account",
+            "Backup account",
+            "Shortfall when funds are insufficient"
+          ]
+        },
+        {
+          "id": "eip-10-l2-q06-r1",
+          "type": "calc",
+          "prompt": "A Savings Account has a balance of 100 and an interest rate of `r = 0,25` (that is, 25% as a decimal). A call to `add_interest()` calculates the new balance using `Guthaben = Guthaben · (1 + r)`. What is the balance after one call?",
+          "options": [
+            {
+              "id": "a",
+              "text": "125"
+            },
+            {
+              "id": "b",
+              "text": "100.25"
+            },
+            {
+              "id": "c",
+              "text": "25"
+            },
+            {
+              "id": "d",
+              "text": "150"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "The formula gives `100 · (1 + 0,25) = 100 · 1,25 = 125`.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO10.md",
+            "heading": "Savings Account"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Savings Account",
+            "Interest calculation",
+            "add_interest"
+          ]
+        },
+        {
+          "id": "eip-10-l2-q07",
+          "type": "single",
+          "prompt": "`Book` declares only `Book(int x)`. `Child extends Book` has a no-argument constructor with no explicit `super(...)` call. What is the result?",
+          "options": [
+            {
+              "id": "a",
+              "text": "The code compiles; Java automatically sets `x` to 0."
+            },
+            {
+              "id": "b",
+              "text": "The code does not compile because the implicit `super()` cannot find a matching constructor."
+            },
+            {
+              "id": "c",
+              "text": "Java creates a second `Book` object."
+            },
+            {
+              "id": "d",
+              "text": "Java automatically calls `super(1)`."
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "The implicit `super()` requires a no-argument superclass constructor. If only `Book(int x)` exists, the subclass must explicitly pass an appropriate value.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO10.md",
+            "heading": "3. Konstruktoren:              vs."
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Constructor chaining"
+          ]
+        },
+        {
+          "id": "eip-10-l2-q08",
+          "type": "truefalse",
+          "prompt": "The assignment `Rational r = (Rational) null;` initially yields `null`; only a subsequent method call through `r` causes a `NullPointerException`.",
+          "options": [
+            {
+              "id": "true",
+              "text": "True"
+            },
+            {
+              "id": "false",
+              "text": "False"
+            }
+          ],
+          "correct": [
+            "true"
+          ],
+          "explanation": "A reference cast of `null` still yields `null`. The error occurs only when accessing the nonexistent object.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO10.md",
+            "heading": "15.              und Cast"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "instanceof and casting"
+          ]
+        },
+        {
+          "id": "eip-10-l2-q09",
+          "type": "multi",
+          "prompt": "Select all correct statements about this hierarchy: `Savings_Account extends Bank_Account`, `Bonus_Saver_Account extends Savings_Account`, and `Checking_Account extends Bank_Account`; each Checking Account also holds a reference to a separate `Savings_Account` object.",
+          "options": [
+            {
+              "id": "a",
+              "text": "A `Savings_Account` is a `Bank_Account`."
+            },
+            {
+              "id": "b",
+              "text": "The backup account is a field of the same Savings object that is also a Checking account."
+            },
+            {
+              "id": "c",
+              "text": "A `Bonus_Saver_Account` is a `Savings_Account`."
+            },
+            {
+              "id": "d",
+              "text": "A Checking Account's backup account is a separate object."
+            }
+          ],
+          "correct": [
+            "a",
+            "c",
+            "d"
+          ],
+          "explanation": "Inheritance describes is-a relationships. The reference `overdraft`, in contrast, represents a has-a relationship with a separate object.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO10.md",
+            "heading": "8. Vererbungshierarchie der Konten"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Inheritance and the is-a relationship",
+            "References and aliasing"
+          ]
+        },
+        {
+          "id": "eip-10-l2-q10",
+          "type": "code_output",
+          "prompt": "What does this code print?\n\n```java\nclass Book {\n    public String languageDescription() { return \"English\"; }\n}\nclass Dictionary extends Book {\n    @Override\n    public String languageDescription() {\n        return super.languageDescription() + \" → German\";\n    }\n}\nBook b = new Dictionary();\nMiniJava.write(b.languageDescription());\n```",
+          "options": [
+            {
+              "id": "a",
+              "text": "English → German"
+            },
+            {
+              "id": "b",
+              "text": "German"
+            },
+            {
+              "id": "c",
+              "text": "The call is not allowed because of the reference type `Book`."
+            },
+            {
+              "id": "d",
+              "text": "English"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "The call is permitted through the `Book` reference type. At runtime, the override from `Dictionary` runs and appends the superclass value.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO10.md",
+            "heading": "4. Eine geerbte Methode überschreiben"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Method overriding",
+            "Polymorphism and dynamic binding"
+          ]
+        },
+        {
+          "id": "eip-10-l2-q11",
+          "type": "calc",
+          "prompt": "`Book(int x)` sets `pages = x`. `Dictionary(int p, int d)` calls `super(p)` and sets `defs = d`. What field values does `new Dictionary(540, 36600)` have?",
+          "options": [
+            {
+              "id": "a",
+              "text": "`pages = 540`, `defs = 36600`"
+            },
+            {
+              "id": "b",
+              "text": "`pages = 0`, `defs = 36600`"
+            },
+            {
+              "id": "c",
+              "text": "`pages = 540`, `defs = 0`"
+            },
+            {
+              "id": "d",
+              "text": "`pages = 36600`, `defs = 540`"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "`super(p)` calls `Book(int x)` with `p = 540`. The subclass constructor then sets `defs` to 36600.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO10.md",
+            "heading": "3. Konstruktoren:              vs."
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Constructor chaining"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "eip-10-l3",
+      "index": 3,
+      "kind": "deepen",
+      "title": "Go deeper",
+      "questions": [
+        {
+          "id": "eip-10-l3-q01",
+          "type": "code_output",
+          "prompt": "What does the code print?\n\n```java\nclass Parent {\n    protected int a = 5;\n    protected int b;\n    protected void inc() { a = a + 1; b = b + 1; }\n    public Parent(int x) { b = x; inc(); }\n}\nclass Child extends Parent {\n    @Override\n    protected void inc() { a = a + 2; b = b + 2; }\n    public Child() { super(33); }\n}\nChild y = new Child();\nMiniJava.write(y.a + y.b);\n```",
+          "options": [
+            {
+              "id": "a",
+              "text": "40"
+            },
+            {
+              "id": "b",
+              "text": "42"
+            },
+            {
+              "id": "c",
+              "text": "41"
+            },
+            {
+              "id": "d",
+              "text": "35"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "The superclass constructor sets `b` to 33 and then calls `Child.inc()` dynamically. This sets `a = 7` and `b = 35`; their sum is 42.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO10.md",
+            "heading": "Klausurbeispiel aus der Vorlesung"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Object initialization",
+            "Polymorphism and dynamic binding"
+          ]
+        },
+        {
+          "id": "eip-10-l3-q02",
+          "type": "multi",
+          "prompt": "Select all correct steps of instance initialization from the constructor examples.",
+          "options": [
+            {
+              "id": "a",
+              "text": "The subclass constructor runs to completion before the superclass constructor begins."
+            },
+            {
+              "id": "b",
+              "text": "The subclass's field initializers then run in source order."
+            },
+            {
+              "id": "c",
+              "text": "Instance fields first receive default values."
+            },
+            {
+              "id": "d",
+              "text": "The superclass is initialized before the subclass's field initializers."
+            },
+            {
+              "id": "e",
+              "text": "Fields of type `int` never receive a default value."
+            }
+          ],
+          "correct": [
+            "b",
+            "c",
+            "d"
+          ],
+          "explanation": "Instance fields first receive default values. The superclass and then the subclass are initialized; the subclass's field initializers run before the rest of its constructor.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO10.md",
+            "heading": "13. Initialisierungsreihenfolge"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Object initialization",
+            "Constructor chaining"
+          ]
+        },
+        {
+          "id": "eip-10-l3-q03",
+          "type": "truefalse",
+          "prompt": "If a superclass constructor calls an overridable instance method, the superclass implementation is automatically used because the superclass constructor is currently active.",
+          "options": [
+            {
+              "id": "true",
+              "text": "True"
+            },
+            {
+              "id": "false",
+              "text": "False"
+            }
+          ],
+          "correct": [
+            "false"
+          ],
+          "explanation": "Instance methods are selected dynamically. Therefore, the subclass override can run while the superclass constructor is executing, even though subclass initialization is not yet complete.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO10.md",
+            "heading": "13. Initialisierungsreihenfolge"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Object initialization",
+            "Polymorphism and dynamic binding"
+          ]
+        },
+        {
+          "id": "eip-10-l3-q04",
+          "type": "truefalse",
+          "prompt": "When a method override is type-compatible, the compiler automatically checks whether all behavioral rules of the superclass are being followed.",
+          "options": [
+            {
+              "id": "true",
+              "text": "True"
+            },
+            {
+              "id": "false",
+              "text": "False"
+            }
+          ],
+          "correct": [
+            "false"
+          ],
+          "explanation": "The compiler checks for compatible method types, but not the full behavioral contract. A subclass can therefore violate the Liskov principle even if it compiles successfully.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO10.md",
+            "heading": "11. Liskov Substitution Principle (LSP)"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Liskov Substitution Principle"
+          ]
+        },
+        {
+          "id": "eip-10-l3-q05",
+          "type": "diagram",
+          "prompt": "Checking has 50, and the backup account has 39. With `withdraw(90)`, Checking cannot pay 90; the shortfall is 40. What happens along the unsuccessful backup-account path?",
+          "context": {
+            "type": "mermaid",
+            "content": "flowchart TD\n  A[\"withdraw(amount)\"] --> B{\"Is Checking sufficient?\"}\n  B -- Yes --> C[\"true\"]\n  B -- No --> D[\"Calculate shortfall\"]\n  D --> E{\"Are Savings sufficient?\"}\n  E -- Yes --> F[\"Set Checking to 0; true\"]\n  E -- No --> G[\"Both unchanged; false\"]",
+            "caption": "The second withdrawal step fails"
+          },
+          "options": [
+            {
+              "id": "a",
+              "text": "Returns `true`; Savings is set to 0."
+            },
+            {
+              "id": "b",
+              "text": "Returns `false`; Checking remains at 50 and Savings remains at 39."
+            },
+            {
+              "id": "c",
+              "text": "Returns `true`; Checking becomes negative."
+            },
+            {
+              "id": "d",
+              "text": "Returns `false`; Checking drops to 0 and Savings remains at 39."
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "The backup account cannot cover the shortfall of 40. Under the contract, `false` leaves all affected account balances unchanged.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO10.md",
+            "heading": "Checking Account: Ersatzkonto bei Unterdeckung"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Liskov Substitution Principle",
+            "Polymorphism and dynamic binding"
+          ]
+        },
+        {
+          "id": "eip-10-l3-q06",
+          "type": "multi",
+          "prompt": "A `Rational` class overrides `equals(Object)` and compares fractions using cross multiplication. Select all correct statements.",
+          "options": [
+            {
+              "id": "a",
+              "text": "`equals(Object)` overrides the inherited method from `Object`."
+            },
+            {
+              "id": "b",
+              "text": "If `a.equals(c)` is true, both must have the same `hashCode`."
+            },
+            {
+              "id": "c",
+              "text": "`equals(Object)` and `equals(Rational)` have the same parameter list."
+            },
+            {
+              "id": "d",
+              "text": "`equals(Rational)` is an overload with a more specific parameter."
+            },
+            {
+              "id": "e",
+              "text": "Equal hash values always guarantee `equals` equality."
+            }
+          ],
+          "correct": [
+            "a",
+            "b",
+            "d"
+          ],
+          "explanation": "`equals(Object)` overrides the standard method; `equals(Rational)` is overloaded because it has a different parameter list. The hash contract applies from `equals` to `hashCode`, but not vice versa.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO10.md",
+            "heading": "16.      vs."
+          },
+          "difficulty": 4,
+          "concepts": [
+            "equals and hashCode",
+            "Method overloading",
+            "Object identity and value equality"
+          ]
+        },
+        {
+          "id": "eip-10-l3-q07",
+          "type": "single",
+          "prompt": "In `Parent`, `protected int pages;` and `private String language;` are declared. Which direct assignment is allowed in `Child extends Parent`?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Both assignments are allowed."
+            },
+            {
+              "id": "b",
+              "text": "Both assignments are forbidden."
+            },
+            {
+              "id": "c",
+              "text": "`pages = 42;`"
+            },
+            {
+              "id": "d",
+              "text": "`language = \"French\";`"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "The subclass can use the protected field `pages`. The private field `language` remains directly accessible only in `Parent`.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO10.md",
+            "heading": "6. Sichtbarkeit und Kapselung"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Visibility and encapsulation"
+          ]
+        },
+        {
+          "id": "eip-10-l3-q08",
+          "type": "truefalse",
+          "prompt": "A method with the same name but only a different return type is already a valid overload.",
+          "options": [
+            {
+              "id": "true",
+              "text": "True"
+            },
+            {
+              "id": "false",
+              "text": "False"
+            }
+          ],
+          "correct": [
+            "false"
+          ],
+          "explanation": "For overloading, the parameter list must differ. A different return type alone is not enough.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO10.md",
+            "heading": "Overriding vs. Overloading"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Method overloading"
+          ]
+        },
+        {
+          "id": "eip-10-l3-q09",
+          "type": "single",
+          "prompt": "Given `Object x = new Book();`, where `Book` is not a subclass of `Dictionary`, what happens with `Dictionary d = (Dictionary) x;`?",
+          "options": [
+            {
+              "id": "a",
+              "text": "The object is copied into a `Dictionary`."
+            },
+            {
+              "id": "b",
+              "text": "The cast returns `null`."
+            },
+            {
+              "id": "c",
+              "text": "The cast succeeds because any reference can be used as any class."
+            },
+            {
+              "id": "d",
+              "text": "The cast throws a `ClassCastException` at runtime."
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "A reference cast checks the actual runtime type. Since the object is a `Book`, not a `Dictionary`, the check fails at runtime.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO10.md",
+            "heading": "15.              und Cast"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "instanceof and casting",
+            "Reference types and upcasting"
+          ]
+        },
+        {
+          "id": "eip-10-l3-q10",
+          "type": "multi",
+          "prompt": "For `withdraw(amount)`, the precondition is a finite, nonnegative amount; `true` means the withdrawal succeeded; with `false`, all affected account balances remain unchanged. Select all applicable statements.",
+          "options": [
+            {
+              "id": "a",
+              "text": "A negative amount does not satisfy the precondition."
+            },
+            {
+              "id": "b",
+              "text": "If `false` is returned, all affected account balances must remain unchanged."
+            },
+            {
+              "id": "c",
+              "text": "If `false` is returned, part of the amount may already have been deducted."
+            },
+            {
+              "id": "d",
+              "text": "A successful withdrawal may involve fees or a backup account."
+            }
+          ],
+          "correct": [
+            "a",
+            "b",
+            "d"
+          ],
+          "explanation": "The contract excludes negative and non-finite amounts. A successful withdrawal may involve fees or reserves; a failed withdrawal must not change the state.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO10.md",
+            "heading": "11. Liskov Substitution Principle (LSP)"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Liskov Substitution Principle",
+            "Invariants"
+          ]
+        },
+        {
+          "id": "eip-10-l3-q11",
+          "type": "single",
+          "prompt": "Which methods are important examples inherited from `Object`?",
+          "options": [
+            {
+              "id": "a",
+              "text": "`instanceof()`, `cast()`, and `super()`"
+            },
+            {
+              "id": "b",
+              "text": "`toString()`, `equals(Object)`, and `hashCode()`"
+            },
+            {
+              "id": "c",
+              "text": "`deposit()`, `withdraw()`, and `add_interest()`"
+            },
+            {
+              "id": "d",
+              "text": "`readInt()`, `write()`, and `main()`"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "The notes name `toString()`, `equals(Object)`, and `hashCode()` as important methods inherited from `Object`.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO10.md",
+            "heading": "14.         : gemeinsame Oberklasse"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "equals and hashCode",
+            "Object identity and value equality"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "eip-10-l4",
+      "index": 4,
+      "kind": "boss",
+      "title": "Boss",
+      "questions": [
+        {
+          "id": "eip-10-l4-q01",
+          "type": "single",
+          "prompt": "Unit 8 covers reference assignments: `b = a` copies the reference, not the array. Now consider: `Dictionary` extends `Book` and overrides `languageDescription()`. For `Dictionary d = new Dictionary(); Book b = d; Book c = b;`, `Book` also declares `page_message()`, and `Dictionary` adds `defs_message()`. Which statement is correct?",
+          "options": [
+            {
+              "id": "a",
+              "text": "With the assignment `Book b = d`, the runtime class changes to `Book`."
+            },
+            {
+              "id": "b",
+              "text": "`d`, `b`, and `c` refer to the same object; `b.languageDescription()` uses the override, but `b.defs_message()` is not allowed."
+            },
+            {
+              "id": "c",
+              "text": "`b.defs_message()` is allowed because the runtime object is a `Dictionary`."
+            },
+            {
+              "id": "d",
+              "text": "`b` and `c` are copies of the `Dictionary` object and use `Book.languageDescription()`."
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "The reference assignments do not create copies. `Book` limits which calls are allowed through `b`, while method dispatch still takes the actual class, `Dictionary`, into account.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO8.md",
+            "heading": null
+          },
+          "difficulty": 4,
+          "concepts": [
+            "References and aliasing",
+            "Reference types and upcasting",
+            "Polymorphism and dynamic binding"
+          ]
+        },
+        {
+          "id": "eip-10-l4-q02",
+          "type": "multi",
+          "prompt": "Unit 9 describes ADTs with a private representation and public operations. For an array-based stack, the invariant `0 ≤ size ≤ a.length` must hold. Select all suitable design decisions.",
+          "options": [
+            {
+              "id": "a",
+              "text": "Make `size` public so clients can repair the stack directly."
+            },
+            {
+              "id": "b",
+              "text": "Keep `a` and `size` private so clients cannot change the representation arbitrarily."
+            },
+            {
+              "id": "c",
+              "text": "Provide public stack operations that preserve the invariant."
+            },
+            {
+              "id": "d",
+              "text": "The invariant does not matter as long as the methods are named `push` and `pop`."
+            }
+          ],
+          "correct": [
+            "b",
+            "c"
+          ],
+          "explanation": "A private representation protects the data structure's invariant. Clients should use the public operations, which preserve valid states.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO9.md",
+            "heading": null
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Visibility and encapsulation",
+            "Invariants"
+          ]
+        },
+        {
+          "id": "eip-10-l4-q03",
+          "type": "code_output",
+          "prompt": "What does the code print?\n\n```java\nclass Parent {\n    protected int a = 1;\n    public int getA() { return a; }\n}\nclass Child extends Parent {\n    protected int a = 2;\n    @Override\n    public int getA() { return a; }\n}\nParent p = new Child();\nMiniJava.write(p.a);\nMiniJava.write(p.getA());\n```",
+          "options": [
+            {
+              "id": "a",
+              "text": "2\n2"
+            },
+            {
+              "id": "b",
+              "text": "1\n1"
+            },
+            {
+              "id": "c",
+              "text": "2\n1"
+            },
+            {
+              "id": "d",
+              "text": "1\n2"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "`p.a` is selected based on the static type `Parent` and returns 1. `p.getA()` is dynamically bound to `Child` and returns 2.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO10.md",
+            "heading": "12. Field Hiding ≠ Method Overriding"
+          },
+          "difficulty": 5,
+          "concepts": [
+            "Field hiding",
+            "Polymorphism and dynamic binding"
+          ]
+        },
+        {
+          "id": "eip-10-l4-q04",
+          "type": "single",
+          "prompt": "A `Bank_Account` contract requires that if `withdraw` returns `false`, all account balances remain unchanged. An override first deducts a fee of 25 from a balance of 120 and then tries to withdraw 110. Which conclusion is correct?",
+          "options": [
+            {
+              "id": "a",
+              "text": "The compiler automatically prevents this contract violation."
+            },
+            {
+              "id": "b",
+              "text": "The withdrawal succeeds and the ending balance is 10."
+            },
+            {
+              "id": "c",
+              "text": "The override violates the contract: it returns `false` even though the balance has fallen from 120 to 95."
+            },
+            {
+              "id": "d",
+              "text": "The override honors the contract because the fee is smaller than the requested withdrawal."
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "After the fee, 95 remains; the requested withdrawal of 110 fails. The return value is therefore `false`, but the state has changed—a violation of the Liskov contract.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO10.md",
+            "heading": "11. Liskov Substitution Principle (LSP)"
+          },
+          "difficulty": 5,
+          "concepts": [
+            "Liskov Substitution Principle",
+            "Invariants"
+          ]
+        },
+        {
+          "id": "eip-10-l4-q05",
+          "type": "single",
+          "prompt": "A `Bank_Account[]` contains, in order: `Savings_Account` with 100, `Bonus_Saver_Account` with 100 and a fee of 20, and `Checking_Account` with 10 and a separate reserve of 100. With `withdrawAll(accounts, 20)`, Savings deducts the amount, Bonus deducts the amount plus the fee, and Checking first tries its own balance and then covers the shortfall from the reserve. What are the ending balances?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Savings 60, Bonus 80, Checking 10, Reserve 90"
+            },
+            {
+              "id": "b",
+              "text": "Savings 80, Bonus 60, Checking 10, Reserve 80"
+            },
+            {
+              "id": "c",
+              "text": "Savings 80, Bonus 60, Checking 0, Reserve 90"
+            },
+            {
+              "id": "d",
+              "text": "Savings 80, Bonus 80, Checking 0, Reserve 100"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Savings deducts 20. Bonus deducts 20 plus a fee of 20. Checking has a shortfall of 10; this is taken from the separate reserve, and Checking is then set to 0.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO10.md",
+            "heading": "10. Polymorphie: derselbe Aufruf, anderes Verhalten"
+          },
+          "difficulty": 5,
+          "concepts": [
+            "Polymorphism and dynamic binding",
+            "Inheritance and the is-a relationship"
+          ]
+        },
+        {
+          "id": "eip-10-l4-q06",
+          "type": "single",
+          "prompt": "`Object x = new Rational(2, 8);` and `Rational` declares `numerator()`. Which statement applies?",
+          "options": [
+            {
+              "id": "a",
+              "text": "`instanceof Rational` is true for every `Object`."
+            },
+            {
+              "id": "b",
+              "text": "`x.numerator()` is allowed because the runtime class is `Rational`."
+            },
+            {
+              "id": "c",
+              "text": "The cast creates a copy of the Rational object."
+            },
+            {
+              "id": "d",
+              "text": "`x.numerator()` is not allowed; after a successful `instanceof Rational` and cast, `r.numerator()` is allowed."
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "The static type `Object` does not know about `numerator()`. The runtime type remains `Rational`; after a suitable check, a `Rational` reference can be used without copying the object.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO10.md",
+            "heading": "15.              und Cast"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Reference types and upcasting",
+            "instanceof and casting"
+          ]
+        },
+        {
+          "id": "eip-10-l4-q07",
+          "type": "multi",
+          "prompt": "Let `x = new Rational(2, 8)` and `y = new Rational(1, 4)`. `Rational.equals` compares fractions using cross multiplication, and the two references point to separate objects. Select all correct statements.",
+          "options": [
+            {
+              "id": "a",
+              "text": "Because `x.equals(y)` is true, `x == y` must also be true."
+            },
+            {
+              "id": "b",
+              "text": "`x.equals(y)` is `true`."
+            },
+            {
+              "id": "c",
+              "text": "Both objects must have the same `hashCode`."
+            },
+            {
+              "id": "d",
+              "text": "`x == y` is `false`."
+            }
+          ],
+          "correct": [
+            "b",
+            "c",
+            "d"
+          ],
+          "explanation": "The references denote different objects, so `==` is false. The cross-products are equal (`2·4 = 1·8`), and under the hash contract, objects that are equal according to `equals` must have the same hash value.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO10.md",
+            "heading": "16.      vs."
+          },
+          "difficulty": 5,
+          "concepts": [
+            "Object identity and value equality",
+            "equals and hashCode"
+          ]
+        },
+        {
+          "id": "eip-10-l4-q08",
+          "type": "calc",
+          "prompt": "A variable with static type `Bank_Account` refers to a `Checking_Account` with a balance of 30 and a separate Savings backup account with 50. The call `withdraw(70)` is executed. What return value and ending balances result?",
+          "options": [
+            {
+              "id": "a",
+              "text": "`true`; Checking 30, Savings 0"
+            },
+            {
+              "id": "b",
+              "text": "`false`; Checking 30, Savings 50"
+            },
+            {
+              "id": "c",
+              "text": "`false`; Checking 0, Savings 10"
+            },
+            {
+              "id": "d",
+              "text": "`true`; Checking 0, Savings 10"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "The Checking override runs despite the reference type `Bank_Account`. Checking cannot cover 70 on its own; the shortfall of 40 is taken from Savings, and Checking is set to 0.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO10.md",
+            "heading": "Checking Account: Ersatzkonto bei Unterdeckung"
+          },
+          "difficulty": 5,
+          "concepts": [
+            "Polymorphism and dynamic binding",
+            "Liskov Substitution Principle"
+          ]
+        },
+        {
+          "id": "eip-10-l4-q09",
+          "type": "single",
+          "prompt": "`Book` has only `Book(int p)`. `Child()` calls `this(5)`; `Child(int p)` calls `super(p)`. What is the value of `pages` after `new Child()`?",
+          "options": [
+            {
+              "id": "a",
+              "text": "0"
+            },
+            {
+              "id": "b",
+              "text": "The code does not compile because Java does not allow a no-argument subclass constructor."
+            },
+            {
+              "id": "c",
+              "text": "The code does not compile because `this(...)` cannot call a superclass constructor."
+            },
+            {
+              "id": "d",
+              "text": "5"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "`this(5)` delegates to the second `Child` constructor, which initializes the superclass with `super(5)`. Constructor chaining thus reaches the superclass constructor.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO10.md",
+            "heading": "3. Konstruktoren:              vs."
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Constructor chaining"
+          ]
+        },
+        {
+          "id": "eip-10-l4-q10",
+          "type": "single",
+          "prompt": "`Book` declares `languageDescription()` with no parameters. A subclass declares `@Override languageDescription(String separator)`. How should this be classified?",
+          "options": [
+            {
+              "id": "a",
+              "text": "It is overloading; because of `@Override`, the compiler reports that no matching method is being overridden."
+            },
+            {
+              "id": "b",
+              "text": "It is valid because a different parameter is allowed by `@Override`."
+            },
+            {
+              "id": "c",
+              "text": "It is overriding because the method name is the same."
+            },
+            {
+              "id": "d",
+              "text": "It is a field declaration, not a method."
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "The parameter list differs, so the method would be an overload. `@Override` is not appropriate here and lets the compiler detect the error.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO10.md",
+            "heading": "Overriding vs. Overloading"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Method overloading",
+            "Method overriding"
+          ]
+        },
+        {
+          "id": "eip-10-l4-q11",
+          "type": "diagram",
+          "prompt": "The reference `b` has declared type `Book` and points to a `Dictionary` object. Which statement about the method `languageDescription()` is shown by the diagram?",
+          "context": {
+            "type": "mermaid",
+            "content": "flowchart LR\n  R[\"Book b\"] --> O[\"Dictionary object\"]\n  O --> M[\"Dictionary.languageDescription()\"]\n  R --> S[\"visible methods: Book\"]",
+            "caption": "Static reference type and runtime class"
+          },
+          "options": [
+            {
+              "id": "a",
+              "text": "The reference assignment changes the object into a `Book`."
+            },
+            {
+              "id": "b",
+              "text": "The call necessarily runs the `Book` implementation."
+            },
+            {
+              "id": "c",
+              "text": "The call is allowed through `b` and runs the override from `Dictionary`."
+            },
+            {
+              "id": "d",
+              "text": "The call is not allowed because `b` is declared as a `Book`."
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "`Book` declares the method and permits the call. The runtime class `Dictionary` determines that its overriding implementation runs.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO10.md",
+            "heading": "5. Upcasting und dynamische Bindung"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Reference types and upcasting",
+            "Polymorphism and dynamic binding"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "eip-10-l5",
+      "index": 5,
+      "kind": "bonus",
+      "title": "In practice: code, accounts, everyday life",
+      "questions": [
+        {
+          "id": "eip-10-l5-q01",
+          "type": "single",
+          "prompt": "You are building a route planner. `Radroute` and `Fußroute` are both `Route` objects and override `dauer()`. A list of type `Route` calls `dauer()` for each element. Which concept ensures that the appropriate route calculation runs each time?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Dynamic binding: the actual object class determines which override is called."
+            },
+            {
+              "id": "b",
+              "text": "Field hiding: the reference type selects the appropriate method."
+            },
+            {
+              "id": "c",
+              "text": "Value equality: `equals` compares the routes."
+            },
+            {
+              "id": "d",
+              "text": "Overloading: the parameter list selects the appropriate method at runtime."
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "The shared type `Route` allows the same call to be made for different routes. The actual object class determines which overridden `dauer()` method runs.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO10.md",
+            "heading": "5. Upcasting und dynamische Bindung"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Polymorphism and dynamic binding",
+            "Method overriding"
+          ]
+        },
+        {
+          "id": "eip-10-l5-q02",
+          "type": "single",
+          "prompt": "You are developing a game: `Coin`, `Key`, and `Potion` should all be usable wherever a `Collectible` is expected. Which design fits the statement “A coin is a collectible”?",
+          "options": [
+            {
+              "id": "a",
+              "text": "`Collectible` extends each of the three concrete classes."
+            },
+            {
+              "id": "b",
+              "text": "All classes receive fields with the same name; this creates the is-a relationship."
+            },
+            {
+              "id": "c",
+              "text": "Each object also contains a reference to a separate `Collectible`."
+            },
+            {
+              "id": "d",
+              "text": "`Coin`, `Key`, and `Potion` extend `Collectible`."
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "A coin is a collectible: this is an is-a relationship and fits `extends`. The subclasses can use the shared type `Collectible` and add specialized features.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO10.md",
+            "heading": "1. Warum Vererbung?"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Inheritance and the is-a relationship"
+          ]
+        },
+        {
+          "id": "eip-10-l5-q03",
+          "type": "estimate",
+          "prompt": "You are testing a bonus saver with a balance of €100. For the interest period, the new balance is calculated as: old balance × (1 + interest rate + bonus). The interest rate and bonus are each 25%. How many euros will the account show afterward?",
+          "options": [],
+          "correct": [],
+          "slider": {
+            "min": 0,
+            "max": 250,
+            "step": 1,
+            "answer": 150,
+            "tolerance": 0,
+            "unit": "€",
+            "scale": "linear"
+          },
+          "explanation": "Together, the two components add up to 50%. The balance therefore increases to 100 × (1 + 0.25 + 0.25) = €150.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO10.md",
+            "heading": "Bonus Saver Account"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Method overriding",
+            "Polymorphism and dynamic binding"
+          ]
+        },
+        {
+          "id": "eip-10-l5-q04",
+          "type": "multi",
+          "prompt": "You are building a wallet app. The balance must never become invalid through arbitrary changes made by the interface. Which two decisions help protect this invariant?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Provide public deposit and withdrawal methods that validate amounts."
+            },
+            {
+              "id": "b",
+              "text": "Allow the interface to set the balance directly to any value."
+            },
+            {
+              "id": "c",
+              "text": "Provide a public method `setBalance` that accepts any value passed to it."
+            },
+            {
+              "id": "d",
+              "text": "Store the balance as `private`."
+            }
+          ],
+          "correct": [
+            "a",
+            "d"
+          ],
+          "explanation": "A private field prevents direct changes from outside. Specific public methods can validate inputs and preserve the invariant whenever the balance changes.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO10.md",
+            "heading": "7. Invarianten und saubere Schnittstellen"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Visibility and encapsulation",
+            "Invariants"
+          ]
+        },
+        {
+          "id": "eip-10-l5-q05",
+          "type": "truefalse",
+          "prompt": "An account type inherits `withdraw(amount)` with this contract: if the withdrawal returns `false`, all affected account balances remain unchanged. A subclass deducts a fee before checking and then returns `false` if the balance is insufficient. This subclass honors the behavioral contract.",
+          "options": [
+            {
+              "id": "true",
+              "text": "True"
+            },
+            {
+              "id": "false",
+              "text": "False"
+            }
+          ],
+          "correct": [
+            "false"
+          ],
+          "explanation": "The fee changes the balance even though the method reports `false`. The subclass therefore violates the superclass's promised contract and the Liskov Substitution Principle.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO10.md",
+            "heading": "11. Liskov Substitution Principle (LSP)"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Liskov Substitution Principle",
+            "Method overriding"
+          ]
+        },
+        {
+          "id": "eip-10-l5-q06",
+          "type": "estimate",
+          "prompt": "A `withdrawAll` run calls `withdraw(20)` for three accounts: a Savings account with €100, a Bonus Savings account with €100 and a €20 fee, and a Checking account with €10. The Checking account can cover the shortfall from a separate Savings account with €100; if successful, its own balance is set to 0. What is the combined ending balance of all four accounts?",
+          "options": [],
+          "correct": [],
+          "slider": {
+            "min": 0,
+            "max": 400,
+            "step": 1,
+            "answer": 230,
+            "tolerance": 0,
+            "unit": "€",
+            "scale": "linear"
+          },
+          "explanation": "The Savings account ends with €80, and the Bonus account with €60. Checking uses €10 from its reserve and ends with €0; the reserve ends with €90. The total is €230.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO10.md",
+            "heading": "10. Polymorphie: derselbe Aufruf, anderes Verhalten"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Polymorphism and dynamic binding",
+            "Method overriding"
+          ]
+        },
+        {
+          "id": "eip-10-l5-q07",
+          "type": "single",
+          "prompt": "A cache uses two different `CustomerKey` objects for the same customer number. Their `equals` method returns `true`. What else must hold for reliable use in a Java `HashSet`?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Both references must be identical according to `==`."
+            },
+            {
+              "id": "b",
+              "text": "Both objects must return the same value from `hashCode()`."
+            },
+            {
+              "id": "c",
+              "text": "Each object must have a unique `hashCode()`."
+            },
+            {
+              "id": "d",
+              "text": "`HashSet` may use only `equals` and ignore `hashCode`."
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "If `equals` considers two keys equal, they must have the same hash value. Otherwise, hash collections may look for equal keys in different locations.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO10.md",
+            "heading": null
+          },
+          "difficulty": 3,
+          "concepts": [
+            "equals and hashCode",
+            "Object identity and value equality"
+          ]
+        },
+        {
+          "id": "eip-10-l5-q08",
+          "type": "estimate",
+          "prompt": "A plugin manager creates a `Thermostat` object exactly once and stores references to it in 12 variables of type `Object` or `Device`. How many distinct device objects are there if all these variables point to the same object?",
+          "options": [],
+          "correct": [],
+          "slider": {
+            "min": 0,
+            "max": 12,
+            "step": 1,
+            "answer": 1,
+            "tolerance": 0,
+            "unit": "objects",
+            "scale": "linear"
+          },
+          "explanation": "Upcasting and assignments do not create copies. Twelve references can therefore refer to the same single device object.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO10.md",
+            "heading": null
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Reference types and upcasting",
+            "References and aliasing"
+          ]
+        },
+        {
+          "id": "eip-10-l5-q09",
+          "type": "single",
+          "prompt": "A smart home app initially stores devices as `Object`. It checks with `instanceof` whether a device is a `Thermostat`, and then casts it to `Thermostat`. What does a successful cast do?",
+          "options": [
+            {
+              "id": "a",
+              "text": "It creates a copy of the thermostat."
+            },
+            {
+              "id": "b",
+              "text": "It skips the runtime check of the actual type."
+            },
+            {
+              "id": "c",
+              "text": "It lets the code use the reference as a `Thermostat`; the object remains the same."
+            },
+            {
+              "id": "d",
+              "text": "It changes the actual class of the device object."
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "The cast changes how the reference's type is viewed, not the object itself. `instanceof` helps check beforehand whether the cast is valid.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO10.md",
+            "heading": null
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Reference types and upcasting",
+            "instanceof and casting",
+            "References and aliasing"
+          ]
+        },
+        {
+          "id": "eip-10-l5-q10",
+          "type": "single",
+          "prompt": "During a code review of a UI library, you notice that the constructor of `Widget` calls an overridable method, `prepare()`. `AnimatedWidget` overrides it and expects its field `frameCount` to have already been set by a field initializer. What risk should you flag?",
+          "options": [
+            {
+              "id": "a",
+              "text": "The call creates a second `Widget` object."
+            },
+            {
+              "id": "b",
+              "text": "The field initializer for `frameCount` runs twice as a result."
+            },
+            {
+              "id": "c",
+              "text": "`AnimatedWidget.prepare()` can run before the field initializer for `frameCount` has executed."
+            },
+            {
+              "id": "d",
+              "text": "In a superclass constructor, Java always calls the superclass method, never an override."
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "A call to an overridden method can dispatch dynamically to the subclass while the superclass constructor is running. The subclass's field initializers have not run yet at that point.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO10.md",
+            "heading": "13. Initialisierungsreihenfolge"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Object initialization",
+            "Polymorphism and dynamic binding"
+          ]
+        }
+      ]
+    }
+  ]
+}
