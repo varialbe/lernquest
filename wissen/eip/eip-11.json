@@ -1,0 +1,486 @@
+{
+  "schemaVersion": 1,
+  "unitId": "eip-11",
+  "module": "EIP",
+  "unitNumber": 11,
+  "unitTitle": "Abstrakte Klassen und Interfaces",
+  "sourceSha": "cc19bfc1d456ba532f2ff72c0a66bec4106c7abe8581f0e755e6f5298a43e0fc",
+  "overview": "Abstrakte Klassen teilen Zustand und gemeinsamen Code, während konkrete Unterklassen abstrakte Methoden implementieren. Im Expression Tree berechnet `getValue()` jeden unveränderten Ausdruck einmal und speichert das Ergebnis; dynamisches Binden wählt die passende `evaluate()`-Implementierung. `final` und `sealed` begrenzen Zuweisungen und Vererbung. Interfaces beschreiben Fähigkeiten und Verträge, die verschiedene Klassen erfüllen können; sie unterstützen Konstanten sowie `static`-, `default`- und private Methoden, für deren Defaults Java feste Konfliktregeln vorgibt.",
+  "entries": [
+    {
+      "id": "eip-11-k01",
+      "term": "Ausdrucksbaum (Expression Tree)",
+      "kind": "example",
+      "short": "Ein Ausdrucksbaum stellt einen mathematischen Ausdruck als Objekte dar, die jeweils einen Teil der Berechnung übernehmen.",
+      "explanation": "Jeder innere Knoten steht für eine Operation, und seine Kinder enthalten die Operanden. Ein `Const`-Knoten liefert seine gespeicherte Zahl, ein `Neg`-Knoten negiert den Wert seines Kindes und ein `Addition`-Knoten addiert die Werte seiner beiden Kinder. Die gemeinsame Oberklasse kann Auswertungslogik bereitstellen, während die konkreten Knotentypen ihre jeweilige Rechnung festlegen.",
+      "example": "`Addition(Neg(Const(8)), Const(16))` stellt $(-8)+16$ dar und ergibt `8`.",
+      "pitfalls": [
+        "Die Auswertung ist rekursiv über die Objektstruktur, auch wenn keine Methode sich direkt selbst aufruft."
+      ],
+      "related": [
+        "Abstrakte Klasse",
+        "Caching (Memoisierung) in Expression.getValue()",
+        "Dynamisches Binden"
+      ],
+      "heading": "1.1 Motivation: mathematische Ausdrücke als Objekte"
+    },
+    {
+      "id": "eip-11-k02",
+      "term": "Abstrakte Klasse",
+      "kind": "definition",
+      "short": "Eine abstrakte Klasse ist eine Klasse, von der keine Objekte direkt erzeugt werden können.",
+      "explanation": "Eine Klasse wird mit `abstract class` als abstrakt deklariert und kann deshalb nicht direkt mit `new` instanziiert werden. Sie darf Instanzfelder und konkrete Methoden besitzen, um Zustand und gemeinsamen Code an Unterklassen weiterzugeben. Eine konkrete Unterklasse kann instanziierbar sein, wenn sie alle geerbten abstrakten Methoden implementiert.",
+      "example": "`abstract class Expression { ... }` kann Oberklasse von `Const`, `Neg` und `Addition` sein.",
+      "pitfalls": [
+        "Auch ein vorhandener Konstruktor macht `new Expression()` nicht zulässig."
+      ],
+      "related": [
+        "Abstrakte Methode und Implementierungspflicht",
+        "Mehrfachvererbung und Mehrfachimplementierung",
+        "Abstrakte Klasse oder Interface: Designentscheidung"
+      ],
+      "heading": null
+    },
+    {
+      "id": "eip-11-k03",
+      "term": "Abstrakte Methode und Implementierungspflicht",
+      "kind": "theorem",
+      "short": "Eine abstrakte Methode hat eine Signatur ohne Rumpf, und eine konkrete Unterklasse muss sie implementieren.",
+      "explanation": "Eine abstrakte Methode wird mit `abstract` deklariert und endet mit einem Semikolon statt eines Methodenrumpfs. Eine konkrete Unterklasse muss alle geerbten abstrakten Methoden implementieren; andernfalls muss sie selbst als `abstract` deklariert sein. Die Implementierung darf die Sichtbarkeit der geerbten Methode nicht einschränken, etwa von `protected` auf `private`.",
+      "example": "`protected abstract int evaluate();` verlangt eine konkrete `evaluate()`-Methode in jeder konkreten Unterklasse.",
+      "pitfalls": [
+        "Eine Methode ohne Rumpf in einem Interface ist implizit `public abstract`, daher muss ihre Implementierung `public` sein."
+      ],
+      "related": [
+        "Abstrakte Klasse",
+        "Interface-Vertrag",
+        "Dynamisches Binden"
+      ],
+      "heading": null
+    },
+    {
+      "id": "eip-11-k04",
+      "term": "Caching (Memoisierung) in Expression.getValue()",
+      "kind": "method",
+      "short": "`getValue()` berechnet einen Ausdruck beim ersten Aufruf und gibt bei späteren Aufrufen den gespeicherten Wert zurück.",
+      "explanation": "Der Cache vermeidet, dass derselbe unveränderte Ausdrucksbaum mehrfach vollständig berechnet wird. `getValue()` prüft zuerst `evaluated`; falls das Feld falsch ist, berechnet die Methode `evaluate()`, speichert das Ergebnis in `value` und setzt danach `evaluated` auf `true`. Anschließend gibt sie `value` zurück. Ein eigenes boolesches Feld ist nötig, weil `0` ein gültiges Ergebnis sein kann und `value == 0` nicht verrät, ob schon gerechnet wurde.",
+      "example": "Bei `new Const(0)` liefert der erste Aufruf `0` und markiert den Wert als berechnet; spätere Aufrufe geben den gespeicherten Wert zurück.",
+      "pitfalls": [
+        "Der Cache bleibt nur korrekt, solange sich der Ausdruck und seine Operanden nach dem Berechnen nicht ändern."
+      ],
+      "related": [
+        "Ausdrucksbaum (Expression Tree)",
+        "Abstrakte Methode und Implementierungspflicht",
+        "Finale Referenz und veränderliches Objekt"
+      ],
+      "heading": "1.3 Die zentrale Klasse mit Cache"
+    },
+    {
+      "id": "eip-11-k05",
+      "term": "Dynamisches Binden",
+      "kind": "concept",
+      "short": "Bei einer überschriebenen Instanzmethode bestimmt die Laufzeitklasse des Objekts, welche Implementierung ausgeführt wird.",
+      "explanation": "Der statische Referenztyp legt fest, welche Methoden an einer Programmstelle aufgerufen werden dürfen. Wenn der Aufruf eine überschriebene Instanzmethode betrifft, wählt die Laufzeit die Implementierung anhand der tatsächlichen Klasse des Objekts. In `Expression.getValue()` ruft `evaluate()` deshalb bei einem `Addition`-Objekt `Addition.evaluate()` auf, auch wenn die Referenz den Typ `Expression` hat.",
+      "example": "`Expression e = new Addition(...); e.getValue();` führt die `evaluate()`-Implementierung von `Addition` aus.",
+      "pitfalls": [
+        "Der statische Typ bestimmt weiterhin, ob der Methodenaufruf überhaupt kompilierbar ist."
+      ],
+      "related": [
+        "Ausdrucksbaum (Expression Tree)",
+        "Abstrakte Methode und Implementierungspflicht",
+        "Interface-Referenztyp",
+        "Polymorphie und dynamische Bindung"
+      ],
+      "heading": "1.5 Dynamisches Binden und rekursive Auswertung"
+    },
+    {
+      "id": "eip-11-k06",
+      "term": "final",
+      "kind": "definition",
+      "short": "`final` verbietet je nach Einsatzort Unterklassen, Methodenüberschreibungen oder erneute Zuweisungen.",
+      "explanation": "Bei einer `final`-Klasse darf keine Unterklasse deklariert werden. Bei einer `final`-Methode darf eine Unterklasse die Methode nicht überschreiben. Bei einer `final`-Variablen darf nach ihrer Zuweisung keine weitere Zuweisung erfolgen. `final` schränkt Erweiterungen ein und kann Designannahmen absichern, garantiert aber keinen Geschwindigkeitsgewinn.",
+      "example": "`final class Const extends Expression` verhindert eine Klasse wie `class FancyConst extends Const`.",
+      "pitfalls": [
+        "`final` hat je nach Stelle unterschiedliche Wirkung; eine finale Methode verbietet kein Überschreiben anderer Methoden derselben Klasse."
+      ],
+      "related": [
+        "Abstrakte Klasse",
+        "Versiegelte Klasse (sealed) und permits",
+        "Finale Referenz und veränderliches Objekt",
+        "Methodenüberschreibung (Overriding)"
+      ],
+      "heading": null
+    },
+    {
+      "id": "eip-11-k07",
+      "term": "Finale Referenz und veränderliches Objekt",
+      "kind": "concept",
+      "short": "Eine finale Referenz kann nicht auf ein anderes Objekt zeigen, aber das referenzierte Objekt kann weiterhin verändert werden.",
+      "explanation": "Bei einer finalen Referenz ist die Neuzuweisung der Referenz verboten. `final` friert jedoch nicht automatisch den Zustand des referenzierten Objekts ein. Daher können beispielsweise Arrayelemente geändert werden, obwohl die Arrayreferenz final ist.",
+      "example": "Bei `final int[] values = {1, 2};` ist `values[0] = 9;` erlaubt, `values = new int[]{3};` aber nicht.",
+      "pitfalls": [
+        "`final` bedeutet bei einer Referenz nicht dasselbe wie ein unveränderliches Objekt."
+      ],
+      "related": [
+        "final",
+        "Referenz und Aliasing",
+        "Objektidentität und Wertgleichheit"
+      ],
+      "heading": null
+    },
+    {
+      "id": "eip-11-k08",
+      "term": "Versiegelte Klasse (sealed) und permits",
+      "kind": "definition",
+      "short": "Eine `sealed`-Klasse beschränkt mit `permits` ihre erlaubten direkten Unterklassen auf eine festgelegte Liste.",
+      "explanation": "Mit `sealed` wird die Vererbung gezielt eingeschränkt; die `permits`-Klausel nennt die direkten Klassen, die erben dürfen. Im Ausdrucksbaum kann `Expression` so nur `Const`, `Neg` und `Addition` als direkte Unterklassen erlauben. Eine versiegelte Klasse kann zugleich `abstract` sein; erlaubte Unterklassen müssen ihre eigene Vererbbarkeit ebenfalls festlegen, etwa mit `final`, `sealed` oder `non-sealed`.",
+      "example": "`abstract sealed class Expression permits Const, Neg, Addition { ... }` schließt andere direkte Unterklassen aus.",
+      "pitfalls": [
+        "`sealed` erlaubt eine bestimmte Menge direkter Unterklassen; `final` verbietet Unterklassen vollständig."
+      ],
+      "related": [
+        "final",
+        "Erschöpfender Pattern-Matching-switch",
+        "Abstrakte Klasse oder Interface: Designentscheidung"
+      ],
+      "heading": "3.1 Vererbung gezielt einschränken"
+    },
+    {
+      "id": "eip-11-k09",
+      "term": "Erschöpfender Pattern-Matching-switch",
+      "kind": "concept",
+      "short": "Ein `switch` über eine versiegelte Hierarchie ist erschöpfend, wenn er alle zulässigen Fälle abdeckt.",
+      "explanation": "Ein Pattern-Matching-`switch` kann den Typ eines Werts prüfen und ihn im passenden Fall an eine typisierte Variable binden. Wenn eine versiegelte Hierarchie alle zulässigen konkreten Typen aufzählt und jeder Fall behandelt wird, kann eine `switch`-Expression ohne `default` auskommen. Für einen Ausdrucksbaum kann jeder Fall den Knoten selbst zählen und rekursiv seine Kinder zählen.",
+      "example": "```java\nreturn switch (e) {\n    case Const c -> 1;\n    case Neg n -> 1 + countNodes(n.arg);\n    case Addition a -> 1 + countNodes(a.left) + countNodes(a.right);\n};\n```\nFür `Addition(Neg(Const(8)), Const(16))` ergibt die Knotenzahl `4`.",
+      "pitfalls": [
+        "Ohne `default` muss die Fallunterscheidung tatsächlich alle zulässigen Typen abdecken."
+      ],
+      "related": [
+        "Versiegelte Klasse (sealed) und permits",
+        "Ausdrucksbaum (Expression Tree)",
+        "Rekursion"
+      ],
+      "heading": "3.2 Pattern-Matching im"
+    },
+    {
+      "id": "eip-11-k10",
+      "term": "Mehrfachvererbung und Mehrfachimplementierung",
+      "kind": "concept",
+      "short": "Eine Java-Klasse darf eine direkte Oberklasse erweitern und mehrere Interfaces implementieren.",
+      "explanation": "Java erlaubt nicht, dass eine Klasse mit `extends` mehrere Klassen als Oberklassen angibt. Eine Klasse darf dagegen mehrere Interfaces mit `implements` angeben, um mehrere Fähigkeiten und Verträge zu erfüllen. Ein Interface kann seinerseits mit `extends` mehrere andere Interfaces erweitern.",
+      "example": "`class C extends B implements I1, I2 { ... }` ist möglich; `class C extends A, B` ist es nicht.",
+      "pitfalls": [
+        "Eine Klasse hat höchstens eine direkte Klassenoberklasse, kann aber mehrere Interfaces implementieren."
+      ],
+      "related": [
+        "Interface-Vertrag",
+        "Interface-Vererbung mit extends",
+        "Abstrakte Klasse oder Interface: Designentscheidung",
+        "Vererbung und is-a-Beziehung"
+      ],
+      "heading": "4.1 Problem: Mehrfachvererbung von Klassen"
+    },
+    {
+      "id": "eip-11-k11",
+      "term": "Interface-Vertrag",
+      "kind": "definition",
+      "short": "Ein Interface beschreibt Methoden, die eine implementierende Klasse als zugesicherte Fähigkeit bereitstellen muss.",
+      "explanation": "Ein Interface deklariert einen Vertrag, den implementierende Klassen erfüllen. Eine Methode ohne Rumpf fordert eine Implementierung; die Klasse muss sie mit mindestens gleicher Sichtbarkeit bereitstellen. Dadurch können verschiedene, ansonsten nicht verwandte Klassen dieselbe Fähigkeit anbieten.",
+      "example": "```java\ninterface ValueComparable {\n    int compareTo(Object other);\n}\n```",
+      "pitfalls": [
+        "Eine Implementierung mit `protected` erfüllt keine implizit öffentliche Interface-Methode."
+      ],
+      "related": [
+        "Mehrfachvererbung und Mehrfachimplementierung",
+        "Interface-Mitglieder und implizite Modifier",
+        "Interface-Referenztyp"
+      ],
+      "heading": "4.2 Ein Interface definiert einen Vertrag"
+    },
+    {
+      "id": "eip-11-k12",
+      "term": "compareTo: Vorzeichen des Rückgabewerts",
+      "kind": "definition",
+      "short": "`compareTo` meldet die Reihenfolge zweier Werte durch das Vorzeichen seines Rückgabewerts.",
+      "explanation": "Ein negatives Ergebnis bedeutet, dass der empfangende Wert in der Ordnung vor dem Argument liegt. `0` bedeutet Gleichheit gemäß dieser Ordnung, und ein positives Ergebnis bedeutet, dass der empfangende Wert danach liegt. Vertraglich ist das Vorzeichen entscheidend; die Methode muss nicht genau `-1`, `0` oder `1` zurückgeben.",
+      "example": "Wenn `half.compareTo(threeQuarters)` ein negatives Ergebnis liefert, liegt `half` in der Ordnung vor `threeQuarters`.",
+      "pitfalls": [
+        "`compareTo(...) == 0` bedeutet nicht automatisch, dass beide Variablen dieselbe Objektreferenz enthalten."
+      ],
+      "related": [
+        "Kreuzproduktvergleich von Brüchen",
+        "Referenzidentität und Vergleichsgleichheit",
+        "Interface-Vertrag"
+      ],
+      "heading": null
+    },
+    {
+      "id": "eip-11-k13",
+      "term": "Kreuzproduktvergleich von Brüchen",
+      "kind": "method",
+      "short": "Brüche mit positiven Nennern lassen sich durch den Vergleich ihrer Kreuzprodukte ordnen.",
+      "explanation": "Für Brüche $a/b$ und $c/d$ mit positiven Nennern vergleicht man $a \\cdot d$ mit $c \\cdot b$. Ist das erste Produkt kleiner, ist $a/b$ kleiner; sind die Produkte gleich, sind die Brüche in der Ordnung gleich; andernfalls ist $a/b$ größer. Bei `int`-Feldern sollte vor der Multiplikation auf `long` erweitert werden, damit die Produkte nicht zuvor als `int` überlaufen.",
+      "example": "$1/2 < 3/4$, weil $1 \\cdot 4 < 3 \\cdot 2$.",
+      "pitfalls": [
+        "Ein Cast nach der Multiplikation ist zu spät: `(long) (a * d)` kann bereits ein übergelaufenes `int`-Ergebnis erweitern."
+      ],
+      "related": [
+        "compareTo: Vorzeichen des Rückgabewerts",
+        "Interface-Vertrag"
+      ],
+      "heading": "4.4 Eine Klasse: Oberklasse **und** Interface"
+    },
+    {
+      "id": "eip-11-k14",
+      "term": "Interface-Referenztyp",
+      "kind": "concept",
+      "short": "Eine Variable mit Interface-Typ kann auf jedes Objekt zeigen, dessen Klasse dieses Interface implementiert.",
+      "explanation": "Der statische Interface-Typ legt fest, welche Mitglieder an der Verwendungsstelle zugänglich sind; der Laufzeittyp bleibt die konkrete Objektklasse. Dadurch kann eine Methode beispielsweise zwei `ValueComparable`-Werte vergleichen und eine der übergebenen Referenzen zurückgeben, ohne ihre konkreten Klassen zu kennen. Ein Cast kann weitere Klassenmitglieder zugänglich machen, wenn das Objekt tatsächlich den Zieltyp hat.",
+      "example": "`ValueComparable half = new OrderedRational(1, 2);` erlaubt den Aufruf von `compareTo`, aber nicht direkt einer nur in `OrderedRational` deklarierten `numerator()`-Methode.",
+      "pitfalls": [
+        "Ein Cast ändert nicht die Laufzeitklasse eines Objekts; ein unpassender Cast schlägt zur Laufzeit fehl.",
+        "Eine Methode, die eine vorhandene Interface-Referenz zurückgibt, erzeugt damit kein neues Objekt."
+      ],
+      "related": [
+        "Dynamisches Binden",
+        "Referenzidentität und Vergleichsgleichheit",
+        "Referenztypen und Upcasting",
+        "instanceof und Casting"
+      ],
+      "heading": "4.5 Interface als Referenztyp, Parameter und Rückgabewert"
+    },
+    {
+      "id": "eip-11-k15",
+      "term": "Referenzidentität und Vergleichsgleichheit",
+      "kind": "concept",
+      "short": "`==` prüft bei Objektreferenzen die Identität, während `compareTo(...) == 0` Gleichheit in einer Ordnung ausdrückt.",
+      "explanation": "Zwei Referenzen sind identisch, wenn sie auf dasselbe Objekt zeigen. Eine Vergleichsmethode kann dagegen zwei verschiedene Objekte als gleich in der Ordnung einstufen, wenn ihre relevanten Werte übereinstimmen. Bei einer Kopie von `CounterValue` kann daher `copy == c` falsch sein, während `copy.compareTo(c) == 0` wahr ist.",
+      "example": "Eine neu erzeugte Kopie mit demselben Zählerwert ist ein anderes Objekt, aber gemäß `compareTo` gleichwertig.",
+      "pitfalls": [
+        "Vergleichsgleichheit und Referenzidentität beantworten unterschiedliche Fragen."
+      ],
+      "related": [
+        "Interface-Referenztyp",
+        "compareTo: Vorzeichen des Rückgabewerts",
+        "Objektidentität und Wertgleichheit",
+        "equals und hashCode"
+      ],
+      "heading": "4.5 Interface als Referenztyp, Parameter und Rückgabewert"
+    },
+    {
+      "id": "eip-11-k16",
+      "term": "Interface-Mitglieder und implizite Modifier",
+      "kind": "concept",
+      "short": "Interface-Methoden und -Felder haben feste Standardmodifier, auch wenn diese nicht ausgeschrieben sind.",
+      "explanation": "Eine Methode ohne Rumpf ist implizit `public abstract`; eine `default`- oder `static`-Methode mit Rumpf ist öffentlich, sofern sie nicht ausdrücklich `private` ist. Felder sind implizit `public static final` und müssen bei ihrer Deklaration initialisiert werden. Interfaces besitzen keine Konstruktoren und keine Instanzfelder, können aber Konstanten und verschiedene Arten von Methoden enthalten.",
+      "example": "`void f();` ist gleichbedeutend mit `public abstract void f();`, und `int SIZE = 3;` ist eine öffentliche statische finale Konstante.",
+      "pitfalls": [
+        "Eine Interface-Methode ohne Rumpf ist nicht package-private.",
+        "Eine finale Interface-Konstante mit Arraywert schützt die Referenz, aber nicht automatisch die Arrayelemente."
+      ],
+      "related": [
+        "Interface-Vertrag",
+        "Interface-Konstanten",
+        "Statische Interface-Methode",
+        "default-Methode",
+        "Private Hilfsmethode im Interface"
+      ],
+      "heading": "7. Interface-Mitglieder auf einen Blick (Folie 843)"
+    },
+    {
+      "id": "eip-11-k17",
+      "term": "Interface-Konstanten",
+      "kind": "definition",
+      "short": "Ein in einem Interface deklariertes Feld ist automatisch eine initialisierte `public static final`-Konstante.",
+      "explanation": "Jedes Interface-Feld braucht direkt einen Initialisierer. Die Konstante kann über den Interface-Namen verwendet werden, zum Beispiel `ValueComparable.LESS`. Ein Initialisierer darf auch eine Berechnung oder die Erzeugung eines Arrays enthalten; diese Arbeit geschieht bei der Interface-Initialisierung und nicht bei jedem Zugriff erneut.",
+      "example": "```java\ninterface ValueComparable {\n    int LESS = -1, EQUAL = 0, GREATER = 1;\n}\n```",
+      "pitfalls": [
+        "Ein Interface-Feld ohne Initialisierer ist nicht erlaubt.",
+        "Ein `final`-Arrayfeld verhindert nicht, dass seine Elemente geändert werden."
+      ],
+      "related": [
+        "Interface-Mitglieder und implizite Modifier",
+        "Gleichnamige Interface-Konstanten",
+        "final"
+      ],
+      "heading": "5.1 Konstanten sind implizit"
+    },
+    {
+      "id": "eip-11-k18",
+      "term": "Statische Interface-Methode",
+      "kind": "definition",
+      "short": "Eine statische Interface-Methode gehört zum Interface selbst und wird über dessen Namen aufgerufen.",
+      "explanation": "Eine statische Methode im Interface kann dort eine gemeinsame Hilfsoperation anbieten. Sie wird zum Beispiel als `ValueComparable.compare(x, y)` aufgerufen und nicht als Instanzmethode. Die implementierenden Klassen erben diese statische Interface-Methode nicht.",
+      "example": "`ValueComparable.compare(null, half)` kann eine festgelegte Ordnung für `null`-Argumente behandeln.",
+      "pitfalls": [
+        "`OrderedRational.compare(...)` ist nicht zulässig, nur weil `OrderedRational` `ValueComparable` implementiert."
+      ],
+      "related": [
+        "Interface-Mitglieder und implizite Modifier",
+        "Interface-Konstanten",
+        "Interface-Vertrag"
+      ],
+      "heading": null
+    },
+    {
+      "id": "eip-11-k19",
+      "term": "Interface-Vererbung mit extends",
+      "kind": "concept",
+      "short": "Ein Interface kann mit `extends` mehrere andere Interfaces erweitern und deren Verträge kombinieren.",
+      "explanation": "Bei Interfaces ist Mehrfachvererbung mit `extends I1, I2` erlaubt. Das erweiternde Interface übernimmt die Vertragsanforderungen seiner Oberinterfaces und kann weitere Methoden ergänzen. Eine Klasse, die dieses Interface implementiert, muss den kombinierten Vertrag erfüllen.",
+      "example": "`interface Countable extends ValueComparable, Cloneable { ... }` kombiniert Vergleichbarkeit mit einer weiteren markierten Fähigkeit.",
+      "pitfalls": [
+        "Eine Klasse verwendet `implements`, um Interfaces zu erfüllen; ein Interface verwendet `extends`, um andere Interfaces zu erweitern."
+      ],
+      "related": [
+        "Mehrfachvererbung und Mehrfachimplementierung",
+        "Interface-Vertrag",
+        "Cloneable als Marker-Interface"
+      ],
+      "heading": "5.3 Ein Interface kann mehrere Interfaces erweitern"
+    },
+    {
+      "id": "eip-11-k20",
+      "term": "Cloneable als Marker-Interface",
+      "kind": "definition",
+      "short": "`Cloneable` ist ein Marker-Interface ohne Methoden, das eine Eigenschaft einer Klasse kennzeichnet.",
+      "explanation": "`Cloneable` deklariert insbesondere keine `clone()`-Methode. Die geschützte Methode `Object.clone()` prüft, ob das Objekt zu einer Klasse gehört, die `Cloneable` implementiert; andernfalls kann sie `CloneNotSupportedException` auslösen. Ein eigenes Interface kann `clone()` zusätzlich als öffentliche Operation verlangen.",
+      "example": "`Countable` kann `Cloneable` erweitern und selbst `Object clone();` deklarieren, sodass implementierende Klassen eine öffentliche Kopieroperation bereitstellen.",
+      "pitfalls": [
+        "`implements Cloneable` macht `clone()` nicht automatisch öffentlich und definiert keine konkrete Kopiermethode."
+      ],
+      "related": [
+        "Interface-Vererbung mit extends",
+        "Interface-Vertrag",
+        "Referenzidentität und Vergleichsgleichheit"
+      ],
+      "heading": null
+    },
+    {
+      "id": "eip-11-k21",
+      "term": "Gleichnamige Interface-Konstanten",
+      "kind": "concept",
+      "short": "Gleichnamige Konstanten aus mehreren Interfaces müssen durch ihren Interface-Namen eindeutig angesprochen werden.",
+      "explanation": "Wenn eine Klasse zwei Interfaces mit einem Feld namens `VALUE` implementiert, ist ein unqualifizierter Zugriff in der Klasse mehrdeutig. Durch `LeftCode.VALUE` oder `RightCode.VALUE` wird klar, welches Feld gemeint ist. Ein Unterinterface kann außerdem ein gleichnamiges Feld deklarieren und damit das geerbte Feld verdecken; das ursprüngliche Feld bleibt erhalten.",
+      "example": "`LeftCode.VALUE` kann `1` und `RightCode.VALUE` `2` sein; ein Zugriff als `VALUE` ist dann mehrdeutig.",
+      "pitfalls": [
+        "Das Verdecken einer Interface-Konstante ändert den Wert im Oberinterface nicht."
+      ],
+      "related": [
+        "Interface-Konstanten",
+        "Interface-Vererbung mit extends"
+      ],
+      "heading": "5.5 Gleichnamige Interface-Konstanten"
+    },
+    {
+      "id": "eip-11-k22",
+      "term": "default-Methode",
+      "kind": "definition",
+      "short": "Eine `default`-Methode ist eine öffentliche Instanzmethode im Interface, die eine erbbare Standardimplementierung bereitstellt.",
+      "explanation": "Ein Interface kann abstrakte Methoden verlangen und daneben mit `default` eine fertige Methode anbieten. Die Standardmethode kann abstrakte Methoden desselben Interfaces aufrufen und wird von implementierenden Klassen geerbt. Eine Klasse kann sie überschreiben, wenn sie ein anderes Verhalten benötigt.",
+      "example": "`default void printDescription() { MiniJava.write(description()); }` verwendet die von der Klasse implementierte `description()`-Methode.",
+      "pitfalls": [
+        "Eine geerbte Default-Methode ist überschreibbar; sie ist keine statische Methode."
+      ],
+      "related": [
+        "Interface-Vertrag",
+        "Private Hilfsmethode im Interface",
+        "Konflikt zwischen default-Methoden",
+        "Vorrangregeln für default-Methoden"
+      ],
+      "heading": "6.1 Interface mit abstrakter und fertiger Methode"
+    },
+    {
+      "id": "eip-11-k23",
+      "term": "Private Hilfsmethode im Interface",
+      "kind": "method",
+      "short": "Eine private Interface-Methode kapselt Hilfslogik, die nur von Methoden desselben Interfaces genutzt wird.",
+      "explanation": "Ein Interface kann private Methoden mit Rumpf enthalten, um Implementierungsdetails in einer `default`- oder statischen Methode wiederzuverwenden. Implementierende Klassen müssen diese private Methode nicht bereitstellen und können sie nicht als öffentliche Vertragspflicht aufrufen. So bündelt das Interface interne Schritte, ohne daraus eine Fähigkeit zu machen, die Klassen implementieren müssen.",
+      "example": "```java\nprivate String label() {\n    return \"Item: \" + description();\n}\n\ndefault void printDescription() {\n    MiniJava.write(label());\n}\n```",
+      "pitfalls": [
+        "Eine private Interface-Methode ist keine Methode, die von implementierenden Klassen geerbt wird."
+      ],
+      "related": [
+        "default-Methode",
+        "Interface-Mitglieder und implizite Modifier"
+      ],
+      "heading": null
+    },
+    {
+      "id": "eip-11-k24",
+      "term": "Konflikt zwischen default-Methoden",
+      "kind": "concept",
+      "short": "Zwei unabhängige Interfaces mit gleichnamigen Default-Methoden erzeugen einen Konflikt, den die implementierende Klasse auflösen muss.",
+      "explanation": "Wenn zwei unabhängige Interfaces eine Default-Methode mit gleicher Signatur bereitstellen, ist nicht festgelegt, welchen Rumpf eine Klasse erben soll. Die Klasse muss die Methode überschreiben und selbst entscheiden, welches Verhalten gelten soll. Innerhalb des Überschreibens kann sie eine konkrete Oberinterface-Implementierung ausdrücklich mit `InterfaceName.super.methode()` aufrufen.",
+      "example": "Eine Klasse, die `LeftDefault` und `RightDefault` implementiert, kann in ihrer Überschreibung `LeftDefault.super.meth()` aufrufen.",
+      "pitfalls": [
+        "Bei zwei unabhängigen kollidierenden Defaults gewinnt keiner automatisch."
+      ],
+      "related": [
+        "default-Methode",
+        "Vorrangregeln für default-Methoden",
+        "Interface-Vertrag"
+      ],
+      "heading": "6.3 Zwei konkurrierende Defaults"
+    },
+    {
+      "id": "eip-11-k25",
+      "term": "Vorrangregeln für default-Methoden",
+      "kind": "theorem",
+      "short": "Bei konkurrierenden Implementierungen gewinnt eine konkrete Klassenmethode vor einem Default, und ein spezifischeres Interface vor einem allgemeineren.",
+      "explanation": "Eine geerbte konkrete Klassenmethode hat Vorrang vor einer Interface-Default-Methode. Gibt es keine solche Klassenmethode, gewinnt ein Default aus einem spezifischeren Unterinterface gegenüber einem geerbten Default aus einem Oberinterface. Kollidieren mehrere unabhängige Defaults, muss die Klasse den Konflikt selbst überschreiben und auflösen. Ein Unterinterface kann eine geerbte Default-Methode außerdem abstrakt neu deklarieren und damit eine Implementierung verlangen.",
+      "example": "Wenn `SpecificDefault extends LeftDefault` `meth()` überschreibt, erbt eine Klasse, die `SpecificDefault` implementiert, den spezifischeren Default.",
+      "pitfalls": [
+        "Ein abstraktes Unterinterface stellt keine fertige Standardimplementierung bereit, auch wenn ein Oberinterface eine hatte."
+      ],
+      "related": [
+        "Konflikt zwischen default-Methoden",
+        "default-Methode",
+        "Mehrfachvererbung und Mehrfachimplementierung"
+      ],
+      "heading": "6.4 Welche Methode hat Vorrang?"
+    },
+    {
+      "id": "eip-11-k26",
+      "term": "Klassen- und Interface-Beziehungen in UML",
+      "kind": "notation",
+      "short": "UML unterscheidet Klassenvererbung und Interface-Implementierung durch unterschiedliche Linien.",
+      "explanation": "In einem Klassendiagramm wird Vererbung zwischen Klassen mit einer durchgezogenen Linie dargestellt, während die Implementierung eines Interfaces durch eine gestrichelte Linie gezeigt wird. In Java steht `extends` bei Klassen für die Oberklassenbeziehung und `implements` für eine Interface-Beziehung. Die Sichtbarkeit `protected` kann in UML mit `#` markiert werden; ein Stern an einer Operation kann eine abstrakte Operation kennzeichnen.",
+      "example": "`OrderedRational` erweitert `AddSubMulDiv` und implementiert `ValueComparable`.",
+      "pitfalls": [
+        "Eine UML-Linie zur Interface-Implementierung bedeutet nicht, dass das Interface eine Klassenoberklasse ist."
+      ],
+      "related": [
+        "Mehrfachvererbung und Mehrfachimplementierung",
+        "Interface-Vertrag",
+        "Abstrakte Klasse"
+      ],
+      "heading": "7.1 Klassen- und Interface-Beziehungen"
+    },
+    {
+      "id": "eip-11-k27",
+      "term": "Abstrakte Klasse oder Interface: Designentscheidung",
+      "kind": "concept",
+      "short": "Eine abstrakte Klasse eignet sich für eine gemeinsame Familie mit Zustand und Code, ein Interface für eine Fähigkeit, die verschiedene Klassen teilen.",
+      "explanation": "Eine abstrakte Klasse kann gemeinsame Instanzfelder und konkrete Methoden bereitstellen, aber eine Klasse kann nur eine direkte Klassenoberklasse haben. Mehrere Interfaces lassen sich kombinieren, wenn Objekte unterschiedlicher Klassen dieselbe Fähigkeit oder denselben Vertrag erfüllen. `final` verbietet weitere Unterklassen vollständig; `sealed` begrenzt sie auf ausdrücklich erlaubte direkte Unterklassen.",
+      "example": "`Expression` teilt Cache-Zustand und Auswertungslogik, während `ValueComparable` eine Vergleichsfähigkeit für passende Klassen ausdrückt.",
+      "pitfalls": [
+        "Ein Interface ist nicht auf abstrakte Methoden beschränkt: Es kann auch Konstanten sowie `default`-, `static`- und private Methoden enthalten."
+      ],
+      "related": [
+        "Abstrakte Klasse",
+        "Interface-Vertrag",
+        "final",
+        "Versiegelte Klasse (sealed) und permits",
+        "Mehrfachvererbung und Mehrfachimplementierung"
+      ],
+      "heading": null
+    }
+  ],
+  "generator": {
+    "model": "gpt-6-luna",
+    "effort": "xhigh",
+    "promptVersion": "k1",
+    "generatedAt": "2026-11-18T00:30:04.441Z"
+  }
+}
