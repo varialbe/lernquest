@@ -1,0 +1,1978 @@
+{
+  "schemaVersion": 1,
+  "id": "eip-11",
+  "module": "EIP",
+  "number": 11,
+  "slug": "abstrakte-klassen-und-interfaces",
+  "title": "Abstrakte Klassen und Interfaces",
+  "summary": "Abstrakte Klassen teilen Zustand und gemeinsamen Code, während Unterklassen offene Methoden konkretisieren. `final` und `sealed` begrenzen Vererbung und Änderungen. Interfaces beschreiben Fähigkeiten; ihre `default`-Methoden können Vererbungskonflikte erzeugen, für die Java feste Vorrangregeln hat.",
+  "concepts": [
+    "Abstrakte Klassen",
+    "Abstrakte Methoden",
+    "Expression Trees und Caching",
+    "Dynamisches Binden",
+    "final",
+    "sealed und permits",
+    "Erschöpfender switch",
+    "Interfaces und Verträge",
+    "compareTo",
+    "Interface-Konstanten und statische Methoden",
+    "Marker-Interfaces",
+    "default-Methoden",
+    "Konfliktauflösung bei default-Methoden",
+    "Interface-Referenztypen",
+    "Referenzen und Objektidentität"
+  ],
+  "keyFacts": [
+    "Eine abstrakte Klasse kann nicht direkt instanziiert werden.",
+    "Eine abstrakte Methode hat eine Signatur, aber keinen Methodenrumpf.",
+    "Eine konkrete Unterklasse muss alle geerbten abstrakten Methoden implementieren oder selbst abstrakt sein.",
+    "Abstrakte Klassen dürfen Instanzfelder und konkrete Methoden besitzen.",
+    "Beim Expression Tree berechnet `getValue()` einen Wert einmal und speichert ihn danach im Cache.",
+    "Ein separates `evaluated`-Feld ist nötig, weil 0 ein gültiges Ergebnis sein kann.",
+    "Bei überschriebenen Instanzmethoden bestimmt die Laufzeitklasse des Objekts die ausgeführte Implementierung.",
+    "`final` an einer Klasse verbietet Unterklassen; an einer Methode verbietet es Überschreiben; an einer Variablen verbietet es erneute Zuweisung.",
+    "Eine `final`-Referenz verhindert nicht, dass sich das referenzierte Objekt verändert.",
+    "`sealed` mit `permits` beschränkt die erlaubten direkten Unterklassen.",
+    "Ein `switch` über eine versiegelte Hierarchie kann ohne `default` auskommen, wenn alle erlaubten Fälle abgedeckt sind.",
+    "Eine Klasse darf eine direkte Oberklasse haben und mehrere Interfaces implementieren.",
+    "Interface-Methoden ohne Rumpf sind implizit `public abstract`; Interface-Felder sind `public static final` und brauchen einen Initialisierer.",
+    "Bei `compareTo` bedeutet ein negatives Ergebnis kleiner, 0 Gleichheit gemäß der Ordnung und ein positives Ergebnis größer.",
+    "Statische Interface-Methoden werden über den Interface-Namen aufgerufen und nicht von implementierenden Klassen geerbt.",
+    "`Cloneable` ist ein Marker-Interface und deklariert keine `clone()`-Methode.",
+    "Bei `default`-Konflikten gewinnt eine konkrete Klassenmethode vor einem Interface-Default.",
+    "Ein spezifischeres Interface gewinnt gegenüber einem allgemeineren geerbten Default; unabhängige kollidierende Defaults muss die Klasse auflösen."
+  ],
+  "tags": [
+    "TUM",
+    "EIP",
+    "Java",
+    "OOP",
+    "abstract",
+    "final",
+    "sealed",
+    "interfaces",
+    "polymorphism"
+  ],
+  "links": [],
+  "source": {
+    "file": "EIP/01_Vorlesungen/EIP VO11.md",
+    "sha256": "cc19bfc1d456ba532f2ff72c0a66bec4106c7abe8581f0e755e6f5298a43e0fc",
+    "commit": "4a452f9e65ab67e9f38f4857fe724f132c93cf9a"
+  },
+  "generator": {
+    "model": "gpt-6-luna",
+    "effort": "xhigh",
+    "reviewEffort": "high",
+    "promptVersion": "v3",
+    "generatedAt": "2026-11-18T00:09:06.359Z",
+    "review": {
+      "checked": 45,
+      "fixed": 9,
+      "removed": 0,
+      "notes": "Alle 45 Fragen geprüft. Behoben: ungültige Quellenverweise, fehlende Deklaration von y und mehrere hart codierte Verify-Antworten. Rechenwerte und Mermaid-Kontexte geprüft; keine Frage musste entfernt werden."
+    }
+  },
+  "levels": [
+    {
+      "id": "eip-11-l1",
+      "index": 1,
+      "kind": "basics",
+      "title": "Grundlagen",
+      "questions": [
+        {
+          "id": "eip-11-l1-q01",
+          "type": "single",
+          "prompt": "Welche Aussage beschreibt eine abstrakte Klasse?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Sie kann nur von Interfaces implementiert werden."
+            },
+            {
+              "id": "b",
+              "text": "Sie darf ausschließlich abstrakte Methoden enthalten."
+            },
+            {
+              "id": "c",
+              "text": "Sie kann gemeinsame Felder und Methoden bereitstellen, aber nicht direkt instanziiert werden."
+            },
+            {
+              "id": "d",
+              "text": "Sie ist direkt instanziierbar, solange sie einen Konstruktor hat."
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Eine abstrakte Klasse kann Zustand und fertigen Code mit offenen Methoden kombinieren. Ein Konstruktor macht sie nicht direkt instanziierbar.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO11.md",
+            "heading": "1. Abstrakte Klassen: Expression Trees (Folien 776–797)"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Abstrakte Klassen"
+          ]
+        },
+        {
+          "id": "eip-11-l1-q02",
+          "type": "cloze",
+          "prompt": "Eine abstrakte Methode besitzt eine Signatur, aber keinen ___.",
+          "options": [
+            {
+              "id": "a",
+              "text": "Parameterliste"
+            },
+            {
+              "id": "b",
+              "text": "Methodenrumpf"
+            },
+            {
+              "id": "c",
+              "text": "Methodennamen"
+            },
+            {
+              "id": "d",
+              "text": "Rückgabetyp"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "Die Deklaration endet mit einem Semikolon statt mit einem Methodenrumpf. Name, Rückgabetyp und Parameter gehören zur Signatur.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO11.md",
+            "heading": "1.2           : verpflichtende Methode ohne Implementierung"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Abstrakte Methoden"
+          ]
+        },
+        {
+          "id": "eip-11-l1-q03",
+          "type": "multi",
+          "prompt": "Wähle alle richtigen Aussagen zu `final`; mehrere Antworten können richtig sein.",
+          "options": [
+            {
+              "id": "a",
+              "text": "Eine `final`-Klasse darf keine Unterklassen haben."
+            },
+            {
+              "id": "b",
+              "text": "Eine `final`-Methode darf nicht überschrieben werden."
+            },
+            {
+              "id": "c",
+              "text": "Ein `final`-Array kann keine veränderten Elemente enthalten."
+            },
+            {
+              "id": "d",
+              "text": "Eine `final`-Variable darf nach ihrer Zuweisung nicht erneut zugewiesen werden."
+            }
+          ],
+          "correct": [
+            "a",
+            "b",
+            "d"
+          ],
+          "explanation": "`final` wirkt je nach Stelle auf Vererbung, Überschreiben oder erneute Zuweisung. Bei einer finalen Array-Referenz dürfen die Arrayelemente trotzdem verändert werden.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO11.md",
+            "heading": "2.        : Klassen, Methoden und Variablen (Folien 798–803)"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "final"
+          ]
+        },
+        {
+          "id": "eip-11-l1-q04",
+          "type": "truefalse",
+          "prompt": "Bei `final int[] a = {1};` ist `a[0] = 2;` verboten, weil die Referenz final ist.",
+          "options": [
+            {
+              "id": "true",
+              "text": "Wahr"
+            },
+            {
+              "id": "false",
+              "text": "Falsch"
+            }
+          ],
+          "correct": [
+            "false"
+          ],
+          "explanation": "`final` verhindert hier nur, dass `a` auf ein anderes Array umgebogen wird. Der Inhalt des referenzierten Arrays bleibt veränderbar.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO11.md",
+            "heading": "2.1 Achtung:        -Referenz ≠ unveränderliches Objekt"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "final"
+          ]
+        },
+        {
+          "id": "eip-11-l1-q05",
+          "type": "single",
+          "prompt": "Was legt `permits` bei einer `sealed`-Klasse fest?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Die Interfaces, die eine Klasse implementieren muss."
+            },
+            {
+              "id": "b",
+              "text": "Die erlaubten Konstruktorparameter."
+            },
+            {
+              "id": "c",
+              "text": "Die Methoden, die nicht überschrieben werden dürfen."
+            },
+            {
+              "id": "d",
+              "text": "Die erlaubten direkten Unterklassen."
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "`sealed` beschränkt die Vererbung. Die `permits`-Liste nennt, welche Klassen direkt erben dürfen.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO11.md",
+            "heading": "3.1 Vererbung gezielt einschränken"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "sealed und permits"
+          ]
+        },
+        {
+          "id": "eip-11-l1-q06",
+          "type": "cloze",
+          "prompt": "Bei `compareTo` bedeutet ein negatives Ergebnis, dass dieses Objekt in der Ordnung ___ dem verglichenen Objekt steht.",
+          "options": [
+            {
+              "id": "a",
+              "text": "vor"
+            },
+            {
+              "id": "b",
+              "text": "identisch mit"
+            },
+            {
+              "id": "c",
+              "text": "unabhängig von"
+            },
+            {
+              "id": "d",
+              "text": "hinter"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "Das Vorzeichen ist entscheidend: negativ bedeutet davor, 0 bedeutet gleich gemäß der Ordnung und positiv bedeutet dahinter.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO11.md",
+            "heading": "4.3            : Bedeutung des Rückgabewerts"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "compareTo"
+          ]
+        },
+        {
+          "id": "eip-11-l1-q07",
+          "type": "multi",
+          "prompt": "Wähle alle richtigen Aussagen über Interfaces; mehrere Antworten können richtig sein.",
+          "options": [
+            {
+              "id": "a",
+              "text": "Ein Interface darf keine Instanzfelder und keine Konstruktoren besitzen."
+            },
+            {
+              "id": "b",
+              "text": "Eine Interface-Methode ohne Rumpf ist implizit `public abstract`."
+            },
+            {
+              "id": "c",
+              "text": "Jede Interface-Methode muss abstrakt sein."
+            },
+            {
+              "id": "d",
+              "text": "Interface-Felder sind implizit `public static final`."
+            }
+          ],
+          "correct": [
+            "a",
+            "b",
+            "d"
+          ],
+          "explanation": "Interfaces können auch `default`-, `static`- und private Methoden mit Rumpf besitzen. Instanzfelder und Konstruktoren gehören jedoch nicht dazu.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO11.md",
+            "heading": "4.2 Ein Interface definiert einen Vertrag"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Interfaces und Verträge",
+            "Interface-Konstanten und statische Methoden"
+          ]
+        },
+        {
+          "id": "eip-11-l1-q08",
+          "type": "single",
+          "prompt": "Wie wird eine statische Methode eines Interfaces aufgerufen?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Nur über eine Instanz der implementierenden Klasse."
+            },
+            {
+              "id": "b",
+              "text": "Über `super` in der implementierenden Klasse."
+            },
+            {
+              "id": "c",
+              "text": "Über den Namen jeder implementierenden Klasse."
+            },
+            {
+              "id": "d",
+              "text": "Über den Namen des Interfaces, zum Beispiel `ValueComparable.compare(x, y)`."
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Eine statische Interface-Methode gehört zum Interface selbst. Implementierende Klassen erben sie nicht.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO11.md",
+            "heading": "5.2         -Methoden im Interface"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Interface-Konstanten und statische Methoden"
+          ]
+        },
+        {
+          "id": "eip-11-l1-q09",
+          "type": "truefalse",
+          "prompt": "`Cloneable` deklariert selbst eine Methode `clone()`.",
+          "options": [
+            {
+              "id": "true",
+              "text": "Wahr"
+            },
+            {
+              "id": "false",
+              "text": "Falsch"
+            }
+          ],
+          "correct": [
+            "false"
+          ],
+          "explanation": "`Cloneable` ist ein Marker-Interface ohne eigene Methodendeklaration. Eine öffentliche Copy-Operation kann ein anderes Interface ausdrücklich verlangen.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO11.md",
+            "heading": "5.4            : Marker-Interface"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Marker-Interfaces"
+          ]
+        },
+        {
+          "id": "eip-11-l1-q10",
+          "type": "diagram",
+          "prompt": "Welche Beziehung beschreibt die gestrichelte Verbindung zwischen `OrderedRational` und `ValueComparable`?",
+          "context": {
+            "type": "mermaid",
+            "content": "classDiagram\n    class OrderedRational\n    class ValueComparable {\n        <<interface>>\n    }\n    ValueComparable <|.. OrderedRational",
+            "caption": "Beziehung zwischen Klasse und Interface"
+          },
+          "options": [
+            {
+              "id": "a",
+              "text": "`ValueComparable` ist eine Unterklasse von `OrderedRational`."
+            },
+            {
+              "id": "b",
+              "text": "Die beiden Typen sind nicht miteinander verbunden."
+            },
+            {
+              "id": "c",
+              "text": "`OrderedRational` implementiert das Interface `ValueComparable`."
+            },
+            {
+              "id": "d",
+              "text": "`OrderedRational` erweitert `ValueComparable` als Klasse."
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Im UML-Klassendiagramm kennzeichnet die gestrichelte Verbindung die Implementierung eines Interfaces. Eine durchgezogene Vererbungskante steht für Klassenvererbung.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO11.md",
+            "heading": "7.1 Klassen- und Interface-Beziehungen"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Interfaces und Verträge"
+          ]
+        },
+        {
+          "id": "eip-11-l1-q11",
+          "type": "cloze",
+          "prompt": "Eine `default`-Methode im Interface besitzt einen Methodenrumpf und bietet eine fertige, ___ Instanzmethode an.",
+          "options": [
+            {
+              "id": "a",
+              "text": "überschreibbare"
+            },
+            {
+              "id": "b",
+              "text": "abstrakte"
+            },
+            {
+              "id": "c",
+              "text": "private"
+            },
+            {
+              "id": "d",
+              "text": "statische"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "Eine `default`-Methode stellt eine erbbare Implementierung bereit. Eine Klasse kann diese Methode überschreiben.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO11.md",
+            "heading": "6.1 Interface mit abstrakter und fertiger Methode"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "default-Methoden"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "eip-11-l2",
+      "index": 2,
+      "kind": "apply",
+      "title": "Anwenden",
+      "questions": [
+        {
+          "id": "eip-11-l2-q01",
+          "type": "code_output",
+          "prompt": "Was gibt dieser Code aus? `final` verhindert die Neuzuweisung von `values`, nicht die Änderung seiner Elemente. `MiniJava.write(x)` gibt `x` aus.\n\n```java\nfinal int[] values = {1, 2};\nvalues[0] = 9;\nMiniJava.write(values[0]);\n```",
+          "options": [
+            {
+              "id": "a",
+              "text": "0"
+            },
+            {
+              "id": "b",
+              "text": "9"
+            },
+            {
+              "id": "c",
+              "text": "Compilerfehler wegen `final`"
+            },
+            {
+              "id": "d",
+              "text": "1"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "Die Referenz bleibt auf dasselbe Array gerichtet, aber das Element an Index 0 wird auf 9 gesetzt. Daher wird 9 ausgegeben.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO11.md",
+            "heading": "2.1 Achtung:        -Referenz ≠ unveränderliches Objekt"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "final"
+          ]
+        },
+        {
+          "id": "eip-11-l2-q02",
+          "type": "calc",
+          "prompt": "Vergleiche die Brüche $\\frac{5}{8}$ und $\\frac{2}{3}$ über Kreuzprodukte. Welche Rückgabe hat `compareTo`, wenn ein kleinerer Bruch negativ verglichen wird?",
+          "options": [
+            {
+              "id": "a",
+              "text": "-1"
+            },
+            {
+              "id": "b",
+              "text": "1"
+            },
+            {
+              "id": "c",
+              "text": "Die Nenner sind positiv, daher ist kein Vergleich möglich."
+            },
+            {
+              "id": "d",
+              "text": "0"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "Die Kreuzprodukte sind $5\\cdot3=15$ und $8\\cdot2=16$. Da 15 kleiner als 16 ist, liegt $\\frac{5}{8}$ davor und `compareTo` liefert einen negativen Wert, hier -1.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO11.md",
+            "heading": "4.4 Eine Klasse: Oberklasse **und** Interface"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "compareTo"
+          ]
+        },
+        {
+          "id": "eip-11-l2-q03",
+          "type": "single",
+          "prompt": "Welche Deklaration kann eine Klasse mit einer Oberklasse und zwei Interfaces verwenden?",
+          "options": [
+            {
+              "id": "a",
+              "text": "`class C extends I1 implements A, I2`"
+            },
+            {
+              "id": "b",
+              "text": "`class C implements A extends I1, I2`"
+            },
+            {
+              "id": "c",
+              "text": "`class C extends A implements I1, I2`"
+            },
+            {
+              "id": "d",
+              "text": "`class C extends A, B implements I1`"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Eine Klasse kann eine direkte Oberklasse erweitern und mehrere Interfaces implementieren. Die Klasse darf nicht zwei Oberklassen in `extends` aufführen.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO11.md",
+            "heading": "4.1 Problem: Mehrfachvererbung von Klassen"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Interfaces und Verträge"
+          ]
+        },
+        {
+          "id": "eip-11-l2-q04",
+          "type": "multi",
+          "prompt": "Angenommen, `OrderedRational` implementiert `ValueComparable`, das `compareTo` und eine statische Methode `compare` deklariert. `OrderedRational` bietet zusätzlich `numerator()` an. `ValueComparable x` und `ValueComparable y` sind deklariert. Wähle alle Aufrufe, die über `x` beziehungsweise den Interface-Namen möglich sind; mehrere Antworten können richtig sein.",
+          "options": [
+            {
+              "id": "a",
+              "text": "`x.numerator()`"
+            },
+            {
+              "id": "b",
+              "text": "`OrderedRational.compare(x, y)` als geerbte statische Methode"
+            },
+            {
+              "id": "c",
+              "text": "`ValueComparable.compare(x, y)`"
+            },
+            {
+              "id": "d",
+              "text": "`x.compareTo(y)`"
+            }
+          ],
+          "correct": [
+            "c",
+            "d"
+          ],
+          "explanation": "Der statische Typ `ValueComparable` erlaubt den Zugriff auf seine Instanzmethode `compareTo`. Die statische Interface-Methode wird über den Interface-Namen aufgerufen; `numerator()` ist über diesen Referenztyp nicht sichtbar.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO11.md",
+            "heading": "4.5 Interface als Referenztyp, Parameter und Rückgabewert"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Interface-Referenztypen",
+            "Interface-Konstanten und statische Methoden"
+          ]
+        },
+        {
+          "id": "eip-11-l2-q05",
+          "type": "code_output",
+          "prompt": "Was gibt der Code aus? `MiniJava.write(x)` gibt den jeweiligen Wert aus.\n\n```java\nabstract class E {\n    protected abstract int evaluate();\n    int getValue() { return evaluate(); }\n}\nclass C extends E {\n    protected int evaluate() { return 6; }\n}\nE x = new C();\nMiniJava.write(x.getValue());\n```",
+          "options": [
+            {
+              "id": "a",
+              "text": "0"
+            },
+            {
+              "id": "b",
+              "text": "Es gibt einen Compilerfehler, weil `C` abstrakt bleibt."
+            },
+            {
+              "id": "c",
+              "text": "6"
+            },
+            {
+              "id": "d",
+              "text": "Es gibt einen Compilerfehler, weil `x` den Typ `E` hat."
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "`x` darf `getValue()` aufrufen, weil die Methode in `E` deklariert ist. Der Aufruf von `evaluate()` wird dynamisch an `C.evaluate()` gebunden und liefert 6.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO11.md",
+            "heading": "1.5 Dynamisches Binden und rekursive Auswertung"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Abstrakte Methoden",
+            "Dynamisches Binden"
+          ]
+        },
+        {
+          "id": "eip-11-l2-q06",
+          "type": "diagram",
+          "prompt": "Im Diagramm ist `evaluated` bereits `true`. Welcher Schritt folgt bei einem Aufruf von `getValue()`?",
+          "context": {
+            "type": "mermaid",
+            "content": "flowchart TD\n    S([getValue aufrufen]) --> Q{\"evaluated?\"}\n    Q -->|false| E[\"value = evaluate()\"]\n    E --> B[\"evaluated = true\"]\n    B --> R[\"return value\"]\n    Q -->|true| R",
+            "caption": "Entscheidung im Cache-Ablauf"
+          },
+          "options": [
+            {
+              "id": "a",
+              "text": "Der Aufruf erzeugt ein neues Expression-Objekt."
+            },
+            {
+              "id": "b",
+              "text": "`evaluated` wird auf `false` gesetzt."
+            },
+            {
+              "id": "c",
+              "text": "Der gespeicherte `value` wird direkt zurückgegeben."
+            },
+            {
+              "id": "d",
+              "text": "`evaluate()` wird erneut ausgeführt und überschreibt `value`."
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Wenn `evaluated` wahr ist, führt der Ablauf direkt zum Rückgabeschritt. Dadurch wird die Rechnung nicht wiederholt.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO11.md",
+            "heading": "1.3 Die zentrale Klasse mit Cache"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Expression Trees und Caching"
+          ]
+        },
+        {
+          "id": "eip-11-l2-q07",
+          "type": "truefalse",
+          "prompt": "Eine Klasse kann eine direkte Oberklasse erweitern und mehrere Interfaces implementieren.",
+          "options": [
+            {
+              "id": "true",
+              "text": "Wahr"
+            },
+            {
+              "id": "false",
+              "text": "Falsch"
+            }
+          ],
+          "correct": [
+            "true"
+          ],
+          "explanation": "Java erlaubt eine direkte Klassenoberklasse, aber mehrere Interfaces nach `implements`.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO11.md",
+            "heading": "4.1 Problem: Mehrfachvererbung von Klassen"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Interfaces und Verträge"
+          ]
+        },
+        {
+          "id": "eip-11-l2-q08",
+          "type": "cloze",
+          "prompt": "Eine Klasse, die eine Interface-Methode ohne Rumpf implementiert, muss sie mit Sichtbarkeit `___` deklarieren.",
+          "options": [
+            {
+              "id": "a",
+              "text": "`public`"
+            },
+            {
+              "id": "b",
+              "text": "ohne Sichtbarkeitsmodifikator"
+            },
+            {
+              "id": "c",
+              "text": "`protected`"
+            },
+            {
+              "id": "d",
+              "text": "`private`"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "Eine Interface-Methode ohne Rumpf ist `public abstract`. Die Implementierung darf ihre Sichtbarkeit nicht einschränken.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO11.md",
+            "heading": "4.2 Ein Interface definiert einen Vertrag"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Interfaces und Verträge"
+          ]
+        },
+        {
+          "id": "eip-11-l2-q09",
+          "type": "code_output",
+          "prompt": "Was gibt der Code aus? Die beiden Interfaces liefern konkurrierende Defaults; `MiniJava.write(x)` gibt `x` aus.\n\n```java\ninterface LeftDefault {\n    default String meth() { return \"A\"; }\n}\ninterface RightDefault {\n    default String meth() { return \"B\"; }\n}\nclass Resolved implements LeftDefault, RightDefault {\n    public String meth() { return LeftDefault.super.meth(); }\n}\nMiniJava.write(new Resolved().meth());\n```",
+          "options": [
+            {
+              "id": "a",
+              "text": "A"
+            },
+            {
+              "id": "b",
+              "text": "Compilerfehler: Der Konflikt bleibt ungelöst."
+            },
+            {
+              "id": "c",
+              "text": "B"
+            },
+            {
+              "id": "d",
+              "text": "null"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "Die Klasse löst den Konflikt durch einen eigenen Override und ruft darin ausdrücklich `LeftDefault.super.meth()` auf. Daher wird `A` ausgegeben.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO11.md",
+            "heading": "6.3 Zwei konkurrierende Defaults"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "default-Methoden",
+            "Konfliktauflösung bei default-Methoden"
+          ]
+        },
+        {
+          "id": "eip-11-l2-q10-r1",
+          "type": "calc",
+          "prompt": "Gegeben ist der Ausdrucksbaum `Addition(Const(4), Neg(Addition(Const(1), Const(2))))`. `Addition` hat zwei Kindknoten, `Neg` einen und `Const` keinen. Jeder Knoten zählt genau einmal. Wie viele Knoten enthält der Baum?",
+          "options": [
+            {
+              "id": "a",
+              "text": "4"
+            },
+            {
+              "id": "b",
+              "text": "7"
+            },
+            {
+              "id": "c",
+              "text": "6"
+            },
+            {
+              "id": "d",
+              "text": "5"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Der Baum enthält die äußere Addition, `Const(4)`, die Negation, eine innere Addition und zwei weitere Konstanten: insgesamt $1+1+1+1+2=6$ Knoten.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO11.md",
+            "heading": null
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Expression Trees",
+            "Knoten rekursiv zählen"
+          ]
+        },
+        {
+          "id": "eip-11-l2-q11",
+          "type": "multi",
+          "prompt": "Wähle alle richtigen Regeln für Interface-`default`-Methoden; mehrere Antworten können richtig sein.",
+          "options": [
+            {
+              "id": "a",
+              "text": "Bei zwei unabhängigen Defaults mit gleicher Signatur muss die Klasse den Konflikt auflösen."
+            },
+            {
+              "id": "b",
+              "text": "Ein Default eines spezifischeren Interfaces gewinnt gegenüber einem allgemeineren geerbten Default."
+            },
+            {
+              "id": "c",
+              "text": "Ein Interface-Default gewinnt immer vor einer Klassenmethode."
+            },
+            {
+              "id": "d",
+              "text": "Eine konkrete geerbte Klassenmethode gewinnt vor einem Interface-Default."
+            }
+          ],
+          "correct": [
+            "a",
+            "b",
+            "d"
+          ],
+          "explanation": "Die Vorrangregeln berücksichtigen konkrete Klassenmethoden und die Spezifität von Interfaces. Zwei unabhängige, kollidierende Defaults lassen sich nicht automatisch auswählen.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO11.md",
+            "heading": "6.4 Welche Methode hat Vorrang?"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "default-Methoden",
+            "Konfliktauflösung bei default-Methoden"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "eip-11-l3",
+      "index": 3,
+      "kind": "deepen",
+      "title": "Vertiefen",
+      "questions": [
+        {
+          "id": "eip-11-l3-q01",
+          "type": "truefalse",
+          "prompt": "In einem Cache kann `value == 0` zuverlässig anzeigen, dass `evaluate()` noch nie ausgeführt wurde.",
+          "options": [
+            {
+              "id": "true",
+              "text": "Wahr"
+            },
+            {
+              "id": "false",
+              "text": "Falsch"
+            }
+          ],
+          "correct": [
+            "false"
+          ],
+          "explanation": "0 kann ein gültiges Ergebnis sein. Deshalb braucht der Cache ein separates Kennzeichen wie `evaluated`.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO11.md",
+            "heading": "1.3 Die zentrale Klasse mit Cache"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Expression Trees und Caching"
+          ]
+        },
+        {
+          "id": "eip-11-l3-q02",
+          "type": "single",
+          "prompt": "Ein Interface enthält `private String label()` und eine `default`-Methode, die `label()` aufruft. Was muss eine implementierende Klasse bereitstellen?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Eine öffentliche Implementierung von `label()`."
+            },
+            {
+              "id": "b",
+              "text": "Eine statische Implementierung von `label()`."
+            },
+            {
+              "id": "c",
+              "text": "Nur die geforderten abstrakten Interface-Methoden, nicht `label()`."
+            },
+            {
+              "id": "d",
+              "text": "Einen Konstruktor, der `label()` initialisiert."
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Die private Methode ist ein internes Implementierungsdetail des Interfaces. Die Klasse muss sie nicht implementieren; sie erfüllt nur den öffentlichen Vertrag.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO11.md",
+            "heading": "6.2          -Hilfsmethoden im Interface"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "default-Methoden",
+            "Interfaces und Verträge"
+          ]
+        },
+        {
+          "id": "eip-11-l3-q03-r1",
+          "type": "multi",
+          "prompt": "Gegeben ist folgender Java-Code:\n```java\ninterface Settings {\n    int[] VALUES = {2, 5};\n    static int size() { return VALUES.length; }\n}\nclass App implements Settings {}\n```\nFür diese Frage gelten folgende Regeln: Jedes Interface-Feld ist implizit `public static final` und muss direkt bei seiner Deklaration initialisiert werden. Bei einem finalen Arrayfeld darf die Referenz nicht neu zugewiesen werden, seine Elemente dürfen sich aber ändern. Eine statische Interface-Methode wird über den Namen des Interfaces aufgerufen und nicht an implementierende Klassen vererbt. Welche Aussagen treffen zu?",
+          "options": [
+            {
+              "id": "a",
+              "text": "`Settings.VALUES = new int[]{9};` ist erlaubt."
+            },
+            {
+              "id": "b",
+              "text": "`App.size()` ist erlaubt, weil `App` `Settings` implementiert."
+            },
+            {
+              "id": "c",
+              "text": "`Settings.size()` ist erlaubt."
+            },
+            {
+              "id": "d",
+              "text": "`Settings.VALUES[0] = 9;` ist erlaubt."
+            }
+          ],
+          "correct": [
+            "c",
+            "d"
+          ],
+          "explanation": "Die finale Referenz `VALUES` darf nicht neu zugewiesen werden, aber ihr Arrayelement kann geändert werden. `size()` ist eine statische Methode des Interfaces und wird daher als `Settings.size()` aufgerufen; `App` erbt sie nicht.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO11.md",
+            "heading": "5. Interface-Felder, statische Methoden und Vererbung (Folien 822–833)"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Interface-Felder",
+            "finale Arrayreferenzen",
+            "statische Interface-Methoden"
+          ]
+        },
+        {
+          "id": "eip-11-l3-q04",
+          "type": "diagram",
+          "prompt": "Eine Klasse hat keine konkrete geerbte Klassenmethode. Ein spezifischeres Interface überschreibt einen geerbten Default. Welcher Zweig im Ablauf entscheidet den Methodenaufruf?",
+          "context": {
+            "type": "mermaid",
+            "content": "flowchart TD\n    S[\"Aufruf meth()\"] --> C{\"Geerbte konkrete Klassenmethode?\"}\n    C -->|Ja| CW[\"Klassenmethode gewinnt\"]\n    C -->|Nein| I{\"Spezifischeres Interface überschreibt Default?\"}\n    I -->|Ja| SW[\"Spezifischer Default gewinnt\"]\n    I -->|Nein| D{\"Mehrere unabhängige Defaults?\"}\n    D -->|Ja| O[\"Klasse muss Konflikt auflösen\"]\n    D -->|Nein| U[\"Eindeutigen Default benutzen\"]",
+            "caption": "Vorrangregeln für geerbte Methoden"
+          },
+          "options": [
+            {
+              "id": "a",
+              "text": "Die Klasse muss den Konflikt in jedem Fall überschreiben."
+            },
+            {
+              "id": "b",
+              "text": "Es wird stets der erste Default alphabetisch verwendet."
+            },
+            {
+              "id": "c",
+              "text": "Die geerbte Klassenmethode wird verwendet."
+            },
+            {
+              "id": "d",
+              "text": "Der spezifischere Default wird verwendet."
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Wenn keine konkrete Klassenmethode Vorrang hat, gewinnt ein Default aus einem spezifischeren Interface gegenüber dem allgemeineren geerbten Default.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO11.md",
+            "heading": "6.4 Welche Methode hat Vorrang?"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "default-Methoden",
+            "Konfliktauflösung bei default-Methoden"
+          ]
+        },
+        {
+          "id": "eip-11-l3-q05",
+          "type": "code_output",
+          "prompt": "Was gibt der Code aus? In Java wird ein `int`-Überlauf vor dem Cast ausgeführt. `MiniJava.write(x)` gibt `x` aus.\n\n```java\nint a = 50000;\nint b = 50000;\nlong ok = (long) a * b;\nlong bad = (long) (a * b);\nMiniJava.write(ok);\nMiniJava.write(bad);\n```",
+          "options": [
+            {
+              "id": "a",
+              "text": "Compilerfehler wegen der Zuweisung an `long`"
+            },
+            {
+              "id": "b",
+              "text": "-1794967296 und -1794967296"
+            },
+            {
+              "id": "c",
+              "text": "2500000000 und -1794967296"
+            },
+            {
+              "id": "d",
+              "text": "2500000000 und 2500000000"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Beim ersten Ausdruck wird vor der Multiplikation auf `long` erweitert. Im zweiten entsteht zuerst ein übergelaufenes `int`; der spätere Cast kann den verlorenen Wert nicht wiederherstellen.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO11.md",
+            "heading": "4.4 Eine Klasse: Oberklasse **und** Interface"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "compareTo"
+          ]
+        },
+        {
+          "id": "eip-11-l3-q06",
+          "type": "single",
+          "prompt": "Die versiegelte abstrakte Klasse `Expression` erlaubt genau `Const`, `Neg` und `Addition` als konkrete Unterklassen. Ein Pattern-Matching-`switch` enthält je einen Fall für diese drei Typen. Welche Aussage trifft zu?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Der `switch` ist nicht erschöpfend, weil abstrakte Klassen immer einen `default`-Fall verlangen."
+            },
+            {
+              "id": "b",
+              "text": "Die Fallunterscheidung ist erschöpfend und benötigt keinen `default`-Fall."
+            },
+            {
+              "id": "c",
+              "text": "Der `switch` ist nur erschöpfend, wenn `Expression` instanziiert werden kann."
+            },
+            {
+              "id": "d",
+              "text": "Ein `default`-Fall ist nötig, weil `sealed` keine Unterklassen begrenzt."
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "Die versiegelte Hierarchie begrenzt die erlaubten Fälle. Wenn der `switch` jede erlaubte konkrete Unterklasse behandelt, ist er erschöpfend.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO11.md",
+            "heading": "3.1 Vererbung gezielt einschränken"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "sealed und permits",
+            "Erschöpfender switch"
+          ]
+        },
+        {
+          "id": "eip-11-l3-q07",
+          "type": "multi",
+          "prompt": "Wähle alle richtigen Aussagen zu `Cloneable` und `Countable`; mehrere Antworten können richtig sein.",
+          "options": [
+            {
+              "id": "a",
+              "text": "`Cloneable` erzwingt eine öffentliche `clone()`-Implementierung in jeder implementierenden Klasse."
+            },
+            {
+              "id": "b",
+              "text": "`Cloneable` kennzeichnet eine Eigenschaft, deklariert aber selbst keine `clone()`-Methode."
+            },
+            {
+              "id": "c",
+              "text": "Ein Interface wie `Countable` kann `Object clone()` ausdrücklich als Vertrag deklarieren."
+            },
+            {
+              "id": "d",
+              "text": "Ein Marker-Interface muss mindestens eine abstrakte Methode enthalten."
+            }
+          ],
+          "correct": [
+            "b",
+            "c"
+          ],
+          "explanation": "`Cloneable` ist ein Marker ohne eigene Methoden. `Countable` kann unabhängig davon eine öffentliche `clone()`-Operation verlangen.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO11.md",
+            "heading": "5.4            : Marker-Interface"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Marker-Interfaces",
+            "Interfaces und Verträge"
+          ]
+        },
+        {
+          "id": "eip-11-l3-q08",
+          "type": "single",
+          "prompt": "Zwei verschiedene Bruchobjekte liefern bei `compareTo` den Wert 0. Was folgt daraus?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Sie sind gemäß der Vergleichsordnung gleich, aber müssen nicht dieselbe Referenz sein."
+            },
+            {
+              "id": "b",
+              "text": "`compareTo` wurde falsch implementiert, denn es muss `-1` oder `1` liefern."
+            },
+            {
+              "id": "c",
+              "text": "Ihre Nenner müssen gleich sein."
+            },
+            {
+              "id": "d",
+              "text": "Sie sind dasselbe Objekt."
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "`compareTo` beschreibt Gleichheit gemäß der implementierten Ordnung. Referenzidentität wird separat mit `==` geprüft.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO11.md",
+            "heading": "4.3            : Bedeutung des Rückgabewerts"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "compareTo",
+            "Referenzen und Objektidentität"
+          ]
+        },
+        {
+          "id": "eip-11-l3-q09",
+          "type": "truefalse",
+          "prompt": "`final` und `sealed` haben dieselbe Wirkung: Beide erlauben nur ausdrücklich aufgelistete Unterklassen.",
+          "options": [
+            {
+              "id": "true",
+              "text": "Wahr"
+            },
+            {
+              "id": "false",
+              "text": "Falsch"
+            }
+          ],
+          "correct": [
+            "false"
+          ],
+          "explanation": "`final` verbietet jede Unterklasse. `sealed` lässt gezielt erlaubte direkte Unterklassen zu.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO11.md",
+            "heading": "3.1 Vererbung gezielt einschränken"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "final",
+            "sealed und permits"
+          ]
+        },
+        {
+          "id": "eip-11-l3-q10",
+          "type": "multi",
+          "prompt": "Ein Interface `Described` deklariert `String description()` und stellt `default void printDescription()` bereit. Wähle alle richtigen Aussagen; mehrere Antworten können richtig sein.",
+          "options": [
+            {
+              "id": "a",
+              "text": "Die Klasse kann die fertige `printDescription()`-Methode erben."
+            },
+            {
+              "id": "b",
+              "text": "Die Klasse darf `printDescription()` überschreiben."
+            },
+            {
+              "id": "c",
+              "text": "Die Methode `description()` wird automatisch durch den Default ersetzt."
+            },
+            {
+              "id": "d",
+              "text": "Eine konkrete implementierende Klasse muss `description()` bereitstellen."
+            }
+          ],
+          "correct": [
+            "a",
+            "b",
+            "d"
+          ],
+          "explanation": "Das Interface fordert `description()` und bietet für `printDescription()` eine Standardimplementierung. Diese kann geerbt oder überschrieben werden.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO11.md",
+            "heading": "6.1 Interface mit abstrakter und fertiger Methode"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Interfaces und Verträge",
+            "default-Methoden"
+          ]
+        },
+        {
+          "id": "eip-11-l3-q11",
+          "type": "single",
+          "prompt": "Welche Multiplikation vermeidet bei `int`-Operanden einen `int`-Überlauf vor dem Speichern in `long`?",
+          "options": [
+            {
+              "id": "a",
+              "text": "`long product = (int) a * b;`"
+            },
+            {
+              "id": "b",
+              "text": "`long product = (long) (a * b);`"
+            },
+            {
+              "id": "c",
+              "text": "`long product = a * b;`"
+            },
+            {
+              "id": "d",
+              "text": "`long product = (long) a * b;`"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Der Cast muss vor der Multiplikation erfolgen, damit bereits die Multiplikation als `long` ausgeführt wird. Ein späterer Cast kann einen vorherigen `int`-Überlauf nicht rückgängig machen.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO11.md",
+            "heading": "4.4 Eine Klasse: Oberklasse **und** Interface"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "compareTo"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "eip-11-l4",
+      "index": 4,
+      "kind": "boss",
+      "title": "Boss",
+      "questions": [
+        {
+          "id": "eip-11-l4-q01",
+          "type": "single",
+          "prompt": "Mehrere Ausdrucksknoten sollen denselben Cache und dieselbe `getValue()`-Logik teilen, aber ihre Berechnung unterschiedlich in `evaluate()` definieren. Welche Konstruktion passt dazu?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Eine statische Methode ohne Unterklassen."
+            },
+            {
+              "id": "b",
+              "text": "Ein Interface mit einem gemeinsamen Instanzfeld für den Cache."
+            },
+            {
+              "id": "c",
+              "text": "Eine finale Klasse, von der alle Knotentypen erben."
+            },
+            {
+              "id": "d",
+              "text": "Eine abstrakte Klasse mit gemeinsamem Zustand und abstrakter `evaluate()`-Methode."
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Die Cache-Felder und `getValue()` sind gemeinsamer Zustand und gemeinsamer Code. Eine abstrakte Methode lässt jeden konkreten Knotentyp seine Berechnung ergänzen.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO11.md",
+            "heading": "1.3 Die zentrale Klasse mit Cache"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Abstrakte Klassen",
+            "Expression Trees und Caching"
+          ]
+        },
+        {
+          "id": "eip-11-l4-q02",
+          "type": "multi",
+          "prompt": "`abstract sealed class Expression permits Const, Neg, Addition` besitzt genau diese erlaubten direkten Unterklassen. Ein `switch` behandelt `Const`, `Neg` und `Addition`. Wähle alle richtigen Aussagen; mehrere Antworten können richtig sein.",
+          "options": [
+            {
+              "id": "a",
+              "text": "Eine beliebige weitere Klasse darf direkt von `Expression` erben."
+            },
+            {
+              "id": "b",
+              "text": "`Expression` kann nicht direkt instanziiert werden."
+            },
+            {
+              "id": "c",
+              "text": "`permits` nennt die erlaubten direkten Unterklassen."
+            },
+            {
+              "id": "d",
+              "text": "Der `switch` deckt alle erlaubten Fälle ab und kann erschöpfend sein."
+            }
+          ],
+          "correct": [
+            "b",
+            "c",
+            "d"
+          ],
+          "explanation": "`abstract` verhindert die direkte Instanziierung, `sealed` begrenzt direkte Unterklassen, und die drei Fälle decken die erlaubten konkreten Varianten ab.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO11.md",
+            "heading": "3.1 Vererbung gezielt einschränken"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Abstrakte Klassen",
+            "sealed und permits",
+            "Erschöpfender switch"
+          ]
+        },
+        {
+          "id": "eip-11-l4-q03",
+          "type": "code_output",
+          "prompt": "Was gibt der Code aus? `SpecificDefault` überschreibt den Default von `BaseDefault`; `Concrete` besitzt eine konkrete Klassenmethode. `MiniJava.write(x)` gibt `x` aus.\n\n```java\ninterface BaseDefault {\n    default String meth() { return \"A\"; }\n}\ninterface SpecificDefault extends BaseDefault {\n    default String meth() { return \"B\"; }\n}\nclass Concrete {\n    public String meth() { return \"C\"; }\n}\nclass Example extends Concrete implements SpecificDefault {}\nMiniJava.write(new Example().meth());\n```",
+          "options": [
+            {
+              "id": "a",
+              "text": "A"
+            },
+            {
+              "id": "b",
+              "text": "B"
+            },
+            {
+              "id": "c",
+              "text": "C"
+            },
+            {
+              "id": "d",
+              "text": "Compilerfehler wegen des Defaults"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Eine konkrete geerbte Klassenmethode gewinnt vor Interface-Defaults. Deshalb wird `Concrete.meth()` ausgeführt und `C` ausgegeben.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO11.md",
+            "heading": "6.4 Welche Methode hat Vorrang?"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "default-Methoden",
+            "Konfliktauflösung bei default-Methoden"
+          ]
+        },
+        {
+          "id": "eip-11-l4-q04",
+          "type": "calc",
+          "prompt": "Vergleiche $\\frac{50000}{50001}$ mit $\\frac{50001}{50000}$ über Kreuzprodukte. Die Nenner sind positiv und die Produkte werden als `long` berechnet. Welches Vorzeichen hat `compareTo`?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Positiv"
+            },
+            {
+              "id": "b",
+              "text": "0"
+            },
+            {
+              "id": "c",
+              "text": "Der Vergleich ist wegen der großen Zahlen nicht möglich."
+            },
+            {
+              "id": "d",
+              "text": "Negativ"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Die Kreuzprodukte sind 2 500 000 000 und 2 500 100 001. Das erste ist kleiner, also ist der Vergleich negativ; der Cast vor der Multiplikation verhindert einen `int`-Überlauf.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO11.md",
+            "heading": "4.4 Eine Klasse: Oberklasse **und** Interface"
+          },
+          "difficulty": 5,
+          "concepts": [
+            "compareTo"
+          ]
+        },
+        {
+          "id": "eip-11-l4-q05",
+          "type": "diagram",
+          "prompt": "Welche Java-Deklaration entspricht den beiden Beziehungen im Diagramm?",
+          "context": {
+            "type": "mermaid",
+            "content": "classDiagram\n    class AddSubMulDiv {\n        <<abstract>>\n    }\n    class ValueComparable {\n        <<interface>>\n    }\n    class OrderedRational\n    AddSubMulDiv <|-- OrderedRational\n    ValueComparable <|.. OrderedRational",
+            "caption": "Eine Klasse erweitert eine Oberklasse und implementiert ein Interface"
+          },
+          "options": [
+            {
+              "id": "a",
+              "text": "`interface OrderedRational extends AddSubMulDiv implements ValueComparable`"
+            },
+            {
+              "id": "b",
+              "text": "`class OrderedRational extends AddSubMulDiv, ValueComparable`"
+            },
+            {
+              "id": "c",
+              "text": "`class OrderedRational extends AddSubMulDiv implements ValueComparable`"
+            },
+            {
+              "id": "d",
+              "text": "`class OrderedRational implements AddSubMulDiv extends ValueComparable`"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Die durchgezogene Kante zeigt Klassenvererbung und wird mit `extends` ausgedrückt. Die gestrichelte Kante zeigt Interface-Implementierung und wird mit `implements` ausgedrückt.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO11.md",
+            "heading": "7.1 Klassen- und Interface-Beziehungen"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Interfaces und Verträge"
+          ]
+        },
+        {
+          "id": "eip-11-l4-q06",
+          "type": "single",
+          "prompt": "Eine Referenz `e` hat den statischen Typ `Expression` und zeigt auf ein Objekt der Klasse `Const`. `Expression.getValue()` ruft `evaluate()` auf; `Const` überschreibt `evaluate()` und liefert 8. Welche Implementierung wird ausgeführt?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Eine Implementierung in `Expression`, weil der statische Typ entscheidet."
+            },
+            {
+              "id": "b",
+              "text": "Eine zufällige Unterklassenimplementierung."
+            },
+            {
+              "id": "c",
+              "text": "Keine; abstrakte Methoden können nicht dynamisch aufgerufen werden."
+            },
+            {
+              "id": "d",
+              "text": "`Const.evaluate()`, weil die Laufzeitklasse des Objekts entscheidet."
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Der statische Typ erlaubt den Aufruf von `getValue()`. Der innere Aufruf der überschriebenen Instanzmethode wird dynamisch an `Const.evaluate()` gebunden.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO11.md",
+            "heading": "1.5 Dynamisches Binden und rekursive Auswertung"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Dynamisches Binden",
+            "Abstrakte Methoden"
+          ]
+        },
+        {
+          "id": "eip-11-l4-q07",
+          "type": "truefalse",
+          "prompt": "Zwei verschiedene Bruchobjekte `a` und `b` liefern `a.compareTo(b) == 0`. Daraus folgt, dass `a == b` wahr ist.",
+          "options": [
+            {
+              "id": "true",
+              "text": "Wahr"
+            },
+            {
+              "id": "false",
+              "text": "Falsch"
+            }
+          ],
+          "correct": [
+            "false"
+          ],
+          "explanation": "`compareTo` kann Gleichheit gemäß der Ordnung anzeigen, ohne dass beide Variablen dasselbe Objekt referenzieren. `==` prüft bei Referenzen die Identität.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO11.md",
+            "heading": "4.3            : Bedeutung des Rückgabewerts"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "compareTo",
+            "Referenzen und Objektidentität"
+          ]
+        },
+        {
+          "id": "eip-11-l4-q08",
+          "type": "code_output",
+          "prompt": "Was gibt der Code aus? Die Zuweisung einer Array-Referenz kopiert nicht das Array. `MiniJava.write(x)` gibt `x` aus.\n\n```java\nfinal int[] a = {4};\nint[] b = a;\nb[0] = 9;\nMiniJava.write(a[0]);\n```",
+          "options": [
+            {
+              "id": "a",
+              "text": "4"
+            },
+            {
+              "id": "b",
+              "text": "0"
+            },
+            {
+              "id": "c",
+              "text": "Compilerfehler, weil `a` final ist"
+            },
+            {
+              "id": "d",
+              "text": "9"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "`a` und `b` zeigen auf dasselbe Array. `final` verhindert nur eine Neuzuweisung an `a`, daher sieht `a[0]` die Änderung durch `b`.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO11.md",
+            "heading": "2.1 Achtung:        -Referenz ≠ unveränderliches Objekt"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "final",
+            "Referenzen und Objektidentität"
+          ]
+        },
+        {
+          "id": "eip-11-l4-q09",
+          "type": "multi",
+          "prompt": "Wähle alle richtigen Aussagen zur Auflösung von Interface-Defaults; mehrere Antworten können richtig sein.",
+          "options": [
+            {
+              "id": "a",
+              "text": "Ein spezifischeres Interface kann einen geerbten allgemeineren Default ersetzen."
+            },
+            {
+              "id": "b",
+              "text": "Eine konkrete Klassenmethode hat Vorrang vor einem Default."
+            },
+            {
+              "id": "c",
+              "text": "Bei zwei kollidierenden Defaults wählt Java immer das zuerst genannte Interface."
+            },
+            {
+              "id": "d",
+              "text": "Bei zwei unabhängigen kollidierenden Defaults muss die Klasse überschreiben."
+            }
+          ],
+          "correct": [
+            "a",
+            "b",
+            "d"
+          ],
+          "explanation": "Die ersten drei Aussagen entsprechen den Vorrangregeln. Die Reihenfolge der Interfaces in `implements` löst keinen Konflikt automatisch auf.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO11.md",
+            "heading": "6.4 Welche Methode hat Vorrang?"
+          },
+          "difficulty": 5,
+          "concepts": [
+            "default-Methoden",
+            "Konfliktauflösung bei default-Methoden"
+          ]
+        },
+        {
+          "id": "eip-11-l4-q10",
+          "type": "truefalse",
+          "prompt": "Eine Klasse kann eine Interface-Methode mit `protected` implementieren, obwohl die Methode im Interface implizit `public abstract` ist.",
+          "options": [
+            {
+              "id": "true",
+              "text": "Wahr"
+            },
+            {
+              "id": "false",
+              "text": "Falsch"
+            }
+          ],
+          "correct": [
+            "false"
+          ],
+          "explanation": "Die Implementierung darf die Sichtbarkeit des öffentlichen Interface-Vertrags nicht einschränken. Sie muss daher `public` sein.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO11.md",
+            "heading": "4.2 Ein Interface definiert einen Vertrag"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Interfaces und Verträge"
+          ]
+        },
+        {
+          "id": "eip-11-l4-q11",
+          "type": "calc",
+          "prompt": "Ein Ausdrucksbaum ist `Addition(Neg(Const(8)), Const(16))`. `Const(x)` liefert $x$, `Neg(a)` liefert das Negative des Kindwerts und `Addition(l,r)` addiert die Kindwerte. Welchen Wert berechnet der Baum?",
+          "options": [
+            {
+              "id": "a",
+              "text": "-24"
+            },
+            {
+              "id": "b",
+              "text": "8"
+            },
+            {
+              "id": "c",
+              "text": "24"
+            },
+            {
+              "id": "d",
+              "text": "-8"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "`Neg(Const(8))` ergibt -8. Die Addition berechnet danach $-8+16=8$.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO11.md",
+            "heading": "1.5 Dynamisches Binden und rekursive Auswertung"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Expression Trees und Caching",
+            "Abstrakte Methoden"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "eip-11-l5",
+      "index": 5,
+      "kind": "bonus",
+      "title": "Praxis: Code im Alltag",
+      "questions": [
+        {
+          "id": "eip-11-l5-q01",
+          "type": "single",
+          "prompt": "Du entwickelst ein Rollenspiel: Magier und Krieger speichern beide Lebenspunkte und teilen dieselbe `takeDamage()`-Logik. Ihre `attack()`-Methode ist verschieden. Welche Java-Struktur passt am besten?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Eine abstrakte Oberklasse mit Lebenspunkten, gemeinsamer `takeDamage()`-Methode und abstrakter `attack()`-Methode"
+            },
+            {
+              "id": "b",
+              "text": "Zwei unabhängige Klassen, die denselben Code duplizieren"
+            },
+            {
+              "id": "c",
+              "text": "Eine `final`-Oberklasse, von der Magier und Krieger erben"
+            },
+            {
+              "id": "d",
+              "text": "Ein Interface mit einem Instanzfeld `health` und einem Konstruktor"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "Die abstrakte Oberklasse kann den gemeinsamen Zustand und `takeDamage()` bereitstellen. Die Unterklassen ergänzen jeweils ihre eigene `attack()`-Implementierung.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO11.md",
+            "heading": "1. Abstrakte Klassen: Expression Trees (Folien 776–797)"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Abstrakte Klassen",
+            "Abstrakte Methoden"
+          ]
+        },
+        {
+          "id": "eip-11-l5-q02",
+          "type": "single",
+          "prompt": "Deine Uni-App sortiert Prüfungen und Abgabefristen. Die Klassen haben keinen gemeinsamen Zustand oder fachlichen Obertyp, sollen aber dieselbe Sortierfähigkeit anbieten. `compareTo` liefert einen negativen Wert, wenn dieses Objekt vor dem anderen stehen soll, `0` bei Gleichstand der Ordnung und einen positiven Wert, wenn es danach steht. Welche Struktur passt am besten?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Ein Interface mit dem `compareTo`-Vertrag, das beide Klassen implementieren"
+            },
+            {
+              "id": "b",
+              "text": "Eine statische Methode, die von beiden Klassen geerbt wird"
+            },
+            {
+              "id": "c",
+              "text": "Eine `final`-Klasse, die beide Klassen ersetzt"
+            },
+            {
+              "id": "d",
+              "text": "Eine gemeinsame abstrakte Klasse, nur damit beide dieselbe Sortiermethode erben"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "Ein Interface eignet sich, wenn unterschiedliche Klassen dieselbe Fähigkeit anbieten sollen, ohne gemeinsamen Zustand zu teilen. Das Vorzeichen von `compareTo` beschreibt die Reihenfolge.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO11.md",
+            "heading": "4.3            : Bedeutung des Rückgabewerts"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Interfaces und Verträge",
+            "compareTo"
+          ]
+        },
+        {
+          "id": "eip-11-l5-q03",
+          "type": "estimate",
+          "prompt": "Deine Banking-App hat einen `PinValidator`-Vertrag für vierstellige PINs. Jede Stelle darf eine Ziffer von 0 bis 9 sein; führende Nullen sind erlaubt. Wie viele verschiedene Eingaben kann der Validator bekommen?",
+          "options": [],
+          "correct": [],
+          "slider": {
+            "min": 5000,
+            "max": 30000,
+            "step": 100,
+            "answer": 10000,
+            "tolerance": 100,
+            "unit": "Eingaben",
+            "scale": "linear"
+          },
+          "explanation": "Für jede der vier Stellen gibt es 10 Möglichkeiten. Insgesamt sind es 10⁴ = 10.000 Eingaben; der Interface-Vertrag ändert an diesem Eingaberaum nichts.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO11.md",
+            "heading": "4.2 Ein Interface definiert einen Vertrag"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Interfaces und Verträge"
+          ]
+        },
+        {
+          "id": "eip-11-l5-q04",
+          "type": "single",
+          "prompt": "Eine Navigations-App hält eine Variable vom Typ `RouteMode`, die auf ein `BikeMode`-Objekt zeigt. `BikeMode` überschreibt `RouteMode.route()`. Was gibt der Aufruf `mode.route()` zurück?",
+          "context": {
+            "type": "code",
+            "content": "class RouteMode {\n    String route() { return \"generic\"; }\n}\nclass BikeMode extends RouteMode {\n    @Override String route() { return \"bike\"; }\n}\nRouteMode mode = new BikeMode();\nmode.route();",
+            "language": "java",
+            "caption": "Die Unterklasse überschreibt die Instanzmethode."
+          },
+          "options": [
+            {
+              "id": "a",
+              "text": "Der Aufruf erzeugt einen Compilerfehler"
+            },
+            {
+              "id": "b",
+              "text": "Beide Texte werden nacheinander zurückgegeben"
+            },
+            {
+              "id": "c",
+              "text": "`generic`"
+            },
+            {
+              "id": "d",
+              "text": "`bike`"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Bei einer überschriebenen Instanzmethode entscheidet das tatsächliche Objekt zur Laufzeit. Hier wird deshalb `BikeMode.route()` ausgeführt.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO11.md",
+            "heading": "1.5 Dynamisches Binden und rekursive Auswertung"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Dynamisches Binden",
+            "Referenzen und Objektidentität"
+          ]
+        },
+        {
+          "id": "eip-11-l5-q05",
+          "type": "truefalse",
+          "prompt": "Du hast eine `final`-Variable, die dauerhaft auf dasselbe Array zeigt. Darf die App trotzdem eine gespeicherte Zahl innerhalb dieses Arrays ändern?",
+          "options": [
+            {
+              "id": "true",
+              "text": "Wahr"
+            },
+            {
+              "id": "false",
+              "text": "Falsch"
+            }
+          ],
+          "correct": [
+            "true"
+          ],
+          "explanation": "`final` verhindert, dass die Variable auf ein anderes Array gesetzt wird. Der Inhalt des referenzierten Arrays kann sich weiterhin ändern.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO11.md",
+            "heading": "2.1 Achtung:        -Referenz ≠ unveränderliches Objekt"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "final"
+          ]
+        },
+        {
+          "id": "eip-11-l5-q06",
+          "type": "estimate",
+          "prompt": "Du testest den Ausdrucksbaum `Add(Neg(Const(5)), Add(Const(3), Const(4)))`. `Const(n)` speichert eine Zahl, `Neg(x)` negiert sein Kind und `Add(x, y)` addiert seine Kinder. Jedes Knotenobjekt führt `evaluate()` beim ersten `getValue()` genau einmal aus und cached das Ergebnis; jeder Knoten hier ist ein eigenes Objekt. Du rufst `getValue()` zweimal auf der Wurzel auf. Wie viele `evaluate()`-Aufrufe erfolgen insgesamt?",
+          "options": [],
+          "correct": [],
+          "slider": {
+            "min": 1,
+            "max": 10,
+            "step": 1,
+            "answer": 6,
+            "tolerance": 1,
+            "unit": "Aufrufe",
+            "scale": "linear"
+          },
+          "explanation": "Der Baum hat sechs Knoten. Beim ersten Aufruf wird jeder Knoten einmal ausgewertet; der zweite Aufruf liefert das gecachte Ergebnis der Wurzel. Insgesamt erfolgen also sechs Aufrufe.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO11.md",
+            "heading": "1.3 Die zentrale Klasse mit Cache"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Expression Trees und Caching",
+            "Abstrakte Methoden"
+          ]
+        },
+        {
+          "id": "eip-11-l5-q07",
+          "type": "single",
+          "prompt": "Für diese Frage gilt Java 21. Ein Ausdrucksbaum hat eine abstrakte Basisklasse `Expr` und genau zwei direkte Unterklassen: `NumberNode` und `PlusNode`. Beide Unterklassen sind `final`. Der `switch` soll alle Werte vom Typ `Expr` behandeln und als switch-Ausdruck ohne `default` erschöpfend sein. Welche Lösung erfüllt die Voraussetzungen?",
+          "options": [
+            {
+              "id": "a",
+              "text": "`Expr` ist `final`, und `NumberNode` sowie `PlusNode` erben davon."
+            },
+            {
+              "id": "b",
+              "text": "`Expr` ist eine gewöhnliche abstrakte Klasse mit beliebig vielen Unterklassen; der `switch` enthält nur einen Fall für `NumberNode`."
+            },
+            {
+              "id": "c",
+              "text": "`Expr` ist `sealed`, aber der `switch` behandelt nur `NumberNode`."
+            },
+            {
+              "id": "d",
+              "text": "`Expr` ist `sealed` und erlaubt mit `permits` genau `NumberNode` und `PlusNode`; der `switch` hat je einen Typmuster-Fall für beide Klassen."
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "`sealed` mit `permits` begrenzt die direkten Unterklassen. Da beide erlaubten Unterklassen `final` sind, decken Typmuster-Fälle für beide alle möglichen `Expr`-Werte ab und der switch-Ausdruck ist erschöpfend.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO11.md",
+            "heading": "3.1 Vererbung gezielt einschränken"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "sealed und permits",
+            "Erschöpfender switch"
+          ]
+        },
+        {
+          "id": "eip-11-l5-q08",
+          "type": "estimate",
+          "prompt": "Ein Plugin darf unabhängig voneinander jede Auswahl aus acht optionalen Interfaces implementieren; keine Auswahl ist ausgeschlossen. Wie viele verschiedene Kombinationen dieser Fähigkeiten sind möglich?",
+          "options": [],
+          "correct": [],
+          "slider": {
+            "min": 16,
+            "max": 600,
+            "step": 2,
+            "answer": 256,
+            "tolerance": 2,
+            "unit": "Kombinationen",
+            "scale": "linear"
+          },
+          "explanation": "Jedes der acht Interfaces kann implementiert oder weggelassen werden. Das ergibt 2⁸ = 256 mögliche Kombinationen.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO11.md",
+            "heading": "4. Interfaces: Fähigkeiten statt nur Klassenhierarchien (Folien 808–821)"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Interfaces und Verträge"
+          ]
+        },
+        {
+          "id": "eip-11-l5-q09",
+          "type": "truefalse",
+          "prompt": "Ein Export-Modul implementiert zwei unabhängige Interfaces, die beide eine `default`-Methode `reset()` mit eigenem Methodenrumpf anbieten. Die Klasse kann ohne eigenes `reset()` eindeutig kompilieren, weil Java automatisch eines der Interfaces auswählt. Stimmt das?",
+          "options": [
+            {
+              "id": "true",
+              "text": "Wahr"
+            },
+            {
+              "id": "false",
+              "text": "Falsch"
+            }
+          ],
+          "correct": [
+            "false"
+          ],
+          "explanation": "Bei zwei unabhängigen, kollidierenden Defaults gibt es keine automatische Auswahl. Die implementierende Klasse muss `reset()` selbst überschreiben und den Konflikt auflösen.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO11.md",
+            "heading": "6.3 Zwei konkurrierende Defaults"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "default-Methoden",
+            "Konfliktauflösung bei default-Methoden"
+          ]
+        },
+        {
+          "id": "eip-11-l5-q10",
+          "type": "single",
+          "prompt": "Ein Plugin erbt von `BasePanel`, dessen konkrete Methode `render()` den Text `base` liefert. Zusätzlich implementiert es `PanelStyle`, das eine `default render()` mit dem Text `default` anbietet. Welcher Text kommt bei `panel.render()` heraus?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Der Aufruf ist wegen eines Konflikts nicht möglich"
+            },
+            {
+              "id": "b",
+              "text": "`default`"
+            },
+            {
+              "id": "c",
+              "text": "Der statische Typ der Variable entscheidet zwischen beiden Texten"
+            },
+            {
+              "id": "d",
+              "text": "`base`"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Eine geerbte konkrete Klassenmethode hat Vorrang vor einer gleichnamigen Interface-`default`-Methode.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO11.md",
+            "heading": "6.4 Welche Methode hat Vorrang?"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "default-Methoden",
+            "Konfliktauflösung bei default-Methoden"
+          ]
+        }
+      ]
+    }
+  ]
+}
