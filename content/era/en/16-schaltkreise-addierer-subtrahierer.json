@@ -1,0 +1,2010 @@
+{
+  "schemaVersion": 1,
+  "id": "era-16",
+  "module": "ERA",
+  "number": 16,
+  "slug": "schaltkreise-addierer-subtrahierer",
+  "title": "Circuits, Adders, and Subtractors",
+  "summary": "Boolean functions become combinational circuits: from gate symbols and canonical DNF to half and full adders and multi-bit adders. Ripple-carry and conditional-sum adders show the trade-off between gate cost and circuit depth. Two's complement enables subtraction with an adder; signed overflow is detected from the carries at the sign bit.",
+  "concepts": [
+    "DIN/IEC logic-gate symbols",
+    "combinational circuit",
+    "canonical DNF",
+    "cost and depth",
+    "half adder",
+    "full adder",
+    "ripple-carry adder",
+    "conditional-sum adder",
+    "multiplexer",
+    "two's-complement subtraction",
+    "adder/subtractor",
+    "signed overflow",
+    "carry-in and carry-out",
+    "NAND functional completeness"
+  ],
+  "keyFacts": [
+    "A combinational circuit is a directed acyclic graph with no memory; its outputs depend on the current inputs.",
+    "In DIN/IEC symbols, ≥1 denotes OR; a small circle indicates negation.",
+    "The canonical DNF forms a minterm for each truth-table row with output 1 and combines the minterms with OR.",
+    "Cost C counts gates; depth D counts the gates on the longest input-to-output path.",
+    "A half adder adds two bits without a carry-in: s₀ = a₀ ⊕ b₀ and s₁ = a₀ ∧ b₀.",
+    "A full adder processes two input bits and a carry-in; its outputs are the sum and carry-out.",
+    "In the model considered, an HA has cost 2 and depth 1; an FA has cost 5 and depth 3.",
+    "An n-bit adder with two n-bit operands and a carry-in requires n+1 output bits.",
+    "In a ripple-carry adder, the carry propagates from the least significant to the most significant position; C(CRₙ) = 5n and D(CRₙ) = 2n+1.",
+    "A MUX selects vector a when s=1 and vector b when s=0; C(MUXₙ) = 3n+1 and D(MUXₙ) = 3.",
+    "The conditional-sum adder computes the upper half in parallel for carry-in 0 and 1; the actual lower carry then controls the MUX.",
+    "For CSA widths that are powers of two, C(CSA₁)=5, C(CSAₙ)=3C(CSAₙ/₂)+3(n/2+1)+1, and D(CSAₙ)=D(CSAₙ/₂)+3.",
+    "The CSA depth grows logarithmically; its cost grows as O(n^(log₂3)) and exceeds the ripple-carry adder's linear cost.",
+    "For n-bit two's complement, a−b ≡ a+¬b+1 modulo 2ⁿ.",
+    "A combined adder/subtractor uses sub both to XOR-invert the b bits and as the carry-in.",
+    "Signed overflow occurs exactly when the carry into the sign bit differs from the carry out of the sign bit."
+  ],
+  "tags": [
+    "TUM",
+    "ERA",
+    "Rechnerarchitektur",
+    "Boolesche-Algebra",
+    "Digitale-Schaltungen",
+    "Vorlesung"
+  ],
+  "links": [],
+  "source": {
+    "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO16.md",
+    "sha256": "167552d3b46c12eaa1b2e8c828f561af812164adea270e50b2a7b26c8163a0ac",
+    "commit": "4a452f9e65ab67e9f38f4857fe724f132c93cf9a"
+  },
+  "generator": {
+    "model": "gpt-6-luna",
+    "effort": "xhigh",
+    "reviewEffort": "high",
+    "promptVersion": "v3",
+    "generatedAt": "2026-11-18T01:18:43.604Z",
+    "review": {
+      "checked": 45,
+      "fixed": 0,
+      "removed": 0,
+      "notes": "45 Fragen geprüft. Fachliche Antworten, Distraktoren, Erklärungen, Quellen, Diagrammkontexte und vorhandene Verify-Skripte stimmen; keine Korrekturen oder Ersetzungen nötig."
+    }
+  },
+  "levels": [
+    {
+      "id": "era-16-l1",
+      "index": 1,
+      "kind": "basics",
+      "title": "Fundamentals",
+      "questions": [
+        {
+          "id": "era-16-l1-q01",
+          "type": "single",
+          "prompt": "Which description fits a combinational circuit?",
+          "options": [
+            {
+              "id": "a",
+              "text": "A directed acyclic graph with no memory"
+            },
+            {
+              "id": "b",
+              "text": "A sequence of instructions executed one after another"
+            },
+            {
+              "id": "c",
+              "text": "A memory whose contents change only when there is a carry"
+            },
+            {
+              "id": "d",
+              "text": "A graph with feedback whose output stores the next state"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "A combinational circuit is a DAG with no memory. Its outputs depend on the current inputs.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO16.md",
+            "heading": "1.2 Was ist ein kombinatorischer Schaltkreis? (Folie 9)"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "combinational circuit"
+          ]
+        },
+        {
+          "id": "era-16-l1-q02",
+          "type": "cloze",
+          "prompt": "In a DIN/IEC logic-gate symbol, `≥1` denotes ___.",
+          "options": [
+            {
+              "id": "a",
+              "text": "NOT"
+            },
+            {
+              "id": "b",
+              "text": "AND"
+            },
+            {
+              "id": "c",
+              "text": "XOR"
+            },
+            {
+              "id": "d",
+              "text": "OR"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "The symbol ≥1 means that at least one input has the value 1; this is the OR function.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO16.md",
+            "heading": "1.1 DIN/IEC-Gattersymbole"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "DIN/IEC logic-gate symbols"
+          ]
+        },
+        {
+          "id": "era-16-l1-q03",
+          "type": "single",
+          "prompt": "How do you derive the canonical DNF from a truth table?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Use only the last row of the table as the circuit"
+            },
+            {
+              "id": "b",
+              "text": "Form a minterm for each row with output 0 and combine all minterms with AND"
+            },
+            {
+              "id": "c",
+              "text": "Negate all inputs and then combine them with XOR"
+            },
+            {
+              "id": "d",
+              "text": "Form a minterm for each row with output 1 and combine all minterms with OR"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Each row with output 1 is represented by an AND minterm; the OR of the minterms covers all rows with output 1.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO16.md",
+            "heading": "1.3 Von Wahrheitstabelle zu Schaltung: kanonische DNF (Folien 10–12)"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "canonical DNF"
+          ]
+        },
+        {
+          "id": "era-16-l1-q04",
+          "type": "multi",
+          "prompt": "Select all correct statements; more than one answer may be correct. Which equations describe a half adder?",
+          "options": [
+            {
+              "id": "a",
+              "text": "The carry-out is a₀ ∧ b₀."
+            },
+            {
+              "id": "b",
+              "text": "The half adder requires a carry-in."
+            },
+            {
+              "id": "c",
+              "text": "The sum bit is a₀ ∨ b₀."
+            },
+            {
+              "id": "d",
+              "text": "The sum bit is a₀ ⊕ b₀."
+            }
+          ],
+          "correct": [
+            "a",
+            "d"
+          ],
+          "explanation": "XOR produces the least significant sum bit, and AND produces the carry-out. A half adder has no carry-in.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO16.md",
+            "heading": "3.2 Wahrheitstabelle"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "half adder"
+          ]
+        },
+        {
+          "id": "era-16-l1-q05",
+          "type": "truefalse",
+          "prompt": "A full adder processes a carry-in in addition to the two operand bits.",
+          "options": [
+            {
+              "id": "true",
+              "text": "True"
+            },
+            {
+              "id": "false",
+              "text": "False"
+            }
+          ],
+          "correct": [
+            "true"
+          ],
+          "explanation": "The carry-in comes from the previous, less significant position. Therefore, a full adder processes three input bits.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO16.md",
+            "heading": "4.1 Was fehlt dem Halbaddierer?"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "full adder",
+            "carry-in and carry-out"
+          ]
+        },
+        {
+          "id": "era-16-l1-q06-r1",
+          "type": "cloze",
+          "prompt": "A MUX selects between data vectors according to $y=(s\\land a)\\lor(\\neg s\\land b)$, for vectors $a$ and $b$. If the select bit is $s=0$, the output vector is ___.",
+          "options": [
+            {
+              "id": "a",
+              "text": "b"
+            },
+            {
+              "id": "b",
+              "text": "a"
+            },
+            {
+              "id": "c",
+              "text": "0"
+            },
+            {
+              "id": "d",
+              "text": "a ⊕ b"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "For $s=0$, $s\\land a=0$ and $\\neg s=1$. Therefore, the MUX outputs $b$.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO16.md",
+            "heading": "6.2 Multiplexer (MUX) – der entscheidende Baustein (Folien 28–30)"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "multiplexer",
+            "select bit"
+          ]
+        },
+        {
+          "id": "era-16-l1-q07",
+          "type": "single",
+          "prompt": "What does the depth D of a circuit measure?",
+          "options": [
+            {
+              "id": "a",
+              "text": "The number of output bits"
+            },
+            {
+              "id": "b",
+              "text": "The number of inputs"
+            },
+            {
+              "id": "c",
+              "text": "The gates on the longest input-to-output path"
+            },
+            {
+              "id": "d",
+              "text": "All the gates in the circuit"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Depth measures the longest sequence of consecutive gates. Gates operating in parallel are not counted multiple times on the same path.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO16.md",
+            "heading": "0. Das Wichtigste auf einen Blick"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "cost and depth"
+          ]
+        },
+        {
+          "id": "era-16-l1-q08",
+          "type": "multi",
+          "prompt": "Select all correct statements; more than one answer may be correct. Two n-bit numbers are added with a carry-in. Which statements hold?",
+          "options": [
+            {
+              "id": "a",
+              "text": "An output of n+1 bits is sufficient."
+            },
+            {
+              "id": "b",
+              "text": "The carry-in cannot change the maximum value."
+            },
+            {
+              "id": "c",
+              "text": "The largest possible sum is 2ⁿ⁺¹−1."
+            },
+            {
+              "id": "d",
+              "text": "An output of n−1 bits is always sufficient."
+            }
+          ],
+          "correct": [
+            "a",
+            "c"
+          ],
+          "explanation": "Two maximum-value operands plus the carry-in yield 2ⁿ⁺¹−1. This value fits in n+1 bits.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO16.md",
+            "heading": "2. Was soll ein $n$-Bit-Addierer leisten? (Folie 14)"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "carry-in and carry-out"
+          ]
+        },
+        {
+          "id": "era-16-l1-q09",
+          "type": "diagram",
+          "prompt": "Which half-adder output is the carry-out s₁?",
+          "context": {
+            "type": "mermaid",
+            "content": "flowchart TB\n    A[\"a₀\"] --> XOR[\"XOR\"]\n    B[\"b₀\"] --> XOR\n    A --> AND[\"AND\"]\n    B --> AND\n    XOR --> S[\"s₀ sum\"]\n    AND --> C[\"s₁ carry-out\"]",
+            "caption": "Signal paths in a half adder"
+          },
+          "options": [
+            {
+              "id": "a",
+              "text": "The output of the NOT gate"
+            },
+            {
+              "id": "b",
+              "text": "The output of the XOR gate"
+            },
+            {
+              "id": "c",
+              "text": "There is no carry-out"
+            },
+            {
+              "id": "d",
+              "text": "The output of the AND gate"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "For a half adder, s₁=a₀∧b₀. Thus, the AND gate produces the carry-out.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO16.md",
+            "heading": "3.2 Wahrheitstabelle"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "half adder"
+          ]
+        },
+        {
+          "id": "era-16-l1-q10",
+          "type": "truefalse",
+          "prompt": "In a ripple-carry adder, the carry propagates from the most significant to the least significant position.",
+          "options": [
+            {
+              "id": "true",
+              "text": "True"
+            },
+            {
+              "id": "false",
+              "text": "False"
+            }
+          ],
+          "correct": [
+            "false"
+          ],
+          "explanation": "The carry starts at the least significant position and propagates toward the most significant position.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO16.md",
+            "heading": "5.1 Prinzip der schriftlichen Addition"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "ripple-carry adder"
+          ]
+        },
+        {
+          "id": "era-16-l1-q11-r1",
+          "type": "single",
+          "prompt": "A full adder consists of two half adders and a 2-input OR gate. The first half adder processes $a,b$ and produces a sum bit $p$ and a carry. The second processes $p$ and the carry-in, producing the final sum and a carry. The OR gate combines the two carry outputs. Each XOR, AND, and OR gate counts as one gate; depth is the number of gates on the longest input-to-output path. What are the cost $C$ and depth $D$?",
+          "options": [
+            {
+              "id": "a",
+              "text": "C=5, D=3"
+            },
+            {
+              "id": "b",
+              "text": "C=3, D=2"
+            },
+            {
+              "id": "c",
+              "text": "C=5, D=5"
+            },
+            {
+              "id": "d",
+              "text": "C=2, D=1"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "Each half adder contains one XOR gate and one AND gate, so the two half adders have four gates in total. Including the OR gate gives $C=4+1=5$. The longest path goes through the XOR gate of the first half adder, one gate of the second half adder, and the OR gate, giving $D=1+1+1=3$.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO16.md",
+            "heading": "4.4 FA aus zwei HA + OR aufbauen"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "full adder",
+            "half adder",
+            "gate cost",
+            "circuit depth"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "era-16-l2",
+      "index": 2,
+      "kind": "apply",
+      "title": "Apply",
+      "questions": [
+        {
+          "id": "era-16-l2-q01",
+          "type": "calc",
+          "prompt": "A half adder receives a₀=1 and b₀=1. What output (s₁s₀) does it produce?",
+          "options": [
+            {
+              "id": "a",
+              "text": "11"
+            },
+            {
+              "id": "b",
+              "text": "00"
+            },
+            {
+              "id": "c",
+              "text": "10"
+            },
+            {
+              "id": "d",
+              "text": "01"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "1+1=2=10₂. The more significant bit is the carry-out s₁, and the less significant bit is the sum s₀.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO16.md",
+            "heading": "3.2 Wahrheitstabelle"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "half adder"
+          ]
+        },
+        {
+          "id": "era-16-l2-q02",
+          "type": "calc",
+          "prompt": "A full adder receives a₀=1, b₀=0, and carry-in c=1. What output (s₁s₀) does it produce?",
+          "options": [
+            {
+              "id": "a",
+              "text": "11"
+            },
+            {
+              "id": "b",
+              "text": "10"
+            },
+            {
+              "id": "c",
+              "text": "00"
+            },
+            {
+              "id": "d",
+              "text": "01"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "The inputs give 1+0+1=2=10₂; s₁ is 1 and s₀ is 0.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO16.md",
+            "heading": "4.2 Vollständige Wahrheitstabelle"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "full adder"
+          ]
+        },
+        {
+          "id": "era-16-l2-q03-r1",
+          "type": "calc",
+          "prompt": "A 4-bit ripple-carry adder adds $0011_2$ and $0010_2$. The carry-in at the least significant bit is $0$. Calculate the sum and give it as exactly five bits, with the carry-out of the most significant bit on the left.",
+          "options": [
+            {
+              "id": "a",
+              "text": "00101"
+            },
+            {
+              "id": "b",
+              "text": "01001"
+            },
+            {
+              "id": "c",
+              "text": "10000"
+            },
+            {
+              "id": "d",
+              "text": "00001"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "$0011_2=3$ and $0010_2=2$, so the sum is $5=00101_2$. Bit by bit, from right to left, the sum bits are $1,0,1,0$ and the carry-out is $0$.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO16.md",
+            "heading": "5.3 Beispiel: $0101_2+0011_2$"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "ripple-carry addition",
+            "carry-in",
+            "binary addition"
+          ]
+        },
+        {
+          "id": "era-16-l2-q04",
+          "type": "single",
+          "prompt": "A function y is equal to 1 exactly for the inputs (a,b)=(0,1) and (1,0). Which canonical DNF matches it?",
+          "options": [
+            {
+              "id": "a",
+              "text": "(a ∧ b) ∨ (a ∧ ¬b)"
+            },
+            {
+              "id": "b",
+              "text": "¬a ∧ ¬b"
+            },
+            {
+              "id": "c",
+              "text": "(¬a ∧ b) ∨ (a ∧ ¬b)"
+            },
+            {
+              "id": "d",
+              "text": "a ∨ b"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "The two rows with output 1 yield the minterms ¬a∧b and a∧¬b. Their disjunction is the required DNF.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO16.md",
+            "heading": "1.3 Von Wahrheitstabelle zu Schaltung: kanonische DNF (Folien 10–12)"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "canonical DNF"
+          ]
+        },
+        {
+          "id": "era-16-l2-q05",
+          "type": "calc",
+          "prompt": "Calculate the cost C and depth D of a ripple-carry adder with n=4, given C=5n and D=2n+1.",
+          "options": [
+            {
+              "id": "a",
+              "text": "C=20, D=12"
+            },
+            {
+              "id": "b",
+              "text": "C=20, D=9"
+            },
+            {
+              "id": "c",
+              "text": "C=16, D=9"
+            },
+            {
+              "id": "d",
+              "text": "C=20, D=8"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "C=5·4=20 and D=2·4+1=9. The depth is not four times the depth of a single full adder.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO16.md",
+            "heading": "5.5 Kosten und Tiefe herleiten"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "ripple-carry adder",
+            "cost and depth"
+          ]
+        },
+        {
+          "id": "era-16-l2-q06",
+          "type": "calc",
+          "prompt": "Calculate $6-7$ using 4-bit two's complement and give the resulting bit pattern. Use $a-b ≡ a+¬b+1$ modulo 16.",
+          "options": [
+            {
+              "id": "a",
+              "text": "0111"
+            },
+            {
+              "id": "b",
+              "text": "0001"
+            },
+            {
+              "id": "c",
+              "text": "1001"
+            },
+            {
+              "id": "d",
+              "text": "1111"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "The 4-bit result is (6−7) modulo 16 = 15 = 1111₂. As a signed two's-complement number, 1111 represents −1.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO16.md",
+            "heading": "7.2 Beispiel aus Folie 36: $6-7=-1$"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "two's-complement subtraction"
+          ]
+        },
+        {
+          "id": "era-16-l2-q07",
+          "type": "multi",
+          "prompt": "Select all correct statements; more than one answer may be correct. In the combined adder/subtractor, let sub=1. What must the circuit do?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Invert only the most significant bit of b"
+            },
+            {
+              "id": "b",
+              "text": "Invert each bᵢ using bᵢ ⊕ sub"
+            },
+            {
+              "id": "c",
+              "text": "Set the carry-in to 0"
+            },
+            {
+              "id": "d",
+              "text": "Set the carry-in to 1"
+            }
+          ],
+          "correct": [
+            "b",
+            "d"
+          ],
+          "explanation": "With sub=1, every b bit is inverted and the carry-in supplies the required +1. Together, the circuit computes a+¬b+1.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO16.md",
+            "heading": "7.3 Kombinierter Addierer/Subtrahierer (Folie 38)"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "adder/subtractor",
+            "two's-complement subtraction"
+          ]
+        },
+        {
+          "id": "era-16-l2-q08",
+          "type": "diagram",
+          "prompt": "In the conditional-sum adder shown, which signals determine which upper partial sum is output?",
+          "context": {
+            "type": "mermaid",
+            "content": "flowchart TB\n    LOW[\"lower bits\"] --> LC[\"CSA with actual carry\"]\n    HIGH[\"upper bits\"] --> H0[\"CSA with carry-in 0\"]\n    HIGH --> H1[\"CSA with carry-in 1\"]\n    LC -->|\"carry\"| MUX[\"MUX\"]\n    H0 --> MUX\n    H1 --> MUX\n    MUX --> OUT[\"upper sum and carry\"]",
+            "caption": "Parallel precomputation in the conditional-sum adder"
+          },
+          "options": [
+            {
+              "id": "a",
+              "text": "The carry from the lower block and the two precomputed upper results"
+            },
+            {
+              "id": "b",
+              "text": "The carry-out of the most significant bit"
+            },
+            {
+              "id": "c",
+              "text": "Only the input bits of the upper half"
+            },
+            {
+              "id": "d",
+              "text": "An additional result from the lower MUX"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "The lower block provides the actual carry. This controls the MUX, which selects between the two precomputed upper results.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO16.md",
+            "heading": "6.1 Die zentrale Idee: parallel rechnen statt Carry abwarten"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "conditional-sum adder",
+            "multiplexer"
+          ]
+        },
+        {
+          "id": "era-16-l2-q09",
+          "type": "single",
+          "prompt": "Which equation describes output bit i of a 2:1 MUX with select bit s that outputs aᵢ when s=1 and bᵢ when s=0?",
+          "options": [
+            {
+              "id": "a",
+              "text": "(aᵢ ∧ bᵢ) ∨ s"
+            },
+            {
+              "id": "b",
+              "text": "(s ∧ aᵢ) ∨ (¬s ∧ bᵢ)"
+            },
+            {
+              "id": "c",
+              "text": "(s ∧ bᵢ) ∨ (¬s ∧ aᵢ)"
+            },
+            {
+              "id": "d",
+              "text": "(s ∨ aᵢ) ∧ (¬s ∨ bᵢ)"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "The MUX passes aᵢ through when s=1 and bᵢ when s=0. The two AND terms are combined with OR.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO16.md",
+            "heading": "6.2 Multiplexer (MUX) – der entscheidende Baustein (Folien 28–30)"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "multiplexer"
+          ]
+        },
+        {
+          "id": "era-16-l2-q10",
+          "type": "truefalse",
+          "prompt": "In a signed 4-bit two's-complement addition, $0111_2+0011_2$ causes overflow.",
+          "options": [
+            {
+              "id": "true",
+              "text": "True"
+            },
+            {
+              "id": "false",
+              "text": "False"
+            }
+          ],
+          "correct": [
+            "true"
+          ],
+          "explanation": "The mathematical sum is 10, but the 4-bit two's-complement range is only −8 to 7. The result bit pattern 1010 therefore does not represent the mathematical sum.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO16.md",
+            "heading": "8. Zweierkomplement: Overflow erkennen (Folie 34)"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "signed overflow"
+          ]
+        },
+        {
+          "id": "era-16-l2-q11",
+          "type": "calc",
+          "prompt": "A 3-bit MUX has cost C=3n+1 and depth D=3. What are its cost and depth?",
+          "options": [
+            {
+              "id": "a",
+              "text": "C=9, D=3"
+            },
+            {
+              "id": "b",
+              "text": "C=10, D=3"
+            },
+            {
+              "id": "c",
+              "text": "C=10, D=4"
+            },
+            {
+              "id": "d",
+              "text": "C=12, D=3"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "For n=3, C=3·3+1=10. The depth of a MUX remains 3.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO16.md",
+            "heading": "6.2 Multiplexer (MUX) – der entscheidende Baustein (Folien 28–30)"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "multiplexer",
+            "cost and depth"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "era-16-l3",
+      "index": 3,
+      "kind": "deepen",
+      "title": "Explore Further",
+      "questions": [
+        {
+          "id": "era-16-l3-q01",
+          "type": "truefalse",
+          "prompt": "The depth of a ripple-carry adder with n positions is 3n because each position contains a full adder with depth 3.",
+          "options": [
+            {
+              "id": "true",
+              "text": "True"
+            },
+            {
+              "id": "false",
+              "text": "False"
+            }
+          ],
+          "correct": [
+            "false"
+          ],
+          "explanation": "On the longest carry path, the first full adder contributes three levels; each subsequent position adds two levels. Therefore, D(CRₙ)=2n+1.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO16.md",
+            "heading": "5.5 Kosten und Tiefe herleiten"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "ripple-carry adder",
+            "cost and depth"
+          ]
+        },
+        {
+          "id": "era-16-l3-q02",
+          "type": "multi",
+          "prompt": "Select all correct statements; more than one answer may be correct. What holds for the recursive conditional-sum adder when n>1?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Three CSA blocks of width n/2 operate in parallel."
+            },
+            {
+              "id": "b",
+              "text": "A MUX of width n/2+1 selects the upper result together with the carry-out."
+            },
+            {
+              "id": "c",
+              "text": "The carry must propagate through all the upper bits before they can be computed."
+            },
+            {
+              "id": "d",
+              "text": "The upper half is computed only with carry-in 0."
+            },
+            {
+              "id": "e",
+              "text": "The depth increases by 3 at each recursion level."
+            }
+          ],
+          "correct": [
+            "a",
+            "b",
+            "e"
+          ],
+          "explanation": "A CSA processes the lower half with the actual carry and computes the upper half in parallel for carry-in 0 and 1. A MUX then selects n/2 sum bits plus the carry-out; its depth is 3.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO16.md",
+            "heading": "6.3 Rekursive CSA-Schaltung (Folie 31)"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "conditional-sum adder",
+            "multiplexer"
+          ]
+        },
+        {
+          "id": "era-16-l3-q03",
+          "type": "calc",
+          "prompt": "For a CSA, C(CSA₁)=5 and C(CSAₙ)=3C(CSAₙ/₂)+3(n/2+1)+1. Calculate C(CSA₂) and D(CSA₂), given D(CSA₁)=3 and D(CSAₙ)=D(CSAₙ/₂)+3.",
+          "options": [
+            {
+              "id": "a",
+              "text": "C=20, D=6"
+            },
+            {
+              "id": "b",
+              "text": "C=22, D=9"
+            },
+            {
+              "id": "c",
+              "text": "C=22, D=6"
+            },
+            {
+              "id": "d",
+              "text": "C=18, D=3"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "C(CSA₂)=3·5+3·2+1=22. The depth increases by 3 relative to CSA₁, so it is 6.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO16.md",
+            "heading": "6.4 Kostenrekurrenz des CSA (Folie 32)"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "conditional-sum adder",
+            "cost and depth"
+          ]
+        },
+        {
+          "id": "era-16-l3-q04",
+          "type": "single",
+          "prompt": "Why do three smaller CSA circuits appear in the CSA recurrence step?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Each half is computed three times in sequence."
+            },
+            {
+              "id": "b",
+              "text": "All three compute the same upper half with carry-in 0."
+            },
+            {
+              "id": "c",
+              "text": "One computes the lower half with the actual carry; two compute the upper half for carry-in 0 and 1."
+            },
+            {
+              "id": "d",
+              "text": "One circuit computes the sum, one the carry, and one the overflow."
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "The lower CSA provides the actual carry. The two upper CSA blocks provide results for both possible carry-in values.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO16.md",
+            "heading": "6.3 Rekursive CSA-Schaltung (Folie 31)"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "conditional-sum adder"
+          ]
+        },
+        {
+          "id": "era-16-l3-q05",
+          "type": "cloze",
+          "prompt": "The naive canonical DNF can become expensive for n input bits because the truth table has ___ rows.",
+          "options": [
+            {
+              "id": "a",
+              "text": "2ⁿ"
+            },
+            {
+              "id": "b",
+              "text": "n"
+            },
+            {
+              "id": "c",
+              "text": "2n"
+            },
+            {
+              "id": "d",
+              "text": "n²"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "n binary inputs have 2ⁿ possible assignments. Therefore, the direct construction can grow quickly as n increases.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO16.md",
+            "heading": "1.3 Von Wahrheitstabelle zu Schaltung: kanonische DNF (Folien 10–12)"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "canonical DNF"
+          ]
+        },
+        {
+          "id": "era-16-l3-q06",
+          "type": "multi",
+          "prompt": "Select all correct statements; more than one answer may be correct. Which statements apply to signed overflow in two's-complement addition?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Equal carries at these two positions mean there is no overflow."
+            },
+            {
+              "id": "b",
+              "text": "Overflow occurs when the carry into the sign bit differs from the carry out of the sign bit."
+            },
+            {
+              "id": "c",
+              "text": "An ordinary unsigned carry and signed overflow are the same thing."
+            },
+            {
+              "id": "d",
+              "text": "A carry-out alone reliably detects signed overflow."
+            }
+          ],
+          "correct": [
+            "a",
+            "b"
+          ],
+          "explanation": "The overflow test is the XOR of the two carries at the sign bit. A carry-out alone is not sufficient because signed overflow is a different property.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO16.md",
+            "heading": "8. Zweierkomplement: Overflow erkennen (Folie 34)"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "signed overflow",
+            "carry-in and carry-out"
+          ]
+        },
+        {
+          "id": "era-16-l3-q07",
+          "type": "calc",
+          "prompt": "A 4-bit MUX selects vector a when s=1 and vector b when s=0. Let a=1010, b=0110, and s=0. What is the output?",
+          "options": [
+            {
+              "id": "a",
+              "text": "0110"
+            },
+            {
+              "id": "b",
+              "text": "1110"
+            },
+            {
+              "id": "c",
+              "text": "0000"
+            },
+            {
+              "id": "d",
+              "text": "1010"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "When s=0, the MUX selects vector b. Therefore, the output is 0110.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO16.md",
+            "heading": "6.2 Multiplexer (MUX) – der entscheidende Baustein (Folien 28–30)"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "multiplexer"
+          ]
+        },
+        {
+          "id": "era-16-l3-q08",
+          "type": "diagram",
+          "prompt": "In the diagram, what goes from the lower block to the MUX, and what is its purpose?",
+          "context": {
+            "type": "mermaid",
+            "content": "flowchart LR\n    LOW[\"lower CSA\"] -->|\"carry\"| MUX[\"MUX\"]\n    H0[\"upper CSA: carry-in 0\"] --> MUX\n    H1[\"upper CSA: carry-in 1\"] --> MUX\n    MUX --> OUT[\"upper result\"]",
+            "caption": "The lower carry controls the selection of the upper result"
+          },
+          "options": [
+            {
+              "id": "a",
+              "text": "The least significant sum bit; it is reused as the carry-in."
+            },
+            {
+              "id": "b",
+              "text": "The upper carry-out; it selects the lower block."
+            },
+            {
+              "id": "c",
+              "text": "An overflow flag; it inverts both upper results."
+            },
+            {
+              "id": "d",
+              "text": "The actual carry; it controls the selection of the upper result."
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "The carry from the lower half determines whether the upper result for carry-in 0 or carry-in 1 is selected.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO16.md",
+            "heading": "6.1 Die zentrale Idee: parallel rechnen statt Carry abwarten"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "conditional-sum adder",
+            "multiplexer"
+          ]
+        },
+        {
+          "id": "era-16-l3-q09",
+          "type": "single",
+          "prompt": "Two gates operate in parallel on separate input-to-output paths. What are their combined cost and depth?",
+          "options": [
+            {
+              "id": "a",
+              "text": "C=1, D=1"
+            },
+            {
+              "id": "b",
+              "text": "C=2, D=1"
+            },
+            {
+              "id": "c",
+              "text": "C=2, D=2"
+            },
+            {
+              "id": "d",
+              "text": "C=1, D=2"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "Both gates count toward the cost, so C=2. Because they operate in parallel, the longest path contains only one gate level.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO16.md",
+            "heading": "1.2 Was ist ein kombinatorischer Schaltkreis? (Folie 9)"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "cost and depth"
+          ]
+        },
+        {
+          "id": "era-16-l3-q10",
+          "type": "truefalse",
+          "prompt": "In a combined adder/subtractor, sub=1 must both XOR each b bit and set the carry-in to 1.",
+          "options": [
+            {
+              "id": "true",
+              "text": "True"
+            },
+            {
+              "id": "false",
+              "text": "False"
+            }
+          ],
+          "correct": [
+            "true"
+          ],
+          "explanation": "The XOR operations invert b; the carry-in adds 1. Without the carry-in, the second step of two's complement would be missing.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO16.md",
+            "heading": "7.3 Kombinierter Addierer/Subtrahierer (Folie 38)"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "adder/subtractor",
+            "two's-complement subtraction"
+          ]
+        },
+        {
+          "id": "era-16-l3-q11",
+          "type": "calc",
+          "prompt": "Add $0111_2+0011_2$ as signed 4-bit two's-complement numbers. What result bit pattern is produced, and does overflow occur?",
+          "options": [
+            {
+              "id": "a",
+              "text": "0101, overflow"
+            },
+            {
+              "id": "b",
+              "text": "1010, no overflow"
+            },
+            {
+              "id": "c",
+              "text": "0000, no overflow"
+            },
+            {
+              "id": "d",
+              "text": "1010, overflow"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "The bitwise addition gives 1010. Both operands are positive, but the result bit pattern is negative; also, the carry into and out of the sign bit differ, so overflow occurs.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO16.md",
+            "heading": "8. Zweierkomplement: Overflow erkennen (Folie 34)"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "signed overflow"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "era-16-l4",
+      "index": 4,
+      "kind": "boss",
+      "title": "Boss",
+      "questions": [
+        {
+          "id": "era-16-l4-q01",
+          "type": "single",
+          "prompt": "Can a half adder be built using only NAND gates?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Yes, but only if an additional carry-in is available."
+            },
+            {
+              "id": "b",
+              "text": "No, because NAND cannot implement negation."
+            },
+            {
+              "id": "c",
+              "text": "No, because a half adder must use an OR gate."
+            },
+            {
+              "id": "d",
+              "text": "Yes, because NAND alone is functionally complete."
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "NAND is functionally complete and can therefore represent any Boolean function, including the half adder's sum and carry functions.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO15.md",
+            "heading": null
+          },
+          "difficulty": 4,
+          "concepts": [
+            "half adder",
+            "NAND functional completeness"
+          ]
+        },
+        {
+          "id": "era-16-l4-q02",
+          "type": "calc",
+          "prompt": "Add the 4-bit two's-complement numbers $0111_2$ and $0001_2$. Give the 4-bit result and state whether signed overflow occurs.",
+          "options": [
+            {
+              "id": "a",
+              "text": "1000, no overflow"
+            },
+            {
+              "id": "b",
+              "text": "0000, no overflow"
+            },
+            {
+              "id": "c",
+              "text": "1000, overflow"
+            },
+            {
+              "id": "d",
+              "text": "0111, overflow"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "The sum 8 is outside the 4-bit two's-complement range [−8,7]. The pattern is 1000; the carry into and out of the sign bit differ.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO2 (ZÜ).md",
+            "heading": null
+          },
+          "difficulty": 4,
+          "concepts": [
+            "signed overflow",
+            "ripple-carry adder"
+          ]
+        },
+        {
+          "id": "era-16-l4-q03-r1",
+          "type": "calc",
+          "prompt": "A 4-bit adder/subtractor is to compute $0110_2-0010_2$. Use $a-b\\equiv a+\\neg b+1\\pmod{16}$: invert all bits of $b$, add $1$, and keep the four least significant result bits. What 4-bit result is produced?",
+          "options": [
+            {
+              "id": "a",
+              "text": "1111"
+            },
+            {
+              "id": "b",
+              "text": "0010"
+            },
+            {
+              "id": "c",
+              "text": "0100"
+            },
+            {
+              "id": "d",
+              "text": "1010"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "$\\neg 0010_2=1101_2$. Then $0110_2+1101_2+1=10100_2$. The four least significant bits are $0100_2$.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO16.md",
+            "heading": "7.1 Warum kann derselbe Addierer subtrahieren?"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "subtraction by addition",
+            "two's complement",
+            "modular arithmetic"
+          ]
+        },
+        {
+          "id": "era-16-l4-q04",
+          "type": "calc",
+          "prompt": "Compare the model values for a ripple-carry adder and a conditional-sum adder when n=8. For CR, C=5n and D=2n+1. For CSA, C(CSA₁)=5, C(CSAₙ)=3C(CSAₙ/₂)+3(n/2+1)+1, and D(CSA₁)=3 and D(CSAₙ)=D(CSAₙ/₂)+3.",
+          "options": [
+            {
+              "id": "a",
+              "text": "CR: C=40, D=17; CSA: C=244, D=24"
+            },
+            {
+              "id": "b",
+              "text": "CR: C=40, D=24; CSA: C=244, D=12"
+            },
+            {
+              "id": "c",
+              "text": "CR: C=40, D=17; CSA: C=160, D=12"
+            },
+            {
+              "id": "d",
+              "text": "CR: C=40, D=17; CSA: C=244, D=12"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "For CR₈, C=40 and D=17. The CSA recurrence gives C=244 and D=12: more gates, but less depth.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO16.md",
+            "heading": "6.6 Vergleich anhand konkreter Bitbreiten"
+          },
+          "difficulty": 5,
+          "concepts": [
+            "ripple-carry adder",
+            "conditional-sum adder",
+            "cost and depth"
+          ]
+        },
+        {
+          "id": "era-16-l4-q05",
+          "type": "multi",
+          "prompt": "Select all correct statements; more than one answer may be correct. Which statements correctly describe the architectural trade-off?",
+          "options": [
+            {
+              "id": "a",
+              "text": "The ripple-carry adder computes the upper half in advance for both carry cases."
+            },
+            {
+              "id": "b",
+              "text": "The conditional-sum adder uses more hardware to reduce carry wait time."
+            },
+            {
+              "id": "c",
+              "text": "The ripple-carry adder has linear cost and linear depth."
+            },
+            {
+              "id": "d",
+              "text": "The conditional-sum adder has logarithmic depth and cost O(n^(log₂3))."
+            }
+          ],
+          "correct": [
+            "b",
+            "c",
+            "d"
+          ],
+          "explanation": "The ripple-carry adder is simple, with both cost and depth growing linearly. The CSA computes additional carry cases in parallel: its depth is logarithmic, while its cost grows faster than linearly.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO16.md",
+            "heading": "9. Architekturvergleich – was ist die eigentliche Idee?"
+          },
+          "difficulty": 5,
+          "concepts": [
+            "ripple-carry adder",
+            "conditional-sum adder",
+            "cost and depth"
+          ]
+        },
+        {
+          "id": "era-16-l4-q06",
+          "type": "multi",
+          "prompt": "Select all correct statements; more than one answer may be correct. A conditional-sum adder should also be able to subtract. What must hold for sub=1?",
+          "options": [
+            {
+              "id": "a",
+              "text": "The carry-in is sub."
+            },
+            {
+              "id": "b",
+              "text": "All b bits are XORed with sub."
+            },
+            {
+              "id": "c",
+              "text": "A MUX can select between the precomputed carry cases."
+            },
+            {
+              "id": "d",
+              "text": "The upper CSA half must be computed only with carry-in 0."
+            }
+          ],
+          "correct": [
+            "a",
+            "b",
+            "c"
+          ],
+          "explanation": "sub=1 inverts b and sets the carry-in to 1, producing a+¬b+1. The CSA structure can provide the possible carry cases in parallel and select between them with a MUX.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO16.md",
+            "heading": "7.3 Kombinierter Addierer/Subtrahierer (Folie 38)"
+          },
+          "difficulty": 5,
+          "concepts": [
+            "conditional-sum adder",
+            "adder/subtractor",
+            "multiplexer"
+          ]
+        },
+        {
+          "id": "era-16-l4-q07",
+          "type": "calc",
+          "prompt": "A 4-bit adder receives a=0110, b=0011, and carry-in 1. What five output bits are produced?",
+          "options": [
+            {
+              "id": "a",
+              "text": "00110"
+            },
+            {
+              "id": "b",
+              "text": "01001"
+            },
+            {
+              "id": "c",
+              "text": "01010"
+            },
+            {
+              "id": "d",
+              "text": "11010"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "6+3+1=10. In five bits, the result is 01010₂; the carry-in must be included in the addition.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO16.md",
+            "heading": "2. Was soll ein $n$-Bit-Addierer leisten? (Folie 14)"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "carry-in and carry-out",
+            "ripple-carry adder"
+          ]
+        },
+        {
+          "id": "era-16-l4-q08",
+          "type": "diagram",
+          "prompt": "In the adder/subtractor circuit shown, which two connections must the control bit sub control?",
+          "context": {
+            "type": "mermaid",
+            "content": "flowchart LR\n    B[\"b bits\"] --> XOR[\"XOR gates\"]\n    SUB[\"sub\"] --> XOR\n    SUB -->|\"carry-in\"| ADD[\"adder\"]\n    A[\"a bits\"] --> ADD\n    XOR -->|\"b-prime\"| ADD\n    ADD --> OUT[\"result\"]",
+            "caption": "Control paths in the combined adder/subtractor"
+          },
+          "options": [
+            {
+              "id": "a",
+              "text": "Only the adder output and the overflow flag"
+            },
+            {
+              "id": "b",
+              "text": "The XOR gates for the b bits and the adder's carry-in"
+            },
+            {
+              "id": "c",
+              "text": "Only the adder's carry-in"
+            },
+            {
+              "id": "d",
+              "text": "Only the XOR gates for the b bits"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "sub controls both the conditional inversion of each b bit and the carry-in. Thus, sub=1 gives the computation a+¬b+1.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO16.md",
+            "heading": "7.3 Kombinierter Addierer/Subtrahierer (Folie 38)"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "adder/subtractor",
+            "two's-complement subtraction"
+          ]
+        },
+        {
+          "id": "era-16-l4-q09",
+          "type": "single",
+          "prompt": "Which condition tests for overflow in a signed two's-complement addition?",
+          "options": [
+            {
+              "id": "a",
+              "text": "The carry-out from the sign bit is 1."
+            },
+            {
+              "id": "b",
+              "text": "The carry into the sign bit XOR the carry out of the sign bit is 1."
+            },
+            {
+              "id": "c",
+              "text": "The two carry values at the sign bit are equal."
+            },
+            {
+              "id": "d",
+              "text": "The least significant sum bit is 1."
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "Overflow occurs when the two carries at the sign bit differ. Their XOR is then 1.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO16.md",
+            "heading": "8. Zweierkomplement: Overflow erkennen (Folie 34)"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "signed overflow",
+            "carry-in and carry-out"
+          ]
+        },
+        {
+          "id": "era-16-l4-q10",
+          "type": "calc",
+          "prompt": "A Boolean function y is 1 for (a,b)=(0,1) and (1,1), and 0 otherwise. Which of the listed functions agrees for all inputs?",
+          "context": {
+            "type": "table",
+            "content": "| a | b | y |\n|---|---|---|\n| 0 | 0 | 0 |\n| 0 | 1 | 1 |\n| 1 | 0 | 0 |\n| 1 | 1 | 1 |",
+            "caption": "Truth table for y"
+          },
+          "options": [
+            {
+              "id": "a",
+              "text": "¬a ∧ b"
+            },
+            {
+              "id": "b",
+              "text": "a ⊕ b"
+            },
+            {
+              "id": "c",
+              "text": "a"
+            },
+            {
+              "id": "d",
+              "text": "b"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "In both rows with output 1, b=1; in the remaining rows, b=0. Thus, y=b describes the table and is the simplified form of the canonical DNF.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO16.md",
+            "heading": "1.3 Von Wahrheitstabelle zu Schaltung: kanonische DNF (Folien 10–12)"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "canonical DNF"
+          ]
+        },
+        {
+          "id": "era-16-l4-q11",
+          "type": "calc",
+          "prompt": "Two 3-bit operands are both at their maximum value, and the adder receives carry-in 1. How many bits are needed, and what result is produced?",
+          "options": [
+            {
+              "id": "a",
+              "text": "4 bits: 1111"
+            },
+            {
+              "id": "b",
+              "text": "4 bits: 1110"
+            },
+            {
+              "id": "c",
+              "text": "5 bits: 01111"
+            },
+            {
+              "id": "d",
+              "text": "3 bits: 111"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "111₂+111₂+1₂=15=1111₂. Two 3-bit operands plus a carry-in require at most four output bits.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO16.md",
+            "heading": "2. Was soll ein $n$-Bit-Addierer leisten? (Folie 14)"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "carry-in and carry-out"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "era-16-l5",
+      "index": 5,
+      "kind": "bonus",
+      "title": "In Practice: Logic in Everyday Life",
+      "questions": [
+        {
+          "id": "era-16-l5-q01",
+          "type": "single",
+          "prompt": "At any moment, a heating controller receives only two signals: `kalt` and `fenster_zu`. It turns the heating on exactly when both signals are 1. The component stores no previous values. Which type of circuit fits?",
+          "options": [
+            {
+              "id": "a",
+              "text": "A circuit with memory that retains previous measurements."
+            },
+            {
+              "id": "b",
+              "text": "A half adder that adds two bits without a carry-in."
+            },
+            {
+              "id": "c",
+              "text": "A combinational circuit: the output depends only on the current inputs."
+            },
+            {
+              "id": "d",
+              "text": "A ripple-carry adder that propagates a carry across several positions."
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "The described block has no memory: given the same current input signals, it produces the same output. This is the definition of a combinational circuit.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO16.md",
+            "heading": "1.2 Was ist ein kombinatorischer Schaltkreis? (Folie 9)"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "combinational circuit"
+          ]
+        },
+        {
+          "id": "era-16-l5-q02",
+          "type": "multi",
+          "prompt": "A wearable device should use the same arithmetic unit to add or subtract. `sub=0` means addition, and `sub=1` means subtraction. When `sub=1`, which hardware connections are needed to compute $a-b$?",
+          "options": [
+            {
+              "id": "a",
+              "text": "XOR each bit of $b$ with `sub`: $b'_i=b_i\\oplus sub$."
+            },
+            {
+              "id": "b",
+              "text": "Set only the carry-in to 1 and leave $b$ unchanged."
+            },
+            {
+              "id": "c",
+              "text": "Invert the bits of $a$ and set the carry-in to 0."
+            },
+            {
+              "id": "d",
+              "text": "Set the carry-in to `sub`."
+            }
+          ],
+          "correct": [
+            "a",
+            "d"
+          ],
+          "explanation": "When `sub=1`, $b$ is inverted and a carry-in of 1 is added. The device therefore computes $a+\\neg b+1$, which gives $a-b$ modulo the bit width.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO16.md",
+            "heading": "7.3 Kombinierter Addierer/Subtrahierer (Folie 38)"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "two's-complement subtraction",
+            "adder/subtractor",
+            "carry-in and carry-out"
+          ]
+        },
+        {
+          "id": "era-16-l5-q03",
+          "type": "estimate",
+          "prompt": "A 4-bit adder receives two 4-bit operands. Each possible ordered pair of operands counts as one input case. How many input cases are there in total?",
+          "options": [],
+          "correct": [],
+          "slider": {
+            "min": 0,
+            "max": 400,
+            "step": 1,
+            "answer": 256,
+            "tolerance": 0,
+            "unit": "input cases",
+            "scale": "linear"
+          },
+          "explanation": "Each operand has $2^4=16$ possible bit patterns. For two operands, there are $16\\cdot16=256$ ordered pairs.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO16.md",
+            "heading": "2. Was soll ein $n$-Bit-Addierer leisten? (Folie 14)"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "multi-bit adder"
+          ]
+        },
+        {
+          "id": "era-16-l5-q04",
+          "type": "single",
+          "prompt": "A game stores the score as a signed 4-bit number. The representable range is $[-8,7]$. After $+7+3$, the counter displays the bit pattern `1010`. What should the overflow indicator report?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Overflow occurs only if unsigned addition also produces a carry-out."
+            },
+            {
+              "id": "b",
+              "text": "No overflow: the sum fits in four bits when interpreted as unsigned."
+            },
+            {
+              "id": "c",
+              "text": "No overflow: `1010` is a valid 4-bit pattern."
+            },
+            {
+              "id": "d",
+              "text": "Signed overflow: the mathematical sum 10 is outside $[-8,7]$."
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "$7+3=10$ is greater than the largest representable 4-bit two's-complement value, 7. The pattern `1010` represents a valid number, but it represents $-6$ rather than 10: signed overflow has occurred.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO16.md",
+            "heading": "8. Zweierkomplement: Overflow erkennen (Folie 34)"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "signed overflow",
+            "two's-complement subtraction"
+          ]
+        },
+        {
+          "id": "era-16-l5-q05",
+          "type": "single",
+          "prompt": "A display pipeline computes two possible pixel values: A=`0110` and B=`1101`. A MUX is a switch: when $s=1$, it outputs A; when $s=0$, it outputs B. What is the output when $s=1$?",
+          "options": [
+            {
+              "id": "a",
+              "text": "0110"
+            },
+            {
+              "id": "b",
+              "text": "1101"
+            },
+            {
+              "id": "c",
+              "text": "0010"
+            },
+            {
+              "id": "d",
+              "text": "1001"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "When $s=1$, the MUX selects vector A. In a pipeline, for example, this selection can switch between two already computed pixel values.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO16.md",
+            "heading": "6.2 Multiplexer (MUX) – der entscheidende Baustein (Folien 28–30)"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "multiplexer"
+          ]
+        },
+        {
+          "id": "era-16-l5-q06",
+          "type": "estimate",
+          "prompt": "In the simplified gate model, a ripple-carry adder with $n$ bits has depth $D=2n+1$. What is the depth of a 12-bit adder?",
+          "options": [],
+          "correct": [],
+          "slider": {
+            "min": 0,
+            "max": 60,
+            "step": 1,
+            "answer": 25,
+            "tolerance": 0,
+            "unit": "gate levels",
+            "scale": "linear"
+          },
+          "explanation": "Substitute $n=12$: $D=2\\cdot12+1=25$. Depth counts the gates along the longest input-to-output path.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO16.md",
+            "heading": "5.5 Kosten und Tiefe herleiten"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "ripple-carry adder",
+            "cost and depth"
+          ]
+        },
+        {
+          "id": "era-16-l5-q07",
+          "type": "single",
+          "prompt": "You are designing the logic for a badge reader and may use only NAND gates in your gate model. Which practical fact about NAND helps you?",
+          "options": [
+            {
+              "id": "a",
+              "text": "NAND can output 1 only when both inputs are 1."
+            },
+            {
+              "id": "b",
+              "text": "NAND gates automatically store previous input values."
+            },
+            {
+              "id": "c",
+              "text": "Any Boolean function can be built from NAND gates alone."
+            },
+            {
+              "id": "d",
+              "text": "NAND can represent only functions with exactly two inputs."
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "NAND is functionally complete: by connecting NAND gates appropriately, you can implement any Boolean function. This is useful when a design is restricted to a single gate type.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO16.md",
+            "heading": "1.1 DIN/IEC-Gattersymbole"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "NAND functional completeness"
+          ]
+        },
+        {
+          "id": "era-16-l5-q08-r1",
+          "type": "estimate",
+          "prompt": "For a conditional-sum adder with power-of-two widths $n$: $C(CSA_1)=5$, and for $n>1$, $C(CSA_n)=3C(CSA_{n/2})+3(n/2+1)+1$. Recursively calculate the number of gates for $CSA_8$. Count all gates according to this cost formula.",
+          "options": [],
+          "correct": [],
+          "slider": {
+            "min": 40,
+            "max": 400,
+            "step": 1,
+            "answer": 244,
+            "tolerance": 0,
+            "unit": "gates",
+            "scale": "linear"
+          },
+          "explanation": "$C(CSA_2)=3·5+3·2+1=22$, $C(CSA_4)=3·22+3·3+1=76$, and $C(CSA_8)=3·76+3·5+1=244$ gates.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO16.md",
+            "heading": "6.4 Kostenrekurrenz des CSA (Folie 32)"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "conditional-sum adder",
+            "cost recurrence",
+            "recursion"
+          ]
+        },
+        {
+          "id": "era-16-l5-q09",
+          "type": "single",
+          "prompt": "In a door-control system, $a$ and $b$ are input bits. The enable signal $y$ is 1 exactly for $(a,b)=(0,1)$ and $(1,1)$, and is 0 otherwise. Which formula is the canonical DNF, with a separate minterm for each row with output 1?",
+          "options": [
+            {
+              "id": "a",
+              "text": "$(¬a ∧ b)$"
+            },
+            {
+              "id": "b",
+              "text": "$(¬a ∧ ¬b) ∨ (a ∧ ¬b)$"
+            },
+            {
+              "id": "c",
+              "text": "$(a ∧ b)$"
+            },
+            {
+              "id": "d",
+              "text": "$(¬a ∧ b) ∨ (a ∧ b)$"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "The canonical DNF forms one minterm for each of the two rows with $y=1$ and combines them with OR. Here, the formula can then be simplified to $b$.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO16.md",
+            "heading": "1.3 Von Wahrheitstabelle zu Schaltung: kanonische DNF (Folien 10–12)"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "canonical DNF"
+          ]
+        },
+        {
+          "id": "era-16-l5-q10",
+          "type": "single",
+          "prompt": "You are planning a 32-bit arithmetic core for a device where short addition time is important and more chip area is available. A ripple-carry adder saves gates, but its carry propagates one position at a time. A conditional-sum adder computes upper partial results in parallel for carry-in 0 and 1, then selects between them with a MUX. Which concept better fits the timing goal?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Conditional-sum adder: more hardware, but logarithmically growing depth."
+            },
+            {
+              "id": "b",
+              "text": "Canonical DNF: it selects between both adder results using a MUX."
+            },
+            {
+              "id": "c",
+              "text": "Half adder: it processes the carry-in of the upper half."
+            },
+            {
+              "id": "d",
+              "text": "Ripple-carry adder: its carry path grows logarithmically."
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "The conditional-sum adder computes both possible carry cases in parallel, then uses a MUX to select between them. It requires more gates but reduces depth compared with the ripple adder's linear carry chain.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO16.md",
+            "heading": "6.1 Die zentrale Idee: parallel rechnen statt Carry abwarten"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "conditional-sum adder",
+            "multiplexer",
+            "cost and depth"
+          ]
+        }
+      ]
+    }
+  ]
+}

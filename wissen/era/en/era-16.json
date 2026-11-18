@@ -1,0 +1,383 @@
+{
+  "schemaVersion": 1,
+  "unitId": "era-16",
+  "module": "ERA",
+  "unitNumber": 16,
+  "unitTitle": "Circuits, Adders, and Subtractors",
+  "sourceSha": "167552d3b46c12eaa1b2e8c828f561af812164adea270e50b2a7b26c8163a0ac",
+  "overview": "This unit moves from Boolean functions (Boolesche Funktionen) and gate symbols (Gattersymbole) to combinational circuits (kombinatorische Schaltungen) and multi-bit adders (Mehrbit-Addierer). Half adders (Halbaddierer) and full adders (Volladdierer) provide the basis for the Carry Ripple Adder and Conditional Sum Adder, whose gate counts and depths illustrate different speed and hardware costs. Two's-complement subtraction lets an adder subtract as well; signed overflow (vorzeichenbehafteter Überlauf) is detected by comparing the carries into and out of the sign bit.",
+  "entries": [
+    {
+      "id": "era-16-k01",
+      "term": "DIN/IEC gate symbols (DIN/IEC-Gattersymbole)",
+      "kind": "notation",
+      "short": "DIN/IEC gate symbols represent logic gates as rectangular blocks, with a small circle indicating negation.",
+      "explanation": "In DIN/IEC symbols, `&` denotes AND and `≥1` denotes OR; `=1` denotes XOR for two inputs. A small circle at an input or output means the signal is negated at that point. The corresponding Boolean notations are AND: $a\\land b$, OR: $a\\lor b$, NOT: $\\neg a$, NAND: $\\neg(a\\land b)$, NOR: $\\neg(a\\lor b)$, XOR: $a\\oplus b$, and XNOR: $\\neg(a\\oplus b)$.",
+      "example": "An OR gate with inputs $a$ and $b$ outputs $1$ as soon as at least one input is $1$.",
+      "pitfalls": [
+        "A small circle negates only the signal at its position; it does not automatically negate the entire circuit."
+      ],
+      "related": [
+        "Boolean algebra",
+        "Logical operators",
+        "NAND functional completeness"
+      ],
+      "heading": "1.1 DIN/IEC-Gattersymbole"
+    },
+    {
+      "id": "era-16-k02",
+      "term": "NAND functional completeness (NAND-Funktionalvollständigkeit)",
+      "kind": "theorem",
+      "short": "Any Boolean function can be implemented using NAND gates alone.",
+      "explanation": "A gate set is functionally complete if it can represent every Boolean function. NAND is sufficient because NOT can be implemented as $\\neg a=a\\operatorname{NAND}a$ and AND as $a\\land b=\\neg(a\\operatorname{NAND}b)$. De Morgan's laws allow OR to be constructed from NOT and AND, so every Boolean function can be implemented.",
+      "example": "We have $a\\lor b=(a\\operatorname{NAND}a)\\operatorname{NAND}(b\\operatorname{NAND}b)$.",
+      "pitfalls": [
+        "Functional completeness does not mean that a NAND circuit always uses the fewest gates or has the lowest depth."
+      ],
+      "related": [
+        "DIN/IEC gate symbols",
+        "Functional completeness",
+        "NAND"
+      ],
+      "heading": null
+    },
+    {
+      "id": "era-16-k03",
+      "term": "Implication as a circuit (Implikation als Schaltung)",
+      "kind": "concept",
+      "short": "An implication can be implemented as the OR of the negated premise and the conclusion.",
+      "explanation": "For Boolean inputs, $a\\Rightarrow b\\equiv\\neg a\\lor b\\equiv\\neg(a\\land\\neg b)$ holds. The circuit therefore negates $a$ and ORs the result with $b$. The implication is false only when $a=1$ and $b=0$.",
+      "example": "For $a=1$ and $b=0$, we have $\\neg a\\lor b=0\\lor0=0$.",
+      "pitfalls": [
+        "An inverted input does not mean that the entire function is negated."
+      ],
+      "related": [
+        "DIN/IEC gate symbols",
+        "Logical operators",
+        "Boolean algebra"
+      ],
+      "heading": "Implikation als Schaltung (Folie 8)"
+    },
+    {
+      "id": "era-16-k04",
+      "term": "Combinational circuit (Kombinatorischer Schaltkreis)",
+      "kind": "definition",
+      "short": "A combinational circuit is a directed acyclic graph with no memory.",
+      "explanation": "Its nodes are primary inputs, gates, and primary outputs; its edges carry signals between these elements. Because the graph is acyclic, it has no feedback in which a signal depends on an earlier value of itself. In the model considered here, the outputs are determined solely by the current inputs.",
+      "example": "An XOR gate and an AND gate can process the same inputs $a,b$ in parallel and produce the sum and carry-out of a half adder.",
+      "pitfalls": [
+        "A combinational circuit does not store earlier input values."
+      ],
+      "related": [
+        "DIN/IEC gate symbols",
+        "Circuit cost and depth"
+      ],
+      "heading": "1.2 Was ist ein kombinatorischer Schaltkreis? (Folie 9)"
+    },
+    {
+      "id": "era-16-k05",
+      "term": "Circuit cost and depth (Kosten und Tiefe eines Schaltkreises)",
+      "kind": "definition",
+      "short": "Cost counts the gates, while depth counts the gates on the longest input-to-output path.",
+      "explanation": "For a circuit $S$, the cost is $C(S)=\\text{Anzahl der Gatter von }S$. Its depth is $D(S)=\\max_p(\\text{Anzahl der Gatter auf }p)$, where $p$ ranges over all paths from an input to an output. Two parallel gates have cost $2$ and depth $1$, whereas two cascaded gates have cost $2$ and depth $2$. The values in this unit apply to the gate and cost model being used.",
+      "example": "A half adder uses two parallel gates, so $C(HA)=2$ and $D(HA)=1$.",
+      "pitfalls": [
+        "More gates increase the cost, but do not necessarily increase the depth.",
+        "Model costs are not transistor counts and do not directly give the delay of a particular chip."
+      ],
+      "related": [
+        "Combinational circuit",
+        "Half adder (HA)",
+        "Full adder (FA)"
+      ],
+      "heading": "0. Das Wichtigste auf einen Blick"
+    },
+    {
+      "id": "era-16-k06",
+      "term": "Minterm (Minterm)",
+      "kind": "definition",
+      "short": "A minterm is an AND of literals that is true for exactly one input assignment.",
+      "explanation": "A minterm contains every input variable, either uncomplemented or negated. For a variable with table value $0$, use its negated form; for a variable with table value $1$, use its uncomplemented form. This makes the minterm true exactly for the corresponding input assignment $1$.",
+      "example": "For $a=0,b=1,c=1$, the minterm is $\\neg a\\land b\\land c$.",
+      "pitfalls": [
+        "A minterm describes a complete input assignment, not just the variables with value $1$."
+      ],
+      "related": [
+        "Canonical DNF",
+        "Truth tables"
+      ],
+      "heading": "1.3 Von Wahrheitstabelle zu Schaltung: kanonische DNF (Folien 10–12)"
+    },
+    {
+      "id": "era-16-k07",
+      "term": "Canonical DNF (Kanonische DNF)",
+      "kind": "method",
+      "short": "The canonical DNF ORs the minterms for all truth-table rows whose output is $1$.",
+      "explanation": "This method systematically converts a truth table into a Boolean function and therefore into a circuit. Select each row with output $y=1$ and form a minterm from all the input variables in that row. Then OR these minterms together. The method is universal, but can be costly because $n$ input bits yield $2^n$ table rows.",
+      "example": "For rows $(0,1,1)$, $(1,0,1)$, and $(1,1,1)$ with output $1$, we obtain $y=(\\neg a\\land b\\land c)\\lor(a\\land\\neg b\\land c)\\lor(a\\land b\\land c)$; in simplified form, $y=c\\land(a\\lor b)$.",
+      "pitfalls": [
+        "Input variables with table value $0$ must also appear as negated variables in their respective minterms.",
+        "The canonical DNF gives a systematic implementation, but not necessarily the smallest circuit."
+      ],
+      "related": [
+        "Minterm",
+        "Truth tables",
+        "Circuit cost and depth"
+      ],
+      "heading": "1.3 Von Wahrheitstabelle zu Schaltung: kanonische DNF (Folien 10–12)"
+    },
+    {
+      "id": "era-16-k08",
+      "term": "n-bit adder (n-Bit-Addierer)",
+      "kind": "definition",
+      "short": "An n-bit adder computes the sum of two n-bit operands and a carry-in, producing n+1 output bits.",
+      "explanation": "For nonnegative operands $a=(a_{n-1}\\ldots a_0)_2$ and $b=(b_{n-1}\\ldots b_0)_2$, and carry-in $c\\in\\{0,1\\}$, the adder should output $s=a+b+c$. The largest possible value is $(2^n-1)+(2^n-1)+1=2^{n+1}-1$. Exactly $n+1$ bits are sufficient; the extra most significant bit contains the final carry.",
+      "example": "For $n=4$, we have $1111_2+1111_2+1=11111_2$.",
+      "pitfalls": [
+        "With a carry-in, $n$ output bits may not be sufficient."
+      ],
+      "related": [
+        "Carry-in and carry-out",
+        "Carry Ripple Adder (CRₙ)",
+        "Two's complement"
+      ],
+      "heading": "2. Was soll ein $n$-Bit-Addierer leisten? (Folie 14)"
+    },
+    {
+      "id": "era-16-k09",
+      "term": "Carry-in and carry-out (eingehender und ausgehender Übertrag)",
+      "kind": "notation",
+      "short": "Carry-in is the carry entering a bit position; carry-out is the carry leaving it.",
+      "explanation": "At bit position $i$, $c_{i-1}$ is the carry-in and $c_i$ is the carry-out. The carry-out from one position becomes the carry-in at the next higher position. In a multi-bit adder, the carry-out from the highest position is the extra result bit.",
+      "example": "When adding $1+1$, the sum bit is $0$ and the carry-out is $1$, since $1+1=10_2$.",
+      "pitfalls": [
+        "Carry-out and the sum bit are distinct outputs.",
+        "For two's-complement numbers, carry-out alone does not reliably indicate signed overflow."
+      ],
+      "related": [
+        "Half adder (HA)",
+        "Full adder (FA)",
+        "Signed overflow (vorzeichenbehafteter Überlauf)"
+      ],
+      "heading": "5.1 Prinzip der schriftlichen Addition"
+    },
+    {
+      "id": "era-16-k10",
+      "term": "Half adder (Halbaddierer; HA)",
+      "kind": "definition",
+      "short": "A half adder adds two bits without a carry-in and outputs a sum bit and a carry-out.",
+      "explanation": "For inputs $a_0,b_0\\in\\{0,1\\}$, the half adder produces outputs $(s_1,s_0)$ such that $2s_1+s_0=a_0+b_0$. Here, $s_0=a_0\\oplus b_0$ is the least significant sum bit and $s_1=a_0\\land b_0$ is the carry-out. XOR and AND operate in parallel, so in the model being used, $C(HA)=2$ and $D(HA)=1$.",
+      "example": "For $a_0=b_0=1$, we have $s_1s_0=10_2$, so $1+1=2$.",
+      "pitfalls": [
+        "A half adder has no carry-in, so it cannot by itself handle a higher bit position with a carry from the previous position."
+      ],
+      "related": [
+        "Carry-in and carry-out",
+        "Full adder (FA)",
+        "Circuit cost and depth"
+      ],
+      "heading": "3.1 Definition"
+    },
+    {
+      "id": "era-16-k11",
+      "term": "Full adder (Volladdierer; FA)",
+      "kind": "definition",
+      "short": "A full adder adds two input bits and a carry-in, producing a sum bit and a carry-out.",
+      "explanation": "For inputs $a_0,b_0,c$, we have $2s_1+s_0=a_0+b_0+c$. The sum bit is $s_0=a_0\\oplus b_0\\oplus c$, and the carry-out is $s_1=(a_0\\land b_0)\\lor(c\\land(a_0\\oplus b_0))$. The carry-out is $1$ exactly when at least two of the three inputs are $1$.",
+      "example": "For $a_0=b_0=c=1$, we have $1+1+1=11_2$, so $s_1=1$ and $s_0=1$.",
+      "pitfalls": [
+        "The full adder's third input is the carry-in."
+      ],
+      "related": [
+        "Half adder (HA)",
+        "Carry-in and carry-out",
+        "Carry Ripple Adder (CRₙ)"
+      ],
+      "heading": "4.1 Was fehlt dem Halbaddierer?"
+    },
+    {
+      "id": "era-16-k12",
+      "term": "Full adder from two half adders (Volladdierer aus zwei Halbaddierern)",
+      "kind": "method",
+      "short": "A full adder can be built from two half adders and an OR gate.",
+      "explanation": "The first half adder processes $a_0,b_0$ and produces $p=a_0\\oplus b_0$ and $g=a_0\\land b_0$. The second processes $p,c$ and produces the sum bit $s_0$ and carry $h=p\\land c$. An OR gate forms the carry-out $s_1=g\\lor h$. Thus, in the model being used, $C(FA)=2\\cdot2+1=5$ and $D(FA)=1+1+1=3$.",
+      "example": null,
+      "pitfalls": [
+        "The two partial carries must be combined with OR."
+      ],
+      "related": [
+        "Half adder (HA)",
+        "Full adder (FA)",
+        "Circuit cost and depth"
+      ],
+      "heading": "4.4 FA aus zwei HA + OR aufbauen"
+    },
+    {
+      "id": "era-16-k13",
+      "term": "Carry Ripple Adder (CRₙ)",
+      "kind": "method",
+      "short": "A Carry Ripple Adder connects n full adders so that the carry propagates from the lowest to the highest position.",
+      "explanation": "At each position $i$, a full adder computes the sum bit $s_i=a_i\\oplus b_i\\oplus c_{i-1}$ and carry-out $c_i=(a_i\\land b_i)\\lor(c_{i-1}\\land(a_i\\oplus b_i))$. The carry-out is passed to the next, higher-order full adder; the first full adder receives its carry-in from outside. In the lecture's model, $C(CR_n)=5n$ and $D(CR_n)=2n+1$.",
+      "example": "For $0101_2+0011_2$, we obtain $01000_2=8$.",
+      "pitfalls": [
+        "The carry propagates from the least significant bit to the most significant bit.",
+        "The depth is not $3n$: after the first full adder, the carry path requires two gate levels for each additional position."
+      ],
+      "related": [
+        "Full adder (FA)",
+        "Carry-in and carry-out",
+        "Circuit cost and depth",
+        "Conditional Sum Adder (CSAₙ)"
+      ],
+      "heading": "5.1 Prinzip der schriftlichen Addition"
+    },
+    {
+      "id": "era-16-k14",
+      "term": "Multiplexer (MUX)",
+      "kind": "definition",
+      "short": "A multiplexer selects one of two input vectors based on a select bit.",
+      "explanation": "Under the convention used here, $sel_n(a,b,s)=a$ when $s=1$ and $sel_n(a,b,s)=b$ when $s=0$. For each bit $i$, the function is $sel_i=(s\\land a_i)\\lor(\\neg s\\land b_i)$. An $n$-bit MUX requires $2n$ AND gates, $n$ OR gates, and one shared NOT gate for $s$, giving $C(MUX_n)=3n+1$ and $D(MUX_n)=3$.",
+      "example": "When $s=1$, a 2-bit MUX outputs the entire vector $a$.",
+      "pitfalls": [
+        "The selection convention is $s=1\\Rightarrow a$ and $s=0\\Rightarrow b$.",
+        "The NOT gate for the select bit is shared across all bit positions."
+      ],
+      "related": [
+        "Conditional Sum Adder (CSAₙ)",
+        "Circuit cost and depth"
+      ],
+      "heading": "6.2 Multiplexer (MUX) – der entscheidende Baustein (Folien 28–30)"
+    },
+    {
+      "id": "era-16-k15",
+      "term": "Conditional Sum Adder (CSAₙ)",
+      "kind": "concept",
+      "short": "A Conditional Sum Adder computes possible carry cases in parallel and later selects the appropriate result.",
+      "explanation": "The CSA divides the bit positions into a lower and an upper half. The upper half is computed twice in parallel: once assuming carry-in $0$ and once assuming carry-in $1$. Once the actual carry from the lower half is available, a MUX selects the appropriate upper sum and carry-out. This reduces depth compared with a carry chain, but requires more gates.",
+      "example": "When split into two groups of four bits, the upper four-bit half computes its results simultaneously for carry-in $0$ and $1$.",
+      "pitfalls": [
+        "The upper half is precomputed twice; therefore, the recursive construction uses three smaller CSA blocks."
+      ],
+      "related": [
+        "Carry Ripple Adder (CRₙ)",
+        "Multiplexer (MUX)",
+        "Cost recurrence of the Conditional Sum Adder",
+        "Depth recurrence of the Conditional Sum Adder"
+      ],
+      "heading": "6.1 Die zentrale Idee: parallel rechnen statt Carry abwarten"
+    },
+    {
+      "id": "era-16-k16",
+      "term": "Recursive construction of the Conditional Sum Adder (Rekursiver Aufbau des Conditional Sum Adders)",
+      "kind": "method",
+      "short": "A CSA of width n consists of a lower CSA, two upper CSA blocks, and a MUX.",
+      "explanation": "The recursive construction is used for even widths, especially powers of two. One $CSA_{n/2}$ processes the lower bits using the actual carry-in. Two more $CSA_{n/2}$ process the upper bits with carry-in $0$ and $1$, respectively. The carry from the lower half controls a $MUX_{n/2+1}$, which selects the upper sum bits and carry-out.",
+      "example": null,
+      "pitfalls": [
+        "The two upper sub-adders operate in parallel and do not wait for the lower carry.",
+        "The MUX is $n/2+1$ bits wide because it selects $n/2$ sum bits and the carry-out from the upper half."
+      ],
+      "related": [
+        "Conditional Sum Adder (CSAₙ)",
+        "Multiplexer (MUX)",
+        "Carry-in and carry-out"
+      ],
+      "heading": "6.3 Rekursive CSA-Schaltung (Folie 31)"
+    },
+    {
+      "id": "era-16-k17",
+      "term": "Cost recurrence of the Conditional Sum Adder (Kostenrekurrenz des Conditional Sum Adders)",
+      "kind": "theorem",
+      "short": "For power-of-two widths, the CSA satisfies the recurrence $C(CSA_n)=3C(CSA_{n/2})+3(n/2+1)+1$.",
+      "explanation": "The base case is $C(CSA_1)=5$, corresponding to the cost of a full adder. Each recursive step requires three sub-CSAs of width $n/2$ and one $n/2+1$-bit MUX. This gives $C(CSA_2)=22$ and $C(CSA_4)=76$. Asymptotically, the cost grows as $O(n^{\\log_2 3})\\approx O(n^{1.585})$, faster than the linear cost of the Carry Ripple Adder.",
+      "example": "For $n=2$, we have $C(CSA_2)=3\\cdot5+3\\cdot2+1=22$.",
+      "pitfalls": [
+        "This form of the recurrence applies to the power-of-two widths considered here.",
+        "The CSA has higher asymptotic cost than the Carry Ripple Adder, whose cost is $C(CR_n)=5n$."
+      ],
+      "related": [
+        "Conditional Sum Adder (CSAₙ)",
+        "Multiplexer (MUX)",
+        "Carry Ripple Adder (CRₙ)"
+      ],
+      "heading": "6.4 Kostenrekurrenz des CSA (Folie 32)"
+    },
+    {
+      "id": "era-16-k18",
+      "term": "Depth recurrence of the Conditional Sum Adder (Tiefenrekurrenz des Conditional Sum Adders)",
+      "kind": "theorem",
+      "short": "The CSA depth satisfies $D(CSA_n)=D(CSA_{n/2})+3$ and therefore grows logarithmically.",
+      "explanation": "The base case is $D(CSA_1)=3$. The three sub-CSAs in a recursive step operate in parallel, so their depths are not added; the MUX depth $3$ is then added. For $n=2^k$, this gives $D(CSA_n)=3+3\\log_2 n=3(1+\\log_2 n)$ and hence $O(\\log n)$.",
+      "example": "For $n=16$, we have $D(CSA_{16})=3(1+\\log_2 16)=15$.",
+      "pitfalls": [
+        "The recurrence gives $3(1+\\log_2 n)$, not $3+\\log_2 n$.",
+        "The lower depth requires additional gate overhead."
+      ],
+      "related": [
+        "Conditional Sum Adder (CSAₙ)",
+        "Multiplexer (MUX)",
+        "Carry Ripple Adder (CRₙ)",
+        "Circuit cost and depth"
+      ],
+      "heading": "6.5 Tiefenrekurrenz des CSA"
+    },
+    {
+      "id": "era-16-k19",
+      "term": "Two's-complement subtraction (Zweierkomplement-Subtraktion)",
+      "kind": "theorem",
+      "short": "An n-bit subtraction can be computed modulo $2^n$ as $a-b\\equiv a+\\neg b+1$.",
+      "explanation": "In $n$-bit two's complement, $-b\\equiv\\neg b+1\\pmod{2^n}$. Therefore, $a-b$ is computed by inverting every bit of $b$ and setting the adder's carry-in to $1$. The result is equivalent to subtraction modulo $2^n$.",
+      "example": "With four bits, $0110_2-0111_2=0110_2+1000_2+1=1111_2$, which represents $-1$ in two's complement.",
+      "pitfalls": [
+        "Inverting only $b$ is not enough; the additional summand $1$ must also be included."
+      ],
+      "related": [
+        "Two's complement",
+        "Carry-in and carry-out",
+        "Adder/subtractor"
+      ],
+      "heading": "7.1 Warum kann derselbe Addierer subtrahieren?"
+    },
+    {
+      "id": "era-16-k20",
+      "term": "Adder/subtractor (Addierer/Subtrahierer)",
+      "kind": "concept",
+      "short": "A control bit sub makes the same adder circuit perform either addition or two's-complement subtraction.",
+      "explanation": "Each operand bit $b_i$ is XORed with the control bit: $b'_i=b_i\\oplus sub$. At the same time, the carry-in is set to $c_{in}=sub$, so the circuit computes $a+(b\\oplus sub)+sub$. For $sub=0$, $b$ remains unchanged and the carry-in is $0$. For $sub=1$, $b$ is inverted and the carry-in is $1$, yielding $a-b$ modulo the word width.",
+      "example": "When $sub=1$, the circuit computes $a+\\neg b+1$, which is $a-b$ modulo the word width.",
+      "pitfalls": [
+        "The control bit must be XORed with every bit of $b$ and connected to the carry-in."
+      ],
+      "related": [
+        "Two's-complement subtraction",
+        "Carry-in and carry-out",
+        "Full adder (FA)"
+      ],
+      "heading": "7.3 Kombinierter Addierer/Subtrahierer (Folie 38)"
+    },
+    {
+      "id": "era-16-k21",
+      "term": "Signed overflow (vorzeichenbehafteter Überlauf)",
+      "kind": "theorem",
+      "short": "In two's complement, signed overflow occurs exactly when the carries into and out of the sign bit differ.",
+      "explanation": "Let $c_{n-1}$ denote the carry into the sign bit and $c_n$ the carry out of the sign bit. Then $overflow=c_n\\oplus c_{n-1}$; if the carries are equal, there is no overflow. This test detects whether the mathematical result lies outside the representable two's-complement range. For addition, overflow also occurs exactly when both operands have the same sign and the result has a different sign.",
+      "example": "With four bits, $0111_2+0011_2=1010_2$ represents $7+3=10$ mathematically, outside the representable range $[-8,7]$; overflow occurs.",
+      "pitfalls": [
+        "A carry-out from the most significant bit alone is not a reliable signed-overflow test.",
+        "Carry-out in unsigned addition and signed overflow make different claims."
+      ],
+      "related": [
+        "Carry-in and carry-out",
+        "Two's complement",
+        "Signed/unsigned interpretation"
+      ],
+      "heading": "8. Zweierkomplement: Overflow erkennen (Folie 34)"
+    }
+  ],
+  "generator": {
+    "model": "gpt-6-luna",
+    "effort": "xhigh",
+    "promptVersion": "k1",
+    "generatedAt": "2026-11-18T01:33:06.519Z"
+  }
+}
