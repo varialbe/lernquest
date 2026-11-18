@@ -1,0 +1,2010 @@
+{
+  "schemaVersion": 1,
+  "id": "era-16",
+  "module": "ERA",
+  "number": 16,
+  "slug": "schaltkreise-addierer-subtrahierer",
+  "title": "Schaltkreise, Addierer und Subtrahierer",
+  "summary": "Aus Booleschen Funktionen werden kombinatorische Schaltungen: von Gattersymbolen und kanonischer DNF über Halb- und Volladdierer bis zu Mehrbit-Addierern. Carry Ripple Adder und Conditional Sum Adder zeigen den Tausch zwischen Gatterkosten und Schaltungstiefe. Das Zweierkomplement ermöglicht Subtraktion mit einem Addierer; signed Overflow wird über die Carries am Vorzeichenbit erkannt.",
+  "concepts": [
+    "DIN/IEC-Gattersymbole",
+    "kombinatorischer Schaltkreis",
+    "kanonische DNF",
+    "Kosten und Tiefe",
+    "Halbaddierer",
+    "Volladdierer",
+    "Carry Ripple Adder",
+    "Conditional Sum Adder",
+    "Multiplexer",
+    "Zweierkomplement-Subtraktion",
+    "Addierer/Subtrahierer",
+    "signed Overflow",
+    "Carry-in und Carry-out",
+    "NAND-Funktionalvollständigkeit"
+  ],
+  "keyFacts": [
+    "Ein kombinatorischer Schaltkreis ist ein gerichteter, zyklenfreier Graph ohne Gedächtnis; seine Ausgänge hängen von den aktuellen Eingängen ab.",
+    "In DIN/IEC-Symbolen steht ≥1 für OR; ein kleiner Kreis kennzeichnet eine Negation.",
+    "Die kanonische DNF bildet für jede Tabellenzeile mit Ausgang 1 einen Minterm und verknüpft die Minterme mit OR.",
+    "Kosten C zählen Gatter; Tiefe D zählt die Gatter auf dem längsten Eingangs-Ausgang-Pfad.",
+    "Ein Halbaddierer addiert zwei Bits ohne Carry-in: s₀ = a₀ ⊕ b₀ und s₁ = a₀ ∧ b₀.",
+    "Ein Volladdierer verarbeitet zwei Eingangsbits und einen Carry-in; seine Ausgänge sind Summe und Carry-out.",
+    "Im betrachteten Modell hat ein HA Kosten 2 und Tiefe 1; ein FA hat Kosten 5 und Tiefe 3.",
+    "Ein n-Bit-Addierer mit zwei n-Bit-Operanden und Carry-in benötigt n+1 Ausgabebits.",
+    "Beim Carry Ripple Adder wandert der Carry von der niedrigsten zur höchsten Stelle; C(CRₙ) = 5n und D(CRₙ) = 2n+1.",
+    "Ein MUX wählt bei s=1 den Vektor a und bei s=0 den Vektor b; C(MUXₙ) = 3n+1 und D(MUXₙ) = 3.",
+    "Der Conditional Sum Adder berechnet die obere Hälfte parallel für Carry-in 0 und 1; der echte untere Carry steuert danach den MUX.",
+    "Für CSA-Breiten als Zweierpotenzen gilt C(CSA₁)=5, C(CSAₙ)=3C(CSAₙ/₂)+3(n/2+1)+1 und D(CSAₙ)=D(CSAₙ/₂)+3.",
+    "Die CSA-Tiefe wächst logarithmisch; seine Kosten wachsen wie O(n^(log₂3)) und sind höher als die linearen Kosten des Carry Ripple Adders.",
+    "Für n-Bit-Zweierkomplement gilt a−b ≡ a+¬b+1 modulo 2ⁿ.",
+    "Ein kombinierter Addierer/Subtrahierer verwendet sub sowohl zur XOR-Invertierung der b-Bits als auch als Carry-in.",
+    "Signed Overflow liegt genau dann vor, wenn Carry in das Vorzeichenbit und Carry aus dem Vorzeichenbit verschieden sind."
+  ],
+  "tags": [
+    "TUM",
+    "ERA",
+    "Rechnerarchitektur",
+    "Boolesche-Algebra",
+    "Digitale-Schaltungen",
+    "Vorlesung"
+  ],
+  "links": [],
+  "source": {
+    "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO16.md",
+    "sha256": "167552d3b46c12eaa1b2e8c828f561af812164adea270e50b2a7b26c8163a0ac",
+    "commit": "4a452f9e65ab67e9f38f4857fe724f132c93cf9a"
+  },
+  "generator": {
+    "model": "gpt-6-luna",
+    "effort": "xhigh",
+    "reviewEffort": "high",
+    "promptVersion": "v3",
+    "generatedAt": "2026-11-18T01:18:43.604Z",
+    "review": {
+      "checked": 45,
+      "fixed": 0,
+      "removed": 0,
+      "notes": "45 Fragen geprüft. Fachliche Antworten, Distraktoren, Erklärungen, Quellen, Diagrammkontexte und vorhandene Verify-Skripte stimmen; keine Korrekturen oder Ersetzungen nötig."
+    }
+  },
+  "levels": [
+    {
+      "id": "era-16-l1",
+      "index": 1,
+      "kind": "basics",
+      "title": "Grundlagen",
+      "questions": [
+        {
+          "id": "era-16-l1-q01",
+          "type": "single",
+          "prompt": "Welche Beschreibung passt zu einem kombinatorischen Schaltkreis?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Ein gerichteter, zyklenfreier Graph ohne Gedächtnis"
+            },
+            {
+              "id": "b",
+              "text": "Eine Folge von Befehlen, die nacheinander ausgeführt wird"
+            },
+            {
+              "id": "c",
+              "text": "Ein Speicher, dessen Inhalt nur bei einem Carry geändert wird"
+            },
+            {
+              "id": "d",
+              "text": "Ein Graph mit Rückkopplung, dessen Ausgang den nächsten Zustand speichert"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "Ein kombinatorischer Schaltkreis ist ein DAG ohne Gedächtnis. Seine Ausgänge hängen von den aktuellen Eingängen ab.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO16.md",
+            "heading": "1.2 Was ist ein kombinatorischer Schaltkreis? (Folie 9)"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "kombinatorischer Schaltkreis"
+          ]
+        },
+        {
+          "id": "era-16-l1-q02",
+          "type": "cloze",
+          "prompt": "In einem DIN/IEC-Gattersymbol steht `≥1` für ___.",
+          "options": [
+            {
+              "id": "a",
+              "text": "NOT"
+            },
+            {
+              "id": "b",
+              "text": "AND"
+            },
+            {
+              "id": "c",
+              "text": "XOR"
+            },
+            {
+              "id": "d",
+              "text": "OR"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Das Symbol ≥1 bedeutet, dass mindestens ein Eingang den Wert 1 hat; das ist die OR-Funktion.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO16.md",
+            "heading": "1.1 DIN/IEC-Gattersymbole"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "DIN/IEC-Gattersymbole"
+          ]
+        },
+        {
+          "id": "era-16-l1-q03",
+          "type": "single",
+          "prompt": "Wie entsteht aus einer Wahrheitstabelle die kanonische DNF?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Nur die letzte Tabellenzeile als Schaltung übernehmen"
+            },
+            {
+              "id": "b",
+              "text": "Für jede Zeile mit Ausgang 0 einen Minterm bilden und alle Minterme mit AND verbinden"
+            },
+            {
+              "id": "c",
+              "text": "Alle Eingänge negieren und anschließend mit XOR verbinden"
+            },
+            {
+              "id": "d",
+              "text": "Für jede Zeile mit Ausgang 1 einen Minterm bilden und alle Minterme mit OR verbinden"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Jede Eins-Zeile wird durch einen AND-Minterm beschrieben; das OR der Minterme deckt alle Eins-Zeilen ab.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO16.md",
+            "heading": "1.3 Von Wahrheitstabelle zu Schaltung: kanonische DNF (Folien 10–12)"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "kanonische DNF"
+          ]
+        },
+        {
+          "id": "era-16-l1-q04",
+          "type": "multi",
+          "prompt": "Wähle alle richtigen Aussagen; mehrere Antworten können richtig sein. Welche Gleichungen beschreiben einen Halbaddierer?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Das Carry-out ist a₀ ∧ b₀."
+            },
+            {
+              "id": "b",
+              "text": "Der Halbaddierer benötigt einen Carry-in."
+            },
+            {
+              "id": "c",
+              "text": "Das Summenbit ist a₀ ∨ b₀."
+            },
+            {
+              "id": "d",
+              "text": "Das Summenbit ist a₀ ⊕ b₀."
+            }
+          ],
+          "correct": [
+            "a",
+            "d"
+          ],
+          "explanation": "XOR liefert das niedrigwertige Summenbit, AND das Carry-out. Ein Halbaddierer hat keinen Carry-in.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO16.md",
+            "heading": "3.2 Wahrheitstabelle"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Halbaddierer"
+          ]
+        },
+        {
+          "id": "era-16-l1-q05",
+          "type": "truefalse",
+          "prompt": "Ein Volladdierer verarbeitet neben den zwei Operandenbits auch einen Carry-in.",
+          "options": [
+            {
+              "id": "true",
+              "text": "Wahr"
+            },
+            {
+              "id": "false",
+              "text": "Falsch"
+            }
+          ],
+          "correct": [
+            "true"
+          ],
+          "explanation": "Der Carry-in stammt von der vorherigen, niedrigeren Stelle. Deshalb verarbeitet der Volladdierer drei Eingangsbits.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO16.md",
+            "heading": "4.1 Was fehlt dem Halbaddierer?"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Volladdierer",
+            "Carry-in und Carry-out"
+          ]
+        },
+        {
+          "id": "era-16-l1-q06-r1",
+          "type": "cloze",
+          "prompt": "Ein MUX wählt gemäß $y=(s\\land a)\\lor(\\neg s\\land b)$ zwischen den Datenvektoren $a$ und $b$. Wenn das Auswahlbit $s=0$ ist, wird der Vektor ___ ausgegeben.",
+          "options": [
+            {
+              "id": "a",
+              "text": "b"
+            },
+            {
+              "id": "b",
+              "text": "a"
+            },
+            {
+              "id": "c",
+              "text": "0"
+            },
+            {
+              "id": "d",
+              "text": "a ⊕ b"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "Für $s=0$ ist $s\\land a=0$ und $\\neg s=1$. Damit gibt der MUX $b$ aus.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO16.md",
+            "heading": "6.2 Multiplexer (MUX) – der entscheidende Baustein (Folien 28–30)"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Multiplexer",
+            "Auswahlbit"
+          ]
+        },
+        {
+          "id": "era-16-l1-q07",
+          "type": "single",
+          "prompt": "Was zählt die Tiefe D eines Schaltkreises?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Die Anzahl der Ausgabebits"
+            },
+            {
+              "id": "b",
+              "text": "Die Anzahl der Eingänge"
+            },
+            {
+              "id": "c",
+              "text": "Die Gatter auf dem längsten Eingangs-Ausgangs-Pfad"
+            },
+            {
+              "id": "d",
+              "text": "Alle Gatter des Schaltkreises"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Die Tiefe misst die längste Folge hintereinander liegender Gatter. Parallel arbeitende Gatter zählen nicht mehrfach auf demselben Pfad.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO16.md",
+            "heading": "0. Das Wichtigste auf einen Blick"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Kosten und Tiefe"
+          ]
+        },
+        {
+          "id": "era-16-l1-q08",
+          "type": "multi",
+          "prompt": "Wähle alle richtigen Aussagen; mehrere Antworten können richtig sein. Zwei n-Bit-Zahlen werden mit einem Carry-in addiert. Welche Aussagen gelten?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Eine Ausgabe mit n+1 Bits reicht aus."
+            },
+            {
+              "id": "b",
+              "text": "Der Carry-in kann den maximalen Wert nicht verändern."
+            },
+            {
+              "id": "c",
+              "text": "Die größte mögliche Summe ist 2ⁿ⁺¹−1."
+            },
+            {
+              "id": "d",
+              "text": "Eine Ausgabe mit n−1 Bits reicht immer aus."
+            }
+          ],
+          "correct": [
+            "a",
+            "c"
+          ],
+          "explanation": "Zwei maximale Operanden plus Carry-in ergeben 2ⁿ⁺¹−1. Dieser Wert passt in n+1 Bits.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO16.md",
+            "heading": "2. Was soll ein $n$-Bit-Addierer leisten? (Folie 14)"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Carry-in und Carry-out"
+          ]
+        },
+        {
+          "id": "era-16-l1-q09",
+          "type": "diagram",
+          "prompt": "Welcher Ausgang des Halbaddierers ist das Carry-out s₁?",
+          "context": {
+            "type": "mermaid",
+            "content": "flowchart TB\n    A[\"a₀\"] --> XOR[\"XOR\"]\n    B[\"b₀\"] --> XOR\n    A --> AND[\"AND\"]\n    B --> AND\n    XOR --> S[\"s₀ Summe\"]\n    AND --> C[\"s₁ Carry\"]",
+            "caption": "Signalwege eines Halbaddierers"
+          },
+          "options": [
+            {
+              "id": "a",
+              "text": "Der Ausgang des NOT-Gatters"
+            },
+            {
+              "id": "b",
+              "text": "Der Ausgang des XOR-Gatters"
+            },
+            {
+              "id": "c",
+              "text": "Es gibt keinen Carry-out"
+            },
+            {
+              "id": "d",
+              "text": "Der Ausgang des AND-Gatters"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Beim Halbaddierer ist s₁=a₀∧b₀. Das AND-Gatter erzeugt also das Carry-out.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO16.md",
+            "heading": "3.2 Wahrheitstabelle"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Halbaddierer"
+          ]
+        },
+        {
+          "id": "era-16-l1-q10",
+          "type": "truefalse",
+          "prompt": "Beim Carry Ripple Adder wandert der Carry von der höchstwertigen zur niedrigstwertigen Stelle.",
+          "options": [
+            {
+              "id": "true",
+              "text": "Wahr"
+            },
+            {
+              "id": "false",
+              "text": "Falsch"
+            }
+          ],
+          "correct": [
+            "false"
+          ],
+          "explanation": "Der Carry beginnt an der niedrigsten Stelle und läuft zur höchstwertigen Stelle weiter.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO16.md",
+            "heading": "5.1 Prinzip der schriftlichen Addition"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Carry Ripple Adder"
+          ]
+        },
+        {
+          "id": "era-16-l1-q11-r1",
+          "type": "single",
+          "prompt": "Ein Volladdierer besteht aus zwei Halbaddierern und einem 2-Eingang-ODER-Gatter. Der erste Halbaddierer verarbeitet $a,b$ und liefert ein Summenbit $p$ sowie einen Carry. Der zweite verarbeitet $p$ und den Carry-in und liefert die Endsumme sowie einen Carry. Das ODER-Gatter verbindet die beiden Carry-Ausgänge. Jeder XOR-, AND- und OR-Gatter zählt als ein Gatter; die Tiefe ist die Zahl der Gatter auf dem längsten Eingangs-Ausgang-Pfad. Wie lauten Kosten $C$ und Tiefe $D$?",
+          "options": [
+            {
+              "id": "a",
+              "text": "C=5, D=3"
+            },
+            {
+              "id": "b",
+              "text": "C=3, D=2"
+            },
+            {
+              "id": "c",
+              "text": "C=5, D=5"
+            },
+            {
+              "id": "d",
+              "text": "C=2, D=1"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "Jeder Halbaddierer enthält ein XOR- und ein AND-Gatter, also insgesamt vier Gatter für beide Halbaddierer. Mit dem ODER-Gatter ergeben sich $C=4+1=5$. Der längste Pfad läuft durch das XOR des ersten Halbaddierers, ein Gatter des zweiten Halbaddierers und das ODER-Gatter, also $D=1+1+1=3$.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO16.md",
+            "heading": "4.4 FA aus zwei HA + OR aufbauen"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Volladdierer",
+            "Halbaddierer",
+            "Gatterkosten",
+            "Schaltungstiefe"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "era-16-l2",
+      "index": 2,
+      "kind": "apply",
+      "title": "Anwenden",
+      "questions": [
+        {
+          "id": "era-16-l2-q01",
+          "type": "calc",
+          "prompt": "Ein Halbaddierer erhält a₀=1 und b₀=1. Welche Ausgabe (s₁s₀) entsteht?",
+          "options": [
+            {
+              "id": "a",
+              "text": "11"
+            },
+            {
+              "id": "b",
+              "text": "00"
+            },
+            {
+              "id": "c",
+              "text": "10"
+            },
+            {
+              "id": "d",
+              "text": "01"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "1+1=2=10₂. Das höherwertige Bit ist das Carry-out s₁, das niedrigwertige Bit die Summe s₀.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO16.md",
+            "heading": "3.2 Wahrheitstabelle"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Halbaddierer"
+          ]
+        },
+        {
+          "id": "era-16-l2-q02",
+          "type": "calc",
+          "prompt": "Ein Volladdierer erhält a₀=1, b₀=0 und Carry-in c=1. Welche Ausgabe (s₁s₀) entsteht?",
+          "options": [
+            {
+              "id": "a",
+              "text": "11"
+            },
+            {
+              "id": "b",
+              "text": "10"
+            },
+            {
+              "id": "c",
+              "text": "00"
+            },
+            {
+              "id": "d",
+              "text": "01"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "Die Eingänge ergeben 1+0+1=2=10₂; s₁ ist 1 und s₀ ist 0.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO16.md",
+            "heading": "4.2 Vollständige Wahrheitstabelle"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Volladdierer"
+          ]
+        },
+        {
+          "id": "era-16-l2-q03-r1",
+          "type": "calc",
+          "prompt": "Ein 4-Bit-Carry-Ripple-Adder addiert $0011_2$ und $0010_2$. Der Carry-in am niedrigstwertigen Bit ist $0$. Berechne die Summe und gib sie als genau fünf Bits aus, wobei das Carry-out des höchstwertigen Bits links steht.",
+          "options": [
+            {
+              "id": "a",
+              "text": "00101"
+            },
+            {
+              "id": "b",
+              "text": "01001"
+            },
+            {
+              "id": "c",
+              "text": "10000"
+            },
+            {
+              "id": "d",
+              "text": "00001"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "$0011_2=3$ und $0010_2=2$, also ist die Summe $5=00101_2$. Bitweise ergibt sich von rechts nach links: Summenbits $1,0,1,0$ und Carry-out $0$.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO16.md",
+            "heading": "5.3 Beispiel: $0101_2+0011_2$"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Carry-Ripple-Addition",
+            "Carry-in",
+            "Binäraddition"
+          ]
+        },
+        {
+          "id": "era-16-l2-q04",
+          "type": "single",
+          "prompt": "Eine Funktion y ist genau für die Eingaben (a,b)=(0,1) und (1,0) gleich 1. Welche kanonische DNF passt dazu?",
+          "options": [
+            {
+              "id": "a",
+              "text": "(a ∧ b) ∨ (a ∧ ¬b)"
+            },
+            {
+              "id": "b",
+              "text": "¬a ∧ ¬b"
+            },
+            {
+              "id": "c",
+              "text": "(¬a ∧ b) ∨ (a ∧ ¬b)"
+            },
+            {
+              "id": "d",
+              "text": "a ∨ b"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Die beiden Eins-Zeilen liefern die Minterme ¬a∧b und a∧¬b. Ihre Disjunktion ist die gesuchte DNF.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO16.md",
+            "heading": "1.3 Von Wahrheitstabelle zu Schaltung: kanonische DNF (Folien 10–12)"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "kanonische DNF"
+          ]
+        },
+        {
+          "id": "era-16-l2-q05",
+          "type": "calc",
+          "prompt": "Berechne Kosten C und Tiefe D eines Carry Ripple Adders mit n=4, wenn C=5n und D=2n+1 gilt.",
+          "options": [
+            {
+              "id": "a",
+              "text": "C=20, D=12"
+            },
+            {
+              "id": "b",
+              "text": "C=20, D=9"
+            },
+            {
+              "id": "c",
+              "text": "C=16, D=9"
+            },
+            {
+              "id": "d",
+              "text": "C=20, D=8"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "C=5·4=20 und D=2·4+1=9. Die Tiefe ist nicht viermal die Tiefe eines einzelnen Volladdierers.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO16.md",
+            "heading": "5.5 Kosten und Tiefe herleiten"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Carry Ripple Adder",
+            "Kosten und Tiefe"
+          ]
+        },
+        {
+          "id": "era-16-l2-q06",
+          "type": "calc",
+          "prompt": "Berechne $6-7$ mit 4-Bit-Zweierkomplement und gib das Ergebnisbitmuster an. Es gilt $a-b ≡ a+¬b+1$ modulo 16.",
+          "options": [
+            {
+              "id": "a",
+              "text": "0111"
+            },
+            {
+              "id": "b",
+              "text": "0001"
+            },
+            {
+              "id": "c",
+              "text": "1001"
+            },
+            {
+              "id": "d",
+              "text": "1111"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Das 4-Bit-Ergebnis ist (6−7) modulo 16 = 15 = 1111₂. Als signed Zweierkomplement steht 1111 für −1.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO16.md",
+            "heading": "7.2 Beispiel aus Folie 36: $6-7=-1$"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Zweierkomplement-Subtraktion"
+          ]
+        },
+        {
+          "id": "era-16-l2-q07",
+          "type": "multi",
+          "prompt": "Wähle alle richtigen Aussagen; mehrere Antworten können richtig sein. Beim kombinierten Addierer/Subtrahierer sei sub=1. Was muss die Schaltung tun?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Nur das höchstwertige Bit von b invertieren"
+            },
+            {
+              "id": "b",
+              "text": "Jedes bᵢ durch bᵢ ⊕ sub invertieren"
+            },
+            {
+              "id": "c",
+              "text": "Den Carry-in auf 0 setzen"
+            },
+            {
+              "id": "d",
+              "text": "Den Carry-in auf 1 setzen"
+            }
+          ],
+          "correct": [
+            "b",
+            "d"
+          ],
+          "explanation": "Mit sub=1 wird jedes b-Bit invertiert und der Carry-in liefert das notwendige +1. Zusammen berechnet die Schaltung a+¬b+1.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO16.md",
+            "heading": "7.3 Kombinierter Addierer/Subtrahierer (Folie 38)"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Addierer/Subtrahierer",
+            "Zweierkomplement-Subtraktion"
+          ]
+        },
+        {
+          "id": "era-16-l2-q08",
+          "type": "diagram",
+          "prompt": "Welche Signale bestimmen im dargestellten Conditional Sum Adder, welche obere Teilsumme ausgegeben wird?",
+          "context": {
+            "type": "mermaid",
+            "content": "flowchart TB\n    LOW[\"untere Bits\"] --> LC[\"CSA mit echtem Carry\"]\n    HIGH[\"obere Bits\"] --> H0[\"CSA mit Carry-in 0\"]\n    HIGH --> H1[\"CSA mit Carry-in 1\"]\n    LC -->|\"Carry\"| MUX[\"MUX\"]\n    H0 --> MUX\n    H1 --> MUX\n    MUX --> OUT[\"obere Summe und Carry\"]",
+            "caption": "Parallele Vorausberechnung im Conditional Sum Adder"
+          },
+          "options": [
+            {
+              "id": "a",
+              "text": "Der Carry aus dem unteren Block und die beiden vorberechneten oberen Ergebnisse"
+            },
+            {
+              "id": "b",
+              "text": "Der Carry-out der obersten Bitstelle"
+            },
+            {
+              "id": "c",
+              "text": "Nur die Eingangsbits der oberen Hälfte"
+            },
+            {
+              "id": "d",
+              "text": "Ein zusätzliches Ergebnis des unteren MUX"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "Der untere Block liefert den tatsächlichen Carry. Dieser steuert den MUX, der zwischen den beiden vorberechneten oberen Ergebnissen wählt.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO16.md",
+            "heading": "6.1 Die zentrale Idee: parallel rechnen statt Carry abwarten"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Conditional Sum Adder",
+            "Multiplexer"
+          ]
+        },
+        {
+          "id": "era-16-l2-q09",
+          "type": "single",
+          "prompt": "Welche Gleichung beschreibt das Ausgangsbit i eines 2:1-MUX mit Auswahlbit s, der bei s=1 aᵢ und bei s=0 bᵢ ausgibt?",
+          "options": [
+            {
+              "id": "a",
+              "text": "(aᵢ ∧ bᵢ) ∨ s"
+            },
+            {
+              "id": "b",
+              "text": "(s ∧ aᵢ) ∨ (¬s ∧ bᵢ)"
+            },
+            {
+              "id": "c",
+              "text": "(s ∧ bᵢ) ∨ (¬s ∧ aᵢ)"
+            },
+            {
+              "id": "d",
+              "text": "(s ∨ aᵢ) ∧ (¬s ∨ bᵢ)"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "Der MUX lässt aᵢ durch, wenn s=1, und bᵢ, wenn s=0. Die beiden AND-Terme werden mit OR zusammengeführt.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO16.md",
+            "heading": "6.2 Multiplexer (MUX) – der entscheidende Baustein (Folien 28–30)"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Multiplexer"
+          ]
+        },
+        {
+          "id": "era-16-l2-q10",
+          "type": "truefalse",
+          "prompt": "Bei einer signed 4-Bit-Zweierkomplementaddition führt $0111_2+0011_2$ zu Overflow.",
+          "options": [
+            {
+              "id": "true",
+              "text": "Wahr"
+            },
+            {
+              "id": "false",
+              "text": "Falsch"
+            }
+          ],
+          "correct": [
+            "true"
+          ],
+          "explanation": "Die mathematische Summe ist 10, aber der 4-Bit-Zweierkomplementbereich reicht nur von −8 bis 7. Das Ergebnisbitmuster 1010 steht daher nicht für die mathematische Summe.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO16.md",
+            "heading": "8. Zweierkomplement: Overflow erkennen (Folie 34)"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "signed Overflow"
+          ]
+        },
+        {
+          "id": "era-16-l2-q11",
+          "type": "calc",
+          "prompt": "Ein 3-Bit-MUX hat Kosten C=3n+1 und Tiefe D=3. Welche Kosten und Tiefe ergeben sich?",
+          "options": [
+            {
+              "id": "a",
+              "text": "C=9, D=3"
+            },
+            {
+              "id": "b",
+              "text": "C=10, D=3"
+            },
+            {
+              "id": "c",
+              "text": "C=10, D=4"
+            },
+            {
+              "id": "d",
+              "text": "C=12, D=3"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "Für n=3 gilt C=3·3+1=10. Die Tiefe eines MUX bleibt 3.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO16.md",
+            "heading": "6.2 Multiplexer (MUX) – der entscheidende Baustein (Folien 28–30)"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Multiplexer",
+            "Kosten und Tiefe"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "era-16-l3",
+      "index": 3,
+      "kind": "deepen",
+      "title": "Vertiefen",
+      "questions": [
+        {
+          "id": "era-16-l3-q01",
+          "type": "truefalse",
+          "prompt": "Die Tiefe eines Carry Ripple Adders mit n Stellen ist 3n, weil jede Stelle einen Volladdierer mit Tiefe 3 enthält.",
+          "options": [
+            {
+              "id": "true",
+              "text": "Wahr"
+            },
+            {
+              "id": "false",
+              "text": "Falsch"
+            }
+          ],
+          "correct": [
+            "false"
+          ],
+          "explanation": "Im längsten Carry-Pfad kostet der erste Volladdierer drei Ebenen; bei jeder weiteren Stelle kommen zwei Ebenen hinzu. Daher gilt D(CRₙ)=2n+1.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO16.md",
+            "heading": "5.5 Kosten und Tiefe herleiten"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Carry Ripple Adder",
+            "Kosten und Tiefe"
+          ]
+        },
+        {
+          "id": "era-16-l3-q02",
+          "type": "multi",
+          "prompt": "Wähle alle richtigen Aussagen; mehrere Antworten können richtig sein. Was gilt beim rekursiven Conditional Sum Adder für n>1?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Drei CSA-Blöcke der Breite n/2 arbeiten parallel."
+            },
+            {
+              "id": "b",
+              "text": "Ein MUX der Breite n/2+1 wählt das obere Ergebnis samt Carry-out."
+            },
+            {
+              "id": "c",
+              "text": "Der Carry muss erst alle oberen Bits durchlaufen, bevor sie berechnet werden."
+            },
+            {
+              "id": "d",
+              "text": "Die obere Hälfte wird nur mit Carry-in 0 berechnet."
+            },
+            {
+              "id": "e",
+              "text": "Die Tiefe wächst pro Rekursionsstufe um 3."
+            }
+          ],
+          "correct": [
+            "a",
+            "b",
+            "e"
+          ],
+          "explanation": "Ein CSA verarbeitet die untere Hälfte mit echtem Carry und berechnet die obere Hälfte für Carry-in 0 und 1 parallel. Ein MUX wählt anschließend n/2 Summenbits plus Carry-out; seine Tiefe beträgt 3.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO16.md",
+            "heading": "6.3 Rekursive CSA-Schaltung (Folie 31)"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Conditional Sum Adder",
+            "Multiplexer"
+          ]
+        },
+        {
+          "id": "era-16-l3-q03",
+          "type": "calc",
+          "prompt": "Für CSA gilt C(CSA₁)=5 und C(CSAₙ)=3C(CSAₙ/₂)+3(n/2+1)+1. Berechne C(CSA₂) und D(CSA₂), wenn D(CSA₁)=3 und D(CSAₙ)=D(CSAₙ/₂)+3.",
+          "options": [
+            {
+              "id": "a",
+              "text": "C=20, D=6"
+            },
+            {
+              "id": "b",
+              "text": "C=22, D=9"
+            },
+            {
+              "id": "c",
+              "text": "C=22, D=6"
+            },
+            {
+              "id": "d",
+              "text": "C=18, D=3"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "C(CSA₂)=3·5+3·2+1=22. Die Tiefe steigt gegenüber CSA₁ um 3 und beträgt daher 6.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO16.md",
+            "heading": "6.4 Kostenrekurrenz des CSA (Folie 32)"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Conditional Sum Adder",
+            "Kosten und Tiefe"
+          ]
+        },
+        {
+          "id": "era-16-l3-q04",
+          "type": "single",
+          "prompt": "Warum tauchen im Rekursionsschritt des CSA drei kleinere CSA-Schaltungen auf?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Jede Hälfte wird jeweils dreimal hintereinander berechnet."
+            },
+            {
+              "id": "b",
+              "text": "Alle drei berechnen dieselbe obere Hälfte mit Carry-in 0."
+            },
+            {
+              "id": "c",
+              "text": "Eine berechnet die untere Hälfte mit echtem Carry; zwei berechnen die obere Hälfte für Carry-in 0 und 1."
+            },
+            {
+              "id": "d",
+              "text": "Eine Schaltung berechnet Summe, eine Carry und eine den Overflow."
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Der untere CSA liefert den tatsächlichen Carry. Die beiden oberen CSA-Blöcke stellen die Ergebnisse für beide möglichen Carry-in-Werte bereit.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO16.md",
+            "heading": "6.3 Rekursive CSA-Schaltung (Folie 31)"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Conditional Sum Adder"
+          ]
+        },
+        {
+          "id": "era-16-l3-q05",
+          "type": "cloze",
+          "prompt": "Die naive kanonische DNF kann bei n Eingangsbits teuer werden, weil die Wahrheitstabelle ___ Zeilen hat.",
+          "options": [
+            {
+              "id": "a",
+              "text": "2ⁿ"
+            },
+            {
+              "id": "b",
+              "text": "n"
+            },
+            {
+              "id": "c",
+              "text": "2n"
+            },
+            {
+              "id": "d",
+              "text": "n²"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "n binäre Eingänge haben 2ⁿ mögliche Belegungen. Deshalb kann die direkte Konstruktion mit wachsendem n schnell groß werden.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO16.md",
+            "heading": "1.3 Von Wahrheitstabelle zu Schaltung: kanonische DNF (Folien 10–12)"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "kanonische DNF"
+          ]
+        },
+        {
+          "id": "era-16-l3-q06",
+          "type": "multi",
+          "prompt": "Wähle alle richtigen Aussagen; mehrere Antworten können richtig sein. Welche Aussagen treffen für signed Overflow bei Zweierkomplementaddition zu?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Gleiche Carries an diesen beiden Stellen bedeuten keinen Overflow."
+            },
+            {
+              "id": "b",
+              "text": "Overflow liegt vor, wenn Carry in das Vorzeichenbit und Carry aus dem Vorzeichenbit verschieden sind."
+            },
+            {
+              "id": "c",
+              "text": "Ein normaler unsigned Carry und signed Overflow sind dasselbe."
+            },
+            {
+              "id": "d",
+              "text": "Ein Carry-out allein erkennt signed Overflow zuverlässig."
+            }
+          ],
+          "correct": [
+            "a",
+            "b"
+          ],
+          "explanation": "Der Overflow-Test ist das XOR der beiden Carries am Vorzeichenbit. Ein Carry-out allein reicht nicht, weil signed Overflow eine andere Eigenschaft ist.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO16.md",
+            "heading": "8. Zweierkomplement: Overflow erkennen (Folie 34)"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "signed Overflow",
+            "Carry-in und Carry-out"
+          ]
+        },
+        {
+          "id": "era-16-l3-q07",
+          "type": "calc",
+          "prompt": "Ein 4-Bit-MUX wählt bei s=1 den Vektor a und bei s=0 den Vektor b. Es gilt a=1010, b=0110 und s=0. Welche Ausgabe entsteht?",
+          "options": [
+            {
+              "id": "a",
+              "text": "0110"
+            },
+            {
+              "id": "b",
+              "text": "1110"
+            },
+            {
+              "id": "c",
+              "text": "0000"
+            },
+            {
+              "id": "d",
+              "text": "1010"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "Bei s=0 wählt der MUX den Vektor b. Daher ist die Ausgabe 0110.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO16.md",
+            "heading": "6.2 Multiplexer (MUX) – der entscheidende Baustein (Folien 28–30)"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Multiplexer"
+          ]
+        },
+        {
+          "id": "era-16-l3-q08",
+          "type": "diagram",
+          "prompt": "Was geht im Diagramm vom unteren Block zum MUX und wozu dient es?",
+          "context": {
+            "type": "mermaid",
+            "content": "flowchart LR\n    LOW[\"unterer CSA\"] -->|\"Carry\"| MUX[\"MUX\"]\n    H0[\"oberer CSA: Carry-in 0\"] --> MUX\n    H1[\"oberer CSA: Carry-in 1\"] --> MUX\n    MUX --> OUT[\"oberes Ergebnis\"]",
+            "caption": "Das untere Carry steuert die Auswahl des oberen Ergebnisses"
+          },
+          "options": [
+            {
+              "id": "a",
+              "text": "Das niedrigste Summenbit; es wird als Carry-in wiederverwendet."
+            },
+            {
+              "id": "b",
+              "text": "Der obere Carry-out; er wählt den unteren Block."
+            },
+            {
+              "id": "c",
+              "text": "Ein Overflow-Flag; es invertiert beide oberen Ergebnisse."
+            },
+            {
+              "id": "d",
+              "text": "Der tatsächliche Carry; er steuert die Auswahl des oberen Ergebnisses."
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Der Carry der unteren Hälfte bestimmt, ob das obere Ergebnis für Carry-in 0 oder für Carry-in 1 ausgewählt wird.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO16.md",
+            "heading": "6.1 Die zentrale Idee: parallel rechnen statt Carry abwarten"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Conditional Sum Adder",
+            "Multiplexer"
+          ]
+        },
+        {
+          "id": "era-16-l3-q09",
+          "type": "single",
+          "prompt": "Zwei Gatter arbeiten parallel in getrennten Eingang-Ausgang-Pfaden. Welche Kosten und Tiefe haben sie zusammen?",
+          "options": [
+            {
+              "id": "a",
+              "text": "C=1, D=1"
+            },
+            {
+              "id": "b",
+              "text": "C=2, D=1"
+            },
+            {
+              "id": "c",
+              "text": "C=2, D=2"
+            },
+            {
+              "id": "d",
+              "text": "C=1, D=2"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "Beide Gatter zählen zu den Kosten, daher C=2. Da sie parallel arbeiten, enthält der längste Pfad nur eine Gatterebene.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO16.md",
+            "heading": "1.2 Was ist ein kombinatorischer Schaltkreis? (Folie 9)"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Kosten und Tiefe"
+          ]
+        },
+        {
+          "id": "era-16-l3-q10",
+          "type": "truefalse",
+          "prompt": "Bei einem kombinierten Addierer/Subtrahierer muss sub=1 sowohl die b-Bits XOR-verknüpfen als auch den Carry-in auf 1 setzen.",
+          "options": [
+            {
+              "id": "true",
+              "text": "Wahr"
+            },
+            {
+              "id": "false",
+              "text": "Falsch"
+            }
+          ],
+          "correct": [
+            "true"
+          ],
+          "explanation": "Die XOR-Verknüpfungen invertieren b; der Carry-in addiert 1. Ohne den Carry-in fehlte der zweite Schritt des Zweierkomplements.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO16.md",
+            "heading": "7.3 Kombinierter Addierer/Subtrahierer (Folie 38)"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Addierer/Subtrahierer",
+            "Zweierkomplement-Subtraktion"
+          ]
+        },
+        {
+          "id": "era-16-l3-q11",
+          "type": "calc",
+          "prompt": "Addiere $0111_2+0011_2$ als signed 4-Bit-Zweierkomplement. Welches Ergebnisbitmuster entsteht und liegt Overflow vor?",
+          "options": [
+            {
+              "id": "a",
+              "text": "0101, Overflow"
+            },
+            {
+              "id": "b",
+              "text": "1010, kein Overflow"
+            },
+            {
+              "id": "c",
+              "text": "0000, kein Overflow"
+            },
+            {
+              "id": "d",
+              "text": "1010, Overflow"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Die Bitaddition ergibt 1010. Die Operanden sind beide positiv, das Ergebnisbitmuster ist negativ; außerdem unterscheiden sich Carry in und aus dem Vorzeichenbit, also liegt Overflow vor.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO16.md",
+            "heading": "8. Zweierkomplement: Overflow erkennen (Folie 34)"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "signed Overflow"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "era-16-l4",
+      "index": 4,
+      "kind": "boss",
+      "title": "Boss",
+      "questions": [
+        {
+          "id": "era-16-l4-q01",
+          "type": "single",
+          "prompt": "Ein Halbaddierer soll nur aus NAND-Gattern aufgebaut werden. Ist das grundsätzlich möglich?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Ja, aber nur wenn ein zusätzlicher Carry-in vorhanden ist."
+            },
+            {
+              "id": "b",
+              "text": "Nein, weil NAND keine Negation darstellen kann."
+            },
+            {
+              "id": "c",
+              "text": "Nein, weil ein Halbaddierer zwingend ein OR-Gatter benötigt."
+            },
+            {
+              "id": "d",
+              "text": "Ja, weil NAND allein funktional vollständig ist."
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "NAND ist funktional vollständig und kann damit jede Boolesche Funktion darstellen, also auch die Summe- und Carry-Funktion des Halbaddierers.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO15.md",
+            "heading": null
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Halbaddierer",
+            "NAND-Funktionalvollständigkeit"
+          ]
+        },
+        {
+          "id": "era-16-l4-q02",
+          "type": "calc",
+          "prompt": "Addiere die 4-Bit-Zweierkomplementzahlen $0111_2$ und $0001_2$. Gib das 4-Bit-Ergebnis und an, ob signed Overflow vorliegt.",
+          "options": [
+            {
+              "id": "a",
+              "text": "1000, kein Overflow"
+            },
+            {
+              "id": "b",
+              "text": "0000, kein Overflow"
+            },
+            {
+              "id": "c",
+              "text": "1000, Overflow"
+            },
+            {
+              "id": "d",
+              "text": "0111, Overflow"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Die Summe 8 liegt außerhalb des 4-Bit-Zweierkomplementbereichs [−8,7]. Das Muster ist 1000; Carry in und aus dem Vorzeichenbit unterscheiden sich.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO2 (ZÜ).md",
+            "heading": null
+          },
+          "difficulty": 4,
+          "concepts": [
+            "signed Overflow",
+            "Carry Ripple Adder"
+          ]
+        },
+        {
+          "id": "era-16-l4-q03-r1",
+          "type": "calc",
+          "prompt": "Ein 4-Bit-Addierer/Subtrahierer soll $0110_2-0010_2$ berechnen. Verwende $a-b\\equiv a+\\neg b+1\\pmod{16}$: Invertiere alle Bits von $b$, addiere $1$ und behalte die vier niedrigsten Ergebnisbits. Welches 4-Bit-Ergebnis entsteht?",
+          "options": [
+            {
+              "id": "a",
+              "text": "1111"
+            },
+            {
+              "id": "b",
+              "text": "0010"
+            },
+            {
+              "id": "c",
+              "text": "0100"
+            },
+            {
+              "id": "d",
+              "text": "1010"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "$\\neg 0010_2=1101_2$. Dann ist $0110_2+1101_2+1=10100_2$. Die vier niedrigsten Bits sind $0100_2$.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO16.md",
+            "heading": "7.1 Warum kann derselbe Addierer subtrahieren?"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Subtraktion durch Addition",
+            "Zweierkomplement",
+            "Modulo-Arithmetik"
+          ]
+        },
+        {
+          "id": "era-16-l4-q04",
+          "type": "calc",
+          "prompt": "Vergleiche für n=8 die Modellwerte von Carry Ripple Adder und Conditional Sum Adder. Für CR gilt C=5n und D=2n+1. Für CSA gilt C(CSA₁)=5, C(CSAₙ)=3C(CSAₙ/₂)+3(n/2+1)+1 sowie D(CSA₁)=3 und D(CSAₙ)=D(CSAₙ/₂)+3.",
+          "options": [
+            {
+              "id": "a",
+              "text": "CR: C=40, D=17; CSA: C=244, D=24"
+            },
+            {
+              "id": "b",
+              "text": "CR: C=40, D=24; CSA: C=244, D=12"
+            },
+            {
+              "id": "c",
+              "text": "CR: C=40, D=17; CSA: C=160, D=12"
+            },
+            {
+              "id": "d",
+              "text": "CR: C=40, D=17; CSA: C=244, D=12"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Für CR₈ ergeben sich C=40 und D=17. Die CSA-Rekurrenz liefert C=244 und D=12: mehr Gatter, aber geringere Tiefe.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO16.md",
+            "heading": "6.6 Vergleich anhand konkreter Bitbreiten"
+          },
+          "difficulty": 5,
+          "concepts": [
+            "Carry Ripple Adder",
+            "Conditional Sum Adder",
+            "Kosten und Tiefe"
+          ]
+        },
+        {
+          "id": "era-16-l4-q05",
+          "type": "multi",
+          "prompt": "Wähle alle richtigen Aussagen; mehrere Antworten können richtig sein. Welche Aussagen beschreiben den Architektur-Trade-off korrekt?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Der Carry Ripple Adder berechnet die obere Hälfte vorsorglich mit beiden Carry-Fällen."
+            },
+            {
+              "id": "b",
+              "text": "Der Conditional Sum Adder verwendet mehr Hardware, um Carry-Wartezeit zu verringern."
+            },
+            {
+              "id": "c",
+              "text": "Der Carry Ripple Adder hat lineare Kosten und lineare Tiefe."
+            },
+            {
+              "id": "d",
+              "text": "Der Conditional Sum Adder hat logarithmische Tiefe und Kosten O(n^(log₂3))."
+            }
+          ],
+          "correct": [
+            "b",
+            "c",
+            "d"
+          ],
+          "explanation": "Der Ripple Adder ist einfach und sowohl in Kosten als auch Tiefe linear. Der CSA berechnet zusätzliche Carry-Fälle parallel: seine Tiefe ist logarithmisch, seine Kosten wachsen stärker als linear.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO16.md",
+            "heading": "9. Architekturvergleich – was ist die eigentliche Idee?"
+          },
+          "difficulty": 5,
+          "concepts": [
+            "Carry Ripple Adder",
+            "Conditional Sum Adder",
+            "Kosten und Tiefe"
+          ]
+        },
+        {
+          "id": "era-16-l4-q06",
+          "type": "multi",
+          "prompt": "Wähle alle richtigen Aussagen; mehrere Antworten können richtig sein. Ein Conditional Sum Adder soll zugleich subtrahieren können. Was muss für sub=1 gelten?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Der Carry-in ist sub."
+            },
+            {
+              "id": "b",
+              "text": "Alle b-Bits werden mit sub XOR-verknüpft."
+            },
+            {
+              "id": "c",
+              "text": "Ein MUX kann zwischen den vorberechneten Carry-Fällen auswählen."
+            },
+            {
+              "id": "d",
+              "text": "Die obere CSA-Hälfte muss ausschließlich mit Carry-in 0 berechnet werden."
+            }
+          ],
+          "correct": [
+            "a",
+            "b",
+            "c"
+          ],
+          "explanation": "sub=1 invertiert b und setzt den Carry-in auf 1, sodass a+¬b+1 entsteht. Die CSA-Struktur kann die möglichen Carry-Fälle parallel bereitstellen und per MUX auswählen.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO16.md",
+            "heading": "7.3 Kombinierter Addierer/Subtrahierer (Folie 38)"
+          },
+          "difficulty": 5,
+          "concepts": [
+            "Conditional Sum Adder",
+            "Addierer/Subtrahierer",
+            "Multiplexer"
+          ]
+        },
+        {
+          "id": "era-16-l4-q07",
+          "type": "calc",
+          "prompt": "Ein 4-Bit-Addierer erhält a=0110, b=0011 und Carry-in 1. Welche fünf Ausgabebits entstehen?",
+          "options": [
+            {
+              "id": "a",
+              "text": "00110"
+            },
+            {
+              "id": "b",
+              "text": "01001"
+            },
+            {
+              "id": "c",
+              "text": "01010"
+            },
+            {
+              "id": "d",
+              "text": "11010"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "6+3+1=10. In fünf Bits lautet das Ergebnis 01010₂; der Carry-in muss bei der Addition mitgezählt werden.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO16.md",
+            "heading": "2. Was soll ein $n$-Bit-Addierer leisten? (Folie 14)"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Carry-in und Carry-out",
+            "Carry Ripple Adder"
+          ]
+        },
+        {
+          "id": "era-16-l4-q08",
+          "type": "diagram",
+          "prompt": "Welche beiden Verbindungen muss das Steuerbit sub in der dargestellten Addierer/Subtrahierer-Schaltung steuern?",
+          "context": {
+            "type": "mermaid",
+            "content": "flowchart LR\n    B[\"b Bits\"] --> XOR[\"XOR-Gatter\"]\n    SUB[\"sub\"] --> XOR\n    SUB -->|\"Carry-in\"| ADD[\"Addierer\"]\n    A[\"a Bits\"] --> ADD\n    XOR -->|\"b-prime\"| ADD\n    ADD --> OUT[\"Ergebnis\"]",
+            "caption": "Steuerpfade des kombinierten Addierers/Subtrahierers"
+          },
+          "options": [
+            {
+              "id": "a",
+              "text": "Nur den Addierer-Ausgang und das Overflow-Flag"
+            },
+            {
+              "id": "b",
+              "text": "Die XOR-Gatter der b-Bits und den Carry-in des Addierers"
+            },
+            {
+              "id": "c",
+              "text": "Nur den Carry-in des Addierers"
+            },
+            {
+              "id": "d",
+              "text": "Nur die XOR-Gatter der b-Bits"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "sub steuert sowohl die bedingte Invertierung jedes b-Bits als auch den Carry-in. So ergibt sub=1 die Rechnung a+¬b+1.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO16.md",
+            "heading": "7.3 Kombinierter Addierer/Subtrahierer (Folie 38)"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Addierer/Subtrahierer",
+            "Zweierkomplement-Subtraktion"
+          ]
+        },
+        {
+          "id": "era-16-l4-q09",
+          "type": "single",
+          "prompt": "Welche Bedingung ist ein Overflow-Test für eine signed Zweierkomplementaddition?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Der Carry-out aus dem Vorzeichenbit ist 1."
+            },
+            {
+              "id": "b",
+              "text": "Carry in das Vorzeichenbit XOR Carry aus dem Vorzeichenbit ist 1."
+            },
+            {
+              "id": "c",
+              "text": "Beide Carry-Werte am Vorzeichenbit sind gleich."
+            },
+            {
+              "id": "d",
+              "text": "Das niederwertigste Summenbit ist 1."
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "Overflow liegt vor, wenn sich die beiden Carries am Vorzeichenbit unterscheiden. Das ist ihr XOR-Ergebnis 1.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO16.md",
+            "heading": "8. Zweierkomplement: Overflow erkennen (Folie 34)"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "signed Overflow",
+            "Carry-in und Carry-out"
+          ]
+        },
+        {
+          "id": "era-16-l4-q10",
+          "type": "calc",
+          "prompt": "Eine Boolesche Funktion y ist 1 für (a,b)=(0,1) und (1,1), sonst 0. Welche der angebotenen Funktionen stimmt für alle Eingaben überein?",
+          "context": {
+            "type": "table",
+            "content": "| a | b | y |\n|---|---|---|\n| 0 | 0 | 0 |\n| 0 | 1 | 1 |\n| 1 | 0 | 0 |\n| 1 | 1 | 1 |",
+            "caption": "Wahrheitstabelle für y"
+          },
+          "options": [
+            {
+              "id": "a",
+              "text": "¬a ∧ b"
+            },
+            {
+              "id": "b",
+              "text": "a ⊕ b"
+            },
+            {
+              "id": "c",
+              "text": "a"
+            },
+            {
+              "id": "d",
+              "text": "b"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "In beiden Eins-Zeilen ist b=1; in den übrigen Zeilen ist b=0. Daher beschreibt y=b die Tabelle und ist die vereinfachte Form der kanonischen DNF.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO16.md",
+            "heading": "1.3 Von Wahrheitstabelle zu Schaltung: kanonische DNF (Folien 10–12)"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "kanonische DNF"
+          ]
+        },
+        {
+          "id": "era-16-l4-q11",
+          "type": "calc",
+          "prompt": "Zwei 3-Bit-Operanden sind beide maximal, und der Addierer erhält Carry-in 1. Wie viele Bits werden benötigt und welches Ergebnis entsteht?",
+          "options": [
+            {
+              "id": "a",
+              "text": "4 Bits: 1111"
+            },
+            {
+              "id": "b",
+              "text": "4 Bits: 1110"
+            },
+            {
+              "id": "c",
+              "text": "5 Bits: 01111"
+            },
+            {
+              "id": "d",
+              "text": "3 Bits: 111"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "111₂+111₂+1₂=15=1111₂. Zwei 3-Bit-Operanden plus Carry-in benötigen im Maximum vier Ausgabebits.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO16.md",
+            "heading": "2. Was soll ein $n$-Bit-Addierer leisten? (Folie 14)"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Carry-in und Carry-out"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "era-16-l5",
+      "index": 5,
+      "kind": "bonus",
+      "title": "Praxis: Logik im Alltag",
+      "questions": [
+        {
+          "id": "era-16-l5-q01",
+          "type": "single",
+          "prompt": "Ein Heizungscontroller bekommt in jedem Moment nur zwei Signale: `kalt` und `fenster_zu`. Er schaltet die Heizung genau dann ein, wenn beide Signale 1 sind. Der Baustein speichert keine früheren Werte. Welche Schaltungsart passt?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Ein Schaltkreis mit Speicher, der frühere Messwerte festhält."
+            },
+            {
+              "id": "b",
+              "text": "Ein Halbaddierer, der zwei Bits ohne Carry-in addiert."
+            },
+            {
+              "id": "c",
+              "text": "Ein kombinatorischer Schaltkreis: Der Ausgang hängt nur von den aktuellen Eingängen ab."
+            },
+            {
+              "id": "d",
+              "text": "Ein Carry Ripple Adder, der einen Übertrag durch mehrere Stellen weitergibt."
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Der beschriebene Block hat kein Gedächtnis: Bei gleichen aktuellen Eingangssignalen liefert er denselben Ausgang. Das ist die Definition eines kombinatorischen Schaltkreises.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO16.md",
+            "heading": "1.2 Was ist ein kombinatorischer Schaltkreis? (Folie 9)"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "kombinatorischer Schaltkreis"
+          ]
+        },
+        {
+          "id": "era-16-l5-q02",
+          "type": "multi",
+          "prompt": "In einem Wearable soll dasselbe Rechenwerk addieren oder subtrahieren. `sub=0` bedeutet Addition, `sub=1` Subtraktion. Welche Anschlüsse braucht die Hardware bei `sub=1`, damit sie $a-b$ berechnet?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Jedes Bit von $b$ mit `sub` XOR-verknüpfen: $b'_i=b_i\\oplus sub$."
+            },
+            {
+              "id": "b",
+              "text": "Nur den Carry-in auf 1 setzen und $b$ unverändert lassen."
+            },
+            {
+              "id": "c",
+              "text": "Die Bits von $a$ invertieren und den Carry-in auf 0 setzen."
+            },
+            {
+              "id": "d",
+              "text": "Den Carry-in auf `sub` setzen."
+            }
+          ],
+          "correct": [
+            "a",
+            "d"
+          ],
+          "explanation": "Bei `sub=1` wird $b$ invertiert und ein Carry-in von 1 addiert. So rechnet das Gerät $a+\\neg b+1$, was modulo der Bitbreite $a-b$ ergibt.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO16.md",
+            "heading": "7.3 Kombinierter Addierer/Subtrahierer (Folie 38)"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Zweierkomplement-Subtraktion",
+            "Addierer/Subtrahierer",
+            "Carry-in und Carry-out"
+          ]
+        },
+        {
+          "id": "era-16-l5-q03",
+          "type": "estimate",
+          "prompt": "Ein 4-Bit-Addierer erhält zwei 4-Bit-Operanden. Jedes mögliche geordnete Paar von Operanden zählt als ein Eingabefall. Wie viele Eingabefälle gibt es insgesamt?",
+          "options": [],
+          "correct": [],
+          "slider": {
+            "min": 0,
+            "max": 400,
+            "step": 1,
+            "answer": 256,
+            "tolerance": 0,
+            "unit": "Eingabefälle",
+            "scale": "linear"
+          },
+          "explanation": "Jeder Operand hat $2^4=16$ mögliche Bitmuster. Für zwei Operanden gibt es $16\\cdot16=256$ geordnete Paare.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO16.md",
+            "heading": "2. Was soll ein $n$-Bit-Addierer leisten? (Folie 14)"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Mehrbit-Addierer"
+          ]
+        },
+        {
+          "id": "era-16-l5-q04",
+          "type": "single",
+          "prompt": "Ein Spiel speichert den Punktestand als vorzeichenbehaftete 4-Bit-Zahl. Der darstellbare Bereich ist $[-8,7]$. Nach $+7+3$ zeigt der Zähler das Bitmuster `1010`. Was sollte die Überlaufanzeige melden?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Overflow gibt es nur, wenn auch bei vorzeichenloser Addition ein Carry-out entsteht."
+            },
+            {
+              "id": "b",
+              "text": "Kein Overflow: Die Summe passt in vier Bits, wenn man sie vorzeichenlos liest."
+            },
+            {
+              "id": "c",
+              "text": "Kein Overflow: `1010` ist ein gültiges 4-Bit-Muster."
+            },
+            {
+              "id": "d",
+              "text": "Signed Overflow: Die mathematische Summe 10 liegt außerhalb von $[-8,7]$."
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "$7+3=10$ ist größer als der größte darstellbare 4-Bit-Zweierkomplementwert 7. Das Muster `1010` steht zwar für eine darstellbare Zahl, aber für $-6$ statt für 10: Es liegt signed Overflow vor.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO16.md",
+            "heading": "8. Zweierkomplement: Overflow erkennen (Folie 34)"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "signed Overflow",
+            "Zweierkomplement-Subtraktion"
+          ]
+        },
+        {
+          "id": "era-16-l5-q05",
+          "type": "single",
+          "prompt": "Eine Display-Pipeline berechnet zwei mögliche Pixelwerte: A=`0110` und B=`1101`. Ein MUX ist ein Umschalter: Bei $s=1$ gibt er A aus, bei $s=0$ B. Was kommt am Ausgang an, wenn $s=1$ ist?",
+          "options": [
+            {
+              "id": "a",
+              "text": "0110"
+            },
+            {
+              "id": "b",
+              "text": "1101"
+            },
+            {
+              "id": "c",
+              "text": "0010"
+            },
+            {
+              "id": "d",
+              "text": "1001"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "Der MUX wählt bei $s=1$ den Vektor A aus. In einer Pipeline kann diese Auswahl zum Beispiel zwischen zwei bereits berechneten Pixelwerten umschalten.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO16.md",
+            "heading": "6.2 Multiplexer (MUX) – der entscheidende Baustein (Folien 28–30)"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Multiplexer"
+          ]
+        },
+        {
+          "id": "era-16-l5-q06",
+          "type": "estimate",
+          "prompt": "Im vereinfachten Gattermodell hat ein Carry Ripple Adder mit $n$ Bits die Tiefe $D=2n+1$. Wie groß ist die Tiefe eines 12-Bit-Addierers?",
+          "options": [],
+          "correct": [],
+          "slider": {
+            "min": 0,
+            "max": 60,
+            "step": 1,
+            "answer": 25,
+            "tolerance": 0,
+            "unit": "Gatterebenen",
+            "scale": "linear"
+          },
+          "explanation": "Setze $n=12$ ein: $D=2\\cdot12+1=25$. Die Tiefe zählt die Gatter entlang des längsten Eingangs-Ausgangs-Pfads.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO16.md",
+            "heading": "5.5 Kosten und Tiefe herleiten"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Carry Ripple Adder",
+            "Kosten und Tiefe"
+          ]
+        },
+        {
+          "id": "era-16-l5-q07",
+          "type": "single",
+          "prompt": "Du entwirfst die Logik eines Badge-Lesers und darfst in deinem Gattermodell nur NAND-Gatter verwenden. Welche praktische Aussage über NAND hilft dir dabei?",
+          "options": [
+            {
+              "id": "a",
+              "text": "NAND kann nur dann einen Ausgang 1 liefern, wenn beide Eingänge 1 sind."
+            },
+            {
+              "id": "b",
+              "text": "NAND-Gatter speichern automatisch die vorherigen Eingangswerte."
+            },
+            {
+              "id": "c",
+              "text": "Aus NAND-Gattern allein lässt sich jede Boolesche Funktion aufbauen."
+            },
+            {
+              "id": "d",
+              "text": "NAND kann nur Funktionen mit genau zwei Eingängen darstellen."
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "NAND ist funktional vollständig: Durch geschicktes Verbinden von NAND-Gattern kann man jede Boolesche Funktion realisieren. Das ist nützlich, wenn ein Entwurf auf eine einzige Gatterart beschränkt ist.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO16.md",
+            "heading": "1.1 DIN/IEC-Gattersymbole"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "NAND-Funktionalvollständigkeit"
+          ]
+        },
+        {
+          "id": "era-16-l5-q08-r1",
+          "type": "estimate",
+          "prompt": "Für einen Conditional Sum Adder gilt bei Zweierpotenzen $n$: $C(CSA_1)=5$ und für $n>1$ gilt $C(CSA_n)=3C(CSA_{n/2})+3(n/2+1)+1$. Berechne rekursiv die Gatterzahl für $CSA_8$. Zähle alle Gatter gemäß dieser Kostenformel.",
+          "options": [],
+          "correct": [],
+          "slider": {
+            "min": 40,
+            "max": 400,
+            "step": 1,
+            "answer": 244,
+            "tolerance": 0,
+            "unit": "Gatter",
+            "scale": "linear"
+          },
+          "explanation": "$C(CSA_2)=3·5+3·2+1=22$, $C(CSA_4)=3·22+3·3+1=76$ und $C(CSA_8)=3·76+3·5+1=244$ Gatter.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO16.md",
+            "heading": "6.4 Kostenrekurrenz des CSA (Folie 32)"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Conditional Sum Adder",
+            "Kostenrekurrenz",
+            "Rekursion"
+          ]
+        },
+        {
+          "id": "era-16-l5-q09",
+          "type": "single",
+          "prompt": "Bei einer Türsteuerung sind $a$ und $b$ Eingangsbits. Die Freigabe $y$ ist genau für $(a,b)=(0,1)$ und $(1,1)$ gleich 1, sonst 0. Welche Formel ist die kanonische DNF, die für jede 1-Zeile einen eigenen Minterm bildet?",
+          "options": [
+            {
+              "id": "a",
+              "text": "$(¬a ∧ b)$"
+            },
+            {
+              "id": "b",
+              "text": "$(¬a ∧ ¬b) ∨ (a ∧ ¬b)$"
+            },
+            {
+              "id": "c",
+              "text": "$(a ∧ b)$"
+            },
+            {
+              "id": "d",
+              "text": "$(¬a ∧ b) ∨ (a ∧ b)$"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Die kanonische DNF bildet je einen Minterm für die beiden Zeilen mit $y=1$ und verknüpft sie mit OR. Hier lässt sich die Formel anschließend zu $b$ vereinfachen.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO16.md",
+            "heading": "1.3 Von Wahrheitstabelle zu Schaltung: kanonische DNF (Folien 10–12)"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "kanonische DNF"
+          ]
+        },
+        {
+          "id": "era-16-l5-q10",
+          "type": "single",
+          "prompt": "Du planst einen 32-Bit-Rechenkern für ein Gerät, bei dem kurze Additionszeit wichtig ist und mehr Chipfläche zur Verfügung steht. Ein Carry Ripple Adder spart Gatter, lässt den Carry aber Stelle für Stelle weiterlaufen. Ein Conditional Sum Adder berechnet obere Teilergebnisse parallel für Carry-in 0 und 1 und wählt später per MUX aus. Welches Konzept passt besser zum Zeit-Ziel?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Conditional Sum Adder: mehr Hardware, aber logarithmisch wachsende Tiefe."
+            },
+            {
+              "id": "b",
+              "text": "Kanonische DNF: Sie wählt per MUX zwischen beiden Addierergebnissen."
+            },
+            {
+              "id": "c",
+              "text": "Halbaddierer: Er verarbeitet den Carry-in der oberen Hälfte."
+            },
+            {
+              "id": "d",
+              "text": "Carry Ripple Adder: Der Carry-Pfad wächst logarithmisch."
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "Der Conditional Sum Adder berechnet beide möglichen Carry-Fälle parallel und lässt anschließend einen MUX wählen. Das kostet mehr Gatter, senkt aber die Tiefe gegenüber der linearen Carry-Kette des Ripple Adders.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO16.md",
+            "heading": "6.1 Die zentrale Idee: parallel rechnen statt Carry abwarten"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Conditional Sum Adder",
+            "Multiplexer",
+            "Kosten und Tiefe"
+          ]
+        }
+      ]
+    }
+  ]
+}
