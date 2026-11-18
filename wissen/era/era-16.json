@@ -1,0 +1,383 @@
+{
+  "schemaVersion": 1,
+  "unitId": "era-16",
+  "module": "ERA",
+  "unitNumber": 16,
+  "unitTitle": "Schaltkreise, Addierer und Subtrahierer",
+  "sourceSha": "167552d3b46c12eaa1b2e8c828f561af812164adea270e50b2a7b26c8163a0ac",
+  "overview": "Die Unit führt von Booleschen Funktionen und Gattersymbolen zu kombinatorischen Schaltungen und Mehrbit-Addierern. Halbaddierer und Volladdierer bilden die Grundlage für Carry Ripple Adder und Conditional Sum Adder, deren Gatterkosten und Tiefe unterschiedliche Geschwindigkeits- und Hardwareaufwände zeigen. Durch Zweierkomplement-Subtraktion kann ein Addierer auch subtrahieren; signed Overflow wird anhand der Carries am Vorzeichenbit erkannt.",
+  "entries": [
+    {
+      "id": "era-16-k01",
+      "term": "DIN/IEC-Gattersymbole",
+      "kind": "notation",
+      "short": "DIN/IEC-Gattersymbole stellen logische Gatter als rechteckige Blöcke dar, wobei ein kleiner Kreis eine Negation kennzeichnet.",
+      "explanation": "In DIN/IEC-Symbolen steht `&` für AND und `≥1` für OR; `=1` kennzeichnet bei zwei Eingängen XOR. Ein kleiner Kreis an einem Ein- oder Ausgang bedeutet, dass das Signal an dieser Stelle negiert wird. Die zugehörigen Booleschen Schreibweisen sind AND: $a\\land b$, OR: $a\\lor b$, NOT: $\\neg a$, NAND: $\\neg(a\\land b)$, NOR: $\\neg(a\\lor b)$, XOR: $a\\oplus b$ und XNOR: $\\neg(a\\oplus b)$.",
+      "example": "Ein OR-Gatter mit den Eingängen $a$ und $b$ liefert $1$, sobald mindestens einer der Eingänge $1$ ist.",
+      "pitfalls": [
+        "Ein kleiner Kreis negiert nur das Signal an seiner Position und nicht automatisch die gesamte Schaltung."
+      ],
+      "related": [
+        "Boolesche Algebra",
+        "Logische Operatoren",
+        "NAND-Funktionalvollständigkeit"
+      ],
+      "heading": "1.1 DIN/IEC-Gattersymbole"
+    },
+    {
+      "id": "era-16-k02",
+      "term": "NAND-Funktionalvollständigkeit",
+      "kind": "theorem",
+      "short": "Mit NAND-Gattern allein lässt sich jede Boolesche Funktion realisieren.",
+      "explanation": "Eine Funktion ist funktional vollständig, wenn sich mit dem betrachteten Gatter alle Booleschen Funktionen darstellen lassen. NAND genügt, weil NOT durch $\\neg a=a\\operatorname{NAND}a$ und AND durch $a\\land b=\\neg(a\\operatorname{NAND}b)$ gebildet werden kann. Mit NOT und AND lässt sich OR mithilfe der De-Morgan-Regeln aufbauen, sodass jede Boolesche Funktion realisierbar ist.",
+      "example": "Es gilt $a\\lor b=(a\\operatorname{NAND}a)\\operatorname{NAND}(b\\operatorname{NAND}b)$.",
+      "pitfalls": [
+        "Funktionale Vollständigkeit bedeutet nicht, dass eine NAND-Schaltung immer die wenigsten Gatter oder die geringste Tiefe hat."
+      ],
+      "related": [
+        "DIN/IEC-Gattersymbole",
+        "Funktionale Vollständigkeit",
+        "NAND"
+      ],
+      "heading": null
+    },
+    {
+      "id": "era-16-k03",
+      "term": "Implikation als Schaltung",
+      "kind": "concept",
+      "short": "Eine Implikation lässt sich als OR aus der Negation der Voraussetzung und der Folgerung realisieren.",
+      "explanation": "Für Boolesche Eingänge gilt $a\\Rightarrow b\\equiv\\neg a\\lor b\\equiv\\neg(a\\land\\neg b)$. Die Schaltung negiert also $a$ und verknüpft das Ergebnis mit $b$ durch OR. Die Implikation ist nur dann falsch, wenn $a=1$ und $b=0$.",
+      "example": "Für $a=1$ und $b=0$ gilt $\\neg a\\lor b=0\\lor0=0$.",
+      "pitfalls": [
+        "Ein invertierter Eingang bedeutet nicht, dass die gesamte Funktion negiert wird."
+      ],
+      "related": [
+        "DIN/IEC-Gattersymbole",
+        "Logische Operatoren",
+        "Boolesche Algebra"
+      ],
+      "heading": "Implikation als Schaltung (Folie 8)"
+    },
+    {
+      "id": "era-16-k04",
+      "term": "Kombinatorischer Schaltkreis",
+      "kind": "definition",
+      "short": "Ein kombinatorischer Schaltkreis ist ein gerichteter, zyklenfreier Graph ohne Gedächtnis.",
+      "explanation": "Seine Knoten sind primäre Eingänge, Gatter und primäre Ausgänge; seine Kanten transportieren Signale zwischen diesen Elementen. Weil der Graph zyklenfrei ist, gibt es keine Rückkopplung, bei der ein Signal von einem früheren eigenen Wert abhängt. Im betrachteten Modell werden die Ausgänge allein durch die aktuellen Eingänge bestimmt.",
+      "example": "Ein XOR-Gatter und ein AND-Gatter können parallel dieselben Eingänge $a,b$ verarbeiten und Summe sowie Carry-out eines Halbaddierers liefern.",
+      "pitfalls": [
+        "Ein kombinatorischer Schaltkreis speichert keine früheren Eingangswerte."
+      ],
+      "related": [
+        "DIN/IEC-Gattersymbole",
+        "Kosten und Tiefe eines Schaltkreises"
+      ],
+      "heading": "1.2 Was ist ein kombinatorischer Schaltkreis? (Folie 9)"
+    },
+    {
+      "id": "era-16-k05",
+      "term": "Kosten und Tiefe eines Schaltkreises",
+      "kind": "definition",
+      "short": "Kosten zählen die Gatter, während Tiefe die Gatter auf dem längsten Eingangs-Ausgang-Pfad zählt.",
+      "explanation": "Für eine Schaltung $S$ sind die Kosten $C(S)=\\text{Anzahl der Gatter von }S$. Ihre Tiefe ist $D(S)=\\max_p(\\text{Anzahl der Gatter auf }p)$, wobei $p$ alle Pfade von einem Eingang zu einem Ausgang durchläuft. Zwei parallele Gatter haben Kosten $2$ und Tiefe $1$, während zwei hintereinandergeschaltete Gatter Kosten $2$ und Tiefe $2$ haben. Die Werte dieser Unit gelten für das verwendete Gatter- und Kostenmodell.",
+      "example": "Ein Halbaddierer verwendet zwei parallele Gatter, also $C(HA)=2$ und $D(HA)=1$.",
+      "pitfalls": [
+        "Mehr Gatter erhöhen die Kosten, aber nicht zwingend die Tiefe.",
+        "Die Modellkosten sind keine Transistorzahlen und geben nicht direkt die Verzögerung eines konkreten Chips an."
+      ],
+      "related": [
+        "Kombinatorischer Schaltkreis",
+        "Halbaddierer (HA)",
+        "Volladdierer (FA)"
+      ],
+      "heading": "0. Das Wichtigste auf einen Blick"
+    },
+    {
+      "id": "era-16-k06",
+      "term": "Minterm",
+      "kind": "definition",
+      "short": "Ein Minterm ist eine UND-Verknüpfung, die genau eine Eingangsbelegung erfüllt.",
+      "explanation": "Ein Minterm enthält jede Eingangsvariable entweder unverändert oder negiert. Für eine Variable mit Tabellenwert $0$ wird die negierte Form verwendet, für eine Variable mit Tabellenwert $1$ die unveränderte Form. Dadurch wird der Minterm genau bei der zugehörigen Eingangsbelegung $1$.",
+      "example": "Für $a=0,b=1,c=1$ lautet der Minterm $\\neg a\\land b\\land c$.",
+      "pitfalls": [
+        "Ein Minterm beschreibt eine vollständige Eingangsbelegung und nicht nur die Variablen mit Wert $1$."
+      ],
+      "related": [
+        "Kanonische DNF",
+        "Wahrheitstabellen"
+      ],
+      "heading": "1.3 Von Wahrheitstabelle zu Schaltung: kanonische DNF (Folien 10–12)"
+    },
+    {
+      "id": "era-16-k07",
+      "term": "Kanonische DNF",
+      "kind": "method",
+      "short": "Die kanonische DNF verknüpft die Minterme aller Wahrheitstabellenzeilen mit Ausgang $1$ durch OR.",
+      "explanation": "Dieses Verfahren wandelt eine Wahrheitstabelle systematisch in eine Boolesche Funktion und damit in eine Schaltung um. Man wählt jede Zeile mit Ausgang $y=1$ aus und bildet aus allen Eingangsvariablen dieser Zeile einen Minterm. Anschließend verknüpft man diese Minterme mit OR. Das Verfahren ist universell, kann aber teuer werden, weil $n$ Eingangsbits $2^n$ Tabellenzeilen haben.",
+      "example": "Für die Zeilen $(0,1,1)$, $(1,0,1)$ und $(1,1,1)$ mit Ausgang $1$ ergibt sich $y=(\\neg a\\land b\\land c)\\lor(a\\land\\neg b\\land c)\\lor(a\\land b\\land c)$; vereinfacht gilt $y=c\\land(a\\lor b)$.",
+      "pitfalls": [
+        "Auch Eingangsvariablen mit Tabellenwert $0$ müssen im jeweiligen Minterm als negierte Variable vorkommen.",
+        "Die kanonische DNF ist eine systematische Realisierung, aber nicht zwingend die kleinste Schaltung."
+      ],
+      "related": [
+        "Minterm",
+        "Wahrheitstabellen",
+        "Kosten und Tiefe eines Schaltkreises"
+      ],
+      "heading": "1.3 Von Wahrheitstabelle zu Schaltung: kanonische DNF (Folien 10–12)"
+    },
+    {
+      "id": "era-16-k08",
+      "term": "n-Bit-Addierer",
+      "kind": "definition",
+      "short": "Ein n-Bit-Addierer berechnet aus zwei n-Bit-Operanden und einem Carry-in die Summe mit n+1 Ausgabebits.",
+      "explanation": "Für nichtnegative Operanden $a=(a_{n-1}\\ldots a_0)_2$ und $b=(b_{n-1}\\ldots b_0)_2$ sowie Carry-in $c\\in\\{0,1\\}$ soll der Addierer $s=a+b+c$ ausgeben. Der größte mögliche Wert ist $(2^n-1)+(2^n-1)+1=2^{n+1}-1$. Dafür reichen genau $n+1$ Bits; das zusätzliche höchste Bit enthält den endgültigen Übertrag.",
+      "example": "Für $n=4$ gilt $1111_2+1111_2+1=11111_2$.",
+      "pitfalls": [
+        "Bei einer Addition mit Carry-in können $n$ Ausgabebits nicht immer ausreichen."
+      ],
+      "related": [
+        "Carry-in und Carry-out",
+        "Carry Ripple Adder (CRₙ)",
+        "Zweierkomplement"
+      ],
+      "heading": "2. Was soll ein $n$-Bit-Addierer leisten? (Folie 14)"
+    },
+    {
+      "id": "era-16-k09",
+      "term": "Carry-in und Carry-out",
+      "kind": "notation",
+      "short": "Carry-in bezeichnet den in eine Bitstelle eintretenden Übertrag, Carry-out den aus ihr austretenden Übertrag.",
+      "explanation": "An Bitstelle $i$ ist $c_{i-1}$ der Carry-in und $c_i$ der Carry-out. Der Carry-out einer Stelle wird zum Carry-in der nächsthöheren Stelle. Beim Mehrbit-Addierer ist der Carry-out der höchsten Stelle das zusätzliche Ergebnisbit.",
+      "example": "Beim Addieren von $1+1$ ist das Summenbit $0$ und der Carry-out $1$, denn $1+1=10_2$.",
+      "pitfalls": [
+        "Carry-out und Summenbit sind unterschiedliche Ausgänge.",
+        "Ein Carry-out allein zeigt bei Zweierkomplementzahlen keinen signed Overflow zuverlässig an."
+      ],
+      "related": [
+        "Halbaddierer (HA)",
+        "Volladdierer (FA)",
+        "Signed Overflow (vorzeichenbehafteter Überlauf)"
+      ],
+      "heading": "5.1 Prinzip der schriftlichen Addition"
+    },
+    {
+      "id": "era-16-k10",
+      "term": "Halbaddierer (HA)",
+      "kind": "definition",
+      "short": "Ein Halbaddierer addiert zwei Bits ohne Carry-in und gibt Summenbit und Carry-out aus.",
+      "explanation": "Für Eingänge $a_0,b_0\\in\\{0,1\\}$ liefert der Halbaddierer die Ausgänge $(s_1,s_0)$ mit $2s_1+s_0=a_0+b_0$. Dabei ist $s_0=a_0\\oplus b_0$ das niedrigwertige Summenbit und $s_1=a_0\\land b_0$ der Carry-out. XOR und AND arbeiten parallel, daher gelten im verwendeten Modell $C(HA)=2$ und $D(HA)=1$.",
+      "example": "Für $a_0=b_0=1$ gilt $s_1s_0=10_2$, also $1+1=2$.",
+      "pitfalls": [
+        "Ein Halbaddierer hat keinen Carry-in und kann deshalb eine höhere Bitstelle mit vorherigem Übertrag nicht allein verarbeiten."
+      ],
+      "related": [
+        "Carry-in und Carry-out",
+        "Volladdierer (FA)",
+        "Kosten und Tiefe eines Schaltkreises"
+      ],
+      "heading": "3.1 Definition"
+    },
+    {
+      "id": "era-16-k11",
+      "term": "Volladdierer (FA)",
+      "kind": "definition",
+      "short": "Ein Volladdierer addiert zwei Eingangsbits und einen Carry-in und liefert Summenbit sowie Carry-out.",
+      "explanation": "Für Eingänge $a_0,b_0,c$ gilt $2s_1+s_0=a_0+b_0+c$. Das Summenbit ist $s_0=a_0\\oplus b_0\\oplus c$, und der Carry-out ist $s_1=(a_0\\land b_0)\\lor(c\\land(a_0\\oplus b_0))$. Der Carry-out ist genau dann $1$, wenn mindestens zwei der drei Eingänge $1$ sind.",
+      "example": "Für $a_0=b_0=c=1$ gilt $1+1+1=11_2$, also $s_1=1$ und $s_0=1$.",
+      "pitfalls": [
+        "Der dritte Eingang des Volladdierers ist der Carry-in."
+      ],
+      "related": [
+        "Halbaddierer (HA)",
+        "Carry-in und Carry-out",
+        "Carry Ripple Adder (CRₙ)"
+      ],
+      "heading": "4.1 Was fehlt dem Halbaddierer?"
+    },
+    {
+      "id": "era-16-k12",
+      "term": "Volladdierer aus zwei Halbaddierern",
+      "kind": "method",
+      "short": "Ein Volladdierer lässt sich aus zwei Halbaddierern und einem OR-Gatter zusammensetzen.",
+      "explanation": "Der erste Halbaddierer verarbeitet $a_0,b_0$ und liefert $p=a_0\\oplus b_0$ sowie $g=a_0\\land b_0$. Der zweite verarbeitet $p,c$ und liefert das Summenbit $s_0$ sowie den Carry $h=p\\land c$. Ein OR-Gatter bildet den Carry-out $s_1=g\\lor h$. Damit gelten im verwendeten Modell $C(FA)=2\\cdot2+1=5$ und $D(FA)=1+1+1=3$.",
+      "example": null,
+      "pitfalls": [
+        "Die beiden Teil-Carrys müssen mit OR verknüpft werden."
+      ],
+      "related": [
+        "Halbaddierer (HA)",
+        "Volladdierer (FA)",
+        "Kosten und Tiefe eines Schaltkreises"
+      ],
+      "heading": "4.4 FA aus zwei HA + OR aufbauen"
+    },
+    {
+      "id": "era-16-k13",
+      "term": "Carry Ripple Adder (CRₙ)",
+      "kind": "method",
+      "short": "Ein Carry Ripple Adder verbindet n Volladdierer so, dass der Übertrag von der niedrigsten zur höchsten Stelle weiterläuft.",
+      "explanation": "Für jede Stelle $i$ berechnet ein Volladdierer das Summenbit $s_i=a_i\\oplus b_i\\oplus c_{i-1}$ und den Carry-out $c_i=(a_i\\land b_i)\\lor(c_{i-1}\\land(a_i\\oplus b_i))$. Der Carry-out wird an den nächsten, höherwertigen Volladdierer weitergegeben; der erste Volladdierer erhält den Carry-in von außen. Im Modell der Vorlesung gelten $C(CR_n)=5n$ und $D(CR_n)=2n+1$.",
+      "example": "Für $0101_2+0011_2$ ergibt sich $01000_2=8$.",
+      "pitfalls": [
+        "Der Carry läuft vom niederwertigsten zum höchstwertigen Bit.",
+        "Die Tiefe ist nicht $3n$: Nach dem ersten Volladdierer benötigt der Carry-Pfad je weiterer Stelle zwei Gatterebenen."
+      ],
+      "related": [
+        "Volladdierer (FA)",
+        "Carry-in und Carry-out",
+        "Kosten und Tiefe eines Schaltkreises",
+        "Conditional Sum Adder (CSAₙ)"
+      ],
+      "heading": "5.1 Prinzip der schriftlichen Addition"
+    },
+    {
+      "id": "era-16-k14",
+      "term": "Multiplexer (MUX)",
+      "kind": "definition",
+      "short": "Ein Multiplexer wählt anhand eines Auswahlbits einen von zwei Eingangsvektoren aus.",
+      "explanation": "Mit der hier verwendeten Konvention gilt $sel_n(a,b,s)=a$ für $s=1$ und $sel_n(a,b,s)=b$ für $s=0$. Für jedes Bit $i$ lautet die Funktion $sel_i=(s\\land a_i)\\lor(\\neg s\\land b_i)$. Ein $n$-Bit-MUX benötigt $2n$ AND-Gatter, $n$ OR-Gatter und ein gemeinsam genutztes NOT-Gatter für $s$, also $C(MUX_n)=3n+1$ und $D(MUX_n)=3$.",
+      "example": "Bei $s=1$ gibt ein 2-Bit-MUX den gesamten Vektor $a$ aus.",
+      "pitfalls": [
+        "Die Auswahlkonvention lautet $s=1\\Rightarrow a$ und $s=0\\Rightarrow b$.",
+        "Das NOT-Gatter für das Auswahlbit wird für alle Bitstellen gemeinsam verwendet."
+      ],
+      "related": [
+        "Conditional Sum Adder (CSAₙ)",
+        "Kosten und Tiefe eines Schaltkreises"
+      ],
+      "heading": "6.2 Multiplexer (MUX) – der entscheidende Baustein (Folien 28–30)"
+    },
+    {
+      "id": "era-16-k15",
+      "term": "Conditional Sum Adder (CSAₙ)",
+      "kind": "concept",
+      "short": "Ein Conditional Sum Adder berechnet mögliche Carry-Fälle parallel und wählt später das passende Ergebnis aus.",
+      "explanation": "Der CSA teilt die Bitstellen in eine untere und eine obere Hälfte. Die obere Hälfte wird parallel zweimal berechnet: einmal mit angenommenem Carry-in $0$ und einmal mit angenommenem Carry-in $1$. Sobald der echte Carry der unteren Hälfte vorliegt, wählt ein MUX die passende obere Summe samt Carry-out aus. Das verringert die Tiefe gegenüber einer Carry-Kette, benötigt aber mehr Gatter.",
+      "example": "Bei einer Aufteilung in je vier Bits berechnet die obere Vier-Bit-Hälfte ihre Ergebnisse gleichzeitig für Carry-in $0$ und $1$.",
+      "pitfalls": [
+        "Die obere Hälfte wird zweimal vorausberechnet; deshalb entstehen im rekursiven Aufbau drei kleinere CSA-Blöcke."
+      ],
+      "related": [
+        "Carry Ripple Adder (CRₙ)",
+        "Multiplexer (MUX)",
+        "Kostenrekurrenz des Conditional Sum Adders",
+        "Tiefenrekurrenz des Conditional Sum Adders"
+      ],
+      "heading": "6.1 Die zentrale Idee: parallel rechnen statt Carry abwarten"
+    },
+    {
+      "id": "era-16-k16",
+      "term": "Rekursiver Aufbau des Conditional Sum Adders",
+      "kind": "method",
+      "short": "Ein CSA der Breite n besteht aus einem unteren CSA, zwei oberen CSA-Blöcken und einem MUX.",
+      "explanation": "Der rekursive Aufbau wird für gerade Breiten und insbesondere für Zweierpotenzen verwendet. Ein $CSA_{n/2}$ verarbeitet die unteren Bits mit dem echten Carry-in. Zwei weitere $CSA_{n/2}$ verarbeiten die oberen Bits mit Carry-in $0$ beziehungsweise $1$. Der Carry der unteren Hälfte steuert einen $MUX_{n/2+1}$, der die oberen Summenbits samt Carry-out auswählt.",
+      "example": null,
+      "pitfalls": [
+        "Die beiden oberen Teiladdierer arbeiten parallel und warten nicht auf den unteren Carry.",
+        "Der MUX ist $n/2+1$ Bit breit, weil er $n/2$ Summenbits und den Carry-out der oberen Hälfte auswählt."
+      ],
+      "related": [
+        "Conditional Sum Adder (CSAₙ)",
+        "Multiplexer (MUX)",
+        "Carry-in und Carry-out"
+      ],
+      "heading": "6.3 Rekursive CSA-Schaltung (Folie 31)"
+    },
+    {
+      "id": "era-16-k17",
+      "term": "Kostenrekurrenz des Conditional Sum Adders",
+      "kind": "theorem",
+      "short": "Für Zweierpotenz-Breiten erfüllt der CSA die Rekurrenz $C(CSA_n)=3C(CSA_{n/2})+3(n/2+1)+1$.",
+      "explanation": "Der Basisfall ist $C(CSA_1)=5$, entsprechend den Kosten eines Volladdierers. In jedem Rekursionsschritt werden drei Teil-CSAs der Breite $n/2$ und ein $n/2+1$-Bit-MUX benötigt. Daraus folgen $C(CSA_2)=22$ und $C(CSA_4)=76$. Die Kosten wachsen asymptotisch wie $O(n^{\\log_2 3})\\approx O(n^{1.585})$, also schneller als die linearen Kosten des Carry Ripple Adders.",
+      "example": "Für $n=2$ gilt $C(CSA_2)=3\\cdot5+3\\cdot2+1=22$.",
+      "pitfalls": [
+        "Die Rekurrenz gilt in dieser Form für die betrachteten Zweierpotenz-Breiten.",
+        "Der CSA hat höhere asymptotische Kosten als der Carry Ripple Adder mit $C(CR_n)=5n$."
+      ],
+      "related": [
+        "Conditional Sum Adder (CSAₙ)",
+        "Multiplexer (MUX)",
+        "Carry Ripple Adder (CRₙ)"
+      ],
+      "heading": "6.4 Kostenrekurrenz des CSA (Folie 32)"
+    },
+    {
+      "id": "era-16-k18",
+      "term": "Tiefenrekurrenz des Conditional Sum Adders",
+      "kind": "theorem",
+      "short": "Die CSA-Tiefe erfüllt $D(CSA_n)=D(CSA_{n/2})+3$ und wächst daher logarithmisch.",
+      "explanation": "Der Basisfall ist $D(CSA_1)=3$. Die drei Teil-CSAs eines Rekursionsschritts arbeiten parallel, sodass ihre Tiefen nicht addiert werden; anschließend kommt die Tiefe $3$ des MUX hinzu. Für $n=2^k$ folgt $D(CSA_n)=3+3\\log_2 n=3(1+\\log_2 n)$ und damit $O(\\log n)$.",
+      "example": "Für $n=16$ gilt $D(CSA_{16})=3(1+\\log_2 16)=15$.",
+      "pitfalls": [
+        "Aus der Rekurrenz folgt $3(1+\\log_2 n)$ und nicht $3+\\log_2 n$.",
+        "Die geringere Tiefe erfordert zusätzlichen Gatteraufwand."
+      ],
+      "related": [
+        "Conditional Sum Adder (CSAₙ)",
+        "Multiplexer (MUX)",
+        "Carry Ripple Adder (CRₙ)",
+        "Kosten und Tiefe eines Schaltkreises"
+      ],
+      "heading": "6.5 Tiefenrekurrenz des CSA"
+    },
+    {
+      "id": "era-16-k19",
+      "term": "Zweierkomplement-Subtraktion",
+      "kind": "theorem",
+      "short": "Eine n-Bit-Subtraktion lässt sich modulo $2^n$ als $a-b\\equiv a+\\neg b+1$ berechnen.",
+      "explanation": "Im $n$-Bit-Zweierkomplement gilt $-b\\equiv\\neg b+1\\pmod{2^n}$. Daher wird $a-b$ berechnet, indem alle Bits von $b$ invertiert und beim Addierer ein Carry-in von $1$ gesetzt werden. Das Ergebnis entspricht der Subtraktion modulo $2^n$.",
+      "example": "Mit vier Bits gilt $0110_2-0111_2=0110_2+1000_2+1=1111_2$, was im Zweierkomplement $-1$ darstellt.",
+      "pitfalls": [
+        "Nur $b$ zu invertieren reicht nicht; der zusätzliche Summand $1$ muss ebenfalls berücksichtigt werden."
+      ],
+      "related": [
+        "Zweierkomplement",
+        "Carry-in und Carry-out",
+        "Addierer/Subtrahierer"
+      ],
+      "heading": "7.1 Warum kann derselbe Addierer subtrahieren?"
+    },
+    {
+      "id": "era-16-k20",
+      "term": "Addierer/Subtrahierer",
+      "kind": "concept",
+      "short": "Ein Steuerbit sub lässt dieselbe Addierschaltung Addition oder Zweierkomplement-Subtraktion ausführen.",
+      "explanation": "Jedes Operandenbit $b_i$ wird mit dem Steuerbit XOR-verknüpft: $b'_i=b_i\\oplus sub$. Zugleich wird der Carry-in auf $c_{in}=sub$ gesetzt, sodass die Schaltung $a+(b\\oplus sub)+sub$ berechnet. Für $sub=0$ bleibt $b$ unverändert und der Carry-in ist $0$. Für $sub=1$ wird $b$ invertiert und der Carry-in ist $1$, sodass $a-b$ modulo der Wortbreite entsteht.",
+      "example": "Bei $sub=1$ berechnet die Schaltung $a+\\neg b+1$, also $a-b$ modulo der Wortbreite.",
+      "pitfalls": [
+        "Das Steuerbit muss sowohl mit allen Bits von $b$ verknüpft als auch an den Carry-in angeschlossen werden."
+      ],
+      "related": [
+        "Zweierkomplement-Subtraktion",
+        "Carry-in und Carry-out",
+        "Volladdierer (FA)"
+      ],
+      "heading": "7.3 Kombinierter Addierer/Subtrahierer (Folie 38)"
+    },
+    {
+      "id": "era-16-k21",
+      "term": "Signed Overflow (vorzeichenbehafteter Überlauf)",
+      "kind": "theorem",
+      "short": "Beim Zweierkomplement liegt signed Overflow genau dann vor, wenn die Carries in das und aus dem Vorzeichenbit verschieden sind.",
+      "explanation": "Bezeichne den Carry in das Vorzeichenbit mit $c_{n-1}$ und den Carry aus dem Vorzeichenbit mit $c_n$. Dann gilt $overflow=c_n\\oplus c_{n-1}$; bei gleichen Carries liegt kein Overflow vor. Der Test erkennt, ob das mathematische Ergebnis außerhalb des darstellbaren Zweierkomplementbereichs liegt. Bei Addition tritt Overflow auch genau dann auf, wenn beide Operanden dasselbe Vorzeichen und das Ergebnis ein anderes Vorzeichen hat.",
+      "example": "Bei vier Bit ergibt $0111_2+0011_2=1010_2$ mathematisch $7+3=10$, außerhalb des darstellbaren Bereichs $[-8,7]$; es liegt Overflow vor.",
+      "pitfalls": [
+        "Ein Carry-out aus dem höchstwertigen Bit allein ist kein zuverlässiger signed-Overflow-Test.",
+        "Carry-out bei unsigned Addition und signed Overflow sind unterschiedliche Aussagen."
+      ],
+      "related": [
+        "Carry-in und Carry-out",
+        "Zweierkomplement",
+        "signed/unsigned-Interpretation"
+      ],
+      "heading": "8. Zweierkomplement: Overflow erkennen (Folie 34)"
+    }
+  ],
+  "generator": {
+    "model": "gpt-6-luna",
+    "effort": "xhigh",
+    "promptVersion": "k1",
+    "generatedAt": "2026-11-18T01:33:06.519Z"
+  }
+}
