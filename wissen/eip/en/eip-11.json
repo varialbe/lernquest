@@ -1,0 +1,486 @@
+{
+  "schemaVersion": 1,
+  "unitId": "eip-11",
+  "module": "EIP",
+  "unitNumber": 11,
+  "unitTitle": "Abstract Classes and Interfaces (Abstrakte Klassen und Interfaces)",
+  "sourceSha": "cc19bfc1d456ba532f2ff72c0a66bec4106c7abe8581f0e755e6f5298a43e0fc",
+  "overview": "Abstract classes share state and common code, while concrete subclasses implement abstract methods (abstrakte Methoden). In an expression tree (Ausdrucksbaum), `getValue()` computes each unchanged expression once and stores the result; dynamic binding (dynamisches Binden) selects the appropriate `evaluate()` implementation. `final` and `sealed` restrict assignment and inheritance. Interfaces describe capabilities and contracts that different classes can fulfill; they support constants as well as `static`, `default`, and private methods, whose defaults are governed by fixed Java conflict rules.",
+  "entries": [
+    {
+      "id": "eip-11-k01",
+      "term": "Expression tree",
+      "kind": "example",
+      "short": "An expression tree represents a mathematical expression as objects, each responsible for part of the computation.",
+      "explanation": "Each internal node represents an operation, and its children contain the operands. A `Const` node returns its stored number, a `Neg` node negates its child’s value, and an `Addition` node adds the values of its two children. The shared superclass can provide evaluation logic, while the concrete node types define their respective computations.",
+      "example": "`Addition(Neg(Const(8)), Const(16))` represents $(-8)+16$ and evaluates to `8`.",
+      "pitfalls": [
+        "Evaluation is recursive over the object structure, even when no method directly calls itself."
+      ],
+      "related": [
+        "Abstract class",
+        "Caching (memoization) in Expression.getValue()",
+        "Dynamic binding"
+      ],
+      "heading": "1.1 Motivation: mathematische Ausdrücke als Objekte"
+    },
+    {
+      "id": "eip-11-k02",
+      "term": "Abstract class",
+      "kind": "definition",
+      "short": "An abstract class is a class from which objects cannot be created directly.",
+      "explanation": "A class is declared abstract with `abstract class` and therefore cannot be instantiated directly using `new`. It may have instance fields and concrete methods to pass state and shared code to subclasses. A concrete subclass can be instantiated if it implements all inherited abstract methods.",
+      "example": "`abstract class Expression { ... }` can be the superclass of `Const`, `Neg`, and `Addition`.",
+      "pitfalls": [
+        "Even having a constructor does not make `new Expression()` valid."
+      ],
+      "related": [
+        "Abstract method and implementation obligation",
+        "Multiple inheritance and multiple interface implementation",
+        "Abstract class or interface: a design choice"
+      ],
+      "heading": null
+    },
+    {
+      "id": "eip-11-k03",
+      "term": "Abstract method and implementation obligation (Abstrakte Methode und Implementierungspflicht)",
+      "kind": "theorem",
+      "short": "An abstract method has a signature without a body, and a concrete subclass must implement it.",
+      "explanation": "An abstract method is declared with `abstract` and ends with a semicolon rather than a method body. A concrete subclass must implement all inherited abstract methods; otherwise, it must itself be declared `abstract`. An implementation may not reduce the inherited method’s visibility, for example from `protected` to `private`.",
+      "example": "`protected abstract int evaluate();` requires a concrete `evaluate()` method in every concrete subclass.",
+      "pitfalls": [
+        "A method without a body in an interface is implicitly `public abstract`, so its implementation must be `public`."
+      ],
+      "related": [
+        "Abstract class",
+        "Interface contract",
+        "Dynamic binding"
+      ],
+      "heading": null
+    },
+    {
+      "id": "eip-11-k04",
+      "term": "Caching (memoization) in Expression.getValue()",
+      "kind": "method",
+      "short": "`getValue()` computes an expression on the first call and returns the stored value on later calls.",
+      "explanation": "The cache avoids fully recomputing the same unchanged expression tree multiple times. `getValue()` first checks `evaluated`; if the field is false, the method computes `evaluate()`, stores the result in `value`, and then sets `evaluated` to `true`. It then returns `value`. A separate boolean field is needed because `0` can be a valid result, and `value == 0` does not indicate whether the computation has already taken place.",
+      "example": "For `new Const(0)`, the first call returns `0` and marks the value as computed; later calls return the stored value.",
+      "pitfalls": [
+        "The cache remains correct only as long as the expression and its operands do not change after evaluation."
+      ],
+      "related": [
+        "Expression tree",
+        "Abstract method and implementation obligation",
+        "Final reference and mutable object"
+      ],
+      "heading": "1.3 Die zentrale Klasse mit Cache"
+    },
+    {
+      "id": "eip-11-k05",
+      "term": "Dynamic binding",
+      "kind": "concept",
+      "short": "For an overridden instance method, the object’s runtime class determines which implementation is executed.",
+      "explanation": "The static reference type determines which methods may be called at a given point in the program. If the call is to an overridden instance method, the runtime selects the implementation based on the object’s actual class. In `Expression.getValue()`, `evaluate()` therefore calls `Addition.evaluate()` for an `Addition` object, even when the reference has type `Expression`.",
+      "example": "`Expression e = new Addition(...); e.getValue();` executes the `evaluate()` implementation from `Addition`.",
+      "pitfalls": [
+        "The static type still determines whether the method call is allowed to compile."
+      ],
+      "related": [
+        "Expression tree",
+        "Abstract method and implementation obligation",
+        "Interface reference type",
+        "Polymorphism and dynamic binding"
+      ],
+      "heading": "1.5 Dynamisches Binden und rekursive Auswertung"
+    },
+    {
+      "id": "eip-11-k06",
+      "term": "final",
+      "kind": "definition",
+      "short": "Depending on where it is used, `final` prohibits subclasses, method overrides, or reassignment.",
+      "explanation": "A `final` class cannot be subclassed. A `final` method cannot be overridden by a subclass. A `final` variable cannot be assigned again after its initial assignment. `final` restricts extensions and can enforce design assumptions, but it does not guarantee a speed improvement.",
+      "example": "`final class Const extends Expression` prevents a class such as `class FancyConst extends Const`.",
+      "pitfalls": [
+        "`final` has different effects depending on where it appears; a final method does not prevent other methods in the same class from being overridden."
+      ],
+      "related": [
+        "Abstract class",
+        "Sealed class (versiegelte Klasse) and permits",
+        "Final reference and mutable object",
+        "Method overriding"
+      ],
+      "heading": null
+    },
+    {
+      "id": "eip-11-k07",
+      "term": "Final reference and mutable object (Finale Referenz und veränderliches Objekt)",
+      "kind": "concept",
+      "short": "A final reference cannot point to a different object, but the referenced object can still be changed.",
+      "explanation": "A final reference cannot be reassigned. However, `final` does not automatically freeze the state of the referenced object. For example, array elements can be changed even when the array reference is final.",
+      "example": "With `final int[] values = {1, 2};`, `values[0] = 9;` is allowed, but `values = new int[]{3};` is not.",
+      "pitfalls": [
+        "For a reference, `final` does not mean the same thing as an immutable object."
+      ],
+      "related": [
+        "final",
+        "References and aliasing",
+        "Object identity and value equality"
+      ],
+      "heading": null
+    },
+    {
+      "id": "eip-11-k08",
+      "term": "Sealed class and permits (Versiegelte Klasse und permits)",
+      "kind": "definition",
+      "short": "A `sealed` class uses `permits` to restrict its permitted direct subclasses to a fixed list.",
+      "explanation": "Inheritance is deliberately restricted with `sealed`; the `permits` clause names the direct classes that are allowed to extend it. In an expression tree, `Expression` can thus permit only `Const`, `Neg`, and `Addition` as direct subclasses. A sealed class can also be `abstract`; permitted subclasses must likewise specify their own inheritance status, for example with `final`, `sealed`, or `non-sealed`.",
+      "example": "`abstract sealed class Expression permits Const, Neg, Addition { ... }` excludes other direct subclasses.",
+      "pitfalls": [
+        "`sealed` permits a specific set of direct subclasses; `final` prohibits subclasses entirely."
+      ],
+      "related": [
+        "final",
+        "Exhaustive pattern-matching switch",
+        "Abstract class or interface: a design choice"
+      ],
+      "heading": "3.1 Vererbung gezielt einschränken"
+    },
+    {
+      "id": "eip-11-k09",
+      "term": "Exhaustive pattern-matching switch (Erschöpfender Pattern-Matching-switch)",
+      "kind": "concept",
+      "short": "A `switch` over a sealed hierarchy is exhaustive if it covers every permitted case.",
+      "explanation": "A pattern-matching `switch` can check a value’s type and bind it to a typed variable in the matching case. If a sealed hierarchy lists every permitted concrete type and every case is handled, a `switch` expression can omit `default`. For an expression tree, each case can count the node itself and recursively count its children.",
+      "example": "```java\nreturn switch (e) {\n    case Const c -> 1;\n    case Neg n -> 1 + countNodes(n.arg);\n    case Addition a -> 1 + countNodes(a.left) + countNodes(a.right);\n};\n```\nFor `Addition(Neg(Const(8)), Const(16))`, the node count is `4`.",
+      "pitfalls": [
+        "Without `default`, the pattern match must actually cover all permitted types."
+      ],
+      "related": [
+        "Sealed class and permits",
+        "Expression tree",
+        "Recursion"
+      ],
+      "heading": "3.2 Pattern-Matching im"
+    },
+    {
+      "id": "eip-11-k10",
+      "term": "Multiple inheritance and multiple interface implementation (Mehrfachvererbung und Mehrfachimplementierung)",
+      "kind": "concept",
+      "short": "A Java class may extend one direct superclass and implement multiple interfaces.",
+      "explanation": "Java does not allow a class to name multiple classes as superclasses with `extends`. A class may, however, name multiple interfaces with `implements` to fulfill multiple capabilities and contracts. An interface can itself extend multiple other interfaces with `extends`.",
+      "example": "`class C extends B implements I1, I2 { ... }` is allowed; `class C extends A, B` is not.",
+      "pitfalls": [
+        "A class can have at most one direct class superclass, but it can implement multiple interfaces."
+      ],
+      "related": [
+        "Interface contract",
+        "Interface inheritance with extends",
+        "Abstract class or interface: a design choice",
+        "Inheritance and the is-a relationship"
+      ],
+      "heading": "4.1 Problem: Mehrfachvererbung von Klassen"
+    },
+    {
+      "id": "eip-11-k11",
+      "term": "Interface contract (Interface-Vertrag)",
+      "kind": "definition",
+      "short": "An interface describes methods that an implementing class must provide as a promised capability.",
+      "explanation": "An interface declares a contract that implementing classes must fulfill. A method without a body requires an implementation; the class must provide it with at least the same visibility. This lets otherwise unrelated classes offer the same capability.",
+      "example": "```java\ninterface ValueComparable {\n    int compareTo(Object other);\n}\n```",
+      "pitfalls": [
+        "An implementation with `protected` does not fulfill an implicitly public interface method."
+      ],
+      "related": [
+        "Multiple inheritance and multiple interface implementation",
+        "Interface members and implicit modifiers",
+        "Interface reference type"
+      ],
+      "heading": "4.2 Ein Interface definiert einen Vertrag"
+    },
+    {
+      "id": "eip-11-k12",
+      "term": "compareTo: sign of the return value (Vorzeichen des Rückgabewerts)",
+      "kind": "definition",
+      "short": "`compareTo` indicates the ordering of two values through the sign of its return value.",
+      "explanation": "A negative result means the receiver precedes the argument in the ordering. `0` means they are equal according to that ordering, and a positive result means the receiver follows the argument. The contract depends on the sign; the method need not return exactly `-1`, `0`, or `1`.",
+      "example": "If `half.compareTo(threeQuarters)` returns a negative result, `half` precedes `threeQuarters` in the ordering.",
+      "pitfalls": [
+        "`compareTo(...) == 0` does not automatically mean that both variables contain the same object reference."
+      ],
+      "related": [
+        "Cross multiplication for comparing fractions",
+        "Reference identity and comparison equality",
+        "Interface contract"
+      ],
+      "heading": null
+    },
+    {
+      "id": "eip-11-k13",
+      "term": "Cross multiplication for comparing fractions (Kreuzproduktvergleich von Brüchen)",
+      "kind": "method",
+      "short": "Fractions with positive denominators can be ordered by comparing their cross products.",
+      "explanation": "For fractions $a/b$ and $c/d$ with positive denominators, compare $a \\cdot d$ with $c \\cdot b$. If the first product is smaller, $a/b$ is smaller; if the products are equal, the fractions are equal in the ordering; otherwise, $a/b$ is larger. For `int` fields, the operands should be promoted to `long` before multiplication so the products do not first overflow as `int` values.",
+      "example": "$1/2 < 3/4$, because $1 \\cdot 4 < 3 \\cdot 2$.",
+      "pitfalls": [
+        "Casting after multiplication is too late: `(long) (a * d)` may promote an already-overflowed `int` result."
+      ],
+      "related": [
+        "compareTo: sign of the return value",
+        "Interface contract"
+      ],
+      "heading": "4.4 Eine Klasse: Oberklasse **und** Interface"
+    },
+    {
+      "id": "eip-11-k14",
+      "term": "Interface reference type (Interface-Referenztyp)",
+      "kind": "concept",
+      "short": "A variable of interface type can refer to any object whose class implements that interface.",
+      "explanation": "The static interface type determines which members are accessible at the point of use; the runtime type remains the concrete object class. For example, a method can compare two `ValueComparable` values and return one of the supplied references without knowing their concrete classes. A cast can make additional class members accessible if the object actually has the target type.",
+      "example": "`ValueComparable half = new OrderedRational(1, 2);` allows a call to `compareTo`, but not a direct call to a `numerator()` method declared only in `OrderedRational`.",
+      "pitfalls": [
+        "A cast does not change an object’s runtime class; an incompatible cast fails at runtime.",
+        "A method that returns an existing interface reference does not thereby create a new object."
+      ],
+      "related": [
+        "Dynamic binding",
+        "Reference identity and comparison equality",
+        "Reference types and upcasting",
+        "instanceof and casting"
+      ],
+      "heading": "4.5 Interface als Referenztyp, Parameter und Rückgabewert"
+    },
+    {
+      "id": "eip-11-k15",
+      "term": "Reference identity and comparison equality (Referenzidentität und Vergleichsgleichheit)",
+      "kind": "concept",
+      "short": "`==` checks identity for object references, whereas `compareTo(...) == 0` expresses equality in an ordering.",
+      "explanation": "Two references are identical if they point to the same object. A comparison method can instead rank two different objects as equal if their relevant values match. For a copy of `CounterValue`, `copy == c` may therefore be false while `copy.compareTo(c) == 0` is true.",
+      "example": "A newly created copy with the same counter value is a different object, but is equivalent according to `compareTo`.",
+      "pitfalls": [
+        "Comparison equality and reference identity answer different questions."
+      ],
+      "related": [
+        "Interface reference type",
+        "compareTo: sign of the return value",
+        "Object identity and value equality",
+        "equals and hashCode"
+      ],
+      "heading": "4.5 Interface als Referenztyp, Parameter und Rückgabewert"
+    },
+    {
+      "id": "eip-11-k16",
+      "term": "Interface members and implicit modifiers (Interface-Mitglieder und implizite Modifier)",
+      "kind": "concept",
+      "short": "Interface methods and fields have fixed default modifiers, even when those modifiers are not written explicitly.",
+      "explanation": "A method without a body is implicitly `public abstract`; a `default` or `static` method with a body is public unless explicitly declared `private`. Fields are implicitly `public static final` and must be initialized when declared. Interfaces have no constructors or instance fields, but they can contain constants and various kinds of methods.",
+      "example": "`void f();` is equivalent to `public abstract void f();`, and `int SIZE = 3;` is a public static final constant.",
+      "pitfalls": [
+        "An interface method without a body is not package-private.",
+        "A final interface constant whose value is an array protects the reference, but does not automatically protect the array elements."
+      ],
+      "related": [
+        "Interface contract",
+        "Interface constants",
+        "Static interface method",
+        "default method",
+        "Private helper method in an interface"
+      ],
+      "heading": "7. Interface-Mitglieder auf einen Blick (Folie 843)"
+    },
+    {
+      "id": "eip-11-k17",
+      "term": "Interface constants (Interface-Konstanten)",
+      "kind": "definition",
+      "short": "A field declared in an interface is automatically an initialized `public static final` constant.",
+      "explanation": "Every interface field needs an initializer. The constant can be accessed through the interface name, for example `ValueComparable.LESS`. An initializer can also contain a computation or create an array; that work happens during interface initialization, not again on every access.",
+      "example": "```java\ninterface ValueComparable {\n    int LESS = -1, EQUAL = 0, GREATER = 1;\n}\n```",
+      "pitfalls": [
+        "An interface field without an initializer is not allowed.",
+        "A `final` array field does not prevent its elements from being changed."
+      ],
+      "related": [
+        "Interface members and implicit modifiers",
+        "Same-named interface constants",
+        "final"
+      ],
+      "heading": "5.1 Konstanten sind implizit"
+    },
+    {
+      "id": "eip-11-k18",
+      "term": "Static interface method (Statische Interface-Methode)",
+      "kind": "definition",
+      "short": "A static interface method belongs to the interface itself and is called through its name.",
+      "explanation": "A static method in an interface can provide a shared helper operation. It is called, for example, as `ValueComparable.compare(x, y)`, not as an instance method. Implementing classes do not inherit this static interface method.",
+      "example": "`ValueComparable.compare(null, half)` can handle a specified ordering for `null` arguments.",
+      "pitfalls": [
+        "`OrderedRational.compare(...)` is not allowed just because `OrderedRational` implements `ValueComparable`."
+      ],
+      "related": [
+        "Interface members and implicit modifiers",
+        "Interface constants",
+        "Interface contract"
+      ],
+      "heading": null
+    },
+    {
+      "id": "eip-11-k19",
+      "term": "Interface inheritance with extends (Interface-Vererbung mit extends)",
+      "kind": "concept",
+      "short": "An interface can extend multiple other interfaces with `extends` and combine their contracts.",
+      "explanation": "Multiple inheritance is allowed for interfaces using `extends I1, I2`. An extending interface inherits the contract requirements of its superinterfaces and can add further methods. A class that implements this interface must fulfill the combined contract.",
+      "example": "`interface Countable extends ValueComparable, Cloneable { ... }` combines comparability with another marked capability.",
+      "pitfalls": [
+        "A class uses `implements` to fulfill interfaces; an interface uses `extends` to extend other interfaces."
+      ],
+      "related": [
+        "Multiple inheritance and multiple interface implementation",
+        "Interface contract",
+        "Cloneable as a marker interface"
+      ],
+      "heading": "5.3 Ein Interface kann mehrere Interfaces erweitern"
+    },
+    {
+      "id": "eip-11-k20",
+      "term": "Cloneable as a marker interface (Cloneable als Marker-Interface)",
+      "kind": "definition",
+      "short": "`Cloneable` is a marker interface with no methods that marks a property of a class.",
+      "explanation": "`Cloneable` declares, in particular, no `clone()` method. The protected method `Object.clone()` checks whether the object belongs to a class that implements `Cloneable`; otherwise, it can throw `CloneNotSupportedException`. A custom interface can additionally require `clone()` as a public operation.",
+      "example": "`Countable` can extend `Cloneable` and itself declare `Object clone();`, requiring implementing classes to provide a public copying operation.",
+      "pitfalls": [
+        "`implements Cloneable` does not automatically make `clone()` public or define a concrete copying method."
+      ],
+      "related": [
+        "Interface inheritance with extends",
+        "Interface contract",
+        "Reference identity and comparison equality"
+      ],
+      "heading": null
+    },
+    {
+      "id": "eip-11-k21",
+      "term": "Same-named interface constants (Gleichnamige Interface-Konstanten)",
+      "kind": "concept",
+      "short": "Constants with the same name from multiple interfaces must be accessed unambiguously using their interface names.",
+      "explanation": "If a class implements two interfaces with a field named `VALUE`, an unqualified access in the class is ambiguous. Using `LeftCode.VALUE` or `RightCode.VALUE` makes clear which field is meant. A subinterface can also declare a field with the same name, hiding the inherited field; the original field remains.",
+      "example": "`LeftCode.VALUE` can be `1` and `RightCode.VALUE` can be `2`; an access as `VALUE` is then ambiguous.",
+      "pitfalls": [
+        "Hiding an interface constant does not change the value in the superinterface."
+      ],
+      "related": [
+        "Interface constants",
+        "Interface inheritance with extends"
+      ],
+      "heading": "5.5 Gleichnamige Interface-Konstanten"
+    },
+    {
+      "id": "eip-11-k22",
+      "term": "default method (default-Methode)",
+      "kind": "definition",
+      "short": "A `default` method is a public instance method in an interface that provides an inheritable default implementation.",
+      "explanation": "An interface can require abstract methods and also provide a complete method using `default`. The default method can call abstract methods from the same interface and is inherited by implementing classes. A class can override it if it needs different behavior.",
+      "example": "`default void printDescription() { MiniJava.write(description()); }` uses the `description()` method implemented by the class.",
+      "pitfalls": [
+        "An inherited default method can be overridden; it is not a static method."
+      ],
+      "related": [
+        "Interface contract",
+        "Private helper method in an interface",
+        "Conflict between default methods",
+        "Precedence rules for default methods"
+      ],
+      "heading": "6.1 Interface mit abstrakter und fertiger Methode"
+    },
+    {
+      "id": "eip-11-k23",
+      "term": "Private helper method in an interface (Private Hilfsmethode im Interface)",
+      "kind": "method",
+      "short": "A private interface method encapsulates helper logic used only by methods in the same interface.",
+      "explanation": "An interface can contain private methods with a body to reuse implementation details in a `default` or static method. Implementing classes do not have to provide this private method and cannot call it as a public contract requirement. This lets the interface group internal steps without making them a capability that classes must implement.",
+      "example": "```java\nprivate String label() {\n    return \"Item: \" + description();\n}\n\ndefault void printDescription() {\n    MiniJava.write(label());\n}\n```",
+      "pitfalls": [
+        "A private interface method is not inherited by implementing classes."
+      ],
+      "related": [
+        "default method",
+        "Interface members and implicit modifiers"
+      ],
+      "heading": null
+    },
+    {
+      "id": "eip-11-k24",
+      "term": "Conflict between default methods (Konflikt zwischen default-Methoden)",
+      "kind": "concept",
+      "short": "Two independent interfaces with default methods of the same name create a conflict that the implementing class must resolve.",
+      "explanation": "If two independent interfaces provide a default method with the same signature, it is not specified which body a class should inherit. The class must override the method and decide which behavior to use. In the override, it can explicitly call a concrete superinterface implementation using `InterfaceName.super.methode()`.",
+      "example": "A class implementing `LeftDefault` and `RightDefault` can call `LeftDefault.super.meth()` in its override.",
+      "pitfalls": [
+        "With two independent conflicting defaults, neither wins automatically."
+      ],
+      "related": [
+        "default method",
+        "Precedence rules for default methods",
+        "Interface contract"
+      ],
+      "heading": "6.3 Zwei konkurrierende Defaults"
+    },
+    {
+      "id": "eip-11-k25",
+      "term": "Precedence rules for default methods (Vorrangregeln für default-Methoden)",
+      "kind": "theorem",
+      "short": "Among competing implementations, a concrete class method takes precedence over a default, and a more specific interface over a more general one.",
+      "explanation": "An inherited concrete class method takes precedence over an interface default method. If there is no such class method, a default from a more specific subinterface takes precedence over an inherited default from a superinterface. If multiple independent defaults conflict, the class must override the method and resolve the conflict. A subinterface can also redeclare an inherited default method as abstract, thereby requiring an implementation.",
+      "example": "If `SpecificDefault extends LeftDefault` overrides `meth()`, a class implementing `SpecificDefault` inherits the more specific default.",
+      "pitfalls": [
+        "An abstract subinterface does not provide a complete default implementation, even if a superinterface did."
+      ],
+      "related": [
+        "Conflict between default methods",
+        "default method",
+        "Multiple inheritance and multiple interface implementation"
+      ],
+      "heading": "6.4 Welche Methode hat Vorrang?"
+    },
+    {
+      "id": "eip-11-k26",
+      "term": "Class and interface relationships in UML (Klassen- und Interface-Beziehungen in UML)",
+      "kind": "notation",
+      "short": "UML distinguishes class inheritance from interface implementation using different lines.",
+      "explanation": "In a class diagram, inheritance between classes is shown with a solid line, while interface implementation is shown with a dashed line. In Java, `extends` indicates the superclass relationship for classes, and `implements` indicates an interface relationship. UML can mark `protected` visibility with `#`; an asterisk on an operation can indicate an abstract operation.",
+      "example": "`OrderedRational` extends `AddSubMulDiv` and implements `ValueComparable`.",
+      "pitfalls": [
+        "A UML line for interface implementation does not mean that the interface is a class superclass."
+      ],
+      "related": [
+        "Multiple inheritance and multiple interface implementation",
+        "Interface contract",
+        "Abstract class"
+      ],
+      "heading": "7.1 Klassen- und Interface-Beziehungen"
+    },
+    {
+      "id": "eip-11-k27",
+      "term": "Abstract class or interface: a design choice (Abstrakte Klasse oder Interface: Designentscheidung)",
+      "kind": "concept",
+      "short": "An abstract class suits a shared family with state and code; an interface suits a capability shared by different classes.",
+      "explanation": "An abstract class can provide shared instance fields and concrete methods, but a class can have only one direct class superclass. Multiple interfaces can be combined when objects of different classes fulfill the same capability or contract. `final` prohibits further subclasses entirely; `sealed` restricts them to explicitly permitted direct subclasses.",
+      "example": "`Expression` shares cache state and evaluation logic, while `ValueComparable` expresses a comparison capability for suitable classes.",
+      "pitfalls": [
+        "An interface is not limited to abstract methods: it can also contain constants and `default`, `static`, and private methods."
+      ],
+      "related": [
+        "Abstract class",
+        "Interface contract",
+        "final",
+        "Sealed class and permits",
+        "Multiple inheritance and multiple interface implementation"
+      ],
+      "heading": null
+    }
+  ],
+  "generator": {
+    "model": "gpt-6-luna",
+    "effort": "xhigh",
+    "promptVersion": "k1",
+    "generatedAt": "2026-11-18T00:30:04.441Z"
+  }
+}

@@ -1,0 +1,1978 @@
+{
+  "schemaVersion": 1,
+  "id": "eip-11",
+  "module": "EIP",
+  "number": 11,
+  "slug": "abstrakte-klassen-und-interfaces",
+  "title": "Abstract Classes (Abstrakte Klassen) and Interfaces (Schnittstellen)",
+  "summary": "Abstract classes share state and common code, while subclasses make open methods concrete. `final` and `sealed` restrict inheritance and changes. Interfaces describe capabilities; their `default` methods can create inheritance conflicts, for which Java has fixed precedence rules.",
+  "concepts": [
+    "Abstract classes",
+    "Abstract methods",
+    "Expression trees and caching",
+    "Dynamic binding",
+    "final",
+    "sealed and permits",
+    "Exhaustive switch",
+    "Interfaces and contracts",
+    "compareTo",
+    "Interface constants and static methods",
+    "Marker interfaces",
+    "default methods",
+    "Resolving conflicts between default methods",
+    "Interface reference types",
+    "References and object identity"
+  ],
+  "keyFacts": [
+    "An abstract class cannot be instantiated directly.",
+    "An abstract method has a signature but no method body.",
+    "A concrete subclass must implement all inherited abstract methods or itself be abstract.",
+    "Abstract classes may have instance fields and concrete methods.",
+    "In an expression tree, `getValue()` computes a value once and then stores it in the cache.",
+    "A separate `evaluated` field is needed because 0 can be a valid result.",
+    "For overridden instance methods, the object's runtime class determines which implementation runs.",
+    "`final` on a class prohibits subclasses; on a method it prohibits overriding; on a variable it prohibits reassignment.",
+    "A `final` reference does not prevent the referenced object from changing.",
+    "`sealed` with `permits` restricts the permitted direct subclasses.",
+    "A `switch` over a sealed hierarchy can omit `default` if all permitted cases are covered.",
+    "A class may have one direct superclass and implement multiple interfaces.",
+    "Interface methods without a body are implicitly `public abstract`; interface fields are `public static final` and must have an initializer.",
+    "For `compareTo`, a negative result means smaller, 0 means equal according to the ordering, and a positive result means larger.",
+    "Static interface methods are called through the interface name and are not inherited by implementing classes.",
+    "`Cloneable` is a marker interface and declares no `clone()` method.",
+    "For `default` conflicts, a concrete class method takes precedence over an interface default.",
+    "A more specific interface takes precedence over a more general inherited default; the class must resolve conflicts between unrelated defaults."
+  ],
+  "tags": [
+    "TUM",
+    "EIP",
+    "Java",
+    "OOP",
+    "abstract",
+    "final",
+    "sealed",
+    "interfaces",
+    "polymorphism"
+  ],
+  "links": [],
+  "source": {
+    "file": "EIP/01_Vorlesungen/EIP VO11.md",
+    "sha256": "cc19bfc1d456ba532f2ff72c0a66bec4106c7abe8581f0e755e6f5298a43e0fc",
+    "commit": "4a452f9e65ab67e9f38f4857fe724f132c93cf9a"
+  },
+  "generator": {
+    "model": "gpt-6-luna",
+    "effort": "xhigh",
+    "reviewEffort": "high",
+    "promptVersion": "v3",
+    "generatedAt": "2026-11-18T00:09:06.359Z",
+    "review": {
+      "checked": 45,
+      "fixed": 9,
+      "removed": 0,
+      "notes": "Alle 45 Fragen geprüft. Behoben: ungültige Quellenverweise, fehlende Deklaration von y und mehrere hart codierte Verify-Antworten. Rechenwerte und Mermaid-Kontexte geprüft; keine Frage musste entfernt werden."
+    }
+  },
+  "levels": [
+    {
+      "id": "eip-11-l1",
+      "index": 1,
+      "kind": "basics",
+      "title": "Foundations",
+      "questions": [
+        {
+          "id": "eip-11-l1-q01",
+          "type": "single",
+          "prompt": "Which statement describes an abstract class?",
+          "options": [
+            {
+              "id": "a",
+              "text": "It can only be implemented by interfaces."
+            },
+            {
+              "id": "b",
+              "text": "It may contain only abstract methods."
+            },
+            {
+              "id": "c",
+              "text": "It can provide shared fields and methods but cannot be instantiated directly."
+            },
+            {
+              "id": "d",
+              "text": "It can be instantiated directly as long as it has a constructor."
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "An abstract class can combine state and finished code with open methods. Having a constructor does not make it directly instantiable.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO11.md",
+            "heading": "1. Abstrakte Klassen: Expression Trees (Folien 776–797)"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Abstract classes"
+          ]
+        },
+        {
+          "id": "eip-11-l1-q02",
+          "type": "cloze",
+          "prompt": "An abstract method has a signature but no ___.",
+          "options": [
+            {
+              "id": "a",
+              "text": "Parameter list"
+            },
+            {
+              "id": "b",
+              "text": "Method body"
+            },
+            {
+              "id": "c",
+              "text": "Method name"
+            },
+            {
+              "id": "d",
+              "text": "Return type"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "The declaration ends with a semicolon instead of a method body. The name, return type, and parameters make up the signature.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO11.md",
+            "heading": "1.2           : verpflichtende Methode ohne Implementierung"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Abstract methods"
+          ]
+        },
+        {
+          "id": "eip-11-l1-q03",
+          "type": "multi",
+          "prompt": "Select all correct statements about `final`; more than one answer may be correct.",
+          "options": [
+            {
+              "id": "a",
+              "text": "A `final` class cannot have subclasses."
+            },
+            {
+              "id": "b",
+              "text": "A `final` method cannot be overridden."
+            },
+            {
+              "id": "c",
+              "text": "A `final` array cannot contain modified elements."
+            },
+            {
+              "id": "d",
+              "text": "A `final` variable cannot be reassigned after its initial assignment."
+            }
+          ],
+          "correct": [
+            "a",
+            "b",
+            "d"
+          ],
+          "explanation": "`final` affects inheritance, overriding, or reassignment depending on where it appears. The elements of a final array reference can still be changed.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO11.md",
+            "heading": "2.        : Klassen, Methoden und Variablen (Folien 798–803)"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "final"
+          ]
+        },
+        {
+          "id": "eip-11-l1-q04",
+          "type": "truefalse",
+          "prompt": "With `final int[] a = {1};`, `a[0] = 2;` is prohibited because the reference is final.",
+          "options": [
+            {
+              "id": "true",
+              "text": "True"
+            },
+            {
+              "id": "false",
+              "text": "False"
+            }
+          ],
+          "correct": [
+            "false"
+          ],
+          "explanation": "`final` only prevents `a` from being redirected to a different array here. The contents of the referenced array can still be changed.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO11.md",
+            "heading": "2.1 Achtung:        -Referenz ≠ unveränderliches Objekt"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "final"
+          ]
+        },
+        {
+          "id": "eip-11-l1-q05",
+          "type": "single",
+          "prompt": "What does `permits` specify for a `sealed` class?",
+          "options": [
+            {
+              "id": "a",
+              "text": "The interfaces a class must implement."
+            },
+            {
+              "id": "b",
+              "text": "The permitted constructor parameters."
+            },
+            {
+              "id": "c",
+              "text": "The methods that may not be overridden."
+            },
+            {
+              "id": "d",
+              "text": "The permitted direct subclasses."
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "`sealed` restricts inheritance. The `permits` list specifies which classes may inherit directly.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO11.md",
+            "heading": "3.1 Vererbung gezielt einschränken"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "sealed and permits"
+          ]
+        },
+        {
+          "id": "eip-11-l1-q06",
+          "type": "cloze",
+          "prompt": "For `compareTo`, a negative result means that this object comes ___ the compared object in the ordering.",
+          "options": [
+            {
+              "id": "a",
+              "text": "before"
+            },
+            {
+              "id": "b",
+              "text": "identical to"
+            },
+            {
+              "id": "c",
+              "text": "independent of"
+            },
+            {
+              "id": "d",
+              "text": "after"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "The sign is what matters: negative means before, 0 means equal according to the ordering, and positive means after.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO11.md",
+            "heading": "4.3            : Bedeutung des Rückgabewerts"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "compareTo"
+          ]
+        },
+        {
+          "id": "eip-11-l1-q07",
+          "type": "multi",
+          "prompt": "Select all correct statements about interfaces; more than one answer may be correct.",
+          "options": [
+            {
+              "id": "a",
+              "text": "An interface cannot have instance fields or constructors."
+            },
+            {
+              "id": "b",
+              "text": "An interface method without a body is implicitly `public abstract`."
+            },
+            {
+              "id": "c",
+              "text": "Every interface method must be abstract."
+            },
+            {
+              "id": "d",
+              "text": "Interface fields are implicitly `public static final`."
+            }
+          ],
+          "correct": [
+            "a",
+            "b",
+            "d"
+          ],
+          "explanation": "Interfaces can also have `default`, `static`, and private methods with bodies. They cannot have instance fields or constructors.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO11.md",
+            "heading": "4.2 Ein Interface definiert einen Vertrag"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Interfaces and contracts",
+            "Interface constants and static methods"
+          ]
+        },
+        {
+          "id": "eip-11-l1-q08",
+          "type": "single",
+          "prompt": "How do you call a static method of an interface?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Only through an instance of the implementing class."
+            },
+            {
+              "id": "b",
+              "text": "Through `super` in the implementing class."
+            },
+            {
+              "id": "c",
+              "text": "Through the name of any implementing class."
+            },
+            {
+              "id": "d",
+              "text": "Through the interface name, for example `ValueComparable.compare(x, y)`."
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "A static interface method belongs to the interface itself. Implementing classes do not inherit it.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO11.md",
+            "heading": "5.2         -Methoden im Interface"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Interface constants and static methods"
+          ]
+        },
+        {
+          "id": "eip-11-l1-q09",
+          "type": "truefalse",
+          "prompt": "`Cloneable` declares a method `clone()`.",
+          "options": [
+            {
+              "id": "true",
+              "text": "True"
+            },
+            {
+              "id": "false",
+              "text": "False"
+            }
+          ],
+          "correct": [
+            "false"
+          ],
+          "explanation": "`Cloneable` is a marker interface with no method declaration of its own. Another interface can explicitly require a public copy operation.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO11.md",
+            "heading": "5.4            : Marker-Interface"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Marker interfaces"
+          ]
+        },
+        {
+          "id": "eip-11-l1-q10",
+          "type": "diagram",
+          "prompt": "What relationship does the dashed line between `OrderedRational` and `ValueComparable` represent?",
+          "context": {
+            "type": "mermaid",
+            "content": "classDiagram\n    class OrderedRational\n    class ValueComparable {\n        <<interface>>\n    }\n    ValueComparable <|.. OrderedRational",
+            "caption": "Relationship between a class and an interface"
+          },
+          "options": [
+            {
+              "id": "a",
+              "text": "`ValueComparable` is a subclass of `OrderedRational`."
+            },
+            {
+              "id": "b",
+              "text": "The two types are not connected."
+            },
+            {
+              "id": "c",
+              "text": "`OrderedRational` implements the interface `ValueComparable`."
+            },
+            {
+              "id": "d",
+              "text": "`OrderedRational` extends `ValueComparable` as a class."
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "In a UML class diagram, a dashed line indicates that a class implements an interface. A solid inheritance line represents class inheritance.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO11.md",
+            "heading": "7.1 Klassen- und Interface-Beziehungen"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Interfaces and contracts"
+          ]
+        },
+        {
+          "id": "eip-11-l1-q11",
+          "type": "cloze",
+          "prompt": "A `default` method in an interface has a method body and provides a finished, ___ instance method.",
+          "options": [
+            {
+              "id": "a",
+              "text": "overridable"
+            },
+            {
+              "id": "b",
+              "text": "abstract"
+            },
+            {
+              "id": "c",
+              "text": "private"
+            },
+            {
+              "id": "d",
+              "text": "static"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "A `default` method provides an inheritable implementation. A class can override this method.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO11.md",
+            "heading": "6.1 Interface mit abstrakter und fertiger Methode"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "default methods"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "eip-11-l2",
+      "index": 2,
+      "kind": "apply",
+      "title": "Apply",
+      "questions": [
+        {
+          "id": "eip-11-l2-q01",
+          "type": "code_output",
+          "prompt": "What does this code print? `final` prevents `values` from being reassigned, but does not prevent its elements from changing. `MiniJava.write(x)` prints `x`.\n\n```java\nfinal int[] values = {1, 2};\nvalues[0] = 9;\nMiniJava.write(values[0]);\n```",
+          "options": [
+            {
+              "id": "a",
+              "text": "0"
+            },
+            {
+              "id": "b",
+              "text": "9"
+            },
+            {
+              "id": "c",
+              "text": "Compiler error because of `final`"
+            },
+            {
+              "id": "d",
+              "text": "1"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "The reference still points to the same array, but the element at index 0 is set to 9. Therefore, 9 is printed.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO11.md",
+            "heading": "2.1 Achtung:        -Referenz ≠ unveränderliches Objekt"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "final"
+          ]
+        },
+        {
+          "id": "eip-11-l2-q02",
+          "type": "calc",
+          "prompt": "Compare the fractions $\\frac{5}{8}$ and $\\frac{2}{3}$ using cross-products. What does `compareTo` return when the smaller fraction is compared?",
+          "options": [
+            {
+              "id": "a",
+              "text": "-1"
+            },
+            {
+              "id": "b",
+              "text": "1"
+            },
+            {
+              "id": "c",
+              "text": "The denominators are positive, so comparison is not possible."
+            },
+            {
+              "id": "d",
+              "text": "0"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "The cross-products are $5\\cdot3=15$ and $8\\cdot2=16$. Since 15 is less than 16, $\\frac{5}{8}$ comes before the other fraction, and `compareTo` returns a negative value, here -1.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO11.md",
+            "heading": "4.4 Eine Klasse: Oberklasse **und** Interface"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "compareTo"
+          ]
+        },
+        {
+          "id": "eip-11-l2-q03",
+          "type": "single",
+          "prompt": "Which declaration can a class with one superclass and two interfaces use?",
+          "options": [
+            {
+              "id": "a",
+              "text": "`class C extends I1 implements A, I2`"
+            },
+            {
+              "id": "b",
+              "text": "`class C implements A extends I1, I2`"
+            },
+            {
+              "id": "c",
+              "text": "`class C extends A implements I1, I2`"
+            },
+            {
+              "id": "d",
+              "text": "`class C extends A, B implements I1`"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "A class can extend one direct superclass and implement multiple interfaces. The class cannot list two superclasses in `extends`.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO11.md",
+            "heading": "4.1 Problem: Mehrfachvererbung von Klassen"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Interfaces and contracts"
+          ]
+        },
+        {
+          "id": "eip-11-l2-q04",
+          "type": "multi",
+          "prompt": "Suppose `OrderedRational` implements `ValueComparable`, which declares `compareTo` and a static method `compare`. `OrderedRational` also provides `numerator()`. `ValueComparable x` and `ValueComparable y` are declared. Select all calls that are possible through `x` or through the interface name; more than one answer may be correct.",
+          "options": [
+            {
+              "id": "a",
+              "text": "`x.numerator()`"
+            },
+            {
+              "id": "b",
+              "text": "`OrderedRational.compare(x, y)` as an inherited static method"
+            },
+            {
+              "id": "c",
+              "text": "`ValueComparable.compare(x, y)`"
+            },
+            {
+              "id": "d",
+              "text": "`x.compareTo(y)`"
+            }
+          ],
+          "correct": [
+            "c",
+            "d"
+          ],
+          "explanation": "The static type `ValueComparable` allows access to its instance method `compareTo`. The static interface method is called through the interface name; `numerator()` is not visible through this reference type.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO11.md",
+            "heading": "4.5 Interface als Referenztyp, Parameter und Rückgabewert"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Interface reference types",
+            "Interface constants and static methods"
+          ]
+        },
+        {
+          "id": "eip-11-l2-q05",
+          "type": "code_output",
+          "prompt": "What does the code print? `MiniJava.write(x)` prints the corresponding value.\n\n```java\nabstract class E {\n    protected abstract int evaluate();\n    int getValue() { return evaluate(); }\n}\nclass C extends E {\n    protected int evaluate() { return 6; }\n}\nE x = new C();\nMiniJava.write(x.getValue());\n```",
+          "options": [
+            {
+              "id": "a",
+              "text": "0"
+            },
+            {
+              "id": "b",
+              "text": "Compiler error because `C` remains abstract."
+            },
+            {
+              "id": "c",
+              "text": "6"
+            },
+            {
+              "id": "d",
+              "text": "Compiler error because `x` has type `E`."
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "`x` can call `getValue()` because the method is declared in `E`. The call to `evaluate()` is dynamically bound to `C.evaluate()` and returns 6.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO11.md",
+            "heading": "1.5 Dynamisches Binden und rekursive Auswertung"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Abstract methods",
+            "Dynamic binding"
+          ]
+        },
+        {
+          "id": "eip-11-l2-q06",
+          "type": "diagram",
+          "prompt": "In the diagram, `evaluated` is already `true`. What happens next when `getValue()` is called?",
+          "context": {
+            "type": "mermaid",
+            "content": "flowchart TD\n    S([Call getValue]) --> Q{\"evaluated?\"}\n    Q -->|false| E[\"value = evaluate()\"]\n    E --> B[\"evaluated = true\"]\n    B --> R[\"return value\"]\n    Q -->|true| R",
+            "caption": "Decision in the cache flow"
+          },
+          "options": [
+            {
+              "id": "a",
+              "text": "The call creates a new expression object."
+            },
+            {
+              "id": "b",
+              "text": "`evaluated` is set to `false`."
+            },
+            {
+              "id": "c",
+              "text": "The stored `value` is returned directly."
+            },
+            {
+              "id": "d",
+              "text": "`evaluate()` runs again and overwrites `value`."
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "If `evaluated` is true, the flow goes directly to the return step. The computation is not repeated.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO11.md",
+            "heading": "1.3 Die zentrale Klasse mit Cache"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Expression trees and caching"
+          ]
+        },
+        {
+          "id": "eip-11-l2-q07",
+          "type": "truefalse",
+          "prompt": "A class can extend one direct superclass and implement multiple interfaces.",
+          "options": [
+            {
+              "id": "true",
+              "text": "True"
+            },
+            {
+              "id": "false",
+              "text": "False"
+            }
+          ],
+          "correct": [
+            "true"
+          ],
+          "explanation": "Java allows one direct class superclass, but multiple interfaces after `implements`.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO11.md",
+            "heading": "4.1 Problem: Mehrfachvererbung von Klassen"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Interfaces and contracts"
+          ]
+        },
+        {
+          "id": "eip-11-l2-q08",
+          "type": "cloze",
+          "prompt": "A class implementing an interface method that has no body must declare it with `___` visibility.",
+          "options": [
+            {
+              "id": "a",
+              "text": "`public`"
+            },
+            {
+              "id": "b",
+              "text": "with no visibility modifier"
+            },
+            {
+              "id": "c",
+              "text": "`protected`"
+            },
+            {
+              "id": "d",
+              "text": "`private`"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "An interface method without a body is `public abstract`. Its implementation cannot restrict its visibility.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO11.md",
+            "heading": "4.2 Ein Interface definiert einen Vertrag"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Interfaces and contracts"
+          ]
+        },
+        {
+          "id": "eip-11-l2-q09",
+          "type": "code_output",
+          "prompt": "What does the code print? The two interfaces provide competing defaults; `MiniJava.write(x)` prints `x`.\n\n```java\ninterface LeftDefault {\n    default String meth() { return \"A\"; }\n}\ninterface RightDefault {\n    default String meth() { return \"B\"; }\n}\nclass Resolved implements LeftDefault, RightDefault {\n    public String meth() { return LeftDefault.super.meth(); }\n}\nMiniJava.write(new Resolved().meth());\n```",
+          "options": [
+            {
+              "id": "a",
+              "text": "A"
+            },
+            {
+              "id": "b",
+              "text": "Compiler error: the conflict is unresolved."
+            },
+            {
+              "id": "c",
+              "text": "B"
+            },
+            {
+              "id": "d",
+              "text": "null"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "The class resolves the conflict with its own override and explicitly calls `LeftDefault.super.meth()` inside it. Therefore, `A` is printed.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO11.md",
+            "heading": "6.3 Zwei konkurrierende Defaults"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "default methods",
+            "Resolving conflicts between default methods"
+          ]
+        },
+        {
+          "id": "eip-11-l2-q10-r1",
+          "type": "calc",
+          "prompt": "The expression tree `Addition(Const(4), Neg(Addition(Const(1), Const(2))))` is given. `Addition` has two child nodes, `Neg` has one, and `Const` has none. Count each node exactly once. How many nodes does the tree contain?",
+          "options": [
+            {
+              "id": "a",
+              "text": "4"
+            },
+            {
+              "id": "b",
+              "text": "7"
+            },
+            {
+              "id": "c",
+              "text": "6"
+            },
+            {
+              "id": "d",
+              "text": "5"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "The tree contains the outer addition, `Const(4)`, the negation, an inner addition, and two more constants: $1+1+1+1+2=6$ nodes in total.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO11.md",
+            "heading": null
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Expression trees",
+            "Counting nodes recursively"
+          ]
+        },
+        {
+          "id": "eip-11-l2-q11",
+          "type": "multi",
+          "prompt": "Select all correct rules for interface `default` methods; more than one answer may be correct.",
+          "options": [
+            {
+              "id": "a",
+              "text": "For two unrelated defaults with the same signature, the class must resolve the conflict."
+            },
+            {
+              "id": "b",
+              "text": "A default from a more specific interface takes precedence over a more general inherited default."
+            },
+            {
+              "id": "c",
+              "text": "An interface default always takes precedence over a class method."
+            },
+            {
+              "id": "d",
+              "text": "An inherited concrete class method takes precedence over an interface default."
+            }
+          ],
+          "correct": [
+            "a",
+            "b",
+            "d"
+          ],
+          "explanation": "The precedence rules account for concrete class methods and interface specificity. Two unrelated, conflicting defaults cannot be selected automatically.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO11.md",
+            "heading": "6.4 Welche Methode hat Vorrang?"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "default methods",
+            "Resolving conflicts between default methods"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "eip-11-l3",
+      "index": 3,
+      "kind": "deepen",
+      "title": "Deepen your understanding",
+      "questions": [
+        {
+          "id": "eip-11-l3-q01",
+          "type": "truefalse",
+          "prompt": "In a cache, `value == 0` can reliably indicate that `evaluate()` has never been executed.",
+          "options": [
+            {
+              "id": "true",
+              "text": "True"
+            },
+            {
+              "id": "false",
+              "text": "False"
+            }
+          ],
+          "correct": [
+            "false"
+          ],
+          "explanation": "0 can be a valid result. Therefore, the cache needs a separate flag such as `evaluated`.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO11.md",
+            "heading": "1.3 Die zentrale Klasse mit Cache"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Expression trees and caching"
+          ]
+        },
+        {
+          "id": "eip-11-l3-q02",
+          "type": "single",
+          "prompt": "An interface contains `private String label()` and a `default` method that calls `label()`. What must an implementing class provide?",
+          "options": [
+            {
+              "id": "a",
+              "text": "A public implementation of `label()`."
+            },
+            {
+              "id": "b",
+              "text": "A static implementation of `label()`."
+            },
+            {
+              "id": "c",
+              "text": "Only the required abstract interface methods, not `label()`."
+            },
+            {
+              "id": "d",
+              "text": "A constructor that initializes `label()`."
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "The private method is an internal implementation detail of the interface. The class does not have to implement it; it only has to fulfill the public contract.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO11.md",
+            "heading": "6.2          -Hilfsmethoden im Interface"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "default methods",
+            "Interfaces and contracts"
+          ]
+        },
+        {
+          "id": "eip-11-l3-q03-r1",
+          "type": "multi",
+          "prompt": "The following Java code is given:\n```java\ninterface Settings {\n    int[] VALUES = {2, 5};\n    static int size() { return VALUES.length; }\n}\nclass App implements Settings {}\n```\nFor this question, assume the following rules: Every interface field is implicitly `public static final` and must be initialized where it is declared. For a final array field, the reference cannot be reassigned, but its elements may be changed. A static interface method is called through the interface name and is not inherited by implementing classes. Which statements are correct?",
+          "options": [
+            {
+              "id": "a",
+              "text": "`Settings.VALUES = new int[]{9};` is allowed."
+            },
+            {
+              "id": "b",
+              "text": "`App.size()` is allowed because `App` implements `Settings`."
+            },
+            {
+              "id": "c",
+              "text": "`Settings.size()` is allowed."
+            },
+            {
+              "id": "d",
+              "text": "`Settings.VALUES[0] = 9;` is allowed."
+            }
+          ],
+          "correct": [
+            "c",
+            "d"
+          ],
+          "explanation": "The final reference `VALUES` cannot be reassigned, but its array element can be changed. `size()` is a static interface method and is therefore called as `Settings.size()`; `App` does not inherit it.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO11.md",
+            "heading": "5. Interface-Felder, statische Methoden und Vererbung (Folien 822–833)"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Interface fields",
+            "Final array references",
+            "Static interface methods"
+          ]
+        },
+        {
+          "id": "eip-11-l3-q04",
+          "type": "diagram",
+          "prompt": "A class has no inherited concrete class method. A more specific interface overrides an inherited default. Which branch of the flow determines the method call?",
+          "context": {
+            "type": "mermaid",
+            "content": "flowchart TD\n    S[\"Call meth()\"] --> C{\"Inherited concrete class method?\"}\n    C -->|Yes| CW[\"Class method takes precedence\"]\n    C -->|No| I{\"Does a more specific interface override the default?\"}\n    I -->|Yes| SW[\"More specific default takes precedence\"]\n    I -->|No| D{\"Multiple unrelated defaults?\"}\n    D -->|Yes| O[\"Class must resolve conflict\"]\n    D -->|No| U[\"Use the unique default\"]",
+            "caption": "Precedence rules for inherited methods"
+          },
+          "options": [
+            {
+              "id": "a",
+              "text": "The class must override the conflict in every case."
+            },
+            {
+              "id": "b",
+              "text": "The first default alphabetically is always used."
+            },
+            {
+              "id": "c",
+              "text": "The inherited class method is used."
+            },
+            {
+              "id": "d",
+              "text": "The more specific default is used."
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "If no concrete class method takes precedence, a default from a more specific interface takes precedence over the more general inherited default.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO11.md",
+            "heading": "6.4 Welche Methode hat Vorrang?"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "default methods",
+            "Resolving conflicts between default methods"
+          ]
+        },
+        {
+          "id": "eip-11-l3-q05",
+          "type": "code_output",
+          "prompt": "What does the code print? In Java, an `int` overflow occurs before the cast. `MiniJava.write(x)` prints `x`.\n\n```java\nint a = 50000;\nint b = 50000;\nlong ok = (long) a * b;\nlong bad = (long) (a * b);\nMiniJava.write(ok);\nMiniJava.write(bad);\n```",
+          "options": [
+            {
+              "id": "a",
+              "text": "Compiler error due to the assignment to `long`"
+            },
+            {
+              "id": "b",
+              "text": "-1794967296 and -1794967296"
+            },
+            {
+              "id": "c",
+              "text": "2500000000 and -1794967296"
+            },
+            {
+              "id": "d",
+              "text": "2500000000 and 2500000000"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "In the first expression, the values are widened to `long` before multiplication. In the second, an overflowed `int` is produced first; the later cast cannot restore the lost value.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO11.md",
+            "heading": "4.4 Eine Klasse: Oberklasse **und** Interface"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "compareTo"
+          ]
+        },
+        {
+          "id": "eip-11-l3-q06",
+          "type": "single",
+          "prompt": "The sealed abstract class `Expression` permits exactly `Const`, `Neg`, and `Addition` as concrete subclasses. A pattern-matching `switch` has one case for each of these three types. Which statement is correct?",
+          "options": [
+            {
+              "id": "a",
+              "text": "The `switch` is not exhaustive because abstract classes always require a `default` case."
+            },
+            {
+              "id": "b",
+              "text": "The switch is exhaustive and does not need a `default` case."
+            },
+            {
+              "id": "c",
+              "text": "The `switch` is exhaustive only if `Expression` can be instantiated."
+            },
+            {
+              "id": "d",
+              "text": "A `default` case is required because `sealed` does not restrict subclasses."
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "The sealed hierarchy restricts the permitted cases. If the `switch` handles every permitted concrete subclass, it is exhaustive.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO11.md",
+            "heading": "3.1 Vererbung gezielt einschränken"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "sealed and permits",
+            "Exhaustive switch"
+          ]
+        },
+        {
+          "id": "eip-11-l3-q07",
+          "type": "multi",
+          "prompt": "Select all correct statements about `Cloneable` and `Countable`; more than one answer may be correct.",
+          "options": [
+            {
+              "id": "a",
+              "text": "`Cloneable` requires a public `clone()` implementation in every implementing class."
+            },
+            {
+              "id": "b",
+              "text": "`Cloneable` marks a property but does not itself declare a `clone()` method."
+            },
+            {
+              "id": "c",
+              "text": "An interface such as `Countable` can explicitly declare `Object clone()` as part of its contract."
+            },
+            {
+              "id": "d",
+              "text": "A marker interface must contain at least one abstract method."
+            }
+          ],
+          "correct": [
+            "b",
+            "c"
+          ],
+          "explanation": "`Cloneable` is a marker with no methods of its own. `Countable` can independently require a public `clone()` operation.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO11.md",
+            "heading": "5.4            : Marker-Interface"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Marker interfaces",
+            "Interfaces and contracts"
+          ]
+        },
+        {
+          "id": "eip-11-l3-q08",
+          "type": "single",
+          "prompt": "Two different fraction objects return 0 from `compareTo`. What follows from this?",
+          "options": [
+            {
+              "id": "a",
+              "text": "They are equal according to the comparison ordering, but need not be the same reference."
+            },
+            {
+              "id": "b",
+              "text": "`compareTo` is implemented incorrectly because it must return `-1` or `1`."
+            },
+            {
+              "id": "c",
+              "text": "Their denominators must be equal."
+            },
+            {
+              "id": "d",
+              "text": "They are the same object."
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "`compareTo` describes equality according to the implemented ordering. Reference identity is checked separately with `==`.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO11.md",
+            "heading": "4.3            : Bedeutung des Rückgabewerts"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "compareTo",
+            "References and object identity"
+          ]
+        },
+        {
+          "id": "eip-11-l3-q09",
+          "type": "truefalse",
+          "prompt": "`final` and `sealed` have the same effect: both permit only explicitly listed subclasses.",
+          "options": [
+            {
+              "id": "true",
+              "text": "True"
+            },
+            {
+              "id": "false",
+              "text": "False"
+            }
+          ],
+          "correct": [
+            "false"
+          ],
+          "explanation": "`final` prohibits all subclasses. `sealed` selectively permits specified direct subclasses.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO11.md",
+            "heading": "3.1 Vererbung gezielt einschränken"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "final",
+            "sealed and permits"
+          ]
+        },
+        {
+          "id": "eip-11-l3-q10",
+          "type": "multi",
+          "prompt": "An interface `Described` declares `String description()` and provides `default void printDescription()`. Select all correct statements; more than one answer may be correct.",
+          "options": [
+            {
+              "id": "a",
+              "text": "The class can inherit the finished `printDescription()` method."
+            },
+            {
+              "id": "b",
+              "text": "The class may override `printDescription()`."
+            },
+            {
+              "id": "c",
+              "text": "The method `description()` is automatically replaced by the default."
+            },
+            {
+              "id": "d",
+              "text": "A concrete implementing class must provide `description()`."
+            }
+          ],
+          "correct": [
+            "a",
+            "b",
+            "d"
+          ],
+          "explanation": "The interface requires `description()` and provides a default implementation for `printDescription()`. This method can be inherited or overridden.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO11.md",
+            "heading": "6.1 Interface mit abstrakter und fertiger Methode"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Interfaces and contracts",
+            "default methods"
+          ]
+        },
+        {
+          "id": "eip-11-l3-q11",
+          "type": "single",
+          "prompt": "Which multiplication avoids an `int` overflow with `int` operands before storing the result in `long`?",
+          "options": [
+            {
+              "id": "a",
+              "text": "`long product = (int) a * b;`"
+            },
+            {
+              "id": "b",
+              "text": "`long product = (long) (a * b);`"
+            },
+            {
+              "id": "c",
+              "text": "`long product = a * b;`"
+            },
+            {
+              "id": "d",
+              "text": "`long product = (long) a * b;`"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "The cast must happen before multiplication so that the multiplication itself is performed as `long`. A later cast cannot undo an earlier `int` overflow.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO11.md",
+            "heading": "4.4 Eine Klasse: Oberklasse **und** Interface"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "compareTo"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "eip-11-l4",
+      "index": 4,
+      "kind": "boss",
+      "title": "Boss",
+      "questions": [
+        {
+          "id": "eip-11-l4-q01",
+          "type": "single",
+          "prompt": "Several expression nodes should share the same cache and `getValue()` logic, but define their computations differently in `evaluate()`. Which design fits?",
+          "options": [
+            {
+              "id": "a",
+              "text": "A static method with no subclasses."
+            },
+            {
+              "id": "b",
+              "text": "An interface with a shared instance field for the cache."
+            },
+            {
+              "id": "c",
+              "text": "A final class from which all node types inherit."
+            },
+            {
+              "id": "d",
+              "text": "An abstract class with shared state and an abstract `evaluate()` method."
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "The cache fields and `getValue()` are shared state and shared code. An abstract method lets each concrete node type provide its own computation.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO11.md",
+            "heading": "1.3 Die zentrale Klasse mit Cache"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Abstract classes",
+            "Expression trees and caching"
+          ]
+        },
+        {
+          "id": "eip-11-l4-q02",
+          "type": "multi",
+          "prompt": "`abstract sealed class Expression permits Const, Neg, Addition` has exactly these permitted direct subclasses. A `switch` handles `Const`, `Neg`, and `Addition`. Select all correct statements; more than one answer may be correct.",
+          "options": [
+            {
+              "id": "a",
+              "text": "Any other class may inherit directly from `Expression`."
+            },
+            {
+              "id": "b",
+              "text": "`Expression` cannot be instantiated directly."
+            },
+            {
+              "id": "c",
+              "text": "`permits` lists the permitted direct subclasses."
+            },
+            {
+              "id": "d",
+              "text": "The `switch` covers all permitted cases and can be exhaustive."
+            }
+          ],
+          "correct": [
+            "b",
+            "c",
+            "d"
+          ],
+          "explanation": "`abstract` prevents direct instantiation, `sealed` restricts direct subclasses, and the three cases cover all permitted concrete variants.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO11.md",
+            "heading": "3.1 Vererbung gezielt einschränken"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Abstract classes",
+            "sealed and permits",
+            "Exhaustive switch"
+          ]
+        },
+        {
+          "id": "eip-11-l4-q03",
+          "type": "code_output",
+          "prompt": "What does the code print? `SpecificDefault` overrides the default from `BaseDefault`; `Concrete` has a concrete class method. `MiniJava.write(x)` prints `x`.\n\n```java\ninterface BaseDefault {\n    default String meth() { return \"A\"; }\n}\ninterface SpecificDefault extends BaseDefault {\n    default String meth() { return \"B\"; }\n}\nclass Concrete {\n    public String meth() { return \"C\"; }\n}\nclass Example extends Concrete implements SpecificDefault {}\nMiniJava.write(new Example().meth());\n```",
+          "options": [
+            {
+              "id": "a",
+              "text": "A"
+            },
+            {
+              "id": "b",
+              "text": "B"
+            },
+            {
+              "id": "c",
+              "text": "C"
+            },
+            {
+              "id": "d",
+              "text": "Compiler error due to the default method"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "An inherited concrete class method takes precedence over interface defaults. Therefore, `Concrete.meth()` runs and `C` is printed.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO11.md",
+            "heading": "6.4 Welche Methode hat Vorrang?"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "default methods",
+            "Resolving conflicts between default methods"
+          ]
+        },
+        {
+          "id": "eip-11-l4-q04",
+          "type": "calc",
+          "prompt": "Compare $\\frac{50000}{50001}$ with $\\frac{50001}{50000}$ using cross-products. The denominators are positive, and the products are calculated as `long`. What is the sign of `compareTo`?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Positive"
+            },
+            {
+              "id": "b",
+              "text": "0"
+            },
+            {
+              "id": "c",
+              "text": "The comparison is impossible because the numbers are too large."
+            },
+            {
+              "id": "d",
+              "text": "Negative"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "The cross-products are 2 500 000 000 and 2 500 100 001. The first is smaller, so the comparison is negative; casting before multiplication prevents an `int` overflow.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO11.md",
+            "heading": "4.4 Eine Klasse: Oberklasse **und** Interface"
+          },
+          "difficulty": 5,
+          "concepts": [
+            "compareTo"
+          ]
+        },
+        {
+          "id": "eip-11-l4-q05",
+          "type": "diagram",
+          "prompt": "Which Java declaration matches the two relationships shown in the diagram?",
+          "context": {
+            "type": "mermaid",
+            "content": "classDiagram\n    class AddSubMulDiv {\n        <<abstract>>\n    }\n    class ValueComparable {\n        <<interface>>\n    }\n    class OrderedRational\n    AddSubMulDiv <|-- OrderedRational\n    ValueComparable <|.. OrderedRational",
+            "caption": "A class extends a superclass and implements an interface"
+          },
+          "options": [
+            {
+              "id": "a",
+              "text": "`interface OrderedRational extends AddSubMulDiv implements ValueComparable`"
+            },
+            {
+              "id": "b",
+              "text": "`class OrderedRational extends AddSubMulDiv, ValueComparable`"
+            },
+            {
+              "id": "c",
+              "text": "`class OrderedRational extends AddSubMulDiv implements ValueComparable`"
+            },
+            {
+              "id": "d",
+              "text": "`class OrderedRational implements AddSubMulDiv extends ValueComparable`"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "The solid line shows class inheritance, expressed with `extends`. The dashed line shows interface implementation, expressed with `implements`.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO11.md",
+            "heading": "7.1 Klassen- und Interface-Beziehungen"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Interfaces and contracts"
+          ]
+        },
+        {
+          "id": "eip-11-l4-q06",
+          "type": "single",
+          "prompt": "A reference `e` has static type `Expression` and points to an object of class `Const`. `Expression.getValue()` calls `evaluate()`; `Const` overrides `evaluate()` and returns 8. Which implementation runs?",
+          "options": [
+            {
+              "id": "a",
+              "text": "An implementation in `Expression`, because the static type determines it."
+            },
+            {
+              "id": "b",
+              "text": "A random subclass implementation."
+            },
+            {
+              "id": "c",
+              "text": "None; abstract methods cannot be called dynamically."
+            },
+            {
+              "id": "d",
+              "text": "`Const.evaluate()`, because the object's runtime class determines it."
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "The static type permits the call to `getValue()`. The inner call to the overridden instance method is dynamically bound to `Const.evaluate()`.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO11.md",
+            "heading": "1.5 Dynamisches Binden und rekursive Auswertung"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Dynamic binding",
+            "Abstract methods"
+          ]
+        },
+        {
+          "id": "eip-11-l4-q07",
+          "type": "truefalse",
+          "prompt": "Two different fraction objects `a` and `b` return `a.compareTo(b) == 0`. This implies that `a == b` is true.",
+          "options": [
+            {
+              "id": "true",
+              "text": "True"
+            },
+            {
+              "id": "false",
+              "text": "False"
+            }
+          ],
+          "correct": [
+            "false"
+          ],
+          "explanation": "`compareTo` can indicate equality according to the ordering without both variables referring to the same object. For references, `==` checks identity.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO11.md",
+            "heading": "4.3            : Bedeutung des Rückgabewerts"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "compareTo",
+            "References and object identity"
+          ]
+        },
+        {
+          "id": "eip-11-l4-q08",
+          "type": "code_output",
+          "prompt": "What does the code print? Assigning an array reference does not copy the array. `MiniJava.write(x)` prints `x`.\n\n```java\nfinal int[] a = {4};\nint[] b = a;\nb[0] = 9;\nMiniJava.write(a[0]);\n```",
+          "options": [
+            {
+              "id": "a",
+              "text": "4"
+            },
+            {
+              "id": "b",
+              "text": "0"
+            },
+            {
+              "id": "c",
+              "text": "Compiler error because `a` is final"
+            },
+            {
+              "id": "d",
+              "text": "9"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "`a` and `b` point to the same array. `final` only prevents reassignment of `a`, so `a[0]` sees the change made through `b`.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO11.md",
+            "heading": "2.1 Achtung:        -Referenz ≠ unveränderliches Objekt"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "final",
+            "References and object identity"
+          ]
+        },
+        {
+          "id": "eip-11-l4-q09",
+          "type": "multi",
+          "prompt": "Select all correct statements about resolving interface defaults; more than one answer may be correct.",
+          "options": [
+            {
+              "id": "a",
+              "text": "A more specific interface can replace a more general inherited default."
+            },
+            {
+              "id": "b",
+              "text": "A concrete class method takes precedence over a default."
+            },
+            {
+              "id": "c",
+              "text": "When two defaults conflict, Java always chooses the interface listed first."
+            },
+            {
+              "id": "d",
+              "text": "When two unrelated defaults conflict, the class must override the method."
+            }
+          ],
+          "correct": [
+            "a",
+            "b",
+            "d"
+          ],
+          "explanation": "The first three statements match the precedence rules. The order of the interfaces in `implements` does not resolve a conflict automatically.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO11.md",
+            "heading": "6.4 Welche Methode hat Vorrang?"
+          },
+          "difficulty": 5,
+          "concepts": [
+            "default methods",
+            "Resolving conflicts between default methods"
+          ]
+        },
+        {
+          "id": "eip-11-l4-q10",
+          "type": "truefalse",
+          "prompt": "A class can implement an interface method using `protected` even though the method is implicitly `public abstract` in the interface.",
+          "options": [
+            {
+              "id": "true",
+              "text": "True"
+            },
+            {
+              "id": "false",
+              "text": "False"
+            }
+          ],
+          "correct": [
+            "false"
+          ],
+          "explanation": "The implementation cannot restrict the visibility of the public interface contract. It must therefore be `public`.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO11.md",
+            "heading": "4.2 Ein Interface definiert einen Vertrag"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Interfaces and contracts"
+          ]
+        },
+        {
+          "id": "eip-11-l4-q11",
+          "type": "calc",
+          "prompt": "An expression tree is `Addition(Neg(Const(8)), Const(16))`. `Const(x)` returns $x$, `Neg(a)` returns the negation of its child's value, and `Addition(l,r)` adds its children's values. What value does the tree compute?",
+          "options": [
+            {
+              "id": "a",
+              "text": "-24"
+            },
+            {
+              "id": "b",
+              "text": "8"
+            },
+            {
+              "id": "c",
+              "text": "24"
+            },
+            {
+              "id": "d",
+              "text": "-8"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "`Neg(Const(8))` evaluates to -8. The addition then computes $-8+16=8$.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO11.md",
+            "heading": "1.5 Dynamisches Binden und rekursive Auswertung"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Expression trees and caching",
+            "Abstract methods"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "eip-11-l5",
+      "index": 5,
+      "kind": "bonus",
+      "title": "Practice: Code in Everyday Life",
+      "questions": [
+        {
+          "id": "eip-11-l5-q01",
+          "type": "single",
+          "prompt": "You are developing a role-playing game: mages and warriors both store health points and share the same `takeDamage()` logic. Their `attack()` method differs. Which Java structure fits best?",
+          "options": [
+            {
+              "id": "a",
+              "text": "An abstract superclass with health points, a shared `takeDamage()` method, and an abstract `attack()` method"
+            },
+            {
+              "id": "b",
+              "text": "Two independent classes that duplicate the same code"
+            },
+            {
+              "id": "c",
+              "text": "A `final` superclass inherited by mages and warriors"
+            },
+            {
+              "id": "d",
+              "text": "An interface with an instance field `health` and a constructor"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "The abstract superclass can provide the shared state and `takeDamage()`. The subclasses each add their own `attack()` implementation.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO11.md",
+            "heading": "1. Abstrakte Klassen: Expression Trees (Folien 776–797)"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Abstract classes",
+            "Abstract methods"
+          ]
+        },
+        {
+          "id": "eip-11-l5-q02",
+          "type": "single",
+          "prompt": "Your university app sorts exams and assignment deadlines. The classes have no shared state or domain superclass, but should offer the same sorting capability. `compareTo` returns a negative value if this object should come before the other, `0` if they are equal in the ordering, and a positive value if it should come after. Which structure fits best?",
+          "options": [
+            {
+              "id": "a",
+              "text": "An interface with the `compareTo` contract, implemented by both classes"
+            },
+            {
+              "id": "b",
+              "text": "A static method inherited by both classes"
+            },
+            {
+              "id": "c",
+              "text": "A `final` class that replaces both classes"
+            },
+            {
+              "id": "d",
+              "text": "A shared abstract class, solely so both classes inherit the same sorting method"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "An interface is suitable when different classes should offer the same capability without sharing state. The sign of `compareTo` describes the ordering.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO11.md",
+            "heading": "4.3            : Bedeutung des Rückgabewerts"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Interfaces and contracts",
+            "compareTo"
+          ]
+        },
+        {
+          "id": "eip-11-l5-q03",
+          "type": "estimate",
+          "prompt": "Your banking app has a `PinValidator` contract for four-digit PINs. Each digit can be from 0 to 9; leading zeros are allowed. How many different inputs can the validator receive?",
+          "options": [],
+          "correct": [],
+          "slider": {
+            "min": 5000,
+            "max": 30000,
+            "step": 100,
+            "answer": 10000,
+            "tolerance": 100,
+            "unit": "Inputs",
+            "scale": "linear"
+          },
+          "explanation": "Each of the four positions has 10 possibilities. There are 10⁴ = 10,000 inputs in total; the interface contract does not change this input space.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO11.md",
+            "heading": "4.2 Ein Interface definiert einen Vertrag"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Interfaces and contracts"
+          ]
+        },
+        {
+          "id": "eip-11-l5-q04",
+          "type": "single",
+          "prompt": "A navigation app has a variable of type `RouteMode` that points to a `BikeMode` object. `BikeMode` overrides `RouteMode.route()`. What does the call `mode.route()` return?",
+          "context": {
+            "type": "code",
+            "content": "class RouteMode {\n    String route() { return \"generic\"; }\n}\nclass BikeMode extends RouteMode {\n    @Override String route() { return \"bike\"; }\n}\nRouteMode mode = new BikeMode();\nmode.route();",
+            "language": "java",
+            "caption": "The subclass overrides the instance method."
+          },
+          "options": [
+            {
+              "id": "a",
+              "text": "The call causes a compiler error"
+            },
+            {
+              "id": "b",
+              "text": "Both strings are returned one after the other"
+            },
+            {
+              "id": "c",
+              "text": "`generic`"
+            },
+            {
+              "id": "d",
+              "text": "`bike`"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "For an overridden instance method, the actual object at runtime determines which implementation runs. Therefore, `BikeMode.route()` runs here.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO11.md",
+            "heading": "1.5 Dynamisches Binden und rekursive Auswertung"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Dynamic binding",
+            "References and object identity"
+          ]
+        },
+        {
+          "id": "eip-11-l5-q05",
+          "type": "truefalse",
+          "prompt": "You have a `final` variable that always points to the same array. Can the app still change a number stored inside that array?",
+          "options": [
+            {
+              "id": "true",
+              "text": "True"
+            },
+            {
+              "id": "false",
+              "text": "False"
+            }
+          ],
+          "correct": [
+            "true"
+          ],
+          "explanation": "`final` prevents the variable from being assigned a different array. The contents of the referenced array can still change.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO11.md",
+            "heading": "2.1 Achtung:        -Referenz ≠ unveränderliches Objekt"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "final"
+          ]
+        },
+        {
+          "id": "eip-11-l5-q06",
+          "type": "estimate",
+          "prompt": "You are testing the expression tree `Add(Neg(Const(5)), Add(Const(3), Const(4)))`. `Const(n)` stores a number, `Neg(x)` negates its child, and `Add(x, y)` adds its children. Each node object runs `evaluate()` exactly once on the first `getValue()` call and caches the result; each node here is a separate object. You call `getValue()` twice on the root. How many `evaluate()` calls occur in total?",
+          "options": [],
+          "correct": [],
+          "slider": {
+            "min": 1,
+            "max": 10,
+            "step": 1,
+            "answer": 6,
+            "tolerance": 1,
+            "unit": "Calls",
+            "scale": "linear"
+          },
+          "explanation": "The tree has six nodes. On the first call, each node is evaluated once; the second call returns the root's cached result. Thus, there are six calls in total.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO11.md",
+            "heading": "1.3 Die zentrale Klasse mit Cache"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Expression trees and caching",
+            "Abstract methods"
+          ]
+        },
+        {
+          "id": "eip-11-l5-q07",
+          "type": "single",
+          "prompt": "Assume Java 21 for this question. An expression tree has an abstract base class `Expr` and exactly two direct subclasses: `NumberNode` and `PlusNode`. Both subclasses are `final`. The `switch` must handle all values of type `Expr` and be exhaustive as a switch expression without `default`. Which solution meets these requirements?",
+          "options": [
+            {
+              "id": "a",
+              "text": "`Expr` is `final`, and `NumberNode` and `PlusNode` inherit from it."
+            },
+            {
+              "id": "b",
+              "text": "`Expr` is an ordinary abstract class with any number of subclasses; the `switch` contains only a case for `NumberNode`."
+            },
+            {
+              "id": "c",
+              "text": "`Expr` is `sealed`, but the `switch` handles only `NumberNode`."
+            },
+            {
+              "id": "d",
+              "text": "`Expr` is `sealed` and permits exactly `NumberNode` and `PlusNode` with `permits`; the `switch` has one type-pattern case for each class."
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "`sealed` with `permits` restricts the direct subclasses. Since both permitted subclasses are `final`, type-pattern cases for both cover every possible `Expr` value, making the switch expression exhaustive.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO11.md",
+            "heading": "3.1 Vererbung gezielt einschränken"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "sealed and permits",
+            "Exhaustive switch"
+          ]
+        },
+        {
+          "id": "eip-11-l5-q08",
+          "type": "estimate",
+          "prompt": "A plugin may independently implement any selection of eight optional interfaces; no selection is excluded. How many different combinations of these capabilities are possible?",
+          "options": [],
+          "correct": [],
+          "slider": {
+            "min": 16,
+            "max": 600,
+            "step": 2,
+            "answer": 256,
+            "tolerance": 2,
+            "unit": "Combinations",
+            "scale": "linear"
+          },
+          "explanation": "Each of the eight interfaces can either be implemented or omitted. This gives 2⁸ = 256 possible combinations.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO11.md",
+            "heading": "4. Interfaces: Fähigkeiten statt nur Klassenhierarchien (Folien 808–821)"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Interfaces and contracts"
+          ]
+        },
+        {
+          "id": "eip-11-l5-q09",
+          "type": "truefalse",
+          "prompt": "An export module implements two unrelated interfaces that both provide a `default` method `reset()` with their own method bodies. The class compiles unambiguously without its own `reset()` because Java automatically selects one of the interfaces. Is this correct?",
+          "options": [
+            {
+              "id": "true",
+              "text": "True"
+            },
+            {
+              "id": "false",
+              "text": "False"
+            }
+          ],
+          "correct": [
+            "false"
+          ],
+          "explanation": "There is no automatic selection between two unrelated, conflicting defaults. The implementing class must override `reset()` itself to resolve the conflict.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO11.md",
+            "heading": "6.3 Zwei konkurrierende Defaults"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "default methods",
+            "Resolving conflicts between default methods"
+          ]
+        },
+        {
+          "id": "eip-11-l5-q10",
+          "type": "single",
+          "prompt": "A plugin inherits from `BasePanel`, whose concrete method `render()` returns the text `base`. It also implements `PanelStyle`, which provides a `default render()` with the text `default`. What text does `panel.render()` produce?",
+          "options": [
+            {
+              "id": "a",
+              "text": "The call is impossible because of a conflict"
+            },
+            {
+              "id": "b",
+              "text": "`default`"
+            },
+            {
+              "id": "c",
+              "text": "The variable's static type determines which of the two texts is returned"
+            },
+            {
+              "id": "d",
+              "text": "`base`"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "An inherited concrete class method takes precedence over an interface `default` method with the same name.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO11.md",
+            "heading": "6.4 Welche Methode hat Vorrang?"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "default methods",
+            "Resolving conflicts between default methods"
+          ]
+        }
+      ]
+    }
+  ]
+}
