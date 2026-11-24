@@ -1,0 +1,2002 @@
+{
+  "schemaVersion": 1,
+  "id": "era-17",
+  "module": "ERA",
+  "number": 17,
+  "slug": "multiplizierer-und-alu",
+  "title": "Multiplizierer und ALU",
+  "summary": "Die Unit führt von der binären Multiplikation über parallele Multiplizierer und Carry-Save-Addierer zur ALU. Du übst Partialprodukte, Addiererstrukturen und Reduktionsbäume und lernst, wie Select-Signale Funktionen auswählen. Ein Schwerpunkt liegt darauf, wann Carry-Weitergabe die Schaltungstiefe bestimmt.",
+  "concepts": [
+    "Kombinatorischer Schaltkreis",
+    "Kosten und Tiefe",
+    "DIN/IEC-Gattersymbole",
+    "Partialprodukte",
+    "Ergebnisbreite",
+    "Paralleler Multiplizierer",
+    "Halbaddierer und Volladdierer",
+    "Carry-Save Addierer",
+    "Carry-Chain",
+    "Reduktionsbaum",
+    "Endaddierer",
+    "ALU",
+    "Select-Signal",
+    "Addierer/Subtrahierer",
+    "Unsigned-Multiplikation"
+  ],
+  "keyFacts": [
+    "Ein kombinatorischer Schaltkreis ist ein gerichteter, zyklenfreier Graph ohne Rückkopplungen.",
+    "Die Kosten zählen Gatter; die Tiefe zählt die Gatter auf dem längsten Eingangs-Ausgangs-Pfad.",
+    "Das DIN/IEC-Symbol ≥1 steht für OR; ein Negationskreis invertiert das Ausgangssignal.",
+    "Die Multiplikation zweier Bits entspricht einem AND.",
+    "Ein Partialprodukt pp_i ist das mit A_i gebildete Wort B, um i Stellen nach links verschoben.",
+    "Ein Teilproduktbit A_iB_j hat das Gewicht 2^(i+j).",
+    "Das Produkt zweier vorzeichenloser n-Bit-Zahlen passt in 2n Bits.",
+    "Ein Halbaddierer verarbeitet zwei Bits; ein Volladdierer verarbeitet zwei Bits und einen Carry-in.",
+    "Für einen Volladdierer gilt x+y+c_in = s+2c_out.",
+    "Ein Carry-Save-Addierer wandelt drei Wörter in zwei Wörter um und erhält dabei die Gesamtsumme.",
+    "Beim Carry-Save-Addierer arbeiten die Volladdierer einer Stufe unabhängig, ohne Carry-Chain zwischen benachbarten Bits.",
+    "Bei einer seriellen CSavA-Kette werden n Partialprodukte mit n−2 CSavAs auf zwei Wörter reduziert; danach folgt ein Endaddierer.",
+    "Ein baumartiger CSavA-Multiplizierer hat O(n²) Kosten; mit schnellem Endaddierer hat er O(log n) Gesamttiefe.",
+    "Ein Ripple-Carry-Endaddierer macht die Gesamttiefe trotz baumartiger Reduktion O(n).",
+    "Eine ALU kombiniert arithmetische und logische Operationen; m Select-Bits adressieren bis zu 2^m Funktionen.",
+    "Ein gemeinsamer Addierer kann Addition und Zweierkomplement-Subtraktion ausführen, indem er den zweiten Operanden kontrolliert invertiert und den Carry-in steuert."
+  ],
+  "tags": [
+    "TUM/ERA",
+    "Rechnerarchitektur",
+    "Digitale-Schaltungen",
+    "Multiplizierer",
+    "ALU"
+  ],
+  "links": [],
+  "source": {
+    "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO17.md",
+    "sha256": "ac2734a9205f584cb67a7cfe8fc57896229c9595c108364771de9701647578c7",
+    "commit": "06b418e02f2741dd9ad462f5ad6cc0e3476f229c"
+  },
+  "generator": {
+    "model": "gpt-6-luna",
+    "effort": "xhigh",
+    "reviewEffort": "high",
+    "promptVersion": "v3",
+    "generatedAt": "2026-11-24T23:13:18.101Z",
+    "review": {
+      "checked": 44,
+      "fixed": 4,
+      "removed": 0,
+      "notes": "44 Fragen geprüft. Eine Carry-Save-Rechnung ergab s=0 statt s=10; Antwort, Erklärung und Prüfskript korrigiert. Formeln vereinheitlicht und Mermaid-Knotenbeschriftungen abgesichert. Quellenangaben mit unzulässigen Überschriften auf VO17-Überschriften oder null gesetzt."
+    }
+  },
+  "levels": [
+    {
+      "id": "era-17-l1",
+      "index": 1,
+      "kind": "basics",
+      "title": "Grundlagen",
+      "questions": [
+        {
+          "id": "era-17-l1-q01",
+          "type": "single",
+          "prompt": "Was zählt das Kostenmaß **Größe** eines kombinatorischen Schaltkreises?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Die Anzahl der Gatter"
+            },
+            {
+              "id": "b",
+              "text": "Die Anzahl der Eingänge"
+            },
+            {
+              "id": "c",
+              "text": "Die Anzahl der Pfade"
+            },
+            {
+              "id": "d",
+              "text": "Die Anzahl der verschiedenen Ausgabewerte"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "Die Größe beziehungsweise die Kosten zählen die Gatter im Schaltkreis. Eingänge und Ausgänge werden dabei nicht als Gatter gezählt.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO17.md",
+            "heading": "Kostenmaße"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Kosten und Tiefe",
+            "Kombinatorischer Schaltkreis"
+          ]
+        },
+        {
+          "id": "era-17-l1-q02",
+          "type": "truefalse",
+          "prompt": "Die Tiefe eines Schaltkreises ist die Anzahl der Gatter auf dem längsten Pfad von einem primären Eingang zu einem primären Ausgang.",
+          "options": [
+            {
+              "id": "true",
+              "text": "Wahr"
+            },
+            {
+              "id": "false",
+              "text": "Falsch"
+            }
+          ],
+          "correct": [
+            "true"
+          ],
+          "explanation": "Die Tiefe wird durch den längsten Eingangs-Ausgangs-Pfad bestimmt. Parallele Gatter auf kürzeren Pfaden erhöhen sie nicht.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO17.md",
+            "heading": "Kostenmaße"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Kosten und Tiefe"
+          ]
+        },
+        {
+          "id": "era-17-l1-q03",
+          "type": "single",
+          "prompt": "Welches DIN/IEC-Kennzeichen steht für ein OR-Gatter?",
+          "options": [
+            {
+              "id": "a",
+              "text": "&"
+            },
+            {
+              "id": "b",
+              "text": "≥1"
+            },
+            {
+              "id": "c",
+              "text": "=1"
+            },
+            {
+              "id": "d",
+              "text": "1 mit Negationskreis"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "Das Kennzeichen ≥1 bedeutet, dass mindestens ein Eingang 1 sein muss. Das beschreibt die OR-Funktion.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO17.md",
+            "heading": "DIN/IEC-Gattersymbole (Wiederholung)"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "DIN/IEC-Gattersymbole"
+          ]
+        },
+        {
+          "id": "era-17-l1-q04",
+          "type": "cloze",
+          "prompt": "Für zwei einzelne Bits gilt: Ihre binäre Multiplikation entspricht einem ___-Gatter.",
+          "options": [
+            {
+              "id": "a",
+              "text": "XOR"
+            },
+            {
+              "id": "b",
+              "text": "OR"
+            },
+            {
+              "id": "c",
+              "text": "NOR"
+            },
+            {
+              "id": "d",
+              "text": "AND"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Das Produkt ist genau dann 1, wenn beide Bits 1 sind. Das ist die AND-Funktion.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO17.md",
+            "heading": "2.1 Multiplikation zweier Bits"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Partialprodukte",
+            "DIN/IEC-Gattersymbole"
+          ]
+        },
+        {
+          "id": "era-17-l1-q05",
+          "type": "multi",
+          "prompt": "Ein vorzeichenloses Wort $B$ wird mit einem Bit $A_i$ multipliziert. **Wähle alle richtigen Aussagen aus; mehrere können richtig sein.**",
+          "options": [
+            {
+              "id": "a",
+              "text": "Bei $A_i=1$ bleibt das Wort $B$ erhalten."
+            },
+            {
+              "id": "b",
+              "text": "Bei $A_i=0$ sind alle Ergebnisbits 0."
+            },
+            {
+              "id": "c",
+              "text": "Die AND-Gatter müssen nacheinander schalten."
+            },
+            {
+              "id": "d",
+              "text": "Jedes Ergebnisbit entsteht aus einem AND von $B_j$ und $A_i$."
+            }
+          ],
+          "correct": [
+            "a",
+            "b",
+            "d"
+          ],
+          "explanation": "Jedes Bit wird unabhängig mit $A_i$ verknüpft. Deshalb können alle AND-Gatter parallel arbeiten; ein Eingang $A_i=0$ löscht das gesamte Wort.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO17.md",
+            "heading": "2.2 Ein Wort mit einem Bit multiplizieren"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Partialprodukte",
+            "Paralleler Multiplizierer"
+          ]
+        },
+        {
+          "id": "era-17-l1-q06",
+          "type": "calc",
+          "prompt": "Berechne das Produkt der vorzeichenlosen Binärzahlen $1001_2$ und $0011_2$. Gib das Ergebnis mit 8 Bits an.",
+          "options": [
+            {
+              "id": "a",
+              "text": "00001111"
+            },
+            {
+              "id": "b",
+              "text": "00100111"
+            },
+            {
+              "id": "c",
+              "text": "00010101"
+            },
+            {
+              "id": "d",
+              "text": "00011011"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "$1001_2=9$ und $0011_2=3$, also ist das Produkt 27. Als 8-Bit-Muster ist das $00011011_2$.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO17.md",
+            "heading": "2.3 Zwei mehrstellige Binärzahlen multiplizieren"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Partialprodukte",
+            "Ergebnisbreite"
+          ]
+        },
+        {
+          "id": "era-17-l1-q07",
+          "type": "single",
+          "prompt": "Welche Breite reicht allgemein für das Produkt zweier vorzeichenloser $n$-Bit-Zahlen?",
+          "options": [
+            {
+              "id": "a",
+              "text": "$2n+1$ Bits"
+            },
+            {
+              "id": "b",
+              "text": "$n+1$ Bits"
+            },
+            {
+              "id": "c",
+              "text": "$n$ Bits"
+            },
+            {
+              "id": "d",
+              "text": "$2n$ Bits"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Das größte Produkt ist $(2^n-1)^2$, das kleiner als $2^{2n}$ ist. Daher reichen $2n$ Bits.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO17.md",
+            "heading": "2.4 Ergebnisbreite"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Ergebnisbreite",
+            "Unsigned-Multiplikation"
+          ]
+        },
+        {
+          "id": "era-17-l1-q08",
+          "type": "truefalse",
+          "prompt": "Bei der üblichen Bitnummerierung ist $A_0$ das LSB. Deshalb kann beim Multiplizieren mit $A_0$ das Produktbit $P_0$ direkt als $A_0\\land B_0$ feststehen.",
+          "options": [
+            {
+              "id": "true",
+              "text": "Wahr"
+            },
+            {
+              "id": "false",
+              "text": "Falsch"
+            }
+          ],
+          "correct": [
+            "true"
+          ],
+          "explanation": "$A_0$ bezeichnet das niederwertigste Bit. Alle anderen Teilprodukte haben mindestens Gewicht 2 und können $P_0$ nicht beeinflussen.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO17.md",
+            "heading": "3.4 Ablauf der regulären Schaltung (4×4)"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Paralleler Multiplizierer",
+            "Partialprodukte"
+          ]
+        },
+        {
+          "id": "era-17-l1-q09",
+          "type": "multi",
+          "prompt": "Welche Aussagen über Halbaddierer und Volladdierer stimmen? **Wähle alle richtigen Aussagen aus; mehrere können richtig sein.**",
+          "options": [
+            {
+              "id": "a",
+              "text": "Ein Halbaddierer besitzt einen Carry-in."
+            },
+            {
+              "id": "b",
+              "text": "Ein Volladdierer verarbeitet zwei Bits und einen Carry-in."
+            },
+            {
+              "id": "c",
+              "text": "Beide Bausteine geben eine Summe und einen Übertrag aus."
+            },
+            {
+              "id": "d",
+              "text": "Ein Halbaddierer verarbeitet zwei Eingangsbits."
+            }
+          ],
+          "correct": [
+            "b",
+            "c",
+            "d"
+          ],
+          "explanation": "Der Halbaddierer addiert zwei Bits ohne Carry-in; der Volladdierer nimmt zusätzlich einen Carry-in auf. Beide liefern Summe und Carry-out.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO17.md",
+            "heading": "3.1 Wiederholung: Halbaddierer und Volladdierer"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Halbaddierer und Volladdierer"
+          ]
+        },
+        {
+          "id": "era-17-l1-q10",
+          "type": "diagram",
+          "prompt": "Wie groß ist die Tiefe dieses Schaltkreises? Zähle nur Gatter auf dem längsten Eingangs-Ausgangs-Pfad.",
+          "context": {
+            "type": "mermaid",
+            "content": "flowchart LR\n  A[\"a\"] --> G1[\"AND\"]\n  B[\"b\"] --> G1\n  B --> G2[\"OR\"]\n  C[\"c\"] --> G2\n  G1 --> G3[\"XOR\"]\n  G2 --> G3\n  G3 --> Y[\"y\"]",
+            "caption": "Ein kleiner kombinatorischer Schaltkreis"
+          },
+          "options": [
+            {
+              "id": "a",
+              "text": "4"
+            },
+            {
+              "id": "b",
+              "text": "1"
+            },
+            {
+              "id": "c",
+              "text": "2"
+            },
+            {
+              "id": "d",
+              "text": "3"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "AND und OR arbeiten parallel. Beide liefern ihre Ergebnisse an das XOR, sodass der längste Pfad zwei Gatter durchläuft.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO17.md",
+            "heading": "Kostenmaße"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Kosten und Tiefe",
+            "Kombinatorischer Schaltkreis"
+          ]
+        },
+        {
+          "id": "era-17-l1-q11",
+          "type": "cloze",
+          "prompt": "Das um $i$ Stellen verschobene Partialprodukt lautet $pp_i=(B\\cdot A_i)\\cdot ___$.",
+          "options": [
+            {
+              "id": "a",
+              "text": "$i^2$"
+            },
+            {
+              "id": "b",
+              "text": "$2^i$"
+            },
+            {
+              "id": "c",
+              "text": "$2^{i+1}$"
+            },
+            {
+              "id": "d",
+              "text": "$2^n$"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "Eine Linksverschiebung um $i$ Stellen multipliziert den Wert mit $2^i$. So wird das Teilprodukt an die passende Binärstelle gesetzt.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO17.md",
+            "heading": "2.3 Zwei mehrstellige Binärzahlen multiplizieren"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Partialprodukte"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "era-17-l2",
+      "index": 2,
+      "kind": "apply",
+      "title": "Anwenden",
+      "questions": [
+        {
+          "id": "era-17-l2-q01",
+          "type": "calc",
+          "prompt": "Multipliziere die vorzeichenlosen 2-Bit-Zahlen $10_2$ und $11_2$. Gib das Ergebnis mit 4 Bits an.",
+          "options": [
+            {
+              "id": "a",
+              "text": "0110"
+            },
+            {
+              "id": "b",
+              "text": "1100"
+            },
+            {
+              "id": "c",
+              "text": "0101"
+            },
+            {
+              "id": "d",
+              "text": "1001"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "$10_2=2$ und $11_2=3$; das Produkt ist 6, also $0110_2$ mit vier Bits.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO17.md",
+            "heading": "2.3 Zwei mehrstellige Binärzahlen multiplizieren"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Partialprodukte",
+            "Ergebnisbreite"
+          ]
+        },
+        {
+          "id": "era-17-l2-q02",
+          "type": "single",
+          "prompt": "Ein Teilproduktbit stammt von $A_2$ und $B_1$. An welcher Binärposition liegt es?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Position 4"
+            },
+            {
+              "id": "b",
+              "text": "Position 3"
+            },
+            {
+              "id": "c",
+              "text": "Position 2"
+            },
+            {
+              "id": "d",
+              "text": "Position 5"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "Das Gewicht des Teilproduktbits ist $2^{i+j}$. Für $i=2$ und $j=1$ ist das $2^3$, also Position 3.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO17.md",
+            "heading": "2.3 Zwei mehrstellige Binärzahlen multiplizieren"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Partialprodukte"
+          ]
+        },
+        {
+          "id": "era-17-l2-q03",
+          "type": "multi",
+          "prompt": "Welche Aussagen über einen Volladdierer sind richtig? **Wähle alle richtigen Aussagen aus; mehrere können richtig sein.**",
+          "options": [
+            {
+              "id": "a",
+              "text": "Es gilt $x+y+c_{in}=s+2c_{out}$."
+            },
+            {
+              "id": "b",
+              "text": "Der Carry-out ist 1, wenn mindestens zwei der drei Eingänge 1 sind."
+            },
+            {
+              "id": "c",
+              "text": "Der Carry-out hat dasselbe Stellengewicht wie das Summenbit."
+            },
+            {
+              "id": "d",
+              "text": "Die Summe ist $x\\oplus y\\oplus c_{in}$."
+            }
+          ],
+          "correct": [
+            "a",
+            "b",
+            "d"
+          ],
+          "explanation": "Die Summenfunktion ist XOR über alle drei Eingänge; der Carry-out entsteht bei mindestens zwei Einsen. Der Carry zählt mit doppeltem Gewicht, anders als in Aussage d.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO17.md",
+            "heading": "3.1 Wiederholung: Halbaddierer und Volladdierer"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Halbaddierer und Volladdierer"
+          ]
+        },
+        {
+          "id": "era-17-l2-q04",
+          "type": "calc",
+          "prompt": "Ein 8-Bit-Carry-Save-Addierer erhält die Wörter $00000101$, $00000011$ und $00000110$. Welche Summen- und Carry-Wörter liefert er? Das Carry-Wort ist bereits nach links gewichtet.",
+          "options": [
+            {
+              "id": "a",
+              "text": "$s=00001110,\\ c=00001010$"
+            },
+            {
+              "id": "b",
+              "text": "$s=00000000,\\ c=00001110$"
+            },
+            {
+              "id": "c",
+              "text": "$s=00001111,\\ c=00000000$"
+            },
+            {
+              "id": "d",
+              "text": "$s=00000100,\\ c=00001010$"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "Bitweise entstehen das Summenwort $s=0$ und das bereits verschobene Carry-Wort $c=14$. Zusammen sind sie 14, gleich der Summe der drei Eingabewörter.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO17.md",
+            "heading": "4.2 Aufbau pro Bit"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Carry-Save Addierer",
+            "Carry-Chain"
+          ]
+        },
+        {
+          "id": "era-17-l2-q05",
+          "type": "calc",
+          "prompt": "Eine ALU soll fünf verschiedene Funktionen auswählen können. Wie viele Select-Bits braucht sie mindestens?",
+          "options": [
+            {
+              "id": "a",
+              "text": "4 Bits"
+            },
+            {
+              "id": "b",
+              "text": "2 Bits"
+            },
+            {
+              "id": "c",
+              "text": "5 Bits"
+            },
+            {
+              "id": "d",
+              "text": "3 Bits"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Mit zwei Bits gibt es nur vier Codes; mit drei Bits gibt es acht. Daher sind mindestens drei Select-Bits nötig.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO17.md",
+            "heading": "6. ALU – Arithmetic Logic Unit"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "ALU",
+            "Select-Signal"
+          ]
+        },
+        {
+          "id": "era-17-l2-q06",
+          "type": "truefalse",
+          "prompt": "Für die Zweierkomplement-Subtraktion kann ein gemeinsamer Addierer bei $sub=1$ die Bits von $b$ invertieren und Carry-in 1 erhalten.",
+          "options": [
+            {
+              "id": "true",
+              "text": "Wahr"
+            },
+            {
+              "id": "false",
+              "text": "Falsch"
+            }
+          ],
+          "correct": [
+            "true"
+          ],
+          "explanation": "Die Subtraktion nutzt $a-b\\equiv a+\\overline b+1\\pmod{2^n}$. Das Steuersignal kann sowohl die Invertierung als auch den Carry-in setzen.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO17.md",
+            "heading": "6.3 Möglichkeit 2: Gemeinsame Behandlung ähnlicher Funktionen"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Addierer/Subtrahierer",
+            "ALU"
+          ]
+        },
+        {
+          "id": "era-17-l2-q07",
+          "type": "diagram",
+          "prompt": "Welche zwei Signale werden im Diagramm vom zweiten Halbaddierer verarbeitet?",
+          "context": {
+            "type": "mermaid",
+            "content": "flowchart TD\n  G01[\"AND A₀B₁\"] --> H1[\"HA 1\"]\n  G10[\"AND A₁B₀\"] --> H1\n  H1 -->|Summe| P1[\"P₁\"]\n  H1 -->|Carry| H2[\"HA 2\"]\n  G11[\"AND A₁B₁\"] --> H2\n  H2 -->|Summe| P2[\"P₂\"]\n  H2 -->|Carry| P3[\"P₃\"]",
+            "caption": "Teilprodukte und Addierer des 2×2-Bit-Multiplizierers"
+          },
+          "options": [
+            {
+              "id": "a",
+              "text": "$P_0$ und $P_1$"
+            },
+            {
+              "id": "b",
+              "text": "Die beiden Summen von HA 1"
+            },
+            {
+              "id": "c",
+              "text": "Das Carry von HA 1 und das AND-Ergebnis $A_1B_1$"
+            },
+            {
+              "id": "d",
+              "text": "$A_0$ und $B_0$ direkt"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "HA 1 addiert die Teilprodukte $A_0B_1$ und $A_1B_0$. Sein Carry wird zusammen mit $A_1B_1$ im zweiten Halbaddierer verarbeitet.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO17.md",
+            "heading": "3.3 Vollständige Beispielschaltung: 2×2 Bit"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Paralleler Multiplizierer",
+            "Halbaddierer und Volladdierer"
+          ]
+        },
+        {
+          "id": "era-17-l2-q08",
+          "type": "calc",
+          "prompt": "Eine 4-Bit-ALU berechnet mit dem gemeinsamen Addierer $a-b$ für $a=1011_2$ und $b=0101_2$. Welche unteren vier Ergebnisbits erhält sie?",
+          "options": [
+            {
+              "id": "a",
+              "text": "1010"
+            },
+            {
+              "id": "b",
+              "text": "0110"
+            },
+            {
+              "id": "c",
+              "text": "0000"
+            },
+            {
+              "id": "d",
+              "text": "0100"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "Die Invertierung von $0101_2$ ergibt $1010_2$; mit Carry-in 1 wird $1011_2+1010_2+1=10110_2$. Die unteren vier Bits sind $0110$.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO17.md",
+            "heading": "6.3 Möglichkeit 2: Gemeinsame Behandlung ähnlicher Funktionen"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Addierer/Subtrahierer",
+            "ALU"
+          ]
+        },
+        {
+          "id": "era-17-l2-q09-r1",
+          "type": "multi",
+          "prompt": "Betrachte genau diese reguläre Schaltung für zwei vorzeichenlose 4-Bit-Zahlen: Sie bildet die 16 Partialprodukte mit je einem AND-Gatter. Die erste Partialproduktzeile wird übernommen; für jede der drei folgenden Zeilen gibt es einen Addiererblock mit genau 1 Halbaddierer und 3 Volladdierern. Die Schaltung gibt das vollständige Produkt aus. Wähle alle richtigen Aussagen aus.",
+          "options": [
+            {
+              "id": "a",
+              "text": "Sie verwendet 3 Halbaddierer."
+            },
+            {
+              "id": "b",
+              "text": "Sie verwendet 16 AND-Gatter."
+            },
+            {
+              "id": "c",
+              "text": "Sie verwendet 9 Volladdierer."
+            },
+            {
+              "id": "d",
+              "text": "Sie liefert ein Produkt mit 16 Bits."
+            }
+          ],
+          "correct": [
+            "a",
+            "b",
+            "c"
+          ],
+          "explanation": "Es gibt drei Addiererblöcke mit je einem Halbaddierer und drei Volladdierern: insgesamt 3 Halbaddierer und 9 Volladdierer. Die 4×4 Partialprodukte benötigen 4·4 = 16 AND-Gatter. Das Produkt zweier vorzeichenloser 4-Bit-Zahlen passt in 8 Bits, denn 15·15 = 225 < 256.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO17.md",
+            "heading": "3.2 Struktur des 4×4-Bit-Multiplizierers"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Regulärer paralleler Multiplizierer",
+            "Partialprodukte",
+            "Halbaddierer und Volladdierer",
+            "Ergebnisbreite"
+          ]
+        },
+        {
+          "id": "era-17-l2-q10-r1",
+          "type": "truefalse",
+          "prompt": "Multipliziere die vorzeichenlosen 4-Bit-Zahlen $A=1101_2$ und $B=1010_2$. Dabei ist $A_0$ das niederwertigste Bit und jedes Partialprodukt ist $pp_i=(A_i\\cdot B)\\cdot 2^i$; die vollständige Summe wird mit 8 Bits dargestellt. Wahr oder falsch: Werden dieselben Partialprodukte statt in der Reihenfolge $pp_0, pp_1, pp_2, pp_3$ in der Reihenfolge $pp_3, pp_2, pp_1, pp_0$ addiert, bleibt das Produkt gleich.",
+          "options": [
+            {
+              "id": "true",
+              "text": "Wahr"
+            },
+            {
+              "id": "false",
+              "text": "Falsch"
+            }
+          ],
+          "correct": [
+            "true"
+          ],
+          "explanation": "Die Bits von $A$ sind $A_3A_2A_1A_0=1101_2$. Damit sind die Partialprodukte $pp_0=10$, $pp_1=0$, $pp_2=40$ und $pp_3=80$. Beide Reihenfolgen summieren dieselben Werte zu $130=10000010_2$, also bleibt das Produkt gleich.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO17.md",
+            "heading": "3.5 Alternative: Beginn beim MSB"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Partialprodukte",
+            "Summationsreihenfolge",
+            "Beginn beim höchstwertigen Bit"
+          ]
+        },
+        {
+          "id": "era-17-l2-q11",
+          "type": "cloze",
+          "prompt": "Ein Carry-Save-Addierer erhält die Summe, indem er ___ Eingabewörter in zwei Ausgabewörter umformt.",
+          "options": [
+            {
+              "id": "a",
+              "text": "sechs"
+            },
+            {
+              "id": "b",
+              "text": "vier"
+            },
+            {
+              "id": "c",
+              "text": "zwei"
+            },
+            {
+              "id": "d",
+              "text": "drei"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Ein CSavA komprimiert drei Eingabewörter zu einem Summenwort und einem Carry-Wort, ohne die Gesamtsumme zu verändern.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO17.md",
+            "heading": "4.1 Grundidee: 3 Wörter → 2 Wörter"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Carry-Save Addierer"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "era-17-l3",
+      "index": 3,
+      "kind": "deepen",
+      "title": "Vertiefen",
+      "questions": [
+        {
+          "id": "era-17-l3-q01",
+          "type": "multi",
+          "prompt": "Welche Aussagen unterscheiden Carry-Save- und Ripple-Carry-Addierer korrekt? **Wähle alle richtigen Aussagen aus; mehrere können richtig sein.**",
+          "options": [
+            {
+              "id": "a",
+              "text": "Ein Ripple-Carry-Addierer leitet Überträge innerhalb der Addition weiter."
+            },
+            {
+              "id": "b",
+              "text": "Ein Carry-Save-Addierer verarbeitet drei Eingabewörter und liefert zwei."
+            },
+            {
+              "id": "c",
+              "text": "Die Volladdierer einer Carry-Save-Stufe haben keine Carry-Abhängigkeit voneinander."
+            },
+            {
+              "id": "d",
+              "text": "Ein Carry-Save-Addierer produziert in jeder Bitposition den Carry der vorherigen Position als Eingang."
+            }
+          ],
+          "correct": [
+            "a",
+            "b",
+            "c"
+          ],
+          "explanation": "Beim Ripple-Carry wird der Übertrag weitergereicht. Beim Carry-Save werden die drei gleichgewichteten Bits jeder Position unabhängig verarbeitet; die Carry-Bits gehen in ein später zu addierendes Wort ein.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO17.md",
+            "heading": "4.3 Unterschied zum Ripple-Carry Addierer"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Carry-Save Addierer",
+            "Carry-Chain"
+          ]
+        },
+        {
+          "id": "era-17-l3-q02",
+          "type": "calc",
+          "prompt": "Ein 8-Bit-CSavA verarbeitet $u=00001011$, $v=00000111$ und $w=00000110$. Welche beiden Wörter $s$ und $c$ entstehen? Das Carry-Wort ist bereits verschoben.",
+          "options": [
+            {
+              "id": "a",
+              "text": "$s=00001010,\\ c=00001110$"
+            },
+            {
+              "id": "b",
+              "text": "$s=00011000,\\ c=00000000$"
+            },
+            {
+              "id": "c",
+              "text": "$s=00000100,\\ c=00010000$"
+            },
+            {
+              "id": "d",
+              "text": "$s=00001110,\\ c=00001010$"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "Bitweise Kompression ergibt $s=10$ und $c=14$. Erst die anschließende normale Addition bildet $10+14=24$.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO17.md",
+            "heading": "4.4 Durchgerechnetes Zusatzbeispiel"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Carry-Save Addierer",
+            "Carry-Chain"
+          ]
+        },
+        {
+          "id": "era-17-l3-q03",
+          "type": "truefalse",
+          "prompt": "Bei drei beliebigen $k$-Bit-Zahlen darf der Carry oberhalb von Bit $k-1$ immer ignoriert werden.",
+          "options": [
+            {
+              "id": "true",
+              "text": "Wahr"
+            },
+            {
+              "id": "false",
+              "text": "Falsch"
+            }
+          ],
+          "correct": [
+            "false"
+          ],
+          "explanation": "Drei beliebige $k$-Bit-Zahlen können zusammen mehr als $k$ Bits benötigen. Ein höchster Carry darf nur verworfen werden, wenn die Summe nachweislich in die Wortbreite passt oder modulo $2^k$ gerechnet wird.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO17.md",
+            "heading": "4.5 Spezialfall: Partialprodukte mit $2n$ Bits"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Carry-Save Addierer",
+            "Ergebnisbreite"
+          ]
+        },
+        {
+          "id": "era-17-l3-q04",
+          "type": "single",
+          "prompt": "Ein CSavA reduziert die Partialprodukte eines vorzeichenlosen $n\\times n$-Multiplizierers in $2n$-Bit-Wörtern. Warum kann dort der Carry über Bit $2n-1$ ungenutzt bleiben?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Weil ein Carry-Save-Addierer nur $n$ Bits verarbeitet"
+            },
+            {
+              "id": "b",
+              "text": "Weil die nichtnegative Summe der Partialprodukte kleiner als $2^{2n}$ ist"
+            },
+            {
+              "id": "c",
+              "text": "Weil das Carry-Wort nie einen Wert enthält"
+            },
+            {
+              "id": "d",
+              "text": "Weil jede CSavA-Stufe Überträge grundsätzlich löscht"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "Das Produkt zweier vorzeichenloser $n$-Bit-Zahlen ist kleiner als $2^{2n}$. Jede Teilsumme aus nichtnegativen Partialprodukten bleibt unter dieser Grenze, daher wird kein Bit oberhalb der $2n$-Bit-Breite benötigt.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO17.md",
+            "heading": "4.5 Spezialfall: Partialprodukte mit $2n$ Bits"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Carry-Save Addierer",
+            "Ergebnisbreite"
+          ]
+        },
+        {
+          "id": "era-17-l3-q05",
+          "type": "diagram",
+          "prompt": "Welche der beiden gezeigten Strukturen besitzt eine Carry-Abhängigkeit zwischen benachbarten Volladdierern?",
+          "context": {
+            "type": "mermaid",
+            "content": "flowchart LR\n  subgraph RCA[\"Ripple-Carry\"]\n    direction LR\n    R0[\"VA 0\"] -->|Carry| R1[\"VA 1\"]\n    R1 -->|Carry| R2[\"VA 2\"]\n    R2 -->|Carry| R3[\"VA 3\"]\n  end\n  subgraph CSA[\"Carry-Save\"]\n    direction LR\n    C0[\"VA 0\"] --> O0[\"s₀ und c₁\"]\n    C1[\"VA 1\"] --> O1[\"s₁ und c₂\"]\n    C2[\"VA 2\"] --> O2[\"s₂ und c₃\"]\n    C3[\"VA 3\"] --> O3[\"s₃ und c₄\"]\n  end",
+            "caption": "Carry-Abhängigkeiten in zwei Addiererstrukturen"
+          },
+          "options": [
+            {
+              "id": "a",
+              "text": "Keine der beiden Strukturen"
+            },
+            {
+              "id": "b",
+              "text": "Nur der Carry-Save-Addierer"
+            },
+            {
+              "id": "c",
+              "text": "Beide Strukturen"
+            },
+            {
+              "id": "d",
+              "text": "Nur der Ripple-Carry-Addierer"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Im Ripple-Carry-Diagramm führt ein Carry-Ausgang jeweils zum nächsten Volladdierer. Die Carry-Save-Volladdierer arbeiten unabhängig und liefern ihre Carry-Bits in ein separates Wort.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO17.md",
+            "heading": "4.3 Unterschied zum Ripple-Carry Addierer"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Carry-Save Addierer",
+            "Carry-Chain"
+          ]
+        },
+        {
+          "id": "era-17-l3-q06",
+          "type": "calc",
+          "prompt": "Eine serielle CSavA-Kette reduziert 8 Partialprodukte auf zwei Wörter. Wie viele CSavA-Stufen benötigt sie vor dem Endaddierer?",
+          "options": [
+            {
+              "id": "a",
+              "text": "5"
+            },
+            {
+              "id": "b",
+              "text": "7"
+            },
+            {
+              "id": "c",
+              "text": "6"
+            },
+            {
+              "id": "d",
+              "text": "8"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Jede CSavA-Stufe reduziert die Wortzahl um eins. Für $n$ Partialprodukte sind $n-2$ Stufen nötig, also $8-2=6$; danach folgt ein Endaddierer.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO17.md",
+            "heading": "5.1 Serielle Lösung"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Carry-Save Addierer",
+            "Endaddierer"
+          ]
+        },
+        {
+          "id": "era-17-l3-q07-r1",
+          "type": "calc",
+          "prompt": "Ein Reduktionsbaum startet mit 16 Partialprodukt-Wörtern. Ein 4-zu-2-Baustein wandelt jeweils 4 Wörter in 2 um; alle Bausteine einer Baumebene arbeiten parallel. Die Reduktion endet, sobald 2 Wörter für den Endaddierer übrig sind. Wie viele 4-zu-2-Baume­benen durchläuft ein Pfad vor dem Endaddierer?",
+          "options": [
+            {
+              "id": "a",
+              "text": "6"
+            },
+            {
+              "id": "b",
+              "text": "3"
+            },
+            {
+              "id": "c",
+              "text": "2"
+            },
+            {
+              "id": "d",
+              "text": "4"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "Die Wortanzahl sinkt je Ebene von 16 auf 8, dann auf 4 und schließlich auf 2. Das sind drei 4-zu-2-Baume­benen. Da jeder 4-zu-2-Baustein aus zwei aufeinanderfolgenden CSavA-Stufen besteht, liegen auf dem kritischen Pfad insgesamt sechs CSavA-Stufen.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO17.md",
+            "heading": "5.3 Beispiel eines Reduktionsbaums für 16 Partialprodukte"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Baumartige Partialproduktreduktion",
+            "4-zu-2-Baustein",
+            "Carry-Save-Addierer-Stufen"
+          ]
+        },
+        {
+          "id": "era-17-l3-q08",
+          "type": "single",
+          "prompt": "Ein baumartiger CSavA-Reduktor hat $O(\\log n)$ Tiefe. Welchen Einfluss hat ein normaler Ripple-Carry-Endaddierer auf die Gesamttiefe?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Die Gesamttiefe bleibt $O(\\log n)$."
+            },
+            {
+              "id": "b",
+              "text": "Die Gesamttiefe ist unabhängig von $n$."
+            },
+            {
+              "id": "c",
+              "text": "Die Gesamttiefe wird $O(n)$, weil die Endaddition linear tief ist."
+            },
+            {
+              "id": "d",
+              "text": "Die Gesamttiefe wird $O(n^2)$, weil es $n$ Partialprodukte gibt."
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Die Baumreduktion bleibt logarithmisch tief, aber der Ripple-Carry-Endaddierer hat lineare Tiefe. Damit ist die Tiefe der gesamten Schaltung $O(n)$.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO17.md",
+            "heading": "5.4 Komplexität"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Reduktionsbaum",
+            "Endaddierer",
+            "Kosten und Tiefe"
+          ]
+        },
+        {
+          "id": "era-17-l3-q09",
+          "type": "multi",
+          "prompt": "Eine ALU realisiert jede Funktion mit einem eigenen Schaltkreis und wählt danach einen Ergebnisbus aus. Welche Aussagen treffen zu? **Wähle alle richtigen Aussagen aus; mehrere können richtig sein.**",
+          "options": [
+            {
+              "id": "a",
+              "text": "Separate Schaltkreise können redundante Hardware erfordern."
+            },
+            {
+              "id": "b",
+              "text": "Der Multiplexer muss nur ein einzelnes Ergebnisbit auswählen."
+            },
+            {
+              "id": "c",
+              "text": "Alle Funktionsschaltkreise erhalten die Operanden."
+            },
+            {
+              "id": "d",
+              "text": "Ein Multiplexer wählt den Ergebnisbus aus."
+            }
+          ],
+          "correct": [
+            "a",
+            "c",
+            "d"
+          ],
+          "explanation": "Bei dieser modularen Variante liegen die Funktionen getrennt vor, und der MUX wählt einen ganzen Ergebnisbus. Das kann Hardware duplizieren; die Auswahl betrifft nicht bloß ein Bit.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO17.md",
+            "heading": "6.1 Möglichkeit 1: Einzelfunktionen getrennt realisieren"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "ALU",
+            "Select-Signal"
+          ]
+        },
+        {
+          "id": "era-17-l3-q10",
+          "type": "cloze",
+          "prompt": "Mit $m$ Select-Bits kann eine ALU höchstens ___ verschiedene Funktionen adressieren.",
+          "options": [
+            {
+              "id": "a",
+              "text": "$2m$"
+            },
+            {
+              "id": "b",
+              "text": "$m^2$"
+            },
+            {
+              "id": "c",
+              "text": "$m$"
+            },
+            {
+              "id": "d",
+              "text": "$2^m$"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "$m$ binäre Bits bilden $2^m$ verschiedene Auswahlcodes. Nicht jeder Code muss zwingend einer verwendeten Funktion zugeordnet sein.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO17.md",
+            "heading": "6. ALU – Arithmetic Logic Unit"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "ALU",
+            "Select-Signal"
+          ]
+        },
+        {
+          "id": "era-17-l3-q11",
+          "type": "calc",
+          "prompt": "Eine ALU soll 13 verschiedene Funktionen anbieten. Wie viele Select-Bits benötigt sie mindestens?",
+          "options": [
+            {
+              "id": "a",
+              "text": "13 Bits"
+            },
+            {
+              "id": "b",
+              "text": "4 Bits"
+            },
+            {
+              "id": "c",
+              "text": "5 Bits"
+            },
+            {
+              "id": "d",
+              "text": "3 Bits"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "Drei Bits liefern nur 8 Codes. Vier Bits liefern 16 Codes und reichen daher für 13 Funktionen.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO17.md",
+            "heading": "6. ALU – Arithmetic Logic Unit"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "ALU",
+            "Select-Signal"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "era-17-l4",
+      "index": 4,
+      "kind": "boss",
+      "title": "Boss",
+      "questions": [
+        {
+          "id": "era-17-l4-q01",
+          "type": "calc",
+          "prompt": "Multipliziere die vorzeichenlosen 4-Bit-Zahlen $1101_2$ und $1011_2$. Verwende die Bits des zweiten Operanden als Gewichtung der Partialprodukte und gib das Produkt mit 8 Bits an.",
+          "options": [
+            {
+              "id": "a",
+              "text": "10110001"
+            },
+            {
+              "id": "b",
+              "text": "10001111"
+            },
+            {
+              "id": "c",
+              "text": "01101111"
+            },
+            {
+              "id": "d",
+              "text": "10000111"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "$1101_2=13$ und $1011_2=11$. Die gesetzten Bits des zweiten Operanden erzeugen verschobene Partialprodukte mit Summe 143, also $10001111_2$.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO17.md",
+            "heading": "2.3 Zwei mehrstellige Binärzahlen multiplizieren"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Partialprodukte",
+            "Ergebnisbreite",
+            "Paralleler Multiplizierer"
+          ]
+        },
+        {
+          "id": "era-17-l4-q02",
+          "type": "calc",
+          "prompt": "Ein 5-Bit-CSavA verarbeitet $u=01011_2$, $v=00110_2$ und $w=00101_2$. Welche Summen- und Carry-Wörter entstehen? Das Carry-Wort ist bereits nach links gewichtet.",
+          "options": [
+            {
+              "id": "a",
+              "text": "$s=01000,\\ c=01110$"
+            },
+            {
+              "id": "b",
+              "text": "$s=00000,\\ c=10110$"
+            },
+            {
+              "id": "c",
+              "text": "$s=01110,\\ c=01000$"
+            },
+            {
+              "id": "d",
+              "text": "$s=10110,\\ c=00000$"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "Bitweise entsteht $s=8$ und das bereits verschobene Carry-Wort $c=14$. Ihre Summe ist 22, genau wie $11+6+5$.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO17.md",
+            "heading": "4.2 Aufbau pro Bit"
+          },
+          "difficulty": 5,
+          "concepts": [
+            "Carry-Save Addierer",
+            "Carry-Chain"
+          ]
+        },
+        {
+          "id": "era-17-l4-q03",
+          "type": "multi",
+          "prompt": "Ein gemeinsamer 4-Bit-Addierer/Subtrahierer verwendet $b'_i=b_i\\oplus sub$ und $c_{in}=sub$. Welche Aussagen für $sub=1$ treffen zu? **Wähle alle richtigen Aussagen aus; mehrere können richtig sein.**",
+          "options": [
+            {
+              "id": "a",
+              "text": "$b$ bleibt unverändert und der Carry-in ist 0."
+            },
+            {
+              "id": "b",
+              "text": "Der Carry-in ist 1."
+            },
+            {
+              "id": "c",
+              "text": "Die unteren vier Ergebnisbits entsprechen $a-b$ modulo 16."
+            },
+            {
+              "id": "d",
+              "text": "Jedes Bit von $b$ wird invertiert."
+            }
+          ],
+          "correct": [
+            "b",
+            "c",
+            "d"
+          ],
+          "explanation": "Bei $sub=1$ werden alle $b$-Bits XOR 1, also invertiert, und der Carry-in wird 1. Damit berechnet der Addierer $a+\\overline b+1$, also die Subtraktion modulo $2^4$.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO17.md",
+            "heading": "6.3 Möglichkeit 2: Gemeinsame Behandlung ähnlicher Funktionen"
+          },
+          "difficulty": 5,
+          "concepts": [
+            "Addierer/Subtrahierer",
+            "Volladdierer"
+          ]
+        },
+        {
+          "id": "era-17-l4-q04",
+          "type": "calc",
+          "prompt": "Im verwendeten Kostenmodell hat ein Volladdierer Kosten 5 und Tiefe 3. Ein 8-Bit-CSavA setzt pro Bit einen Volladdierer ein; die Bitpositionen arbeiten unabhängig. Welche Kombination aus Kosten und Tiefe ergibt sich?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Kosten 24, Tiefe 40"
+            },
+            {
+              "id": "b",
+              "text": "Kosten 15, Tiefe 8"
+            },
+            {
+              "id": "c",
+              "text": "Kosten 40, Tiefe 24"
+            },
+            {
+              "id": "d",
+              "text": "Kosten 40, Tiefe 3"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Acht unabhängige Volladdierer ergeben Kosten $8\\cdot5=40$. Da keine Carry-Chain zwischen den Positionen besteht, bleibt die Tiefe bei 3.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO17.md",
+            "heading": "4.2 Aufbau pro Bit"
+          },
+          "difficulty": 5,
+          "concepts": [
+            "Carry-Save Addierer",
+            "Kosten und Tiefe"
+          ]
+        },
+        {
+          "id": "era-17-l4-q05",
+          "type": "calc",
+          "prompt": "Eine ALU unterstützt sechs Funktionen. Wie viele Auswahlcodes bleiben bei der minimal nötigen Zahl an Select-Bits ungenutzt?",
+          "options": [
+            {
+              "id": "a",
+              "text": "2"
+            },
+            {
+              "id": "b",
+              "text": "4"
+            },
+            {
+              "id": "c",
+              "text": "1"
+            },
+            {
+              "id": "d",
+              "text": "0"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "Drei Select-Bits adressieren acht Codes. Sechs werden für Funktionen benötigt, also bleiben zwei Codes ungenutzt.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO17.md",
+            "heading": "6. ALU – Arithmetic Logic Unit"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "ALU",
+            "Select-Signal"
+          ]
+        },
+        {
+          "id": "era-17-l4-q06",
+          "type": "truefalse",
+          "prompt": "Das einheitliche $n+1$-Bit-Ausgabeformat des beschriebenen ALU-Modells kann das vollständige Produkt zweier $n$-Bit-Zahlen allgemein darstellen.",
+          "options": [
+            {
+              "id": "true",
+              "text": "Wahr"
+            },
+            {
+              "id": "false",
+              "text": "Falsch"
+            }
+          ],
+          "correct": [
+            "false"
+          ],
+          "explanation": "Ein vollständiges Produkt kann bis zu $2n$ Bits benötigen. Das ALU-Modell stellt dagegen $n+1$ Ausgangsbits bereit und kann es daher nicht allgemein vollständig ausgeben.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO17.md",
+            "heading": "6. ALU – Arithmetic Logic Unit"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "ALU",
+            "Ergebnisbreite"
+          ]
+        },
+        {
+          "id": "era-17-l4-q07",
+          "type": "diagram",
+          "prompt": "Welche Rolle hat das Select-Signal in dieser ALU-Struktur?",
+          "context": {
+            "type": "mermaid",
+            "content": "flowchart TD\n  A[\"Operanden a, b, c\"] --> ADD[\"ADD\"]\n  A --> AND[\"AND\"]\n  A --> OR[\"OR\"]\n  ADD --> MUX[\"MUX\"]\n  AND --> MUX\n  OR --> MUX\n  SEL[\"select\"] --> MUX\n  MUX --> Y[\"Ergebnisbus\"]",
+            "caption": "Getrennte Funktionen mit gemeinsamer Ergebnisauswahl"
+          },
+          "options": [
+            {
+              "id": "a",
+              "text": "Es verbindet die Operanden bitweise miteinander."
+            },
+            {
+              "id": "b",
+              "text": "Es vergrößert die Breite jedes Funktionsschaltkreises."
+            },
+            {
+              "id": "c",
+              "text": "Es berechnet selbst die arithmetische Funktion."
+            },
+            {
+              "id": "d",
+              "text": "Es wählt am Multiplexer einen der berechneten Ergebnisbusse aus."
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Die Funktionsschaltkreise berechnen getrennte Ergebnisse. Das Select-Signal steuert den Multiplexer, der einen Ergebnisbus zum Ausgang durchschaltet.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO17.md",
+            "heading": "6.1 Möglichkeit 1: Einzelfunktionen getrennt realisieren"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "ALU",
+            "Select-Signal"
+          ]
+        },
+        {
+          "id": "era-17-l4-q08",
+          "type": "multi",
+          "prompt": "Welche Aussagen über die Gesamttiefe eines baumartigen CSavA-Multiplizierers treffen zu? **Wähle alle richtigen Aussagen aus; mehrere können richtig sein.**",
+          "options": [
+            {
+              "id": "a",
+              "text": "Mit einem Ripple-Carry-Endaddierer ist die Gesamttiefe $O(n)$."
+            },
+            {
+              "id": "b",
+              "text": "Ein Ripple-Carry-Endaddierer erhält die logarithmische Gesamttiefe."
+            },
+            {
+              "id": "c",
+              "text": "Die Reduktion der Partialprodukte kann mit $O(\\log n)$ Ebenen organisiert werden."
+            },
+            {
+              "id": "d",
+              "text": "Für $O(\\log n)$ Gesamttiefe braucht auch der Endaddierer höchstens $O(\\log n)$ Tiefe."
+            }
+          ],
+          "correct": [
+            "a",
+            "c",
+            "d"
+          ],
+          "explanation": "Die Baumreduktion ist logarithmisch tief, doch die Endaddition muss ebenfalls schnell sein, damit die Gesamttiefe logarithmisch bleibt. Ein Ripple-Carry-Endaddierer bringt eine lineare Tiefe ein.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO17.md",
+            "heading": "5.4 Komplexität"
+          },
+          "difficulty": 5,
+          "concepts": [
+            "Reduktionsbaum",
+            "Endaddierer",
+            "Kosten und Tiefe"
+          ]
+        },
+        {
+          "id": "era-17-l4-q09",
+          "type": "calc",
+          "prompt": "Für einen regulären 8×8-Bit-Multiplizierer gelten $N_{AND}=n^2$, $N_{HA}=n-1$ und $N_{VA}=(n-1)^2$. Welche Kombination aus AND-Gattern, Halbaddierern, Volladdierern und Produktbits ergibt sich?",
+          "options": [
+            {
+              "id": "a",
+              "text": "56 AND, 7 HA, 49 VA, 8 Produktbits"
+            },
+            {
+              "id": "b",
+              "text": "64 AND, 7 HA, 49 VA, 16 Produktbits"
+            },
+            {
+              "id": "c",
+              "text": "64 AND, 8 HA, 56 VA, 16 Produktbits"
+            },
+            {
+              "id": "d",
+              "text": "64 AND, 7 HA, 56 VA, 8 Produktbits"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "Für $n=8$ ergeben sich 64 AND-Gatter, 7 Halbaddierer und 49 Volladdierer. Das vollständige Produkt hat $2n=16$ Bits.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO17.md",
+            "heading": "3.2 Struktur des 4×4-Bit-Multiplizierers"
+          },
+          "difficulty": 5,
+          "concepts": [
+            "Paralleler Multiplizierer",
+            "Halbaddierer und Volladdierer",
+            "Ergebnisbreite"
+          ]
+        },
+        {
+          "id": "era-17-l4-q10",
+          "type": "truefalse",
+          "prompt": "Eine serielle CSavA-Lösung mit $n$ Partialprodukten verwendet $n-2$ CSavAs, um zwei Wörter zu erhalten; anschließend ist noch ein normaler Endaddierer nötig.",
+          "options": [
+            {
+              "id": "true",
+              "text": "Wahr"
+            },
+            {
+              "id": "false",
+              "text": "Falsch"
+            }
+          ],
+          "correct": [
+            "true"
+          ],
+          "explanation": "Jede CSavA-Stufe verringert die Zahl der Wörter um eins, bis zwei übrig bleiben. Diese beiden Wörter müssen für das Endprodukt noch normal addiert werden.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO17.md",
+            "heading": "5.1 Serielle Lösung"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Carry-Save Addierer",
+            "Endaddierer"
+          ]
+        },
+        {
+          "id": "era-17-l4-q11",
+          "type": "single",
+          "prompt": "Welche Aussage beschreibt den Geltungsbereich des dargestellten Multiplizierers korrekt?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Er behandelt signed und unsigned Zahlen ohne Änderungen gleich."
+            },
+            {
+              "id": "b",
+              "text": "Er multipliziert ausschließlich Zahlen mit einem gesetzten Vorzeichenbit."
+            },
+            {
+              "id": "c",
+              "text": "Er liefert für signed Zahlen immer ein Ergebnis mit $n$ statt $2n$ Bits."
+            },
+            {
+              "id": "d",
+              "text": "Er behandelt vorzeichenlose Binärzahlen; für Zweierkomplement muss das Vorzeichenbit angepasst behandelt werden."
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Die gezeigte Partialproduktstruktur ist für vorzeichenlose Zahlen beschrieben. Eine vollständige Zweierkomplement-Multiplikation braucht eine angepasste Behandlung des Vorzeichenbits.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO17.md",
+            "heading": "2.4 Ergebnisbreite"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Unsigned-Multiplikation",
+            "Ergebnisbreite"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "era-17-l5",
+      "index": 5,
+      "kind": "bonus",
+      "title": "Praxis: Rechnen, das steckt drin",
+      "questions": [
+        {
+          "id": "era-17-l5-q01",
+          "type": "single",
+          "prompt": "Auf deinem Smartphone wählt ein Steuercode, ob der Prozessor addiert, Bits verknüpft oder andere Grundoperationen ausführt. Welcher Baustein bündelt solche arithmetischen und logischen Funktionen?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Netzwerkmodul"
+            },
+            {
+              "id": "b",
+              "text": "ALU"
+            },
+            {
+              "id": "c",
+              "text": "Cache"
+            },
+            {
+              "id": "d",
+              "text": "Taktgeber"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "Die ALU führt arithmetische und logische Operationen aus. Select-Signale können die gewünschte Funktion auswählen.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO17.md",
+            "heading": "6. ALU – Arithmetic Logic Unit"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "ALU",
+            "Select-Signal"
+          ]
+        },
+        {
+          "id": "era-17-l5-q02",
+          "type": "single",
+          "prompt": "Ein Grafikchip berechnet viele Produkte, etwa für 3D-Koordinaten. In einem Hardwareentwurf entstehen alle Bitprodukte gleichzeitig als AND-Verknüpfungen; anschließend werden die verschobenen Teilprodukte in fest verdrahteten Stufen addiert. Welcher Ansatz ist das?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Ein Select-Multiplexer"
+            },
+            {
+              "id": "b",
+              "text": "Ein Ripple-Carry-Endaddierer"
+            },
+            {
+              "id": "c",
+              "text": "Ein paralleler Multiplizierer"
+            },
+            {
+              "id": "d",
+              "text": "Ein einzelner Halbaddierer"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Ein paralleler Multiplizierer bildet Partialprodukte mit AND-Gattern und summiert sie in fest verdrahteten Stufen. So lässt sich die Multiplikation als kombinatorischer Schaltkreis umsetzen.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO17.md",
+            "heading": "3. Paralleler Multiplizierer"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Paralleler Multiplizierer",
+            "Partialprodukte",
+            "Kombinatorischer Schaltkreis"
+          ]
+        },
+        {
+          "id": "era-17-l5-q03",
+          "type": "estimate",
+          "prompt": "Eine ALU hat 5 Select-Bits. Wie viele unterschiedliche Bitmuster können diese Bits bilden?",
+          "options": [],
+          "correct": [],
+          "slider": {
+            "min": 0,
+            "max": 80,
+            "step": 1,
+            "answer": 32,
+            "tolerance": 1,
+            "unit": "Bitmuster",
+            "scale": "linear"
+          },
+          "explanation": "Jedes Select-Bit hat zwei mögliche Werte. Damit gibt es $2^5=32$ unterschiedliche Bitmuster.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO17.md",
+            "heading": "6. ALU – Arithmetic Logic Unit"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "ALU",
+            "Select-Signal"
+          ]
+        },
+        {
+          "id": "era-17-l5-q04",
+          "type": "single",
+          "prompt": "Du entwirfst für einen Signalprozessor eine Schaltung, die pro Abtastwert mehrere Produkte aufsummiert. Ein Baustein soll jeweils drei gleich breite Zahlen zu zwei Zahlen verdichten, ohne Überträge zwischen benachbarten Bitpositionen weiterzureichen. Welcher Baustein passt?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Ripple-Carry-Addierer"
+            },
+            {
+              "id": "b",
+              "text": "Decoder"
+            },
+            {
+              "id": "c",
+              "text": "Halbaddierer"
+            },
+            {
+              "id": "d",
+              "text": "Carry-Save-Addierer"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Ein Carry-Save-Addierer reduziert drei Wörter auf zwei und erhält ihre Gesamtsumme. Seine Volladdierer arbeiten unabhängig pro Bitposition; ein Endaddierer bildet später das einzelne Ergebnis.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO17.md",
+            "heading": "4. Carry-Save Addierer (CSavA)"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Carry-Save Addierer",
+            "Carry-Chain",
+            "Endaddierer"
+          ]
+        },
+        {
+          "id": "era-17-l5-q05",
+          "type": "truefalse",
+          "prompt": "Ein n-Bit-Addierer für Zweierkomplementzahlen soll sowohl $a+b$ als auch $a-b$ berechnen. Stimmt die Aussage: Für die Subtraktion kann er den zweiten Operanden bitweise invertieren und den Carry-in auf 1 setzen?",
+          "options": [
+            {
+              "id": "true",
+              "text": "Wahr"
+            },
+            {
+              "id": "false",
+              "text": "Falsch"
+            }
+          ],
+          "correct": [
+            "true"
+          ],
+          "explanation": "Im Zweierkomplement gilt modulo $2^n$: $a-b \\equiv a+\\overline{b}+1$. Daher kann dieselbe Addierschaltung für die Subtraktion den zweiten Operanden invertieren und den Carry-in auf 1 setzen.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO17.md",
+            "heading": "6.3 Möglichkeit 2: Gemeinsame Behandlung ähnlicher Funktionen"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "ALU",
+            "Addierer/Subtrahierer",
+            "Select-Signal"
+          ]
+        },
+        {
+          "id": "era-17-l5-q06",
+          "type": "estimate",
+          "prompt": "Ein Hardwareteam plant die unvereinfachte Partialproduktbildung für einen 8×8-Bit-Multiplizierer. Für jedes Bitpaar wird ein AND-Gatter verwendet. Wie viele AND-Gatter werden dafür benötigt?",
+          "options": [],
+          "correct": [],
+          "slider": {
+            "min": 0,
+            "max": 160,
+            "step": 1,
+            "answer": 64,
+            "tolerance": 1,
+            "unit": "AND-Gatter",
+            "scale": "linear"
+          },
+          "explanation": "Für zwei $n$-Bit-Wörter entstehen $n^2$ einzelne Bitprodukte. Bei $n=8$ sind das $8^2=64$ AND-Gatter.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO17.md",
+            "heading": "3.2 Struktur des 4×4-Bit-Multiplizierers"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Partialprodukte",
+            "Paralleler Multiplizierer"
+          ]
+        },
+        {
+          "id": "era-17-l5-q07",
+          "type": "single",
+          "prompt": "Du liest den Schaltplan einer Industriesteuerung: Ein IEC-Symbol ist mit „≥1“ beschriftet und hat einen kleinen Kreis am Ausgang. Welche Funktion stellt es dar?",
+          "options": [
+            {
+              "id": "a",
+              "text": "XOR"
+            },
+            {
+              "id": "b",
+              "text": "NAND"
+            },
+            {
+              "id": "c",
+              "text": "NOR"
+            },
+            {
+              "id": "d",
+              "text": "OR"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "„≥1“ steht im DIN/IEC-System für OR. Der Kreis am Ausgang kennzeichnet die Invertierung, also ergibt sich NOR.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO17.md",
+            "heading": "DIN/IEC-Gattersymbole (Wiederholung)"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "DIN/IEC-Gattersymbole"
+          ]
+        },
+        {
+          "id": "era-17-l5-q08",
+          "type": "estimate",
+          "prompt": "Ein serieller Carry-Save-Multiplizierer startet mit 18 Partialprodukt-Wörtern. Jeder Carry-Save-Addierer reduziert drei Wörter auf zwei, also die Wortanzahl um eins. Wie viele Carry-Save-Addierer braucht er, um vor dem Endaddierer zwei Wörter zu erhalten?",
+          "options": [],
+          "correct": [],
+          "slider": {
+            "min": 0,
+            "max": 40,
+            "step": 1,
+            "answer": 16,
+            "tolerance": 1,
+            "unit": "Carry-Save-Addierer",
+            "scale": "linear"
+          },
+          "explanation": "Jeder Carry-Save-Addierer verringert die Wortanzahl um eins. Von 18 Wörtern auf 2 sind daher $18-2=16$ Addierer nötig; anschließend folgt der Endaddierer.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO17.md",
+            "heading": "5.1 Serielle Lösung"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Carry-Save Addierer",
+            "Endaddierer"
+          ]
+        },
+        {
+          "id": "era-17-l5-q09",
+          "type": "single",
+          "prompt": "Ein Messgerät multipliziert zwei vorzeichenlose 8-Bit-Rohwerte. Das vollständige Produkt soll erhalten bleiben. Wie breit muss der Ergebnisbus mindestens sein?",
+          "options": [
+            {
+              "id": "a",
+              "text": "16 Bit"
+            },
+            {
+              "id": "b",
+              "text": "17 Bit"
+            },
+            {
+              "id": "c",
+              "text": "15 Bit"
+            },
+            {
+              "id": "d",
+              "text": "8 Bit"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "Zwei vorzeichenlose $n$-Bit-Zahlen benötigen für ihr vollständiges Produkt höchstens $2n$ Bits. Für $n=8$ sind das 16 Bit; das Maximum $255\\cdot255=65025$ passt in 16 Bit.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO17.md",
+            "heading": "2.4 Ergebnisbreite"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Ergebnisbreite",
+            "Unsigned-Multiplikation"
+          ]
+        },
+        {
+          "id": "era-17-l5-q10",
+          "type": "single",
+          "prompt": "Ein Team reduziert die Partialprodukte eines Multiplizierers mit einem Baum aus Carry-Save-Stufen. Die Reduktion hat Tiefe $O(\\log n)$. Ein Ripple-Carry-Endaddierer hat Tiefe $O(n)$, ein schneller Präfix-Endaddierer $O(\\log n)$. Welche Wahl ermöglicht logarithmische Gesamttiefe?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Den Ripple-Carry-Endaddierer verwenden"
+            },
+            {
+              "id": "b",
+              "text": "Den schnellen Präfix-Endaddierer verwenden"
+            },
+            {
+              "id": "c",
+              "text": "Den Endaddierer weglassen und zwei Ergebniswörter ausgeben"
+            },
+            {
+              "id": "d",
+              "text": "Die Reduktion als serielle Carry-Save-Kette ausführen"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "Die Baumreduktion allein garantiert noch keine logarithmische Gesamttiefe. Ein Ripple-Carry-Endaddierer hätte Tiefe $O(n)$; ein schneller Endaddierer mit Tiefe $O(\\log n)$ ermöglicht logarithmische Gesamttiefe.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO17.md",
+            "heading": "5.4 Komplexität"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Reduktionsbaum",
+            "Endaddierer",
+            "Kosten und Tiefe"
+          ]
+        }
+      ]
+    }
+  ]
+}
