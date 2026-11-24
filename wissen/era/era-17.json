@@ -1,0 +1,578 @@
+{
+  "schemaVersion": 1,
+  "unitId": "era-17",
+  "module": "ERA",
+  "unitNumber": 17,
+  "unitTitle": "Multiplizierer und ALU",
+  "sourceSha": "ac2734a9205f584cb67a7cfe8fc57896229c9595c108364771de9701647578c7",
+  "overview": "Die Unit entwickelt vorzeichenlose Binärmultiplikation aus AND-Verknüpfungen, Linksverschiebungen und Additionen. Parallele Multiplizierer summieren Partialprodukte mit Halb- und Volladdierern; Carry-Save-Addierer reduzieren mehrere Wörter ohne Carry-Chain innerhalb einer Stufe. Serielle und baumartige Reduktionen unterscheiden sich vor allem in ihrer Tiefe und benötigen am Ende einen Endaddierer. Eine ALU vereint arithmetische und logische Funktionen und wählt mit Select-Signalen das gewünschte Ergebnis.",
+  "entries": [
+    {
+      "id": "era-17-k01",
+      "term": "Kombinatorischer Schaltkreis",
+      "kind": "definition",
+      "short": "Ein kombinatorischer Schaltkreis ist ein gerichteter, zyklenfreier Graph aus Eingängen, Ausgängen und Gattern.",
+      "explanation": "Man kann ihn als $G=(V,E)$ beschreiben: Die Knoten $V$ sind primäre Ein- und Ausgänge sowie Gatter, und die Kanten $E$ übertragen Signale. Der Graph hat keine Zyklen und damit keine Rückkopplungen. Die Ausgänge hängen nur von den aktuellen Eingängen ab.",
+      "example": "Ein AND-Gatter und ein OR-Gatter können parallel arbeiten und ihre Ergebnisse anschließend in ein XOR-Gatter einspeisen.",
+      "pitfalls": [
+        "Ein kombinatorischer Schaltkreis enthält keine speichernden Zustände."
+      ],
+      "related": [
+        "Kosten und Tiefe",
+        "DIN/IEC-Gattersymbole"
+      ],
+      "heading": "1. Wiederholung: Schaltkreise"
+    },
+    {
+      "id": "era-17-k02",
+      "term": "Kosten und Tiefe",
+      "kind": "concept",
+      "short": "Die Kosten zählen Gatter, während die Tiefe die Gatterzahl auf dem längsten Eingangs-Ausgangs-Pfad zählt.",
+      "explanation": "In diesem Modell ist die Größe oder sind die Kosten eines Schaltkreises seine Gatterzahl. Die Tiefe ist die größte Zahl von Gattern auf einem Pfad von einem primären Eingang zu einem primären Ausgang. Bei einheitlichen Gatterverzögerungen entspricht sie näherungsweise der Verzögerung des kritischen Pfads.",
+      "example": "Ein Netz aus zwei parallelen Eingangsgattern und einem nachfolgenden Gatter hat drei Gatter und Tiefe 2.",
+      "pitfalls": [
+        "Primäre Ein- und Ausgänge zählen nicht als Gatter.",
+        "Tiefe ist ein abstraktes Verzögerungsmaß; reale Laufzeiten hängen auch von Gattern und Leitungen ab."
+      ],
+      "related": [
+        "Kombinatorischer Schaltkreis",
+        "Carry-Chain (Übertragskette)"
+      ],
+      "heading": "Kostenmaße"
+    },
+    {
+      "id": "era-17-k03",
+      "term": "DIN/IEC-Gattersymbole",
+      "kind": "notation",
+      "short": "IEC-Kennzeichnungen kodieren Logikfunktionen, und ein Negationskreis am Ausgang invertiert das Ergebnis.",
+      "explanation": "Im DIN/IEC-Stil steht `&` für AND, `≥1` für OR und `1` mit Negationskreis für NOT. `&` mit Negationskreis bezeichnet NAND, `≥1` mit Negationskreis NOR; `=1` bezeichnet bei zwei Eingängen XOR und mit Negationskreis XNOR. Der Kreis kennzeichnet die Invertierung des Signals am jeweiligen Anschluss.",
+      "example": "Ein `≥1`-Gatter mit Negationskreis berechnet $\\neg(a\\lor b)$, also NOR.",
+      "pitfalls": [
+        "`≥1` bedeutet, dass mindestens ein Eingang 1 ist; es ist kein Zahlenvergleich.",
+        "Der Negationskreis invertiert das Signal am jeweiligen Anschluss."
+      ],
+      "related": [
+        "Kombinatorischer Schaltkreis",
+        "Boolesche Algebra"
+      ],
+      "heading": "DIN/IEC-Gattersymbole (Wiederholung)"
+    },
+    {
+      "id": "era-17-k04",
+      "term": "Multiplikation zweier Bits",
+      "kind": "theorem",
+      "short": "Für Bits $a,b\\in\\{0,1\\}$ ist ihr Produkt gleich ihrer AND-Verknüpfung.",
+      "explanation": "Es gilt $a\\cdot b=a\\land b$. Das Ergebnis ist genau dann 1, wenn beide Eingabebits 1 sind. Für die Multiplikation zweier einzelner Bits genügt daher ein AND-Gatter.",
+      "example": "Für $a=1$ und $b=0$ ergibt sich $a\\cdot b=a\\land b=0$.",
+      "pitfalls": [
+        "Bei mehrstelligen Wörtern müssen zusätzlich die Stellenwerte berücksichtigt werden."
+      ],
+      "related": [
+        "Partialprodukt",
+        "Paralleler Multiplizierer"
+      ],
+      "heading": "2.1 Multiplikation zweier Bits"
+    },
+    {
+      "id": "era-17-k05",
+      "term": "Ein Wort mit einem Bit multiplizieren",
+      "kind": "method",
+      "short": "Die Multiplikation eines Bitworts mit einem einzelnen Bit verknüpft jedes Wortbit mit diesem Bit per AND.",
+      "explanation": "Für $B=(B_{n-1},\\ldots,B_0)$ und das Bit $A_i$ lautet das Ergebnis $(B_{n-1}\\land A_i,\\ldots,B_0\\land A_i)$. Die $n$ AND-Gatter können parallel arbeiten. Bei $A_i=0$ entsteht das Nullwort, bei $A_i=1$ bleibt $B$ erhalten.",
+      "example": "Für $B=1011_2$ gilt bei $A_i=1$: $B\\cdot A_i=1011_2$; bei $A_i=0$ ergibt sich $0000_2$.",
+      "pitfalls": [
+        "Das Bitprodukt ist noch nicht um seine Stelle $i$ verschoben; diese Verschiebung gehört zum Partialprodukt."
+      ],
+      "related": [
+        "Multiplikation zweier Bits",
+        "Partialprodukt"
+      ],
+      "heading": "2.2 Ein Wort mit einem Bit multiplizieren"
+    },
+    {
+      "id": "era-17-k06",
+      "term": "Partialprodukt",
+      "kind": "definition",
+      "short": "Das Partialprodukt $pp_i$ ist das mit $A_i$ gebildete Wort $B$, um $i$ Stellen nach links verschoben.",
+      "explanation": "Für vorzeichenlose Wörter lautet die Definition $pp_i=(\\langle B\\rangle\\cdot A_i)\\cdot 2^i$. Die Multiplikation mit $A_i$ bildet die einzelnen AND-Ergebnisse; der Faktor $2^i$ verschiebt sie an die passenden Stellen. Eine feste Verschiebung lässt sich in Hardware durch Verdrahtung und Nullen an den unteren Stellen realisieren.",
+      "example": "Wenn $B=1011_2$ und $A_2=1$, ist $pp_2=1011_2\\ll2=00101100_2$ in einer 8-Bit-Darstellung.",
+      "pitfalls": [
+        "Ein bereits verschobenes Partialprodukt darf nicht versehentlich ein zweites Mal verschoben werden.",
+        "$A_0$ bezeichnet das niederwertigste Bit."
+      ],
+      "related": [
+        "Ein Wort mit einem Bit multiplizieren",
+        "Stellengewicht eines Teilproduktbits",
+        "Paralleler Multiplizierer"
+      ],
+      "heading": "2.3 Zwei mehrstellige Binärzahlen multiplizieren"
+    },
+    {
+      "id": "era-17-k07",
+      "term": "Stellengewicht eines Teilproduktbits",
+      "kind": "theorem",
+      "short": "Das Bitprodukt $A_iB_j$ trägt zum Gesamtprodukt mit dem Gewicht $2^{i+j}$ bei.",
+      "explanation": "Das Bit $A_i$ steht für das Gewicht $2^i$, und $B_j$ steht für $2^j$. Sind beide Bits 1, ist ihr Produktbeitrag $2^i\\cdot2^j=2^{i+j}$. Das Teilproduktbit liegt folglich an der Position $i+j$.",
+      "example": "Das Teilproduktbit $A_2B_1$ hat Gewicht $2^3=8$ und gehört zur Bitposition 3.",
+      "pitfalls": [
+        "Die Position ist die Summe der Bitindizes, nicht deren Maximum."
+      ],
+      "related": [
+        "Partialprodukt",
+        "Ergebnisbreite"
+      ],
+      "heading": "2.3 Zwei mehrstellige Binärzahlen multiplizieren"
+    },
+    {
+      "id": "era-17-k08",
+      "term": "Vorzeichenlose Multiplikation (Unsigned-Multiplikation)",
+      "kind": "concept",
+      "short": "Bei der vorzeichenlosen Multiplikation werden Binärwörter als nichtnegative Zahlen interpretiert und ihre Partialprodukte addiert.",
+      "explanation": "Für $n$-Bit-Wörter gilt $\\langle A\\rangle=\\sum_{i=0}^{n-1}A_i2^i$ und entsprechend für $B$. Das Produkt ist die Summe der gewichteten Bitprodukte beziehungsweise der verschobenen Partialprodukte: $\\langle P\\rangle=\\sum_{i=0}^{n-1}pp_i$. Für Zweierkomplementzahlen muss die Behandlung des Vorzeichenbits angepasst werden.",
+      "example": "Das Wort $1011_2$ wird bei dieser Interpretation als vorzeichenlose Zahl 11 gelesen.",
+      "pitfalls": [
+        "Die beschriebene Schaltung ist nicht automatisch eine vollständige Multiplikation vorzeichenbehafteter Zweierkomplementzahlen."
+      ],
+      "related": [
+        "Partialprodukt",
+        "Ergebnisbreite",
+        "Zweierkomplement"
+      ],
+      "heading": "2.3 Zwei mehrstellige Binärzahlen multiplizieren"
+    },
+    {
+      "id": "era-17-k09",
+      "term": "Ergebnisbreite",
+      "kind": "theorem",
+      "short": "Das Produkt zweier vorzeichenloser $n$-Bit-Zahlen passt in $2n$ Bits.",
+      "explanation": "Jede solche Zahl liegt zwischen 0 und $2^n-1$. Deshalb gilt $0\\leq\\langle P\\rangle\\leq(2^n-1)^2<2^{2n}$, woraus eine benötigte Breite von höchstens $2n$ Bits folgt. Auch die Summe aller Partialprodukte benötigt diese Breite.",
+      "example": "$1111_2\\cdot1111_2=11100001_2$, also ein 8-Bit-Ergebnis für zwei 4-Bit-Operanden.",
+      "pitfalls": [
+        "Für das vollständige Produkt nicht nur $n$ Ergebnisbits vorsehen.",
+        "Diese Breitenregel gilt hier für vorzeichenlose Operanden."
+      ],
+      "related": [
+        "Vorzeichenlose Multiplikation (Unsigned-Multiplikation)",
+        "Partialprodukt",
+        "Stellengewicht eines Teilproduktbits"
+      ],
+      "heading": "2.4 Ergebnisbreite"
+    },
+    {
+      "id": "era-17-k10",
+      "term": "11 × 5",
+      "kind": "example",
+      "short": "Die Multiplikation $1011_2\\cdot0101_2$ ergibt durch Addieren der verschobenen Partialprodukte $00110111_2$.",
+      "explanation": "Hier ist $B=1011_2=11$ und $A=0101_2=5$. Nur $A_0$ und $A_2$ sind 1, daher sind nur $pp_0=00001011_2$ und $pp_2=00101100_2$ von null verschieden. Ihre Summe ist $00110111_2=55_{10}$.",
+      "example": "$00001011_2+00101100_2=00110111_2$.",
+      "pitfalls": [
+        "Das Partialprodukt zu $A_2$ muss um zwei Stellen nach links verschoben werden."
+      ],
+      "related": [
+        "Partialprodukt",
+        "Ergebnisbreite",
+        "Paralleler Multiplizierer"
+      ],
+      "heading": "2.5 Beispiel aus der Vorlesung: 11 × 5"
+    },
+    {
+      "id": "era-17-k11",
+      "term": "Realisierungsvarianten der Multiplikation",
+      "kind": "concept",
+      "short": "Ein Multiplizierer kann Partialprodukte parallel, nacheinander oder in einer Mischform verarbeiten.",
+      "explanation": "Bei vollständig paralleler Realisierung entstehen alle Partialprodukte gleichzeitig und werden in fest verdrahteten Addierstufen summiert. Bei schrittweiser Verarbeitung werden Partialprodukte nacheinander erzeugt und aufsummiert, sodass Rechenhardware wiederverwendet werden kann. Mischformen verbinden parallele und schrittweise Verarbeitung.",
+      "example": "Ein vollständig paralleler Multiplizierer bildet alle AND-Bitprodukte gleichzeitig; eine schrittweise Variante kann einen Addierer für mehrere Teilsummen wiederverwenden.",
+      "pitfalls": [
+        "Schrittweise Verarbeitung kann Hardware sparen, benötigt aber mehrere Verarbeitungsschritte."
+      ],
+      "related": [
+        "Paralleler Multiplizierer",
+        "Partialprodukt",
+        "Carry-Save-Addierer (CSavA)"
+      ],
+      "heading": "2.6 Realisierungsvarianten"
+    },
+    {
+      "id": "era-17-k12",
+      "term": "Paralleler Multiplizierer",
+      "kind": "definition",
+      "short": "Ein paralleler Multiplizierer bildet alle Bit-Partialprodukte gleichzeitig und summiert sie mit fest verdrahteten Addierstufen.",
+      "explanation": "Für zwei $n$-Bit-Operanden werden $n^2$ Bitprodukte mit AND-Gattern gebildet und nach ihrem Stellengewicht zu $n$ verschobenen Partialprodukten angeordnet. Halbaddierer und Volladdierer reduzieren und addieren diese Wörter zum Produkt. Die Partialprodukte entstehen parallel, während spätere Addierstufen von früheren Teilergebnissen abhängen.",
+      "example": "Ein regulärer 4×4-Bit-Multiplizierer bildet 16 Bitprodukte und liefert ein Produkt mit bis zu 8 Bits.",
+      "pitfalls": [
+        "Parallel bedeutet nicht, dass jede Addierstufe unabhängig von allen anderen gleichzeitig arbeiten kann.",
+        "Die beschriebene Struktur gilt für vorzeichenlose Operanden."
+      ],
+      "related": [
+        "Partialprodukt",
+        "Halbaddierer",
+        "Volladdierer",
+        "Carry-Save-Addierer (CSavA)"
+      ],
+      "heading": "3. Paralleler Multiplizierer"
+    },
+    {
+      "id": "era-17-k13",
+      "term": "Halbaddierer",
+      "kind": "definition",
+      "short": "Ein Halbaddierer addiert zwei Bits und gibt ein Summenbit sowie ein Übertragsbit aus.",
+      "explanation": "Für die Eingänge $x,y$ gilt $s=x\\oplus y$ und $c_{out}=x\\land y$. Das Summenbit bleibt an derselben Stelle; der Übertrag hat das doppelte Stellengewicht. Ein Halbaddierer besitzt keinen Carry-Eingang.",
+      "example": "Bei $x=y=1$ sind $s=0$ und $c_{out}=1$, also ist die Summe 2.",
+      "pitfalls": [
+        "Ein Halbaddierer kann keinen zusätzlichen Carry-in verarbeiten."
+      ],
+      "related": [
+        "Volladdierer",
+        "Carry-in und Carry-out",
+        "Paralleler Multiplizierer"
+      ],
+      "heading": "3.1 Wiederholung: Halbaddierer und Volladdierer"
+    },
+    {
+      "id": "era-17-k14",
+      "term": "Volladdierer",
+      "kind": "definition",
+      "short": "Ein Volladdierer addiert zwei Eingangsbits und einen Carry-in zu einem Summenbit und einem Carry-out.",
+      "explanation": "Für $x,y,c_{in}\\in\\{0,1\\}$ gelten $s=x\\oplus y\\oplus c_{in}$ und $c_{out}=(x\\land y)\\lor(x\\land c_{in})\\lor(y\\land c_{in})$. Seine arithmetische Invariante lautet $x+y+c_{in}=s+2c_{out}$. Der Carry-out repräsentiert den Übertrag zur nächsthöheren Stelle.",
+      "example": "Für $x=1$, $y=1$ und $c_{in}=1$ ergibt sich $s=1$ und $c_{out}=1$, also $3=1+2$.",
+      "pitfalls": [
+        "Im Carry-Save-Addierer ist der dritte Eingang ein gleichgewichtiges Datenbit, kein Carry aus dem benachbarten Volladdierer."
+      ],
+      "related": [
+        "Halbaddierer",
+        "Carry-in und Carry-out",
+        "Carry-Save-Addierer (CSavA)"
+      ],
+      "heading": "3.1 Wiederholung: Halbaddierer und Volladdierer"
+    },
+    {
+      "id": "era-17-k15",
+      "term": "Reguläre Struktur des 4×4-Bit-Multiplizierers",
+      "kind": "concept",
+      "short": "Die reguläre Multipliziererstruktur addiert Partialprodukte zeilenweise und kann beim niederwertigsten Operandenbit beginnen.",
+      "explanation": "Für die gezeigte reguläre Struktur mit $n\\geq2$ gibt es $n^2$ AND-Gatter, $n-1$ Halbaddierer und $(n-1)^2$ Volladdierer. Beim 4×4-Beispiel sind das 16 AND-Gatter, 3 Halbaddierer und 9 Volladdierer. Beginnt die Addition mit $A_0$, kann das niederwertigste Produktbit früh feststehen, da alle späteren Partialprodukte durch mindestens 2 teilbar sind.",
+      "example": "Bei $1011_2\\cdot0101_2$ ist $P_0=A_0B_0=1$ bereits durch das erste Partialprodukt bestimmt.",
+      "pitfalls": [
+        "Bausteinzahlen sind keine exakte Anzahl elementarer Gatter; sie hängt von der Implementierung der Addierer ab.",
+        "$A_0$ ist das LSB, nicht das MSB."
+      ],
+      "related": [
+        "Paralleler Multiplizierer",
+        "Halbaddierer",
+        "Volladdierer",
+        "Partialprodukt"
+      ],
+      "heading": "3.2 Struktur des 4×4-Bit-Multiplizierers"
+    },
+    {
+      "id": "era-17-k16",
+      "term": "2×2-Bit-Multiplizierer",
+      "kind": "example",
+      "short": "Ein 2×2-Bit-Multiplizierer bildet vier Bitprodukte und addiert die überlappenden Stellen mit Halbaddierern.",
+      "explanation": "Für zwei 2-Bit-Wörter gilt $P=A_0B_0+2(A_1B_0+A_0B_1)+4A_1B_1$. Das Bit $A_0B_0$ ist direkt $P_0$; die beiden mittleren Bitprodukte werden addiert. Ein weiterer Halbaddierer verarbeitet den Übertrag mit $A_1B_1$.",
+      "example": "Für $A=11_2$ und $B=10_2$ ergibt sich $P=0110_2=6$.",
+      "pitfalls": [
+        "Die zwei mittleren Bitprodukte haben dasselbe Stellengewicht und müssen addiert werden."
+      ],
+      "related": [
+        "Paralleler Multiplizierer",
+        "Halbaddierer",
+        "Stellengewicht eines Teilproduktbits"
+      ],
+      "heading": "3.3 Vollständige Beispielschaltung: 2×2 Bit"
+    },
+    {
+      "id": "era-17-k17",
+      "term": "MSB-first-Realisierung",
+      "kind": "concept",
+      "short": "Ein paralleler Multiplizierer kann beim höchstwertigen Bit beginnen, wodurch die beschriebene Schaltungsstruktur unregelmäßiger wird.",
+      "explanation": "Die Partialprodukte lassen sich in anderer Reihenfolge aufsummieren, ohne den mathematischen Produktwert zu verändern. Beginnt die Addierstruktur mit $A_{n-1}$ statt $A_0$, entsteht die in der Vorlesung gezeigte unregelmäßigere und ungünstigere Struktur.",
+      "example": null,
+      "pitfalls": [
+        "Eine andere Reihenfolge der Partialprodukte ändert nicht das Ergebnis, kann aber die Schaltungsstruktur verändern."
+      ],
+      "related": [
+        "Paralleler Multiplizierer",
+        "Partialprodukt"
+      ],
+      "heading": "3.5 Alternative: Beginn beim MSB"
+    },
+    {
+      "id": "era-17-k18",
+      "term": "Carry-Chain (Übertragskette)",
+      "kind": "definition",
+      "short": "Eine Carry-Chain ist eine Abhängigkeit, bei der der Übertrag einer Bitstelle die Berechnung der nächsten Bitstelle beeinflusst.",
+      "explanation": "Bei einer mehrstelligen Addition wird der Carry-out einer Stelle häufig zum Carry-in der nächsthöheren Stelle. Dadurch kann sich die Berechnung über mehrere Bitpositionen fortsetzen und die Schaltungstiefe mit der Wortbreite wachsen lassen. Das Vermeiden einer Carry-Chain innerhalb einer Reduktionsstufe ist der zentrale Zeitvorteil des Carry-Save-Addierers.",
+      "example": "Bei einem 4-Bit-Ripple-Carry-Addierer kann der Carry von Bit 0 bis Bit 3 weiterlaufen.",
+      "pitfalls": [
+        "Ein Übertrag, der für eine spätere Stufe gespeichert wird, ist nicht automatisch eine Carry-Chain innerhalb der aktuellen Stufe."
+      ],
+      "related": [
+        "Ripple-Carry Addierer",
+        "Carry-Save-Addierer (CSavA)",
+        "Kosten und Tiefe"
+      ],
+      "heading": "4.3 Unterschied zum Ripple-Carry Addierer"
+    },
+    {
+      "id": "era-17-k19",
+      "term": "Carry-Save-Addierer (CSavA)",
+      "kind": "definition",
+      "short": "Ein Carry-Save-Addierer reduziert drei Eingabewörter auf zwei Ausgabewörter und erhält dabei ihre Gesamtsumme.",
+      "explanation": "Für Eingaben $u,v,w$ erzeugt ein Carry-Save-Addierer ein Summenwort $s$ und ein bereits stellengerecht verschobenes Carry-Wort $c$, sodass $\\langle u\\rangle+\\langle v\\rangle+\\langle w\\rangle=\\langle s\\rangle+\\langle c\\rangle$. Die Summe liegt damit in redundanter Form vor, statt als einzelnes Ergebniswort. Ein Endaddierer kann die zwei Wörter später zusammenfassen.",
+      "example": "$11+7+6=10+14=24$; ein CSavA kann dafür die Wörter 10 und 14 ausgeben.",
+      "pitfalls": [
+        "Das Carry-Wort ist in dieser Notation bereits um eine Stelle verschoben.",
+        "Die zwei Ausgangswörter sind noch nicht das einzelne endgültige Summenwort."
+      ],
+      "related": [
+        "Volladdierer",
+        "Carry-Chain (Übertragskette)",
+        "Endaddierer",
+        "Reduktionsbaum"
+      ],
+      "heading": "4.1 Grundidee: 3 Wörter → 2 Wörter"
+    },
+    {
+      "id": "era-17-k20",
+      "term": "CSavA-Bitstufe",
+      "kind": "concept",
+      "short": "Jede Bitstufe des Carry-Save-Addierers verwendet einen unabhängigen Volladdierer für drei gleichgewichtige Eingangsbits.",
+      "explanation": "An Position $i$ berechnet ein Volladdierer $s_i=u_i\\oplus v_i\\oplus w_i$ und $c_{i+1}=(u_i\\land v_i)\\lor(u_i\\land w_i)\\lor(v_i\\land w_i)$; dabei gilt $c_0=0$. Die lokale Invariante lautet $u_i+v_i+w_i=s_i+2c_{i+1}$. Weil kein Volladdierer den Carry eines benachbarten Volladdierers benötigt, arbeiten die Bitstufen parallel und haben zusammen Tiefe $O(1)$ sowie Kosten linear in der Wortbreite.",
+      "example": "Für Bits $u_i=v_i=w_i=1$ ergeben sich $s_i=1$ und $c_{i+1}=1$, denn $3=1+2$.",
+      "pitfalls": [
+        "Den Carry-Ausgang einer Stufe nicht als Carry-Eingang der nächsten Bitstufe weiterreichen.",
+        "Der dritte Eingang jedes Volladdierers ist ein Operandbit, kein eingehender Übertrag."
+      ],
+      "related": [
+        "Carry-Save-Addierer (CSavA)",
+        "Volladdierer",
+        "Carry-Chain (Übertragskette)"
+      ],
+      "heading": "4.2 Aufbau pro Bit"
+    },
+    {
+      "id": "era-17-k21",
+      "term": "Ripple-Carry Addierer",
+      "kind": "definition",
+      "short": "Ein Ripple-Carry Addierer addiert zwei Wörter, indem er den Carry von jeder Bitstelle an die nächste weiterreicht.",
+      "explanation": "Jede Bitstelle verarbeitet die beiden Operandbits sowie den Carry-in und erzeugt einen Carry-out für die nächste Stelle. Bei $k$ Bits kann dieser Abhängigkeitsweg bis zu $k$ Addierstufen umfassen, sodass die Tiefe $O(k)$ beträgt. Im Gegensatz dazu leiten die Volladdierer einer CSavA-Stufe keine Carries zwischen benachbarten Stellen weiter.",
+      "example": "In einer 3-Bit-Addition kann die Stelle 2 ihren Carry erst bestimmen, nachdem der Carry aus Stelle 1 vorliegt.",
+      "pitfalls": [
+        "Ein Ripple-Carry-Endaddierer ist einfach, hat aber lineare Tiefe in der Wortbreite."
+      ],
+      "related": [
+        "Carry-Chain (Übertragskette)",
+        "Carry-Save-Addierer (CSavA)",
+        "Endaddierer",
+        "Carry Ripple Adder"
+      ],
+      "heading": "4.3 Unterschied zum Ripple-Carry Addierer"
+    },
+    {
+      "id": "era-17-k22",
+      "term": "Wortbreite und oberster Carry beim CSavA",
+      "kind": "concept",
+      "short": "Ein oberster Carry darf beim Carry-Save-Addierer nur entfallen, wenn die gewählte Wortbreite die gesamte Summe sicher aufnehmen kann.",
+      "explanation": "Bei der vorzeichenlosen Multiplikation zweier $n$-Bit-Zahlen werden Partialprodukte mit $2n$ Bits dargestellt, weil ihre Gesamtsumme kleiner als $2^{2n}$ ist. Alle Teilsummen sind nichtnegativ und höchstens so groß wie die Gesamtsumme; daher bleiben sie ebenfalls innerhalb dieser Breite. Der Carry oberhalb von Bit $2n-1$ ist in diesem Fall null.",
+      "example": "Bei der $2n$-Bit-Reduktion eines solchen Multiplizierers setzt man $c_0=0$; der Carry oberhalb von Bit $2n-1$ ist ungenutzt.",
+      "pitfalls": [
+        "Den höchsten Carry bei drei beliebigen Wörtern nicht ohne Begründung verwerfen.",
+        "Ein bereits nach links verschobenes Carry-Wort nicht nochmals verschieben."
+      ],
+      "related": [
+        "Carry-Save-Addierer (CSavA)",
+        "Ergebnisbreite",
+        "Vorzeichenlose Multiplikation (Unsigned-Multiplikation)"
+      ],
+      "heading": "4.5 Spezialfall: Partialprodukte mit $2n$ Bits"
+    },
+    {
+      "id": "era-17-k23",
+      "term": "Serielle CSavA-Kette",
+      "kind": "method",
+      "short": "Eine serielle CSavA-Kette reduziert $n$ Partialprodukte mit $n-2$ Carry-Save-Addierern auf zwei Wörter.",
+      "explanation": "Jeder Carry-Save-Addierer nimmt drei Wörter und gibt zwei aus, wodurch die Wortanzahl um eins sinkt. Für $n\\geq2$ folgt auf die Reduktion ein Endaddierer, der die letzten zwei Wörter zu einem Produkt addiert. Die CSavA-Stufen bilden eine kombinatorische Kette und erfordern nicht zwingend mehrere Taktzyklen.",
+      "example": "32 Partialprodukte benötigen 30 CSavAs und anschließend einen Endaddierer.",
+      "pitfalls": [
+        "„Seriell“ bezeichnet hier abhängige kombinatorische Stufen, nicht zwingend mehrere Taktzyklen.",
+        "Den Endaddierer nach der Reduktion nicht vergessen."
+      ],
+      "related": [
+        "Carry-Save-Addierer (CSavA)",
+        "Endaddierer",
+        "Reduktionsbaum"
+      ],
+      "heading": "5.1 Serielle Lösung"
+    },
+    {
+      "id": "era-17-k24",
+      "term": "4-zu-2-Baustein",
+      "kind": "definition",
+      "short": "Ein 4-zu-2-Baustein verwendet zwei aufeinanderfolgende Carry-Save-Addierer, um vier Wörter auf zwei zu reduzieren.",
+      "explanation": "Der erste Carry-Save-Addierer reduziert drei Eingabewörter auf zwei; ein zweiter verarbeitet diese beiden Ausgaben zusammen mit dem vierten Eingabewort. Da beide Reduktionen die Summe erhalten, gilt $a+b+c+d=s+t$. Mehrere solcher Bausteine können auf derselben Baumebene parallel arbeiten.",
+      "example": "Vier Wörter $a,b,c,d$ ergeben nach zwei CSavA-Stufen die zwei Wörter $s,t$ mit derselben Gesamtsumme.",
+      "pitfalls": [
+        "Der 4-zu-2-Baustein enthält zwei CSavA-Stufen und ist nicht ein einzelner Volladdierer."
+      ],
+      "related": [
+        "Carry-Save-Addierer (CSavA)",
+        "Reduktionsbaum"
+      ],
+      "heading": "5.2 Baumartige Lösung: 4-zu-2-Baustein"
+    },
+    {
+      "id": "era-17-k25",
+      "term": "Reduktionsbaum",
+      "kind": "method",
+      "short": "Ein Reduktionsbaum gruppiert viele Wörter in parallelen Ebenen, bis zwei Wörter für den Endaddierer übrig sind.",
+      "explanation": "Ein ausgewogener Baum reduziert mehrere Gruppen gleichzeitig, statt alle CSavAs in einer langen Kette anzuordnen. Bei 16 Wörtern kann die Wortzahl beispielsweise $16\\to8\\to4\\to2$ sinken. Die letzte Addition fasst die zwei verbleibenden Wörter zusammen.",
+      "example": "Für 16 Partialprodukte benötigt die beschriebene Struktur 7 4-zu-2-Bausteine, also 14 CSavAs; auf dem kritischen Pfad liegen 6 CSavA-Stufen.",
+      "pitfalls": [
+        "Die Zahl der vorhandenen CSavAs kann der seriellen Lösung entsprechen, obwohl der kritische Pfad kürzer ist.",
+        "Auch ein Baum benötigt am Ende einen normalen Endaddierer."
+      ],
+      "related": [
+        "4-zu-2-Baustein",
+        "Carry-Save-Addierer (CSavA)",
+        "Endaddierer"
+      ],
+      "heading": "5.3 Beispiel eines Reduktionsbaums für 16 Partialprodukte"
+    },
+    {
+      "id": "era-17-k26",
+      "term": "Endaddierer",
+      "kind": "definition",
+      "short": "Ein Endaddierer addiert die zwei verbliebenen Wörter einer Carry-Save-Reduktion zu einem einzelnen Ergebniswort.",
+      "explanation": "Carry-Save-Stufen erhalten die Gesamtsumme in Form zweier Wörter $s$ und $c$. Der Endaddierer berechnet daraus $s+c$ und liefert das Produkt als gewöhnliches Binärwort. Seine Tiefe beeinflusst die Gesamttiefe des Multiplizierers.",
+      "example": "Nach einer CSavA-Reduktion mit $s=10$ und $c=14$ ergibt der Endaddierer $24$.",
+      "pitfalls": [
+        "Ein CSavA selbst ist nicht der Endaddierer und liefert kein einzelnes Summenwort.",
+        "Die Tiefe eines Ripple-Carry-Endaddierers wächst linear mit der Wortbreite."
+      ],
+      "related": [
+        "Carry-Save-Addierer (CSavA)",
+        "Ripple-Carry Addierer",
+        "Serielle CSavA-Kette",
+        "Reduktionsbaum"
+      ],
+      "heading": "5.1 Serielle Lösung"
+    },
+    {
+      "id": "era-17-k27",
+      "term": "Komplexität der CSavA-Multiplizierer",
+      "kind": "theorem",
+      "short": "Serielle und baumartige CSavA-Multiplizierer haben $O(n^2)$ Kosten; ihre Tiefe hängt von der Reduktionsstruktur und dem Endaddierer ab.",
+      "explanation": "Ein $n\\times n$-Bit-Multiplizierer hat $n$ Partialprodukte mit je bis zu $2n$ Bitpositionen, daher liegen die Kosten der beschriebenen Reduktionsarchitekturen in $O(n^2)$. Eine serielle Kette hat $O(n)$ abhängige CSavA-Stufen und mit Ripple-Carry-Endaddierer insgesamt $O(n)$ Tiefe. Ein ausgewogener Reduktionsbaum hat $O(\\log n)$ Reduktionstiefe; mit einem Endaddierer logarithmischer Tiefe ist auch die Gesamttiefe $O(\\log n)$, mit Ripple-Carry-Endaddierer dagegen $O(n)$.",
+      "example": "Bei 16 Partialprodukten sinkt die Zahl der Reduktionsebenen im Baum, auch wenn die Zahl der CSavAs nicht niedriger als bei der seriellen Lösung ist.",
+      "pitfalls": [
+        "Die logarithmische Gesamttiefe setzt einen schnellen Endaddierer voraus.",
+        "$O(\\log n)$ Tiefe bedeutet keine asymptotische Kostensenkung gegenüber der seriellen Lösung."
+      ],
+      "related": [
+        "Serielle CSavA-Kette",
+        "Reduktionsbaum",
+        "Endaddierer",
+        "Kosten und Tiefe"
+      ],
+      "heading": "5.4 Komplexität"
+    },
+    {
+      "id": "era-17-k28",
+      "term": "ALU (Arithmetic Logic Unit)",
+      "kind": "definition",
+      "short": "Eine ALU kombiniert arithmetische und logische Operationen und gibt das Ergebnis der ausgewählten Funktion aus.",
+      "explanation": "Eine ALU erhält Operanden $a$ und $b$, gegebenenfalls einen Carry-in $c$, sowie ein Select-Signal. Sie berechnet eine der unterstützten Funktionen und gibt deren Ergebnis aus. Im Vorlesungsmodell sind die Operanden $n$ Bit und der einheitliche Ausgang $n+1$ Bit breit; ein vollständiges $2n$-Bit-Multiplikationsergebnis passt daher im Allgemeinen nicht in diesen Ausgang.",
+      "example": "Eine ALU kann je nach Auswahlcode Addition, AND, OR oder XOR ausführen.",
+      "pitfalls": [
+        "Die ALU ist die Funktionseinheit, die Operationen auswählt und ausführt; das Select-Signal ist ein eigener Steuereingang.",
+        "Der modellierte $n+1$-Bit-Ausgang ist nicht breit genug für jedes vollständige $n\\times n$-Bit-Produkt."
+      ],
+      "related": [
+        "Select-Signal",
+        "Verallgemeinerter Multiplexer",
+        "Addierer/Subtrahierer",
+        "Paralleler Multiplizierer"
+      ],
+      "heading": "6. ALU – Arithmetic Logic Unit"
+    },
+    {
+      "id": "era-17-k29",
+      "term": "Select-Signal",
+      "kind": "notation",
+      "short": "Ein Select-Signal aus $m$ Bits wählt einen von höchstens $2^m$ Funktionscodes der ALU aus.",
+      "explanation": "Man kann den Select-Bus als Zahl $i=\\langle select\\rangle$ lesen; die ALU liefert dann $y=f_i(a,b,c)$. Für $r$ verschiedene Funktionen sind mindestens $m=\\lceil\\log_2 r\\rceil$ Select-Bits nötig. Nicht alle verfügbaren Codes müssen einer eigenen Funktion zugeordnet sein.",
+      "example": "Für fünf Funktionen genügen mindestens drei Bits, die acht Auswahlcodes darstellen können.",
+      "pitfalls": [
+        "$m$ ist die Zahl der Select-Bits; die Zahl der adressierbaren Funktionen ist höchstens $2^m$, nicht $m$.",
+        "Nicht zugeordnete Auswahlcodes können ungenutzt bleiben."
+      ],
+      "related": [
+        "ALU (Arithmetic Logic Unit)",
+        "Verallgemeinerter Multiplexer"
+      ],
+      "heading": "6. ALU – Arithmetic Logic Unit"
+    },
+    {
+      "id": "era-17-k30",
+      "term": "Getrennte Funktionsschaltkreise",
+      "kind": "concept",
+      "short": "Bei getrennter Realisierung besitzt jede ALU-Funktion einen eigenen Schaltkreis, und die Ergebnisse werden anschließend ausgewählt.",
+      "explanation": "Alle Funktionsschaltkreise erhalten die Operanden und gemeinsame weitere Eingänge. Jeder berechnet sein Ergebnis, während ein Multiplexer anhand des Select-Signals einen Ergebnisbus auswählt. Dieses modulare Vorgehen ist leicht zu verstehen, kann aber redundante Hardware erfordern.",
+      "example": "Ein Addierer und ein AND-Schaltkreis können parallel Ergebnisse berechnen, von denen die ALU eines auswählt.",
+      "pitfalls": [
+        "Getrennte Realisierung kann mehr Hardware benötigen als eine Lösung mit gemeinsam genutzten Teilschaltungen.",
+        "Der Multiplexer wählt den Ergebnisbus der Funktion aus, nicht deren Eingabesignale."
+      ],
+      "related": [
+        "ALU (Arithmetic Logic Unit)",
+        "Verallgemeinerter Multiplexer",
+        "Select-Signal"
+      ],
+      "heading": "6.1 Möglichkeit 1: Einzelfunktionen getrennt realisieren"
+    },
+    {
+      "id": "era-17-k31",
+      "term": "Verallgemeinerter Multiplexer",
+      "kind": "definition",
+      "short": "Ein verallgemeinerter Multiplexer wählt anhand eines Steuercodes einen von mehreren gleich breiten Ergebnisbussen aus.",
+      "explanation": "In einer ALU entspricht jeder Eingang des Multiplexers dem Ergebnis einer Funktion. Das Select-Signal bestimmt, welcher Bus an den Ausgang durchgeschaltet wird. Ein $n+1$-Bit-Ausgang lässt sich beispielsweise mit $n+1$ einzelnen Multiplexern und einem gemeinsamen Select-Signal aufbauen.",
+      "example": "Ein 2-Bit-Select-Signal kann zwischen vier Ergebnisbussen wählen.",
+      "pitfalls": [
+        "Der Multiplexer wählt einen ganzen Ergebnisbus; die Bits eines Busses müssen gemeinsam das Ergebnis derselben Funktion darstellen."
+      ],
+      "related": [
+        "Multiplexer",
+        "Select-Signal",
+        "Getrennte Funktionsschaltkreise",
+        "ALU (Arithmetic Logic Unit)"
+      ],
+      "heading": "6.1 Möglichkeit 1: Einzelfunktionen getrennt realisieren"
+    },
+    {
+      "id": "era-17-k32",
+      "term": "Addierer/Subtrahierer",
+      "kind": "method",
+      "short": "Ein gemeinsamer Addierer kann Addition und Zweierkomplement-Subtraktion ausführen, indem er den zweiten Operanden kontrolliert invertiert und den Carry-in steuert.",
+      "explanation": "Mit einem Steuersignal $sub\\in\\{0,1\\}$ bilde $b'_i=b_i\\oplus sub$ und setze $c_{in}=sub$. Dann berechnet der Addierer $a+b'+sub$; für $sub=0$ ist das $a+b$, und für $sub=1$ ist es $a+\\overline b+1\\equiv a-b\\pmod{2^n}$. Die unteren $n$ Bits bilden das Ergebnis der Addition oder Subtraktion.",
+      "example": "Bei $sub=1$ wird $b$ bitweise invertiert und 1 addiert, sodass der Addierer $a-b$ berechnet.",
+      "pitfalls": [
+        "Für Subtraktion müssen sowohl der zweite Operand invertiert als auch der Carry-in auf 1 gesetzt werden.",
+        "Carry-out und signed Overflow sind getrennte Interpretationen."
+      ],
+      "related": [
+        "Zweierkomplement-Subtraktion",
+        "Carry-in und Carry-out",
+        "ALU (Arithmetic Logic Unit)",
+        "Select-Signal"
+      ],
+      "heading": "6.3 Möglichkeit 2: Gemeinsame Behandlung ähnlicher Funktionen"
+    }
+  ],
+  "generator": {
+    "model": "gpt-6-luna",
+    "effort": "xhigh",
+    "promptVersion": "k1",
+    "generatedAt": "2026-11-24T23:32:47.117Z"
+  }
+}
