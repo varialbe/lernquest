@@ -1,0 +1,2057 @@
+{
+  "schemaVersion": 1,
+  "id": "era-18",
+  "module": "ERA",
+  "number": 18,
+  "slug": "speichern-latches-register-speicher",
+  "title": "Speichern: Latches, Register und Speicher",
+  "summary": "Die Unit zeigt, wie Rückkopplung Schaltungen einen Zustand speichern lässt. Darauf bauen RS- und D-Latches, D-Flipflops, Schieberegister und Register auf. Anschließend geht es um adressierbaren Speicher, DRAM und SRAM sowie Matrixadressierung.",
+  "concepts": [
+    "Rückkopplung und Zustand",
+    "NOR-RS-Latch",
+    "NAND-RS-Latch",
+    "D-Latch",
+    "D-Flipflop",
+    "Setup- und Holdzeit",
+    "Schieberegister",
+    "Register",
+    "Adressierbarer Speicher",
+    "Schreibselektion und Multiplexer",
+    "DRAM und SRAM",
+    "Matrixadressierung"
+  ],
+  "keyFacts": [
+    "Eine kombinatorische Schaltung hängt von aktuellen Eingängen ab; eine sequentielle Schaltung hängt zusätzlich von ihrem gespeicherten Zustand ab.",
+    "Rückkopplung kann einen Ausgangszustand erhalten, aber ein rückgekoppeltes OR-Gatter bietet keinen gezielten Reset.",
+    "Ein RS-Latch speichert ein Bit und besitzt im gültigen Zustand komplementäre Ausgänge.",
+    "Beim aktiv-High-NOR-RS-Latch hält R=S=0, Set ist R=0 und S=1, Reset ist R=1 und S=0; R=S=1 ist verboten.",
+    "Beim aktiv-Low-NAND-RS-Latch hält S̅=R̅=1; S̅=R̅=0 ist verboten.",
+    "Ein D-Latch lässt sich mit S=E∧D und R=E∧¬D aufbauen; dadurch können Set und Reset im idealen Modell nicht zugleich aktiv sein.",
+    "Ein D-Latch ist bei E=1 transparent und hält bei E=0 seinen Zustand.",
+    "Ein positiv flankengesteuertes D-Flipflop übernimmt D an der steigenden Taktflanke und hält zwischen Flanken.",
+    "D muss rund um die aktive Flanke mindestens während Setup- und Holdzeit stabil sein.",
+    "Ein Schieberegister verschiebt bei jeder steigenden Flanke die alten Werte gleichzeitig um eine Stufe.",
+    "Ein n-Bit-Register aus D-Flipflops übernimmt n Eingangsbits parallel und benötigt n D-Flipflops.",
+    "Bei a Adressbits gibt es 2ᵃ Wörter; bei w Bit Wortbreite beträgt die Kapazität 2ᵃ·w Bit.",
+    "Beim 2-Wort-Speicher gelten E₀=W∧¬A₀ und E₁=W∧A₀; die Adresse wählt beim Lesen über Multiplexer das ausgegebene Wort.",
+    "DRAM speichert Ladung in Kondensatoren und benötigt Refresh; SRAM verwendet typischerweise eine 6-Transistor-Zelle und benötigt keinen Refresh.",
+    "DRAM und SRAM sind flüchtig; SRAM hält Daten nicht ohne Versorgung.",
+    "Bei der Matrixadressierung wählen ein Adressteil die Zeile und ein anderer die Spalte."
+  ],
+  "tags": [
+    "TUM/ERA",
+    "ERA/Schaltungen",
+    "ERA/Speicher"
+  ],
+  "links": [],
+  "source": {
+    "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO18.md",
+    "sha256": "12b92718bfd9c013efdd7097ad6fb016544f48985a35b1752f94a9d542737c1d",
+    "commit": "06b418e02f2741dd9ad462f5ad6cc0e3476f229c"
+  },
+  "generator": {
+    "model": "gpt-6-luna",
+    "effort": "xhigh",
+    "reviewEffort": "high",
+    "promptVersion": "v3",
+    "generatedAt": "2026-11-24T23:48:37.702Z",
+    "review": {
+      "checked": 43,
+      "fixed": 4,
+      "removed": 0,
+      "notes": "Geprüft: 43 Fragen. Die Zustandsfolge der Boss-Schieberegisterfrage war in der Erklärung falsch und wurde korrigiert. Zwei Fragen zum 2-Wort-Speicher erhielten fehlende Modellangaben im Prompt. Für die Rückkopplungsfrage wurde die Quelle auf die passende Überschrift gesetzt."
+    }
+  },
+  "levels": [
+    {
+      "id": "era-18-l1",
+      "index": 1,
+      "kind": "basics",
+      "title": "Grundlagen",
+      "questions": [
+        {
+          "id": "era-18-l1-q01",
+          "type": "single",
+          "prompt": "Welche Aussage beschreibt eine sequentielle Schaltung?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Sie kann nur mit OR-Gattern aufgebaut werden."
+            },
+            {
+              "id": "b",
+              "text": "Ihr Ausgang hängt auch von einem gespeicherten Zustand ab."
+            },
+            {
+              "id": "c",
+              "text": "Sie darf keine Rückkopplung enthalten."
+            },
+            {
+              "id": "d",
+              "text": "Ihr Ausgang hängt nur von den aktuellen Eingängen ab."
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "Eine sequentielle Schaltung berücksichtigt ihren aktuellen Zustand und die Eingänge, um den Folgezustand zu bestimmen.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO18.md",
+            "heading": "0. Big Picture"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Rückkopplung und Zustand"
+          ]
+        },
+        {
+          "id": "era-18-l1-q02",
+          "type": "cloze",
+          "prompt": "In der Folgezustandsgleichung $q(t+1)=g(___,x(t))$ steht die Lücke für den aktuellen Zustand.",
+          "options": [
+            {
+              "id": "a",
+              "text": "q(t)"
+            },
+            {
+              "id": "b",
+              "text": "y(t)"
+            },
+            {
+              "id": "c",
+              "text": "q(t+1)"
+            },
+            {
+              "id": "d",
+              "text": "x(t+1)"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "Der Folgezustand ergibt sich aus dem aktuellen Zustand q(t) und den aktuellen Eingängen x(t).",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO18.md",
+            "heading": "0. Big Picture"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Rückkopplung und Zustand"
+          ]
+        },
+        {
+          "id": "era-18-l1-q03",
+          "type": "single",
+          "prompt": "Ein aktiv-High-NOR-RS-Latch erhält $R=0$ und $S=1$. Was geschieht mit $Q$?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Q wird auf 0 zurückgesetzt."
+            },
+            {
+              "id": "b",
+              "text": "Q wird auf 1 gesetzt."
+            },
+            {
+              "id": "c",
+              "text": "Beide Ausgänge werden 0."
+            },
+            {
+              "id": "d",
+              "text": "Q hält seinen bisherigen Wert."
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "Beim NOR-RS-Latch bedeutet S=1 und R=0 Set: Der gespeicherte Ausgang Q wird 1.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO18.md",
+            "heading": "2.1 NOR-RS-Latch (aktiv High)"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "NOR-RS-Latch"
+          ]
+        },
+        {
+          "id": "era-18-l1-q04",
+          "type": "truefalse",
+          "prompt": "Beim aktiv-Low-NAND-RS-Latch sind die tatsächlichen Eingangspegel $\\overline S=0$ und $\\overline R=0$ verboten.",
+          "options": [
+            {
+              "id": "true",
+              "text": "Wahr"
+            },
+            {
+              "id": "false",
+              "text": "Falsch"
+            }
+          ],
+          "correct": [
+            "true"
+          ],
+          "explanation": "Bei beiden aktiven Low-Eingängen erzwingen die NAND-Gatter zwei Einsen an den Ausgängen; sie sind dann nicht komplementär.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO18.md",
+            "heading": "2.4 NAND-RS-Latch (aktiv Low)"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "NAND-RS-Latch"
+          ]
+        },
+        {
+          "id": "era-18-l1-q05",
+          "type": "multi",
+          "prompt": "Welche Aussagen über ein D-Latch treffen zu? Wähle alle richtigen Aussagen.",
+          "options": [
+            {
+              "id": "a",
+              "text": "Das Latch übernimmt D ausschließlich an einer steigenden Taktflanke."
+            },
+            {
+              "id": "b",
+              "text": "Bei E=1 kann D zum Ausgang Q durchlaufen."
+            },
+            {
+              "id": "c",
+              "text": "Bei E=0 hält das Latch seinen gespeicherten Zustand."
+            },
+            {
+              "id": "d",
+              "text": "Im idealen Aufbau können Set und Reset zugleich aktiv werden."
+            }
+          ],
+          "correct": [
+            "b",
+            "c"
+          ],
+          "explanation": "E=0 sperrt den Datenpfad und erhält den Zustand; bei E=1 ist das Latch transparent. Die Set- und Reset-Signale werden aus D und ¬D gebildet, daher sind sie nicht gleichzeitig 1.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO18.md",
+            "heading": "3.2 Aufbau"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "D-Latch"
+          ]
+        },
+        {
+          "id": "era-18-l1-q06",
+          "type": "single",
+          "prompt": "Wann ist ein D-Latch transparent?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Nur wenn D=0 ist."
+            },
+            {
+              "id": "b",
+              "text": "Nur bei einer steigenden CLK-Flanke."
+            },
+            {
+              "id": "c",
+              "text": "Bei E=0, weil der Datenpfad dann gesperrt ist."
+            },
+            {
+              "id": "d",
+              "text": "Bei E=1, sodass Q den Änderungen von D folgt."
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Während der gesamten aktiven Enable-Phase E=1 folgt Q dem Eingang D, nach der Gatterlaufzeit.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO18.md",
+            "heading": "3.3 Transparenz und Timing"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "D-Latch"
+          ]
+        },
+        {
+          "id": "era-18-l1-q07",
+          "type": "single",
+          "prompt": "Ein positiv flankengesteuertes D-Flipflop übernimmt seinen Eingang bei welcher Taktänderung?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Bei der fallenden Flanke von 1 auf 0."
+            },
+            {
+              "id": "b",
+              "text": "Bei der steigenden Flanke von 0 auf 1."
+            },
+            {
+              "id": "c",
+              "text": "Während der gesamten Zeit, in der CLK=1 ist."
+            },
+            {
+              "id": "d",
+              "text": "Nur wenn CLK dauerhaft 0 bleibt."
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "Das positiv flankengesteuerte Flipflop übernimmt D an der steigenden Flanke und hält den Zustand zwischen den Flanken.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO18.md",
+            "heading": "4. Taktflankengesteuertes D-Flipflop (Folien 15–16)"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "D-Flipflop"
+          ]
+        },
+        {
+          "id": "era-18-l1-q08",
+          "type": "multi",
+          "prompt": "Welche Aussagen zu Setup- und Holdzeit sind richtig? Wähle alle richtigen Aussagen.",
+          "options": [
+            {
+              "id": "a",
+              "text": "Die Setupzeit beginnt erst nach der aktiven Flanke."
+            },
+            {
+              "id": "b",
+              "text": "Während der Holdzeit nach der aktiven Flanke muss D stabil bleiben."
+            },
+            {
+              "id": "c",
+              "text": "Die Holdzeit beschreibt die erforderliche Stabilität vor der Flanke."
+            },
+            {
+              "id": "d",
+              "text": "Während der Setupzeit vor der aktiven Flanke muss D stabil sein."
+            }
+          ],
+          "correct": [
+            "b",
+            "d"
+          ],
+          "explanation": "Die Setupzeit liegt vor der Flanke, die Holdzeit danach. Beide begrenzen das Zeitfenster, in dem D rund um die aktive Flanke stabil sein muss.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO18.md",
+            "heading": "4.3 Setup- und Holdzeit"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Setup- und Holdzeit"
+          ]
+        },
+        {
+          "id": "era-18-l1-q09",
+          "type": "single",
+          "prompt": "Was geschieht in einem Schieberegister bei einer steigenden Taktflanke?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Die gespeicherten Bits werden gelöscht."
+            },
+            {
+              "id": "b",
+              "text": "Nur die letzte Stufe wird aktualisiert."
+            },
+            {
+              "id": "c",
+              "text": "Jeder Flipflop-Ausgang springt direkt auf den neuen seriellen Eingang."
+            },
+            {
+              "id": "d",
+              "text": "Jede Stufe übernimmt gleichzeitig den alten Wert ihrer Vorgängerstufe."
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Alle Flipflops übernehmen gleichzeitig die alten Werte ihrer Eingänge. Ein neuer Wert wandert deshalb höchstens eine Stufe pro Flanke weiter.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO18.md",
+            "heading": "5. Schieberegister (Folien 17–18)"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Schieberegister"
+          ]
+        },
+        {
+          "id": "era-18-l1-q10",
+          "type": "cloze",
+          "prompt": "Ein einfaches $n$-Bit-Register aus D-Flipflops benötigt ___ D-Flipflops.",
+          "options": [
+            {
+              "id": "a",
+              "text": "n"
+            },
+            {
+              "id": "b",
+              "text": "n−1"
+            },
+            {
+              "id": "c",
+              "text": "1"
+            },
+            {
+              "id": "d",
+              "text": "2ⁿ"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "Jedes Bit des Registers wird von einem eigenen D-Flipflop gespeichert; n Bits benötigen somit n Flipflops.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO18.md",
+            "heading": "6. Register (Folien 20–21)"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Register"
+          ]
+        },
+        {
+          "id": "era-18-l1-q11",
+          "type": "diagram",
+          "prompt": "Welcher Baustein folgt im dargestellten Entwicklungspfad direkt auf das RS-Latch?",
+          "context": {
+            "type": "mermaid",
+            "content": "flowchart TD\n  A[Boolesche Gatter] --> B[Rückkopplung]\n  B --> C[RS-Latch]\n  C --> D[D-Latch]\n  D --> E[D-Flipflop]\n  E --> F[Register]\n  E --> G[Schieberegister]\n  D --> H[Adressierbarer Speicher]\n  H --> I[Reale Speicher]",
+            "caption": "Vom Gatter zum Speicher"
+          },
+          "options": [
+            {
+              "id": "a",
+              "text": "SRAM"
+            },
+            {
+              "id": "b",
+              "text": "Schieberegister"
+            },
+            {
+              "id": "c",
+              "text": "D-Latch"
+            },
+            {
+              "id": "d",
+              "text": "Adressierbarer Speicher"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Der dargestellte Pfad führt vom RS-Latch zum D-Latch, dann zum D-Flipflop und weiter zu Register- und Speicherbausteinen.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO18.md",
+            "heading": "0. Big Picture"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "NOR-RS-Latch",
+            "D-Latch"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "era-18-l2",
+      "index": 2,
+      "kind": "apply",
+      "title": "Anwenden",
+      "questions": [
+        {
+          "id": "era-18-l2-q01",
+          "type": "calc",
+          "prompt": "Für ein gültiges NOR-RS-Latch gilt $Q^+=S\\lor(\\neg R\\land Q)$. Berechne $Q^+$ für $R=0$, $S=1$ und $Q=0$.",
+          "options": [
+            {
+              "id": "a",
+              "text": "Q bleibt unbestimmt"
+            },
+            {
+              "id": "b",
+              "text": "0"
+            },
+            {
+              "id": "c",
+              "text": "1"
+            },
+            {
+              "id": "d",
+              "text": "Verbotener Zustand"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Mit S=1 wird der erste Term 1. Daher ist der Folgezustand Q⁺=1, unabhängig vom alten Q.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO18.md",
+            "heading": "2.1 NOR-RS-Latch (aktiv High)"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "NOR-RS-Latch"
+          ]
+        },
+        {
+          "id": "era-18-l2-q02",
+          "type": "calc",
+          "prompt": "Ein D-Latch folgt $Q^+=(E\\land D)\\lor(\\neg E\\land Q)$. Berechne $Q^+$ für $E=0$, $D=1$ und den alten Zustand $Q=0$.",
+          "options": [
+            {
+              "id": "a",
+              "text": "1"
+            },
+            {
+              "id": "b",
+              "text": "0"
+            },
+            {
+              "id": "c",
+              "text": "Der Zustand ist verboten"
+            },
+            {
+              "id": "d",
+              "text": "D bleibt gespeichert"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "Bei E=0 ist der Datenpfad gesperrt und Q⁺=Q. Da der alte Zustand 0 ist, bleibt auch der neue Zustand 0.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO18.md",
+            "heading": "3.2 Aufbau"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "D-Latch"
+          ]
+        },
+        {
+          "id": "era-18-l2-q03-r1",
+          "type": "calc",
+          "prompt": "Ein 4-stufiges Schieberegister hat an jeder Stufe ein positiv flankengesteuertes D-Flipflop. Der serielle Eingang D ist mit dem Dateneingang von Q₀ verbunden; der Ausgang Qᵢ ist mit dem Dateneingang von Qᵢ₊₁ verbunden. Bei jeder steigenden Flanke übernehmen alle Stufen gleichzeitig die Werte, die direkt vor der Flanke an ihren Dateneingängen anliegen: Q₀ übernimmt D, Q₁ übernimmt den alten Wert von Q₀, Q₂ den alten Wert von Q₁ und Q₃ den alten Wert von Q₂. Zu Beginn ist (Q₀,Q₁,Q₂,Q₃) = 1100. Vor zwei aufeinanderfolgenden steigenden Flanken liegen nacheinander D = 1 und D = 0 an. Welcher Zustand liegt danach in der Reihenfolge Q₀,Q₁,Q₂,Q₃ vor?",
+          "options": [
+            {
+              "id": "a",
+              "text": "1100"
+            },
+            {
+              "id": "b",
+              "text": "0011"
+            },
+            {
+              "id": "c",
+              "text": "1011"
+            },
+            {
+              "id": "d",
+              "text": "0111"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Nach der ersten Flanke wird aus 1100 der Zustand 1110: Q₀ übernimmt D = 1 und die übrigen Stufen übernehmen gleichzeitig ihre alten Vorgängerwerte. Nach der zweiten Flanke mit D = 0 wird daraus 0111.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO18.md",
+            "heading": "5. Schieberegister (Folien 17–18)"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Schieberegister",
+            "gleichzeitige Zustandsübernahme",
+            "steigende Taktflanke"
+          ]
+        },
+        {
+          "id": "era-18-l2-q04",
+          "type": "calc",
+          "prompt": "Ein wortadressierter Speicher hat 3 Adressbits und eine Wortbreite von 8 Bit. Wie groß ist seine Kapazität?",
+          "options": [
+            {
+              "id": "a",
+              "text": "16 Wörter, 128 Bit = 16 Byte"
+            },
+            {
+              "id": "b",
+              "text": "8 Wörter, 24 Bit = 3 Byte"
+            },
+            {
+              "id": "c",
+              "text": "3 Wörter, 24 Bit = 3 Byte"
+            },
+            {
+              "id": "d",
+              "text": "8 Wörter, 64 Bit = 8 Byte"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Drei Adressbits wählen 2³=8 Wörter. Mit 8 Bit pro Wort sind das 64 Bit oder 8 Byte.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO18.md",
+            "heading": "7.4 Verallgemeinerung"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Adressierbarer Speicher"
+          ]
+        },
+        {
+          "id": "era-18-l2-q05",
+          "type": "calc",
+          "prompt": "Für einen 2-Wort-Speicher gelten $E_0=W\\land\\neg A_0$ und $E_1=W\\land A_0$. Welche Enables ergeben sich bei $W=1$ und $A_0=1$?",
+          "options": [
+            {
+              "id": "a",
+              "text": "E₀=1, E₁=0"
+            },
+            {
+              "id": "b",
+              "text": "E₀=0, E₁=1"
+            },
+            {
+              "id": "c",
+              "text": "E₀=0, E₁=0"
+            },
+            {
+              "id": "d",
+              "text": "E₀=1, E₁=1"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "Bei Adresse 1 ist E₁=W∧A₀=1. E₀=W∧¬A₀=0, sodass nur Wort 1 aktiviert wird.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO18.md",
+            "heading": "7.3 Schreiben"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Schreibselektion und Multiplexer"
+          ]
+        },
+        {
+          "id": "era-18-l2-q06",
+          "type": "calc",
+          "prompt": "Ein 2-Wort-Speicher enthält an Adresse 0 das Wort `10` und an Adresse 1 das Wort `01`. Welches Wort erscheint beim Lesen mit $A_0=1$?",
+          "options": [
+            {
+              "id": "a",
+              "text": "10"
+            },
+            {
+              "id": "b",
+              "text": "11"
+            },
+            {
+              "id": "c",
+              "text": "00"
+            },
+            {
+              "id": "d",
+              "text": "01"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Die Adresse 1 wählt den Ausgang des Latches für Wort 1. Dort ist das gespeicherte Wort 01.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO18.md",
+            "heading": "7.2 Lesen"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Schreibselektion und Multiplexer"
+          ]
+        },
+        {
+          "id": "era-18-l2-q07",
+          "type": "multi",
+          "prompt": "Welche Aussagen beschreiben das Schreiben in einem 2-Wort-Speicher richtig? Wähle alle richtigen Aussagen. Es gelten $E_0=W\\land\\neg A_0$ und $E_1=W\\land A_0$. Bei aktivem Enable übernehmen die Latches der ausgewählten Wortzeile die anliegenden Eingabedaten.",
+          "options": [
+            {
+              "id": "a",
+              "text": "Bei W=1 und A₀=0 wird Wort 0 aktiviert."
+            },
+            {
+              "id": "b",
+              "text": "Die aktivierte Wortzeile übernimmt die anliegenden Eingabedaten."
+            },
+            {
+              "id": "c",
+              "text": "Bei W=0 sind beide Wort-Enables 0."
+            },
+            {
+              "id": "d",
+              "text": "Bei W=1 und A₀=1 werden beide Wörter aktiviert."
+            }
+          ],
+          "correct": [
+            "a",
+            "b",
+            "c"
+          ],
+          "explanation": "W=0 sperrt beide Zeilen. Bei aktiviertem Write wählt A₀ genau eine Zeile aus, deren Latches die Eingabedaten übernehmen.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO18.md",
+            "heading": "7.3 Schreiben"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Schreibselektion und Multiplexer"
+          ]
+        },
+        {
+          "id": "era-18-l2-q08",
+          "type": "single",
+          "prompt": "Wie funktioniert das Lesen in einem 2-Wort-Speicher? Die gespeicherten Wörter liegen in zwei Wortzeilen; die Adresse $A_0$ steuert je einen 2-zu-1-Multiplexer für jedes Bit.",
+          "options": [
+            {
+              "id": "a",
+              "text": "Alle Wörter werden nacheinander an den Ausgang geschoben."
+            },
+            {
+              "id": "b",
+              "text": "Multiplexer wählen kombinatorisch das adressierte Wort aus; der Inhalt wird dabei nicht verändert."
+            },
+            {
+              "id": "c",
+              "text": "Die Adresse schreibt das Wort automatisch neu."
+            },
+            {
+              "id": "d",
+              "text": "Ein Read-Signal lädt das ausgewählte Wort in neue Latches."
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "Die Adresse steuert die Multiplexer, die das ausgewählte Wort an den Ausgang legen. Im Modell gibt es kein separates Read-Signal und das Lesen ändert den Speicher nicht.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO18.md",
+            "heading": "7.2 Lesen"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Schreibselektion und Multiplexer"
+          ]
+        },
+        {
+          "id": "era-18-l2-q09",
+          "type": "calc",
+          "prompt": "Ein wortadressierter Speicher hat 4 Adressbits und eine Wortbreite von 16 Bit. Wie viele Wörter und wie viele Byte umfasst er?",
+          "options": [
+            {
+              "id": "a",
+              "text": "16 Wörter und 16 Byte"
+            },
+            {
+              "id": "b",
+              "text": "32 Wörter und 64 Byte"
+            },
+            {
+              "id": "c",
+              "text": "4 Wörter und 8 Byte"
+            },
+            {
+              "id": "d",
+              "text": "16 Wörter und 32 Byte"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Vier Adressbits wählen 2⁴=16 Wörter. Jedes Wort hat 2 Byte, also beträgt die Kapazität 32 Byte.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO18.md",
+            "heading": "7.4 Verallgemeinerung"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Adressierbarer Speicher"
+          ]
+        },
+        {
+          "id": "era-18-l2-q10",
+          "type": "calc",
+          "prompt": "Eine quadratische Ein-Bit-Matrix wird mit 6 Adressbits adressiert, davon 3 für die Zeile und 3 für die Spalte. Wie viele Speicherzellen hat sie?",
+          "options": [
+            {
+              "id": "a",
+              "text": "64"
+            },
+            {
+              "id": "b",
+              "text": "36"
+            },
+            {
+              "id": "c",
+              "text": "8"
+            },
+            {
+              "id": "d",
+              "text": "6"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "Drei Bits wählen 2³=8 Zeilen und drei weitere 8 Spalten. Die Matrix enthält 8·8=64 Zellen.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO18.md",
+            "heading": "8.1 Zweistufige Matrixadressierung"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Matrixadressierung"
+          ]
+        },
+        {
+          "id": "era-18-l2-q11",
+          "type": "multi",
+          "prompt": "Welche Aussagen über DRAM und SRAM stimmen? Wähle alle richtigen Aussagen.",
+          "options": [
+            {
+              "id": "a",
+              "text": "DRAM speichert Information als Ladung eines Kondensators."
+            },
+            {
+              "id": "b",
+              "text": "SRAM benötigt zum Datenerhalt einen regelmäßigen Refresh."
+            },
+            {
+              "id": "c",
+              "text": "DRAM benötigt Refresh."
+            },
+            {
+              "id": "d",
+              "text": "Die typische SRAM-Zelle verwendet sechs Transistoren."
+            }
+          ],
+          "correct": [
+            "a",
+            "c",
+            "d"
+          ],
+          "explanation": "DRAM nutzt Kondensatorladung, die regelmäßig aufgefrischt werden muss. Die typische SRAM-Zelle hat sechs Transistoren und benötigt keinen Refresh.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO18.md",
+            "heading": "8. Reale Speicher: DRAM und SRAM (Folien 26–27)"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "DRAM und SRAM"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "era-18-l3",
+      "index": 3,
+      "kind": "deepen",
+      "title": "Vertiefen",
+      "questions": [
+        {
+          "id": "era-18-l3-q01",
+          "type": "truefalse",
+          "prompt": "Beim NOR-RS-Latch erzwingt $R=S=1$ zwei Ausgänge 0. Werden beide Eingänge gleichzeitig wieder 0, ist der gespeicherte Folgezustand nicht zuverlässig vorhersagbar.",
+          "options": [
+            {
+              "id": "true",
+              "text": "Wahr"
+            },
+            {
+              "id": "false",
+              "text": "Falsch"
+            }
+          ],
+          "correct": [
+            "true"
+          ],
+          "explanation": "Während beide Eingänge aktiv sind, sind beide NOR-Ausgänge 0 und damit nicht komplementär. Beim gleichzeitigen Loslassen kann der Folgezustand von Laufzeitunterschieden abhängen.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO18.md",
+            "heading": "2.3 Verbotener Zustand"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "NOR-RS-Latch"
+          ]
+        },
+        {
+          "id": "era-18-l3-q02",
+          "type": "single",
+          "prompt": "Welche Eingangspegel bewirken beim aktiv-Low-NAND-RS-Latch den Hold-Zustand?",
+          "options": [
+            {
+              "id": "a",
+              "text": "$\\overline R=1$, $\\overline S=1$"
+            },
+            {
+              "id": "b",
+              "text": "$\\overline R=0$, $\\overline S=1$"
+            },
+            {
+              "id": "c",
+              "text": "$\\overline R=1$, $\\overline S=0$"
+            },
+            {
+              "id": "d",
+              "text": "$\\overline R=0$, $\\overline S=0$"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "Die tatsächlichen Steuereingänge sind aktiv Low. Bei beiden Leitungspegeln 1 ist keine Steuerung aktiv und der Zustand wird gehalten.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO18.md",
+            "heading": "2.4 NAND-RS-Latch (aktiv Low)"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "NAND-RS-Latch"
+          ]
+        },
+        {
+          "id": "era-18-l3-q03",
+          "type": "multi",
+          "prompt": "Welche Aussagen zum idealen Aufbau eines D-Latch aus zwei AND-Gattern und einem NOR-RS-Latch stimmen? Wähle alle richtigen Aussagen.",
+          "options": [
+            {
+              "id": "a",
+              "text": "Bei E=0 folgt Q weiterhin jeder Änderung von D."
+            },
+            {
+              "id": "b",
+              "text": "$S=E\\land D$."
+            },
+            {
+              "id": "c",
+              "text": "Es gilt $S\\land R=0$."
+            },
+            {
+              "id": "d",
+              "text": "$R=E\\land\\neg D$."
+            }
+          ],
+          "correct": [
+            "b",
+            "c",
+            "d"
+          ],
+          "explanation": "D und ¬D werden jeweils mit E verknüpft. Weil D und ¬D nicht zugleich 1 sind, können S und R im idealen Modell nicht beide aktiv sein; bei E=0 hält Q.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO18.md",
+            "heading": "3.2 Aufbau"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "D-Latch"
+          ]
+        },
+        {
+          "id": "era-18-l3-q04",
+          "type": "single",
+          "prompt": "D ändert sich mehrfach, während E=1 bleibt. Welche Beschreibung trifft auf ein D-Latch zu?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Q hält den Zustand, bis E wieder 1 wird."
+            },
+            {
+              "id": "b",
+              "text": "Q folgt während der aktiven Enable-Phase den Änderungen von D."
+            },
+            {
+              "id": "c",
+              "text": "Q ändert sich nur bei einer steigenden Taktflanke."
+            },
+            {
+              "id": "d",
+              "text": "Q übernimmt nur den ersten D-Wert nach dem Öffnen."
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "Ein D-Latch ist während der gesamten Enable-Phase transparent. Beim Schließen hält es den zuletzt übernommenen Wert.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO18.md",
+            "heading": "3.3 Transparenz und Timing"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "D-Latch"
+          ]
+        },
+        {
+          "id": "era-18-l3-q05",
+          "type": "single",
+          "prompt": "Bei einem Master-Slave-Aufbau sind Master und Slave D-Latches. Was gilt bei $CLK=0$, wenn $E_M=\\neg CLK$ und $E_S=CLK$?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Master hält, Slave transparent."
+            },
+            {
+              "id": "b",
+              "text": "Master transparent, Slave hält."
+            },
+            {
+              "id": "c",
+              "text": "Beide sind transparent."
+            },
+            {
+              "id": "d",
+              "text": "Beide halten und können keinen Wert vorbereiten."
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "Bei CLK=0 ist E_M=1 und E_S=0. Der Master ist transparent und der Slave hält seinen bisherigen Ausgang.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO18.md",
+            "heading": "4.2 Realisierung mit zwei D-Latches (Master-Slave)"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "D-Flipflop",
+            "D-Latch"
+          ]
+        },
+        {
+          "id": "era-18-l3-q06",
+          "type": "cloze",
+          "prompt": "Damit ein D-Flipflop einen Wert sicher übernehmen kann, muss D spätestens ab $t_f-t_{setup}$ und mindestens bis ___ stabil bleiben.",
+          "options": [
+            {
+              "id": "a",
+              "text": "$t_f-t_{hold}$"
+            },
+            {
+              "id": "b",
+              "text": "$t_f+t_{hold}$"
+            },
+            {
+              "id": "c",
+              "text": "$t_f$"
+            },
+            {
+              "id": "d",
+              "text": "$t_f+t_{setup}$"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "Die Holdzeit reicht nach der aktiven Flanke weiter: D muss bis t_f+t_hold stabil bleiben.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO18.md",
+            "heading": "4.3 Setup- und Holdzeit"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Setup- und Holdzeit"
+          ]
+        },
+        {
+          "id": "era-18-l3-q07",
+          "type": "calc",
+          "prompt": "Ein kurzer Schreibpuls wird modelliert durch $E=CLK\\land\\neg CLK_{verzögert}$. Welchen Wert hat E unmittelbar nach einer steigenden Flanke, wenn $CLK=1$ und $CLK_{verzögert}=0$?",
+          "options": [
+            {
+              "id": "a",
+              "text": "1"
+            },
+            {
+              "id": "b",
+              "text": "Der Zustand ist verboten."
+            },
+            {
+              "id": "c",
+              "text": "Der Wert hängt von D ab."
+            },
+            {
+              "id": "d",
+              "text": "0"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "CLK=1 und der invertierte verzögerte Clock ist ebenfalls 1. Ihr UND ergibt den kurzen aktiven Puls E=1.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO18.md",
+            "heading": "4.1 Realisierung mit kurzem Schreibpuls (Folie 15)"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "D-Flipflop",
+            "D-Latch"
+          ]
+        },
+        {
+          "id": "era-18-l3-q08",
+          "type": "multi",
+          "prompt": "Welche Aussagen unterscheiden Register und Schieberegister richtig? Wähle alle richtigen Aussagen.",
+          "options": [
+            {
+              "id": "a",
+              "text": "Ein einfaches n-Bit-Register benötigt n D-Flipflops."
+            },
+            {
+              "id": "b",
+              "text": "Ein Register übernimmt seine Bits parallel."
+            },
+            {
+              "id": "c",
+              "text": "Ein Register muss seine Bits bei jeder Flanke um eine Position verschieben."
+            },
+            {
+              "id": "d",
+              "text": "Ein Schieberegister überträgt bei einer Flanke alte Werte von Stufe zu Stufe."
+            }
+          ],
+          "correct": [
+            "a",
+            "b",
+            "d"
+          ],
+          "explanation": "Ein Register übernimmt die Eingangsbits parallel und verwendet pro Bit ein Flipflop. Beim Schieberegister wird der alte Wert einer Stufe zur nächsten weitergegeben.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO18.md",
+            "heading": "6. Register (Folien 20–21)"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Register",
+            "Schieberegister"
+          ]
+        },
+        {
+          "id": "era-18-l3-q09",
+          "type": "single",
+          "prompt": "Warum aktiviert die Schreibselektion beim Schreiben nur das adressierte Wort?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Damit Multiplexer beim Lesen ausgeschaltet werden."
+            },
+            {
+              "id": "b",
+              "text": "Damit die Wortbreite kleiner wird."
+            },
+            {
+              "id": "c",
+              "text": "Damit nicht adressierte Wörter dieselben Eingabedaten übernehmen."
+            },
+            {
+              "id": "d",
+              "text": "Damit die Adresse nach dem Schreiben gelöscht wird."
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Die Schreibselektion aktiviert nur die Latches der ausgewählten Zeile. Sonst würden auch andere Wörter mit den gerade anliegenden Daten überschrieben.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO18.md",
+            "heading": "7.3 Schreiben"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Schreibselektion und Multiplexer"
+          ]
+        },
+        {
+          "id": "era-18-l3-q10",
+          "type": "diagram",
+          "prompt": "Was wählt in der dargestellten Matrixadressierung der obere Adressteil aus?",
+          "context": {
+            "type": "mermaid",
+            "content": "flowchart TD\n  A[Adresse] --> R[Obere n Bits]\n  A --> C[Untere n Bits]\n  R --> RD[Zeilenauswahl]\n  C --> CD[Spaltenauswahl]\n  RD --> M[Speichermatrix]\n  CD --> M\n  M --> Z[Ausgewähltes Speicherelement]",
+            "caption": "Zeilen- und Spaltenauswahl"
+          },
+          "options": [
+            {
+              "id": "a",
+              "text": "Die Wortbreite."
+            },
+            {
+              "id": "b",
+              "text": "Die Zeile der Speichermatrix."
+            },
+            {
+              "id": "c",
+              "text": "Die Spalte der Speichermatrix."
+            },
+            {
+              "id": "d",
+              "text": "Das Refresh-Intervall."
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "Der obere Adressteil führt zur Zeilenauswahl; der untere Adressteil bestimmt die Spalte. Die ausgewählte Zelle liegt am Schnittpunkt.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO18.md",
+            "heading": "8.1 Zweistufige Matrixadressierung"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Matrixadressierung"
+          ]
+        },
+        {
+          "id": "era-18-l3-q11",
+          "type": "truefalse",
+          "prompt": "„Static“ bei SRAM bedeutet, dass die Daten auch ohne Versorgungsspannung erhalten bleiben.",
+          "options": [
+            {
+              "id": "true",
+              "text": "Wahr"
+            },
+            {
+              "id": "false",
+              "text": "Falsch"
+            }
+          ],
+          "correct": [
+            "false"
+          ],
+          "explanation": "SRAM benötigt keinen Refresh, hält seine Daten aber nur, solange es versorgt wird. Auch SRAM ist flüchtig.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO18.md",
+            "heading": "8. Reale Speicher: DRAM und SRAM (Folien 26–27)"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "DRAM und SRAM"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "era-18-l4",
+      "index": 4,
+      "kind": "boss",
+      "title": "Boss",
+      "questions": [
+        {
+          "id": "era-18-l4-q01-r1",
+          "type": "calc",
+          "prompt": "Ein 4-stufiges Schieberegister hat an jeder Stufe ein positiv flankengesteuertes D-Flipflop. Der serielle Eingang D ist mit dem Dateneingang von Q₀ verbunden; der Ausgang Qᵢ ist mit dem Dateneingang von Qᵢ₊₁ verbunden. Bei jeder steigenden Flanke übernehmen alle Stufen gleichzeitig die Werte, die direkt vor der Flanke an ihren Dateneingängen anliegen: Q₀ übernimmt D, Q₁ übernimmt den alten Wert von Q₀, Q₂ den alten Wert von Q₁ und Q₃ den alten Wert von Q₂. Zu Beginn ist (Q₀,Q₁,Q₂,Q₃) = 1010. Vor drei aufeinanderfolgenden steigenden Flanken liegen nacheinander D = 1, D = 0 und D = 1 an. Welcher Zustand liegt danach in der Reihenfolge Q₀,Q₁,Q₂,Q₃ vor?",
+          "options": [
+            {
+              "id": "a",
+              "text": "1011"
+            },
+            {
+              "id": "b",
+              "text": "0111"
+            },
+            {
+              "id": "c",
+              "text": "1101"
+            },
+            {
+              "id": "d",
+              "text": "1110"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "Die Zustände nach den drei Flanken sind nacheinander 1101, 0110 und 1011. Bei jeder Flanke übernehmen Q₁, Q₂ und Q₃ die alten Werte ihrer Vorgängerstufen; Q₀ übernimmt den jeweiligen seriellen Eingang.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO18.md",
+            "heading": "5. Schieberegister (Folien 17–18)"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Schieberegister",
+            "gleichzeitige Zustandsübernahme",
+            "steigende Taktflanke"
+          ]
+        },
+        {
+          "id": "era-18-l4-q02",
+          "type": "calc",
+          "prompt": "Ein wortadressierter Speicher hat 5 Adressbits und eine Wortbreite von 16 Bit. Welche Anzahl Wörter und welche Kapazität in Byte ergeben sich?",
+          "options": [
+            {
+              "id": "a",
+              "text": "32 Wörter, 256 Bit = 32 Byte"
+            },
+            {
+              "id": "b",
+              "text": "16 Wörter, 256 Bit = 32 Byte"
+            },
+            {
+              "id": "c",
+              "text": "64 Wörter, 1024 Bit = 128 Byte"
+            },
+            {
+              "id": "d",
+              "text": "32 Wörter, 512 Bit = 64 Byte"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Fünf Adressbits wählen 2⁵=32 Wörter. Mit 16 Bit pro Wort ergeben sich 512 Bit, also 64 Byte.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO18.md",
+            "heading": "7.4 Verallgemeinerung"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Adressierbarer Speicher"
+          ]
+        },
+        {
+          "id": "era-18-l4-q03",
+          "type": "calc",
+          "prompt": "Ein 2-Wort-Speicher enthält zunächst an Adresse 0 das Wort `01` und an Adresse 1 das Wort `11`. Mit $W=1$ werden bei $A_0=1$ die Eingabedaten `10` geschrieben. Danach wird $W=0$ und zum Lesen $A_0=0$ angelegt. Was erscheint am Ausgang?",
+          "options": [
+            {
+              "id": "a",
+              "text": "10"
+            },
+            {
+              "id": "b",
+              "text": "00"
+            },
+            {
+              "id": "c",
+              "text": "01"
+            },
+            {
+              "id": "d",
+              "text": "11"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Der Schreibvorgang ändert nur Wort 1 von 11 auf 10. Beim anschließenden Lesen mit Adresse 0 wird weiterhin Wort 0, also 01, ausgewählt.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO18.md",
+            "heading": "7.3 Schreiben"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Adressierbarer Speicher",
+            "Schreibselektion und Multiplexer"
+          ]
+        },
+        {
+          "id": "era-18-l4-q04",
+          "type": "multi",
+          "prompt": "Welche Aussagen gelten für ein positiv flankengesteuertes D-Flipflop? Wähle alle richtigen Aussagen.",
+          "options": [
+            {
+              "id": "a",
+              "text": "Zwischen aktiven Flanken hält es seinen Zustand."
+            },
+            {
+              "id": "b",
+              "text": "D muss rund um die aktive Flanke während Setup- und Holdzeit stabil sein."
+            },
+            {
+              "id": "c",
+              "text": "Es übernimmt D an der steigenden Taktflanke."
+            },
+            {
+              "id": "d",
+              "text": "Änderungen an D bei dauerhaft hohem CLK lassen Q wie bei einem transparenten Latch laufend folgen."
+            }
+          ],
+          "correct": [
+            "a",
+            "b",
+            "c"
+          ],
+          "explanation": "Das Flipflop übernimmt nur an der steigenden Flanke; außerhalb davon hält es den Zustand. D muss im Setup-/Holdfenster stabil sein, und ein Flipflop ist von außen nicht transparent wie ein Latch.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO18.md",
+            "heading": "4.4 Latch vs. Flipflop – unbedingt unterscheiden"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "D-Flipflop",
+            "Setup- und Holdzeit",
+            "D-Latch"
+          ]
+        },
+        {
+          "id": "era-18-l4-q05",
+          "type": "diagram",
+          "prompt": "Bei $CLK=0$ ist $E_M=\\neg CLK$ und $E_S=CLK$. Welches Latch ist im dargestellten Master-Slave-Aufbau transparent?",
+          "context": {
+            "type": "mermaid",
+            "content": "flowchart LR\n  D[\"D in\"] --> M[\"Master D-Latch\"]\n  M --> S[\"Slave D-Latch\"]\n  S --> Q[\"Q out\"]\n  C[CLK] --> S\n  C --> N[NOT]\n  N --> M",
+            "caption": "Master-Slave-Aufbau aus zwei D-Latches"
+          },
+          "options": [
+            {
+              "id": "a",
+              "text": "Keines der Latches."
+            },
+            {
+              "id": "b",
+              "text": "Beide Latches."
+            },
+            {
+              "id": "c",
+              "text": "Nur das Slave-Latch."
+            },
+            {
+              "id": "d",
+              "text": "Nur das Master-Latch."
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Bei CLK=0 gilt E_M=1 und E_S=0. Daher ist der Master transparent und der Slave geschlossen.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO18.md",
+            "heading": "4.2 Realisierung mit zwei D-Latches (Master-Slave)"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "D-Latch",
+            "D-Flipflop"
+          ]
+        },
+        {
+          "id": "era-18-l4-q06",
+          "type": "truefalse",
+          "prompt": "Beim NOR-RS-Latch ist bei $R=S=1$ zwar der Zustand verboten, aber nach gleichzeitigem Zurücksetzen beider Eingänge auf 0 ist der gespeicherte Folgezustand garantiert.",
+          "options": [
+            {
+              "id": "true",
+              "text": "Wahr"
+            },
+            {
+              "id": "false",
+              "text": "Falsch"
+            }
+          ],
+          "correct": [
+            "false"
+          ],
+          "explanation": "Während R=S=1 sind beide Ausgänge 0. Beim gleichzeitigen Loslassen ist der Folgezustand nicht zuverlässig vorhersehbar; er ist also nicht garantiert.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO18.md",
+            "heading": "2.3 Verbotener Zustand"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "NOR-RS-Latch"
+          ]
+        },
+        {
+          "id": "era-18-l4-q07",
+          "type": "single",
+          "prompt": "Ein 8-Bit-Wert soll bei jeder steigenden Flanke parallel übernommen werden, und alle acht Bits sollen separat ausgegeben werden. Welche Struktur passt dazu?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Ein D-Flipflop, dessen Q-Ausgang achtmal wiederverwendet wird."
+            },
+            {
+              "id": "b",
+              "text": "Ein Schieberegister, das bei jeder Flanke alle Bits auf denselben Eingang setzt."
+            },
+            {
+              "id": "c",
+              "text": "Acht D-Flipflops mit gemeinsamem Clock und separaten D- und Q-Leitungen."
+            },
+            {
+              "id": "d",
+              "text": "Acht D-Latches, die nur bei einer steigenden Flanke transparent werden."
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Ein Register speichert jedes Bit in einem eigenen D-Flipflop. Gemeinsamer Clock sorgt für parallele Übernahme, während separate Ausgänge die Bits einzeln verfügbar machen.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO18.md",
+            "heading": "6. Register (Folien 20–21)"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Register",
+            "D-Flipflop"
+          ]
+        },
+        {
+          "id": "era-18-l4-q08",
+          "type": "multi",
+          "prompt": "Ein Rechner verwendet SRAM für CPU-Caches und DRAM als Hauptspeicher. Welche Aussagen passen zu dieser Zuordnung? Wähle alle richtigen Aussagen.",
+          "options": [
+            {
+              "id": "a",
+              "text": "DRAM speichert seine Bits typischerweise als Kondensatorladung."
+            },
+            {
+              "id": "b",
+              "text": "SRAM in den Caches benötigt keinen Refresh, solange die Versorgung besteht."
+            },
+            {
+              "id": "c",
+              "text": "SRAM verliert ohne Versorgung keine Daten, weil es static heißt."
+            },
+            {
+              "id": "d",
+              "text": "DRAM im Hauptspeicher benötigt Refresh."
+            }
+          ],
+          "correct": [
+            "a",
+            "b",
+            "d"
+          ],
+          "explanation": "Die angegebene Zuordnung entspricht der typischen Verwendung: SRAM in Caches und DRAM als Hauptspeicher. SRAM ist dennoch flüchtig; DRAM-Zellen benötigen Refresh und speichern Ladung in Kondensatoren.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO18.md",
+            "heading": "8. Reale Speicher: DRAM und SRAM (Folien 26–27)"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "DRAM und SRAM"
+          ]
+        },
+        {
+          "id": "era-18-l4-q09",
+          "type": "single",
+          "prompt": "Ein Addierer ohne Rückkopplung liefert bei gleichen aktuellen Eingängen denselben Ausgang. Daneben gilt für ein rückgekoppeltes OR-Gatter $y(t+1)=a(t)\\lor y(t)$ mit $y(0)=0$; $a$ ist zunächst 1 und danach immer 0. Welche Aussage trifft zu?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Das OR-Gatter setzt y automatisch auf 0, sobald a=0 ist."
+            },
+            {
+              "id": "b",
+              "text": "Das rückgekoppelte OR-Gatter kann y=1 halten, obwohl a wieder 0 ist."
+            },
+            {
+              "id": "c",
+              "text": "Beide Schaltungen müssen denselben Zustand speichern."
+            },
+            {
+              "id": "d",
+              "text": "Der Addierer speichert den früheren Eingang, das OR-Gatter nicht."
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "Nach dem ersten Schritt ist y=1. Bei anschließendem a=0 bleibt y(t+1)=0∨1=1; die Rückkopplung erhält den Zustand. Ein kombinatorischer Addierer ohne Rückkopplung hat kein gespeichertes Gedächtnis.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO18.md",
+            "heading": "1. Rückkopplung – wie entsteht ein Gedächtnis? (Folie 5)"
+          },
+          "difficulty": 5,
+          "concepts": [
+            "Rückkopplung und Zustand"
+          ]
+        },
+        {
+          "id": "era-18-l4-q10",
+          "type": "calc",
+          "prompt": "Ein byteadressierter Speicher hat 2 Adressbits; jede Adresse wählt genau ein 8-Bit-Byte. Wie groß ist der gesamte adressierbare Speicher?",
+          "options": [
+            {
+              "id": "a",
+              "text": "4 Byte = 32 Bit"
+            },
+            {
+              "id": "b",
+              "text": "4 Wörter zu je 32 Bit = 16 Byte"
+            },
+            {
+              "id": "c",
+              "text": "8 Byte = 64 Bit"
+            },
+            {
+              "id": "d",
+              "text": "2 Byte = 16 Bit"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "Zwei Adressbits wählen 2²=4 Byteadressen. Bei 8 Bit je Byte sind das 32 Bit. Die Byteadressierung ist eine andere Annahme als ein wortadressiertes Modell.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO4.md",
+            "heading": null
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Adressierbarer Speicher"
+          ]
+        },
+        {
+          "id": "era-18-l4-q11",
+          "type": "calc",
+          "prompt": "Eine quadratische Ein-Bit-Speichermatrix wird mit 8 Adressbits adressiert. Vier Bits wählen die Zeile und vier Bits die Spalte. Wie viele Zellen gibt es?",
+          "options": [
+            {
+              "id": "a",
+              "text": "32"
+            },
+            {
+              "id": "b",
+              "text": "256"
+            },
+            {
+              "id": "c",
+              "text": "16"
+            },
+            {
+              "id": "d",
+              "text": "4096"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "Vier Bits wählen 2⁴=16 Zeilen und vier weitere 16 Spalten. Insgesamt gibt es 16·16=256 Zellen.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO18.md",
+            "heading": "8.1 Zweistufige Matrixadressierung"
+          },
+          "difficulty": 5,
+          "concepts": [
+            "Matrixadressierung"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "era-18-l5",
+      "index": 5,
+      "kind": "bonus",
+      "title": "Praxis: Speicher im Alltag",
+      "questions": [
+        {
+          "id": "era-18-l5-q01",
+          "type": "single",
+          "prompt": "Du baust ein Bedienpult: Ein Eingang soll ein Statusbit setzen, ein anderer es zurücksetzen. Sind beide inaktiv, bleibt der letzte Zustand erhalten. Welcher Baustein passt dazu?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Ein rückgekoppeltes OR-Gatter"
+            },
+            {
+              "id": "b",
+              "text": "Ein Schieberegister"
+            },
+            {
+              "id": "c",
+              "text": "Ein NOR-RS-Latch"
+            },
+            {
+              "id": "d",
+              "text": "Ein Multiplexer"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Ein NOR-RS-Latch kann ein Bit gezielt setzen, zurücksetzen und bei inaktiven Eingängen halten. Ein rückgekoppeltes OR kann zwar eine 1 behalten, aber nicht gezielt löschen.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO18.md",
+            "heading": "2.1 NOR-RS-Latch (aktiv High)"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "NOR-RS-Latch",
+            "Rückkopplung und Zustand"
+          ]
+        },
+        {
+          "id": "era-18-l5-q02",
+          "type": "single",
+          "prompt": "In einer digitalen Steuerung soll ein gespeichertes Signal während der Freigabe $E=1$ dem Eingang $D$ folgen. Sobald $E=0$ wird, soll der letzte Wert gehalten werden. Welcher Baustein macht genau das?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Ein positiv flankengesteuertes D-Flipflop"
+            },
+            {
+              "id": "b",
+              "text": "Ein D-Latch"
+            },
+            {
+              "id": "c",
+              "text": "Ein SRAM-Speicher"
+            },
+            {
+              "id": "d",
+              "text": "Ein Schieberegister"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "Ein D-Latch ist bei aktivem Enable transparent: Sein Ausgang folgt dann $D$. Bei $E=0$ hält es den gespeicherten Zustand.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO18.md",
+            "heading": "3.3 Transparenz und Timing"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "D-Latch",
+            "Transparenz und Timing"
+          ]
+        },
+        {
+          "id": "era-18-l5-q03",
+          "type": "single",
+          "prompt": "Ein serieller Adapter bekommt pro Taktflanke ein neues Bit. Bei jeder steigenden Flanke rücken die bereits gespeicherten Bits um eine Stufe weiter. Welcher Baustein steckt dahinter?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Ein paralleles Register"
+            },
+            {
+              "id": "b",
+              "text": "Ein Schieberegister"
+            },
+            {
+              "id": "c",
+              "text": "Ein adressierbarer Speicher"
+            },
+            {
+              "id": "d",
+              "text": "Ein D-Latch"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "Ein Schieberegister besteht aus hintereinander geschalteten Flipflops. An jeder steigenden Taktflanke übernimmt jede Stufe den alten Wert der vorherigen.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO18.md",
+            "heading": "5. Schieberegister (Folien 17–18)"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Schieberegister",
+            "D-Flipflop"
+          ]
+        },
+        {
+          "id": "era-18-l5-q04",
+          "type": "estimate",
+          "prompt": "Ein Speicher nutzt 5 Adressbits. Wie viele verschiedene Wörter kann er adressieren?",
+          "options": [],
+          "correct": [],
+          "slider": {
+            "min": 8,
+            "max": 64,
+            "step": 1,
+            "answer": 32,
+            "tolerance": 0,
+            "unit": "Wörter",
+            "scale": "linear"
+          },
+          "explanation": "Mit $a$ Adressbits gibt es $2^a$ mögliche Adressen. Hier sind das $2^5=32$ Wörter.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO18.md",
+            "heading": "7.4 Verallgemeinerung"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Adressierbarer Speicher"
+          ]
+        },
+        {
+          "id": "era-18-l5-q05",
+          "type": "single",
+          "prompt": "Ein Prozessor soll ein Rechenergebnis als Maschinenwort speichern und alle Bits gemeinsam an einer Taktflanke übernehmen. Welche Struktur passt am besten?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Ein Multiplexer ohne Speicherelemente"
+            },
+            {
+              "id": "b",
+              "text": "Ein Schieberegister, das die Bits nacheinander übernimmt"
+            },
+            {
+              "id": "c",
+              "text": "Ein Register aus mehreren D-Flipflops"
+            },
+            {
+              "id": "d",
+              "text": "Ein einzelnes NOR-RS-Latch"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Ein Register speichert ein mehrbitiges Wort parallel. Im beschriebenen Modell enthält es für jedes Bit ein D-Flipflop mit gemeinsamem Takt.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO18.md",
+            "heading": "6. Register (Folien 20–21)"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Register",
+            "D-Flipflop"
+          ]
+        },
+        {
+          "id": "era-18-l5-q06",
+          "type": "single",
+          "prompt": "Der Arbeitsspeicher eines Smartphones speichert Bits als Ladung in Kondensatoren. Weil diese Ladung mit der Zeit verloren geht, müssen die Speicherzellen regelmäßig aufgefrischt werden. Welche Speicherart ist gemeint?",
+          "options": [
+            {
+              "id": "a",
+              "text": "DRAM"
+            },
+            {
+              "id": "b",
+              "text": "Flash-Speicher"
+            },
+            {
+              "id": "c",
+              "text": "SRAM"
+            },
+            {
+              "id": "d",
+              "text": "Ein D-Flipflop"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "DRAM speichert Bits als Ladung in Kondensatoren und benötigt Refresh. DRAM ist flüchtig: Ohne Versorgungsspannung bleiben die Daten nicht erhalten.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO18.md",
+            "heading": "8. Reale Speicher: DRAM und SRAM (Folien 26–27)"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "DRAM",
+            "Adressierbarer Speicher"
+          ]
+        },
+        {
+          "id": "era-18-l5-q07",
+          "type": "estimate",
+          "prompt": "Ein unsigned 12-Bit-Wort kann jedes Bitmuster von lauter Nullen bis lauter Einsen darstellen. Wie viele verschiedene Werte sind möglich?",
+          "options": [],
+          "correct": [],
+          "slider": {
+            "min": 1024,
+            "max": 8192,
+            "step": 32,
+            "answer": 4096,
+            "tolerance": 0,
+            "unit": "Werte",
+            "scale": "linear"
+          },
+          "explanation": "Jedes Bit hat zwei mögliche Zustände. Insgesamt gibt es $2^{12}=4096$ Bitmuster und damit 4096 unsigned Werte.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO18.md",
+            "heading": "6. Register (Folien 20–21)"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Register"
+          ]
+        },
+        {
+          "id": "era-18-l5-q08",
+          "type": "single",
+          "prompt": "Ein CPU-Cache soll Daten schnell bereitstellen. Seine Speicherzellen brauchen keinen regelmäßigen Refresh, verlieren ihren Inhalt aber, wenn die Versorgungsspannung weg ist. Welche Speicherart passt zu diesen Eigenschaften?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Ein NAND-RS-Latch"
+            },
+            {
+              "id": "b",
+              "text": "DRAM"
+            },
+            {
+              "id": "c",
+              "text": "EPROM"
+            },
+            {
+              "id": "d",
+              "text": "SRAM"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "SRAM benötigt keinen Refresh und ist flüchtig: „Static“ bedeutet nicht, dass SRAM Daten ohne Versorgungsspannung behält. SRAM wird häufig für CPU-Caches verwendet.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO18.md",
+            "heading": "8. Reale Speicher: DRAM und SRAM (Folien 26–27)"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "SRAM",
+            "Flüchtiger Speicher"
+          ]
+        },
+        {
+          "id": "era-18-l5-q09",
+          "type": "single",
+          "prompt": "Ein Speicherchip teilt eine Adresse auf: Ein Teil wählt eine Zeile, ein anderer eine Spalte. Die ausgewählte Zelle liegt am Schnittpunkt. Wie heißt dieses Auswahlprinzip?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Serielle Verschiebung"
+            },
+            {
+              "id": "b",
+              "text": "Rückkopplung"
+            },
+            {
+              "id": "c",
+              "text": "Matrixadressierung"
+            },
+            {
+              "id": "d",
+              "text": "Flankengesteuertes Schreiben"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Bei der Matrixadressierung wählen getrennte Adressteile die Zeile und die Spalte. So wird die Zelle am Schnittpunkt ausgewählt.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO18.md",
+            "heading": "8.1 Zweistufige Matrixadressierung"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Matrixadressierung",
+            "Adressierbarer Speicher"
+          ]
+        },
+        {
+          "id": "era-18-l5-q10",
+          "type": "estimate",
+          "prompt": "Ein adressierbarer Speicher hat 7 Adressbits und speichert pro Wort 16 Bit. Wie groß ist seine Gesamtkapazität in Bit?",
+          "options": [],
+          "correct": [],
+          "slider": {
+            "min": 512,
+            "max": 4096,
+            "step": 16,
+            "answer": 2048,
+            "tolerance": 0,
+            "unit": "Bit",
+            "scale": "linear"
+          },
+          "explanation": "Die 7 Adressbits wählen $2^7=128$ Wörter. Bei 16 Bit pro Wort ergibt das $128\\cdot16=2048$ Bit.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO18.md",
+            "heading": "7.4 Verallgemeinerung"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Adressierbarer Speicher",
+            "Speicherkapazität"
+          ]
+        },
+        {
+          "id": "era-18-l5-q11",
+          "type": "single",
+          "prompt": "Ein RS-Latch ist mit NAND-Gattern aufgebaut. Seine beiden Steuereingänge sind aktiv-low: Ein Eingang wird zum Setzen kurz auf 0 gezogen, der andere zum Rücksetzen. Welchen Pegel müssen beide Eingänge haben, damit das Latch seinen Zustand hält?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Beide Eingänge sind 0"
+            },
+            {
+              "id": "b",
+              "text": "Beide Eingänge sind 1"
+            },
+            {
+              "id": "c",
+              "text": "Der Setzeingang ist 1 und der Rücksetzeingang ist 0"
+            },
+            {
+              "id": "d",
+              "text": "Der Setzeingang ist 0 und der Rücksetzeingang ist 1"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "Beim NAND-RS-Latch sind die Eingänge aktiv-low. Der inaktive Pegel ist daher 1; bei beiden Eingängen auf 1 hält das Latch seinen gespeicherten Zustand.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO18.md",
+            "heading": "2.4 NAND-RS-Latch (aktiv Low)"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "NAND-RS-Latch",
+            "Rückkopplung und Zustand"
+          ]
+        },
+        {
+          "id": "era-18-l5-q12",
+          "type": "single",
+          "prompt": "Ein positiv flankengesteuertes D-Flipflop erhält während eines Taktzyklus wechselnde Werte an $D$. Welcher Wert wird übernommen?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Jeder Wert von $D$ während des gesamten High-Pegels des Takts"
+            },
+            {
+              "id": "b",
+              "text": "Der Wert von $D$ unmittelbar vor der steigenden Taktflanke, sofern Setup- und Holdzeit eingehalten werden"
+            },
+            {
+              "id": "c",
+              "text": "Der Mittelwert aller Werte von $D$ während des Taktzyklus"
+            },
+            {
+              "id": "d",
+              "text": "Der Wert von $D$ unmittelbar nach der fallenden Taktflanke"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "Ein positiv flankengesteuertes D-Flipflop übernimmt den Eingang an der steigenden Taktflanke. Der Eingang muss für die geforderte Setup- und Holdzeit um diese Flanke stabil sein.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO18.md",
+            "heading": "4.3 Setup- und Holdzeit"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "D-Flipflop",
+            "Setup- und Holdzeit"
+          ]
+        }
+      ]
+    }
+  ]
+}
