@@ -1,0 +1,467 @@
+{
+  "schemaVersion": 1,
+  "unitId": "era-18",
+  "module": "ERA",
+  "unitNumber": 18,
+  "unitTitle": "Speichern: Latches, Register und Speicher",
+  "sourceSha": "12b92718bfd9c013efdd7097ad6fb016544f48985a35b1752f94a9d542737c1d",
+  "overview": "Die Unit zeigt, wie Rückkopplung einen Zustand erhält und daraus Latches, Flipflops und Register entstehen. Ein adressierbarer Speicher verbindet Speicherzellen mit Schreibselektion und Multiplexern. DRAM, SRAM und Matrixadressierung erklären den Aufbau realer Speicher.",
+  "entries": [
+    {
+      "id": "era-18-k01",
+      "term": "Kombinatorische Schaltung",
+      "kind": "definition",
+      "short": "Der Ausgang einer kombinatorischen Schaltung hängt nur von den aktuellen Eingängen ab.",
+      "explanation": "Eine kombinatorische Schaltung berechnet ihren Ausgang als Funktion der momentanen Eingänge, etwa $y(t)=f(x(t))$. Sie besitzt keinen gespeicherten Zustand, der das Ergebnis beeinflusst. Addierer und Multiplexer sind typische Beispiele.",
+      "example": "Bei einem AND-Gatter mit Eingängen 1 und 0 ist der Ausgang 0.",
+      "pitfalls": [
+        "Ein Ausgang, der von einem früheren Eingang abhängt, weist auf gespeicherten Zustand und damit sequentielles Verhalten hin."
+      ],
+      "related": [
+        "Sequentielle Schaltung und Zustand",
+        "Multiplexer"
+      ],
+      "heading": "0. Big Picture"
+    },
+    {
+      "id": "era-18-k02",
+      "term": "Sequentielle Schaltung und Zustand",
+      "kind": "concept",
+      "short": "Eine sequentielle Schaltung berechnet ihren Folgezustand aus dem aktuellen Zustand und den aktuellen Eingängen.",
+      "explanation": "In einer sequentiellen Schaltung hängt das Verhalten sowohl von den Eingängen als auch vom gespeicherten Zustand ab: $q(t+1)=g(q(t),x(t))$. Dabei bezeichnet $q(t)$ den aktuellen Zustand und $q(t+1)$ den Folgezustand. $t$ zählt Zustandsschritte und muss keinen CPU-Takt meinen.",
+      "example": "Ein Speicherbit kann seinen Wert behalten, obwohl sich der Dateneingang anschließend ändert.",
+      "pitfalls": [
+        "Der Zustandsschritt $t$ ist nicht automatisch eine Taktperiode."
+      ],
+      "related": [
+        "Kombinatorische Schaltung",
+        "Rückkopplung",
+        "D-Flipflop"
+      ],
+      "heading": "0. Big Picture"
+    },
+    {
+      "id": "era-18-k03",
+      "term": "Rückkopplung",
+      "kind": "concept",
+      "short": "Rückkopplung führt einen Schaltungsausgang wieder an einen Eingang zurück und kann dadurch einen Zustand erhalten.",
+      "explanation": "Bei einer rückgekoppelten Schaltung beeinflusst ein früherer Ausgang den nächsten Ausgangswert. Dadurch kann die Schaltung abhängig von ihrer Vorgeschichte unterschiedliche stabile Werte annehmen. Rückkopplung ist die Grundlage für Latches und andere Speicherschaltungen.",
+      "example": "Wird der Ausgang eines Gatters mit einem seiner Eingänge verbunden, kann der Ausgang zur Berechnung seines nächsten Werts beitragen.",
+      "pitfalls": [
+        "Rückkopplung allein garantiert keine gezielte Möglichkeit, einen gespeicherten Wert zu löschen."
+      ],
+      "related": [
+        "Sequentielle Schaltung und Zustand",
+        "Rückgekoppeltes OR-Gatter",
+        "RS-Latch / SR-Latch"
+      ],
+      "heading": "1. Rückkopplung – wie entsteht ein Gedächtnis? (Folie 5)"
+    },
+    {
+      "id": "era-18-k04",
+      "term": "Rückgekoppeltes OR-Gatter",
+      "kind": "concept",
+      "short": "Ein rückgekoppeltes OR-Gatter kann eine einmal gesetzte 1 halten, besitzt aber keinen gezielten Reset.",
+      "explanation": "Für das Beispiel gilt $y(t+1)=a(t)\\lor y(t)$. Bei Anfangszustand $y(0)=0$ setzt ein Eingang $a=1$ den Ausgang auf 1. Solange die Rückkopplung besteht, bleibt $y=1$, auch wenn $a$ wieder 0 wird. Da kein Eingang den Ausgang gezielt auf 0 erzwingt, eignet sich die Schaltung nicht als vollständiges Set-Reset-Speicherelement.",
+      "example": "Ausgehend von $y=0$ führt $a=1$ zu $y=1$; bei anschließendem $a=0$ bleibt $y=1$.",
+      "pitfalls": [
+        "Die Schaltung kann 0 nicht gezielt wiederherstellen."
+      ],
+      "related": [
+        "Rückkopplung",
+        "RS-Latch / SR-Latch"
+      ],
+      "heading": "1. Rückkopplung – wie entsteht ein Gedächtnis? (Folie 5)"
+    },
+    {
+      "id": "era-18-k05",
+      "term": "RS-Latch / SR-Latch",
+      "kind": "definition",
+      "short": "Ein RS-Latch speichert ein Bit mit getrennten Set- und Reset-Eingängen.",
+      "explanation": "Ein RS-Latch besteht aus zwei rückgekoppelten Gattern und kann einen von zwei stabilen Zuständen speichern. $S$ steht für Set und fordert den Wert 1 an, $R$ steht für Reset und fordert den Wert 0 an. $Q$ ist das gespeicherte Bit; im gültigen Zustand sind $Q$ und $\\overline Q$ komplementär.",
+      "example": "Ein gültiger gespeicherter Wert kann $Q=1$ und $\\overline Q=0$ sein.",
+      "pitfalls": [
+        "Bedeutung und Polarität der aktiven Eingangspegel hängen davon ab, ob das Latch mit NOR- oder NAND-Gattern aufgebaut ist."
+      ],
+      "related": [
+        "Rückkopplung",
+        "NOR-RS-Latch (aktiv High)",
+        "NAND-RS-Latch (aktiv Low)"
+      ],
+      "heading": "2. RS-Latch / SR-Latch (Folien 7–10)"
+    },
+    {
+      "id": "era-18-k06",
+      "term": "NOR-RS-Latch (aktiv High)",
+      "kind": "definition",
+      "short": "Ein NOR-RS-Latch hält bei $R=S=0$, setzt bei $S=1$ und resettet bei $R=1$.",
+      "explanation": "Beim aktiv-High-NOR-RS-Latch bedeuten hohe Pegel an $S$ und $R$ eine aktive Anforderung. Im Haltezustand gilt $R=S=0$; $S=1,R=0$ setzt $Q$ auf 1 und $R=1,S=0$ setzt $Q$ auf 0. Für zulässige Eingaben gilt $Q(t+1)=S\\lor(\\neg R\\land Q(t))$.",
+      "example": "Bei $Q=0$, $S=1$ und $R=0$ wird $Q$ auf 1 gesetzt.",
+      "pitfalls": [
+        "Beim NOR-Latch ist $R=S=1$ verboten.",
+        "Die Folgezustandsgleichung gilt nicht für die verbotene Eingangskombination."
+      ],
+      "related": [
+        "RS-Latch / SR-Latch",
+        "Verbotener Zustand beim NOR-RS-Latch",
+        "NAND-RS-Latch (aktiv Low)"
+      ],
+      "heading": "2.1 NOR-RS-Latch (aktiv High)"
+    },
+    {
+      "id": "era-18-k07",
+      "term": "Verbotener Zustand beim NOR-RS-Latch",
+      "kind": "concept",
+      "short": "Bei $R=S=1$ sind beim NOR-RS-Latch beide Ausgänge 0 und nicht mehr komplementär.",
+      "explanation": "Wenn beide aktiv-High-Eingänge gleichzeitig 1 sind, liefern beide NOR-Gatter 0. Damit gelten $Q=0$ und $\\overline Q=0$, was die normale Komplementarität der Ausgänge verletzt. Werden beide Eingänge gleichzeitig wieder 0, hängt der anschließende Zustand von Laufzeitunterschieden ab und ist nicht zuverlässig vorhersagbar.",
+      "example": null,
+      "pitfalls": [
+        "Der Zustand während $R=S=1$ ist von der Unsicherheit nach dem Loslassen zu unterscheiden."
+      ],
+      "related": [
+        "NOR-RS-Latch (aktiv High)",
+        "NAND-RS-Latch (aktiv Low)"
+      ],
+      "heading": "2.3 Verbotener Zustand"
+    },
+    {
+      "id": "era-18-k08",
+      "term": "NAND-RS-Latch (aktiv Low)",
+      "kind": "definition",
+      "short": "Ein NAND-RS-Latch hält bei $\\overline R=\\overline S=1$ und hat bei $\\overline R=\\overline S=0$ einen verbotenen Zustand.",
+      "explanation": "Die Steuereingänge des aktiv-Low-NAND-RS-Latches sind nur bei einem niedrigen Pegel aktiv. Bei $\\overline S=0,\\overline R=1$ wird $Q$ auf 1 gesetzt; bei $\\overline R=0,\\overline S=1$ wird $Q$ auf 0 gesetzt. Bei beiden Eingängen auf 0 erzwingen die NAND-Gatter zwei hohe Ausgänge, sodass sie nicht mehr komplementär sind.",
+      "example": "Ein kurzer niedriger Pegel an $\\overline S$ bei hohem $\\overline R$ setzt $Q$ auf 1.",
+      "pitfalls": [
+        "Die Eingangspegel haben wegen der aktiv-Low-Steuerung eine andere Bedeutung als beim NOR-RS-Latch.",
+        "Die tatsächlichen Leitungspegel müssen beachtet werden."
+      ],
+      "related": [
+        "RS-Latch / SR-Latch",
+        "NOR-RS-Latch (aktiv High)",
+        "Verbotener Zustand beim NOR-RS-Latch"
+      ],
+      "heading": "2.4 NAND-RS-Latch (aktiv Low)"
+    },
+    {
+      "id": "era-18-k09",
+      "term": "D-Latch",
+      "kind": "definition",
+      "short": "Ein D-Latch übernimmt den Wert $D$, wenn $E=1$, und hält den gespeicherten Wert, wenn $E=0$.",
+      "explanation": "Ein D-Latch kann aus einem NOR-RS-Latch, zwei AND-Gattern und einem Inverter aufgebaut werden. Dabei gelten $S=E\\land D$ und $R=E\\land\\neg D$, sodass im idealen Modell $S\\land R=0$ ist und Set und Reset nicht gleichzeitig aktiv werden. Seine charakteristische Gleichung lautet $Q(t+1)=(E\\land D)\\lor(\\neg E\\land Q(t))$.",
+      "example": "Bei $E=1,D=0$ wird $Q=0$; bei anschließendem $E=0$ bleibt dieser Wert gespeichert.",
+      "pitfalls": [
+        "Das Latch reagiert während der gesamten aktiven Enable-Phase auf $D$ und übernimmt nicht nur einen einzelnen Wert beim Einschalten von $E$."
+      ],
+      "related": [
+        "RS-Latch / SR-Latch",
+        "NOR-RS-Latch (aktiv High)",
+        "Transparenz eines D-Latches",
+        "D-Flipflop"
+      ],
+      "heading": "3. D-Latch (Folien 11–14)"
+    },
+    {
+      "id": "era-18-k10",
+      "term": "Transparenz eines D-Latches",
+      "kind": "concept",
+      "short": "Ein D-Latch ist transparent, solange sein Enable-Eingang aktiv ist.",
+      "explanation": "Bei $E=1$ ist der Datenpfad offen und $Q$ folgt $D$ nach der Gatterlaufzeit. Bei $E=0$ ist der Datenpfad gesperrt und der zuletzt übernommene Wert bleibt erhalten. Beim Schließen des Latches wird der Wert gehalten, der zuletzt während der offenen Phase anlag.",
+      "example": "Wenn $E=1$ bleibt und $D$ von 0 auf 1 wechselt, wechselt auch $Q$ nach der Laufzeit auf 1.",
+      "pitfalls": [
+        "Ein Latch reagiert über ein Zeitfenster auf Daten; ein flankengesteuertes Flipflop übernimmt Daten an einer Taktflanke."
+      ],
+      "related": [
+        "D-Latch",
+        "D-Flipflop",
+        "Latch und Flipflop im Vergleich"
+      ],
+      "heading": "3.3 Transparenz und Timing"
+    },
+    {
+      "id": "era-18-k11",
+      "term": "D-Flipflop",
+      "kind": "definition",
+      "short": "Ein positiv flankengesteuertes D-Flipflop übernimmt $D$ nur an der steigenden Taktflanke.",
+      "explanation": "Das D-Flipflop speichert den Wert von $D$ beim Übergang der Clock von 0 nach 1. Zwischen diesen Flanken hält es seinen Zustand, auch wenn sich der Dateneingang ändert. Es speichert ein Bit und ist von außen betrachtet nicht während einer ganzen Taktphase transparent.",
+      "example": "Liegt unmittelbar vor einer steigenden Flanke $D=1$ an, wird nach der Flanke $Q=1$ gehalten.",
+      "pitfalls": [
+        "Ein dauerhaft hoher Takt erzeugt keine fortlaufenden Übernahmen; dafür ist jeweils eine neue steigende Flanke nötig."
+      ],
+      "related": [
+        "D-Latch",
+        "Setup- und Holdzeit",
+        "Schieberegister",
+        "Register"
+      ],
+      "heading": "4. Taktflankengesteuertes D-Flipflop (Folien 15–16)"
+    },
+    {
+      "id": "era-18-k12",
+      "term": "Erzeugung eines kurzen Schreibpulses",
+      "kind": "method",
+      "short": "Ein verzögertes Taktsignal kann mit dem unverzögerten Takt einen kurzen Puls an der steigenden Flanke bilden.",
+      "explanation": "Eine Verzögerungskette erzeugt aus $CLK$ ein zeitlich verzögertes Signal. Dieses Signal wird invertiert und mit dem unverzögerten Clock UND-verknüpft, sodass idealisiert $E(t)=CLK(t)\\land\\neg CLK(t-\\tau)$ gilt. Der kurze aktive Puls öffnet ein D-Latch nahe der steigenden Taktflanke.",
+      "example": "Direkt nach dem Clock-Anstieg ist $CLK=1$, während das verzögerte Signal noch 0 ist; dadurch wird $E$ kurz 1.",
+      "pitfalls": [
+        "Ein realer Puls besitzt eine endliche Dauer und ist kein mathematisch punktförmiger Impuls."
+      ],
+      "related": [
+        "D-Latch",
+        "D-Flipflop",
+        "Master-Slave-D-Flipflop"
+      ],
+      "heading": "4.1 Realisierung mit kurzem Schreibpuls (Folie 15)"
+    },
+    {
+      "id": "era-18-k13",
+      "term": "Master-Slave-D-Flipflop",
+      "kind": "concept",
+      "short": "Zwei gegenphasig gesteuerte D-Latches bilden zusammen ein positiv flankengesteuertes D-Flipflop.",
+      "explanation": "Das Master-Latch ist bei $CLK=0$ transparent und folgt dem Eingang; das Slave-Latch hält in dieser Phase seinen Ausgang. An der steigenden Flanke schließt der Master und öffnet der Slave, sodass der zuvor gespeicherte Masterwert zum Ausgang gelangt. Während $CLK=1$ bleibt der Master geschlossen, wodurch Änderungen am Eingang nicht durch beide Latches bis zum Ausgang laufen.",
+      "example": "Ein kurzer Eingangspuls, der vor der nächsten steigenden Flanke endet, kann den Master ändern, wird aber nicht am Ausgang übernommen.",
+      "pitfalls": [
+        "Beide Latches dürfen nicht gleichzeitig so transparent sein, dass Daten unkontrolliert direkt vom Eingang zum Ausgang durchlaufen."
+      ],
+      "related": [
+        "D-Latch",
+        "Transparenz eines D-Latches",
+        "D-Flipflop"
+      ],
+      "heading": "4.2 Realisierung mit zwei D-Latches (Master-Slave)"
+    },
+    {
+      "id": "era-18-k14",
+      "term": "Setup- und Holdzeit",
+      "kind": "definition",
+      "short": "Setup- und Holdzeit legen fest, wie lange $D$ vor und nach der aktiven Taktflanke stabil bleiben muss.",
+      "explanation": "Die Setupzeit $t_{setup}$ ist die Mindestzeit, in der $D$ vor der aktiven Flanke stabil sein muss. Die Holdzeit $t_{hold}$ ist die Mindestzeit, in der $D$ nach der Flanke stabil bleiben muss. Bei einer Flanke zum Zeitpunkt $t_f$ muss der Datenwert mindestens im Intervall $[t_f-t_{setup},\\ t_f+t_{hold}]$ stabil sein.",
+      "example": "Bei einer steigenden Flanke darf $D$ nicht unmittelbar davor oder danach wechseln, wenn die Änderung in das Setup- oder Holdfenster fällt.",
+      "pitfalls": [
+        "Die Anforderungen gelten um die aktive Flanke herum, nicht für die gesamte Taktperiode."
+      ],
+      "related": [
+        "D-Flipflop",
+        "Master-Slave-D-Flipflop"
+      ],
+      "heading": "4.3 Setup- und Holdzeit"
+    },
+    {
+      "id": "era-18-k15",
+      "term": "Latch und Flipflop im Vergleich",
+      "kind": "concept",
+      "short": "Ein Latch wird pegelgesteuert, ein flankengesteuertes Flipflop übernimmt Daten an einer Taktflanke.",
+      "explanation": "Ein D-Latch ist während des aktiven Enable-Pegels transparent und kann in diesem Zeitfenster mehrere Änderungen an $D$ übernehmen. Ein positiv flankengesteuertes D-Flipflop übernimmt den Eingang an der steigenden Taktflanke und hält den Wert zwischen Flanken. Beide speichern ein Bit, unterscheiden sich aber darin, wann ihr Eingang den Ausgang beeinflussen kann.",
+      "example": "Bleibt $E=1$, folgt ein D-Latch Änderungen an $D$; beim D-Flipflop bleibt $Q$ ohne neue steigende Flanke unverändert.",
+      "pitfalls": [
+        "Latch und Flipflop sind nicht austauschbare Bezeichnungen für dieselbe Steuerungsart."
+      ],
+      "related": [
+        "D-Latch",
+        "Transparenz eines D-Latches",
+        "D-Flipflop"
+      ],
+      "heading": "4.4 Latch vs. Flipflop – unbedingt unterscheiden"
+    },
+    {
+      "id": "era-18-k16",
+      "term": "Schieberegister",
+      "kind": "definition",
+      "short": "Ein Schieberegister verschiebt bei jeder aktiven Taktflanke die gespeicherten Bits um eine Stufe.",
+      "explanation": "Ein Schieberegister besteht aus mehreren hintereinandergeschalteten D-Flipflops mit gemeinsamem Takt. An jeder steigenden Flanke wird das Eingangssignal in die erste Stufe übernommen und jede weitere Stufe übernimmt gleichzeitig den alten Wert ihrer Vorgängerstufe: $Q_0(t+1)=D(t)$ und $Q_i(t+1)=Q_{i-1}(t)$. Die Zuweisungen verwenden also die alten Werte aller Stufen.",
+      "example": "Bei der Anordnung $Q_0,Q_1,Q_2,Q_3$ wird aus `0101` nach einer Flanke mit $D=0$ der Zustand `0010`.",
+      "pitfalls": [
+        "Eine 1 läuft nicht innerhalb einer Flanke durch alle Flipflops; jede Flanke verschiebt sie nur um eine Stufe.",
+        "Ob die gezeichnete Verschiebung einem Links- oder Rechtsshift entspricht, hängt von der Bitgewicht-Zuordnung ab."
+      ],
+      "related": [
+        "D-Flipflop",
+        "Register"
+      ],
+      "heading": "5. Schieberegister (Folien 17–18)"
+    },
+    {
+      "id": "era-18-k17",
+      "term": "Register",
+      "kind": "definition",
+      "short": "Ein n-Bit-Register speichert n Bits parallel und benötigt in diesem Modell n D-Flipflops.",
+      "explanation": "Ein einfaches Register besteht aus $n$ D-Flipflops mit gemeinsamem Clock sowie getrennten Daten- und Ausgangsleitungen. Bei der aktiven Flanke übernimmt jede Stufe ihr Eingangsbit, also gilt für jedes $i$: $Q_i(t+1)=D_i(t)$. Register speichern Wörter und Zwischenergebnisse; anders als ein Schieberegister verschieben sie die Bits nicht von Stufe zu Stufe.",
+      "example": "Ein 4-Bit-Register übernimmt die vier Bits `1010` parallel an einer steigenden Flanke.",
+      "pitfalls": [
+        "Ein Register lädt die Bits gleichzeitig; eine serielle Verschiebung kennzeichnet ein Schieberegister."
+      ],
+      "related": [
+        "D-Flipflop",
+        "Schieberegister",
+        "Adressierbarer Speicher",
+        "Register und Registerkonventionen"
+      ],
+      "heading": "6. Register (Folien 20–21)"
+    },
+    {
+      "id": "era-18-k18",
+      "term": "Adressierbarer Speicher",
+      "kind": "definition",
+      "short": "Ein adressierbarer Speicher speichert mehrere Wörter und wählt ein Wort über seine Adresse aus.",
+      "explanation": "Ein adressierbarer Speicher umfasst Speicherzellen für mehrere Wörter, eine Schreibselektion und eine Auswahl des gelesenen Wortes. Im hier betrachteten Modell halten D-Latches die Bits; die Adresse bestimmt beim Schreiben, welche Zeile Daten übernimmt, und beim Lesen, welches Wort an den Ausgängen erscheint. Das Lesen erfolgt über kombinatorische Auswahl und ändert den Speicherinhalt nicht.",
+      "example": "Ein Speicher mit zwei Wörtern verwendet ein Adressbit, um Wort 0 oder Wort 1 auszuwählen.",
+      "pitfalls": [
+        "Die Adresse bestimmt das Wort; die Wortbreite bestimmt, wie viele Bits jedes Wort enthält."
+      ],
+      "related": [
+        "D-Latch",
+        "Schreibselektion",
+        "Multiplexer",
+        "Speichergröße aus Adressbits und Wortbreite",
+        "Hauptspeicher"
+      ],
+      "heading": "7. Adressierbarer Speicher (Folien 22–25)"
+    },
+    {
+      "id": "era-18-k19",
+      "term": "2 × 2-Bit-Speicher",
+      "kind": "example",
+      "short": "Ein 2 × 2-Bit-Speicher enthält zwei Wörter mit jeweils zwei speicherbaren Bits.",
+      "explanation": "Dieser Speicher besteht aus vier D-Latches, einem Adressbit $A_0$, zwei Eingabebits $I_1,I_0$ und zwei Ausgabebits $O_1,O_0$. Das Adressbit wählt Wort 0 oder Wort 1; $D_{i,j}$ bezeichnet Bitposition $i$ im Wort an Adresse $j$. Die ausgewählte Wortadresse wird zum Lesen an die Multiplexer und zum Schreiben an die Schreibselektion geführt.",
+      "example": "Bei $A_0=1$ bezeichnet $(D_{1,1},D_{0,1})$ die beiden gespeicherten Bits des Wortes an Adresse 1.",
+      "pitfalls": [
+        "Zwei Adressmöglichkeiten bedeuten zwei Wörter, nicht zwei Bitpositionen."
+      ],
+      "related": [
+        "Adressierbarer Speicher",
+        "Schreibselektion",
+        "Multiplexer"
+      ],
+      "heading": "7.1 Beispiel: 2 × 2 Bit Speicher"
+    },
+    {
+      "id": "era-18-k20",
+      "term": "Multiplexer",
+      "kind": "definition",
+      "short": "Ein Multiplexer leitet abhängig von einem Steuersignal einen ausgewählten Eingang zum Ausgang.",
+      "explanation": "Ein Multiplexer ist eine kombinatorische Auswahlschaltung. Beim 2-Wort-Speicher wählen zwei 2-zu-1-Multiplexer mit demselben Adressbit jeweils ein Bit aus den beiden gespeicherten Wörtern aus. Für Bitposition $i$ gilt $O_i=(\\neg A_0\\land D_{i,0})\\lor(A_0\\land D_{i,1})$.",
+      "example": "Bei $A_0=0$ wird $D_{i,0}$ ausgegeben; bei $A_0=1$ wird $D_{i,1}$ ausgegeben.",
+      "pitfalls": [
+        "Ein Multiplexer wählt beim Lesen einen Ausgangspfad aus; er aktiviert nicht die Speicherzelle zum Schreiben."
+      ],
+      "related": [
+        "Kombinatorische Schaltung",
+        "Adressierbarer Speicher",
+        "2 × 2-Bit-Speicher",
+        "Schreibselektion"
+      ],
+      "heading": "7.2 Lesen"
+    },
+    {
+      "id": "era-18-k21",
+      "term": "Schreibselektion",
+      "kind": "concept",
+      "short": "Die Schreibselektion aktiviert genau das Wort, das durch Adresse und Write-Signal ausgewählt ist.",
+      "explanation": "Beim 2-Wort-Speicher gilt $E_0=W\\land\\neg A_0$ und $E_1=W\\land A_0$. Wenn $W=0$ sind beide Latch-Enable-Signale inaktiv; wenn $W=1$ ist genau das adressierte Wort aktiviert. Zum Schreiben werden Adresse und Daten angelegt, $W$ aktiviert und danach wieder deaktiviert, damit die ausgewählten Latches den Wert halten.",
+      "example": "Mit $W=1$ und $A_0=1$ gilt $E_1=1$ und $E_0=0$; nur Wort 1 übernimmt die Eingabedaten.",
+      "pitfalls": [
+        "Wird mehr als eine Speicherzeile aktiviert, können mehrere Wörter dieselben Eingabedaten übernehmen."
+      ],
+      "related": [
+        "Adressierbarer Speicher",
+        "2 × 2-Bit-Speicher",
+        "D-Latch",
+        "Multiplexer"
+      ],
+      "heading": "7.3 Schreiben"
+    },
+    {
+      "id": "era-18-k22",
+      "term": "Speichergröße aus Adressbits und Wortbreite",
+      "kind": "method",
+      "short": "Bei $a$ Adressbits und $w$ Bit pro Wort gibt es $2^a$ Wörter und insgesamt $2^a\\cdot w$ Bit.",
+      "explanation": "Jedes der $a$ Adressbits kann 0 oder 1 sein, daher lassen sich $N=2^a$ verschiedene Wörter auswählen. Bei einer Wortbreite von $w$ Bit beträgt die Gesamtkapazität $C=2^a\\cdot w$ Bit. Bestimme zuerst die Wortanzahl und multipliziere sie anschließend mit der Wortbreite.",
+      "example": "Bei 10 Adressbits und 32 Bit Wortbreite gibt es $2^{10}=1024$ Wörter mit insgesamt $32768$ Bit, also 4096 Byte oder 4 KiB.",
+      "pitfalls": [
+        "Adressbits und Wortbreite beschreiben unterschiedliche Größen.",
+        "Eine Umrechnung in Byte setzt acht Bit pro Byte voraus; die adressierbare Einheit kann je nach System variieren."
+      ],
+      "related": [
+        "Adressierbarer Speicher",
+        "Register",
+        "b-adische Darstellung"
+      ],
+      "heading": "7.4 Verallgemeinerung"
+    },
+    {
+      "id": "era-18-k23",
+      "term": "DRAM",
+      "kind": "definition",
+      "short": "DRAM speichert ein Bit typischerweise als Ladung in einem Kondensator und benötigt Refresh.",
+      "explanation": "DRAM steht für Dynamic Random Access Memory. Eine Speicherzelle speichert Information als Ladung eines Kondensators, die mit der Zeit verloren geht; deshalb muss der Inhalt regelmäßig aufgefrischt werden. DRAM ist flüchtig und wird typischerweise als Hauptspeicher verwendet.",
+      "example": null,
+      "pitfalls": [
+        "DRAM behält seine Daten nicht dauerhaft ohne Refresh und Versorgung."
+      ],
+      "related": [
+        "SRAM",
+        "Flüchtiger Speicher",
+        "Matrixadressierung",
+        "Hauptspeicher"
+      ],
+      "heading": "8. Reale Speicher: DRAM und SRAM (Folien 26–27)"
+    },
+    {
+      "id": "era-18-k24",
+      "term": "SRAM",
+      "kind": "definition",
+      "short": "SRAM speichert ein Bit typischerweise in einer statischen Sechs-Transistor-Zelle und benötigt keinen Refresh.",
+      "explanation": "SRAM steht für Static Random Access Memory. Eine übliche SRAM-Zelle verwendet eine rückgekoppelte Transistorschaltung, häufig mit sechs Transistoren, um den Zustand zu halten, solange die Versorgung anliegt. SRAM benötigt keinen Refresh und wird typischerweise in CPU-Caches eingesetzt.",
+      "example": null,
+      "pitfalls": [
+        "„Static“ bedeutet nicht, dass SRAM Daten ohne Versorgung behält."
+      ],
+      "related": [
+        "DRAM",
+        "Flüchtiger Speicher",
+        "Matrixadressierung",
+        "Speicherhierarchie"
+      ],
+      "heading": "8. Reale Speicher: DRAM und SRAM (Folien 26–27)"
+    },
+    {
+      "id": "era-18-k25",
+      "term": "Flüchtiger Speicher",
+      "kind": "definition",
+      "short": "Flüchtiger Speicher verliert seinen gespeicherten Inhalt, wenn die Versorgungsspannung ausfällt.",
+      "explanation": "Flüchtige Speicher benötigen eine anliegende Versorgung, um den gespeicherten Zustand zu erhalten. DRAM braucht zusätzlich regelmäßigen Refresh, während SRAM keinen Refresh benötigt, solange es versorgt wird. Beide Speicherarten sind flüchtig.",
+      "example": "Ein SRAM-Bit hält seinen Wert ohne Refresh bei anliegender Versorgung, verliert ihn aber nach dem Ausschalten.",
+      "pitfalls": [
+        "Refresh-Bedarf und Flüchtigkeit sind verschiedene Eigenschaften: SRAM ist flüchtig, obwohl es keinen Refresh benötigt."
+      ],
+      "related": [
+        "DRAM",
+        "SRAM"
+      ],
+      "heading": "8. Reale Speicher: DRAM und SRAM (Folien 26–27)"
+    },
+    {
+      "id": "era-18-k26",
+      "term": "Matrixadressierung",
+      "kind": "method",
+      "short": "Bei der Matrixadressierung wählen getrennte Adressteile die Speicherzeile und die Speicherspalte aus.",
+      "explanation": "Die Speicherzellen sind in Zeilen und Spalten angeordnet. Ein Teil der Adresse steuert die Zeilenauswahl, ein anderer die Spaltenauswahl; die Zelle am Schnittpunkt wird ausgewählt. Bei einer quadratischen Ein-Bit-Matrix mit je $n$ Zeilen- und Spaltenadressbits gibt es $2^n\\cdot2^n=2^{2n}$ Zellen.",
+      "example": "Bei der Aufteilung `101 | 011` wählt der erste Teil Zeile 5 und der zweite Teil Spalte 3.",
+      "pitfalls": [
+        "Die Zuordnung der konkreten Adressbits zu Zeilen und Spalten ist eine Designentscheidung."
+      ],
+      "related": [
+        "DRAM",
+        "SRAM",
+        "Adressierbarer Speicher",
+        "Speichergröße aus Adressbits und Wortbreite"
+      ],
+      "heading": "8.1 Zweistufige Matrixadressierung"
+    }
+  ],
+  "generator": {
+    "model": "gpt-6-luna",
+    "effort": "xhigh",
+    "promptVersion": "k1",
+    "generatedAt": "2026-11-24T23:59:54.672Z"
+  }
+}
