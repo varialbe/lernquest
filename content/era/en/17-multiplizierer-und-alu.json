@@ -1,0 +1,2002 @@
+{
+  "schemaVersion": 1,
+  "id": "era-17",
+  "module": "ERA",
+  "number": 17,
+  "slug": "multiplizierer-und-alu",
+  "title": "Multipliers and the ALU",
+  "summary": "This unit progresses from binary multiplication (Binärmultiplikation) through parallel multipliers (parallele Multiplizierer) and carry-save adders (Carry-Save-Addierer) to the ALU. You will practice partial products (Partialprodukte), adder structures (Addiererstrukturen), and reduction trees (Reduktionsbäume), and learn how select signals (Select-Signale) choose functions. A key focus is when carry propagation (Carry-Weitergabe) determines circuit depth.",
+  "concepts": [
+    "Combinational circuit (Kombinatorischer Schaltkreis)",
+    "Cost and depth (Kosten und Tiefe)",
+    "DIN/IEC gate symbols (DIN/IEC-Gattersymbole)",
+    "Partial products",
+    "Result width (Ergebnisbreite)",
+    "Parallel multiplier",
+    "Half adders and full adders (Halbaddierer und Volladdierer)",
+    "Carry-save adder",
+    "Carry chain (Carry-Chain)",
+    "Reduction tree",
+    "Final adder (Endaddierer)",
+    "ALU",
+    "Select signal",
+    "Adder/subtractor (Addierer/Subtrahierer)",
+    "Unsigned multiplication (Unsigned-Multiplikation)"
+  ],
+  "keyFacts": [
+    "A combinational circuit is a directed, acyclic graph with no feedback.",
+    "Cost counts gates; depth counts the gates on the longest input-to-output path.",
+    "The DIN/IEC symbol ≥1 denotes OR; an inversion bubble inverts the output signal.",
+    "Multiplying two bits is equivalent to an AND operation.",
+    "A partial product pp_i is the word B ANDed with A_i and shifted left by i places.",
+    "A partial-product bit A_iB_j has weight 2^(i+j).",
+    "The product of two unsigned n-bit numbers fits in 2n bits.",
+    "A half adder processes two bits; a full adder processes two bits and a carry-in.",
+    "For a full adder, x+y+c_in = s+2c_out.",
+    "A carry-save adder converts three words into two while preserving their total sum.",
+    "In a carry-save adder, the full adders in one stage work independently, with no carry chain between adjacent bits.",
+    "In a serial CSA chain, n partial products are reduced to two words using n−2 CSAs; a final adder follows.",
+    "A tree-based CSA multiplier has O(n²) cost; with a fast final adder, its total depth is O(log n).",
+    "A ripple-carry final adder makes the total depth O(n), despite the tree-based reduction.",
+    "An ALU combines arithmetic and logical operations; m select bits can address up to 2^m functions.",
+    "A shared adder can perform addition and two's-complement subtraction by conditionally inverting the second operand and controlling the carry-in."
+  ],
+  "tags": [
+    "TUM/ERA",
+    "Rechnerarchitektur",
+    "Digitale-Schaltungen",
+    "Multiplizierer",
+    "ALU"
+  ],
+  "links": [],
+  "source": {
+    "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO17.md",
+    "sha256": "ac2734a9205f584cb67a7cfe8fc57896229c9595c108364771de9701647578c7",
+    "commit": "06b418e02f2741dd9ad462f5ad6cc0e3476f229c"
+  },
+  "generator": {
+    "model": "gpt-6-luna",
+    "effort": "xhigh",
+    "reviewEffort": "high",
+    "promptVersion": "v3",
+    "generatedAt": "2026-11-24T23:13:18.101Z",
+    "review": {
+      "checked": 44,
+      "fixed": 4,
+      "removed": 0,
+      "notes": "44 Fragen geprüft. Eine Carry-Save-Rechnung ergab s=0 statt s=10; Antwort, Erklärung und Prüfskript korrigiert. Formeln vereinheitlicht und Mermaid-Knotenbeschriftungen abgesichert. Quellenangaben mit unzulässigen Überschriften auf VO17-Überschriften oder null gesetzt."
+    }
+  },
+  "levels": [
+    {
+      "id": "era-17-l1",
+      "index": 1,
+      "kind": "basics",
+      "title": "Fundamentals",
+      "questions": [
+        {
+          "id": "era-17-l1-q01",
+          "type": "single",
+          "prompt": "What does the **size** cost measure of a combinational circuit count?",
+          "options": [
+            {
+              "id": "a",
+              "text": "The number of gates"
+            },
+            {
+              "id": "b",
+              "text": "The number of inputs"
+            },
+            {
+              "id": "c",
+              "text": "The number of paths"
+            },
+            {
+              "id": "d",
+              "text": "The number of distinct output values"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "Size, or cost, counts the gates in the circuit. Inputs and outputs are not counted as gates.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO17.md",
+            "heading": "Kostenmaße"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Cost and depth",
+            "Combinational circuit"
+          ]
+        },
+        {
+          "id": "era-17-l1-q02",
+          "type": "truefalse",
+          "prompt": "The depth of a circuit is the number of gates on the longest path from a primary input to a primary output.",
+          "options": [
+            {
+              "id": "true",
+              "text": "True"
+            },
+            {
+              "id": "false",
+              "text": "False"
+            }
+          ],
+          "correct": [
+            "true"
+          ],
+          "explanation": "Depth is determined by the longest input-to-output path. Gates operating in parallel on shorter paths do not increase it.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO17.md",
+            "heading": "Kostenmaße"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Cost and depth"
+          ]
+        },
+        {
+          "id": "era-17-l1-q03",
+          "type": "single",
+          "prompt": "Which DIN/IEC designation represents an OR gate?",
+          "options": [
+            {
+              "id": "a",
+              "text": "&"
+            },
+            {
+              "id": "b",
+              "text": "≥1"
+            },
+            {
+              "id": "c",
+              "text": "=1"
+            },
+            {
+              "id": "d",
+              "text": "1 with an inversion bubble"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "The designation ≥1 means that at least one input must be 1. This describes the OR function.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO17.md",
+            "heading": "DIN/IEC-Gattersymbole (Wiederholung)"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "DIN/IEC gate symbols"
+          ]
+        },
+        {
+          "id": "era-17-l1-q04",
+          "type": "cloze",
+          "prompt": "For two individual bits, their binary product is equivalent to an ___ gate.",
+          "options": [
+            {
+              "id": "a",
+              "text": "XOR"
+            },
+            {
+              "id": "b",
+              "text": "OR"
+            },
+            {
+              "id": "c",
+              "text": "NOR"
+            },
+            {
+              "id": "d",
+              "text": "AND"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "The product is 1 exactly when both bits are 1. This is the AND function.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO17.md",
+            "heading": "2.1 Multiplikation zweier Bits"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Partial products",
+            "DIN/IEC gate symbols"
+          ]
+        },
+        {
+          "id": "era-17-l1-q05",
+          "type": "multi",
+          "prompt": "An unsigned word $B$ is multiplied by a bit $A_i$. **Select all correct statements; more than one may be correct.**",
+          "options": [
+            {
+              "id": "a",
+              "text": "When $A_i=1$, the word $B$ is preserved."
+            },
+            {
+              "id": "b",
+              "text": "When $A_i=0$, all result bits are 0."
+            },
+            {
+              "id": "c",
+              "text": "The AND gates must switch one after another."
+            },
+            {
+              "id": "d",
+              "text": "Each result bit is formed by an AND of $B_j$ and $A_i$."
+            }
+          ],
+          "correct": [
+            "a",
+            "b",
+            "d"
+          ],
+          "explanation": "Each bit is combined independently with $A_i$. Therefore, all the AND gates can operate in parallel; an input of $A_i=0$ clears the entire word.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO17.md",
+            "heading": "2.2 Ein Wort mit einem Bit multiplizieren"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Partial products",
+            "Parallel multiplier"
+          ]
+        },
+        {
+          "id": "era-17-l1-q06",
+          "type": "calc",
+          "prompt": "Compute the product of the unsigned binary numbers $1001_2$ and $0011_2$. Give the result using 8 bits.",
+          "options": [
+            {
+              "id": "a",
+              "text": "00001111"
+            },
+            {
+              "id": "b",
+              "text": "00100111"
+            },
+            {
+              "id": "c",
+              "text": "00010101"
+            },
+            {
+              "id": "d",
+              "text": "00011011"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "$1001_2=9$ and $0011_2=3$, so the product is 27. As an 8-bit pattern, it is $00011011_2$.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO17.md",
+            "heading": "2.3 Zwei mehrstellige Binärzahlen multiplizieren"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Partial products",
+            "Result width"
+          ]
+        },
+        {
+          "id": "era-17-l1-q07",
+          "type": "single",
+          "prompt": "In general, how many bits are sufficient for the product of two unsigned $n$-bit numbers?",
+          "options": [
+            {
+              "id": "a",
+              "text": "$2n+1$ bits"
+            },
+            {
+              "id": "b",
+              "text": "$n+1$ bits"
+            },
+            {
+              "id": "c",
+              "text": "$n$ bits"
+            },
+            {
+              "id": "d",
+              "text": "$2n$ bits"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "The largest product is $(2^n-1)^2$, which is less than $2^{2n}$. Therefore, $2n$ bits are sufficient.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO17.md",
+            "heading": "2.4 Ergebnisbreite"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Result width",
+            "Unsigned multiplication"
+          ]
+        },
+        {
+          "id": "era-17-l1-q08",
+          "type": "truefalse",
+          "prompt": "With the usual bit numbering, $A_0$ is the LSB. Therefore, when multiplying by $A_0$, the product bit $P_0$ can be determined directly as $A_0\\land B_0$.",
+          "options": [
+            {
+              "id": "true",
+              "text": "True"
+            },
+            {
+              "id": "false",
+              "text": "False"
+            }
+          ],
+          "correct": [
+            "true"
+          ],
+          "explanation": "$A_0$ denotes the least significant bit. All other partial products have a weight of at least 2 and cannot affect $P_0$.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO17.md",
+            "heading": "3.4 Ablauf der regulären Schaltung (4×4)"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Parallel multiplier",
+            "Partial products"
+          ]
+        },
+        {
+          "id": "era-17-l1-q09",
+          "type": "multi",
+          "prompt": "Which statements about half adders and full adders are correct? **Select all correct statements; more than one may be correct.**",
+          "options": [
+            {
+              "id": "a",
+              "text": "A half adder has a carry-in."
+            },
+            {
+              "id": "b",
+              "text": "A full adder processes two bits and a carry-in."
+            },
+            {
+              "id": "c",
+              "text": "Both components output a sum and a carry."
+            },
+            {
+              "id": "d",
+              "text": "A half adder processes two input bits."
+            }
+          ],
+          "correct": [
+            "b",
+            "c",
+            "d"
+          ],
+          "explanation": "A half adder adds two bits without a carry-in; a full adder also accepts a carry-in. Both produce a sum and a carry-out.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO17.md",
+            "heading": "3.1 Wiederholung: Halbaddierer und Volladdierer"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Half adders and full adders"
+          ]
+        },
+        {
+          "id": "era-17-l1-q10",
+          "type": "diagram",
+          "prompt": "What is the depth of this circuit? Count only the gates on the longest input-to-output path.",
+          "context": {
+            "type": "mermaid",
+            "content": "flowchart LR\n  A[\"a\"] --> G1[\"AND\"]\n  B[\"b\"] --> G1\n  B --> G2[\"OR\"]\n  C[\"c\"] --> G2\n  G1 --> G3[\"XOR\"]\n  G2 --> G3\n  G3 --> Y[\"y\"]",
+            "caption": "A small combinational circuit"
+          },
+          "options": [
+            {
+              "id": "a",
+              "text": "4"
+            },
+            {
+              "id": "b",
+              "text": "1"
+            },
+            {
+              "id": "c",
+              "text": "2"
+            },
+            {
+              "id": "d",
+              "text": "3"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "AND and OR operate in parallel. Both feed their results to the XOR, so the longest path passes through two gates.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO17.md",
+            "heading": "Kostenmaße"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Cost and depth",
+            "Combinational circuit"
+          ]
+        },
+        {
+          "id": "era-17-l1-q11",
+          "type": "cloze",
+          "prompt": "The partial product shifted left by $i$ places is $pp_i=(B\\cdot A_i)\\cdot ___$.",
+          "options": [
+            {
+              "id": "a",
+              "text": "$i^2$"
+            },
+            {
+              "id": "b",
+              "text": "$2^i$"
+            },
+            {
+              "id": "c",
+              "text": "$2^{i+1}$"
+            },
+            {
+              "id": "d",
+              "text": "$2^n$"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "A left shift by $i$ places multiplies the value by $2^i$. This places the partial product at the appropriate binary position.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO17.md",
+            "heading": "2.3 Zwei mehrstellige Binärzahlen multiplizieren"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Partial products"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "era-17-l2",
+      "index": 2,
+      "kind": "apply",
+      "title": "Application",
+      "questions": [
+        {
+          "id": "era-17-l2-q01",
+          "type": "calc",
+          "prompt": "Multiply the unsigned 2-bit numbers $10_2$ and $11_2$. Give the result using 4 bits.",
+          "options": [
+            {
+              "id": "a",
+              "text": "0110"
+            },
+            {
+              "id": "b",
+              "text": "1100"
+            },
+            {
+              "id": "c",
+              "text": "0101"
+            },
+            {
+              "id": "d",
+              "text": "1001"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "$10_2=2$ and $11_2=3$; their product is 6, or $0110_2$ using four bits.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO17.md",
+            "heading": "2.3 Zwei mehrstellige Binärzahlen multiplizieren"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Partial products",
+            "Result width"
+          ]
+        },
+        {
+          "id": "era-17-l2-q02",
+          "type": "single",
+          "prompt": "A partial-product bit comes from $A_2$ and $B_1$. At which binary position does it occur?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Position 4"
+            },
+            {
+              "id": "b",
+              "text": "Position 3"
+            },
+            {
+              "id": "c",
+              "text": "Position 2"
+            },
+            {
+              "id": "d",
+              "text": "Position 5"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "The partial-product bit has weight $2^{i+j}$. For $i=2$ and $j=1$, this is $2^3$, so it is at position 3.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO17.md",
+            "heading": "2.3 Zwei mehrstellige Binärzahlen multiplizieren"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Partial products"
+          ]
+        },
+        {
+          "id": "era-17-l2-q03",
+          "type": "multi",
+          "prompt": "Which statements about a full adder are correct? **Select all correct statements; more than one may be correct.**",
+          "options": [
+            {
+              "id": "a",
+              "text": "We have $x+y+c_{in}=s+2c_{out}$."
+            },
+            {
+              "id": "b",
+              "text": "The carry-out is 1 when at least two of the three inputs are 1."
+            },
+            {
+              "id": "c",
+              "text": "The carry-out has the same positional weight as the sum bit."
+            },
+            {
+              "id": "d",
+              "text": "The sum is $x\\oplus y\\oplus c_{in}$."
+            }
+          ],
+          "correct": [
+            "a",
+            "b",
+            "d"
+          ],
+          "explanation": "The sum function is XOR over all three inputs; the carry-out is 1 when at least two inputs are 1. The carry has twice the weight of the sum bit, unlike what statement d claims.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO17.md",
+            "heading": "3.1 Wiederholung: Halbaddierer und Volladdierer"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Half adders and full adders"
+          ]
+        },
+        {
+          "id": "era-17-l2-q04",
+          "type": "calc",
+          "prompt": "An 8-bit carry-save adder receives the words $00000101$, $00000011$, and $00000110$. Which sum and carry words does it produce? The carry word is already shifted to account for its weight.",
+          "options": [
+            {
+              "id": "a",
+              "text": "$s=00001110,\\ c=00001010$"
+            },
+            {
+              "id": "b",
+              "text": "$s=00000000,\\ c=00001110$"
+            },
+            {
+              "id": "c",
+              "text": "$s=00001111,\\ c=00000000$"
+            },
+            {
+              "id": "d",
+              "text": "$s=00000100,\\ c=00001010$"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "Bitwise, the sum word $s=0$ and the already shifted carry word $c=14$ are produced. Together they equal 14, the sum of the three input words.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO17.md",
+            "heading": "4.2 Aufbau pro Bit"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Carry-save adder",
+            "Carry chain"
+          ]
+        },
+        {
+          "id": "era-17-l2-q05",
+          "type": "calc",
+          "prompt": "An ALU must be able to select among five different functions. What is the minimum number of select bits it needs?",
+          "options": [
+            {
+              "id": "a",
+              "text": "4 bits"
+            },
+            {
+              "id": "b",
+              "text": "2 bits"
+            },
+            {
+              "id": "c",
+              "text": "5 bits"
+            },
+            {
+              "id": "d",
+              "text": "3 bits"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Two bits provide only four codes, while three bits provide eight. Therefore, at least three select bits are required.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO17.md",
+            "heading": "6. ALU – Arithmetic Logic Unit"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "ALU",
+            "Select signal"
+          ]
+        },
+        {
+          "id": "era-17-l2-q06",
+          "type": "truefalse",
+          "prompt": "For two's-complement subtraction, a shared adder can invert the bits of $b$ and receive a carry-in of 1 when $sub=1$.",
+          "options": [
+            {
+              "id": "true",
+              "text": "True"
+            },
+            {
+              "id": "false",
+              "text": "False"
+            }
+          ],
+          "correct": [
+            "true"
+          ],
+          "explanation": "Subtraction uses $a-b\\equiv a+\\overline b+1\\pmod{2^n}$. The control signal can set both the inversion and the carry-in.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO17.md",
+            "heading": "6.3 Möglichkeit 2: Gemeinsame Behandlung ähnlicher Funktionen"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Adder/subtractor",
+            "ALU"
+          ]
+        },
+        {
+          "id": "era-17-l2-q07",
+          "type": "diagram",
+          "prompt": "Which two signals are processed by the second half adder in the diagram?",
+          "context": {
+            "type": "mermaid",
+            "content": "flowchart TD\n  G01[\"AND A₀B₁\"] --> H1[\"HA 1\"]\n  G10[\"AND A₁B₀\"] --> H1\n  H1 -->|Sum| P1[\"P₁\"]\n  H1 -->|Carry| H2[\"HA 2\"]\n  G11[\"AND A₁B₁\"] --> H2\n  H2 -->|Sum| P2[\"P₂\"]\n  H2 -->|Carry| P3[\"P₃\"]",
+            "caption": "Partial products and adders in a 2×2-bit multiplier"
+          },
+          "options": [
+            {
+              "id": "a",
+              "text": "$P_0$ and $P_1$"
+            },
+            {
+              "id": "b",
+              "text": "The two sums from HA 1"
+            },
+            {
+              "id": "c",
+              "text": "The carry from HA 1 and the AND result $A_1B_1$"
+            },
+            {
+              "id": "d",
+              "text": "$A_0$ and $B_0$ directly"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "HA 1 adds the partial products $A_0B_1$ and $A_1B_0$. Its carry is processed by the second half adder together with $A_1B_1$.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO17.md",
+            "heading": "3.3 Vollständige Beispielschaltung: 2×2 Bit"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Parallel multiplier",
+            "Half adders and full adders"
+          ]
+        },
+        {
+          "id": "era-17-l2-q08",
+          "type": "calc",
+          "prompt": "A 4-bit ALU uses the shared adder to compute $a-b$ for $a=1011_2$ and $b=0101_2$. What are the lower four result bits?",
+          "options": [
+            {
+              "id": "a",
+              "text": "1010"
+            },
+            {
+              "id": "b",
+              "text": "0110"
+            },
+            {
+              "id": "c",
+              "text": "0000"
+            },
+            {
+              "id": "d",
+              "text": "0100"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "Inverting $0101_2$ gives $1010_2$; with a carry-in of 1, we get $1011_2+1010_2+1=10110_2$. The lower four bits are $0110$.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO17.md",
+            "heading": "6.3 Möglichkeit 2: Gemeinsame Behandlung ähnlicher Funktionen"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Adder/subtractor",
+            "ALU"
+          ]
+        },
+        {
+          "id": "era-17-l2-q09-r1",
+          "type": "multi",
+          "prompt": "Consider exactly this regular circuit for two unsigned 4-bit numbers: It forms the 16 partial products using one AND gate each. The first partial-product row is passed through; each of the three following rows has an adder block containing exactly 1 half adder and 3 full adders. The circuit outputs the complete product. Select all correct statements.",
+          "options": [
+            {
+              "id": "a",
+              "text": "It uses 3 half adders."
+            },
+            {
+              "id": "b",
+              "text": "It uses 16 AND gates."
+            },
+            {
+              "id": "c",
+              "text": "It uses 9 full adders."
+            },
+            {
+              "id": "d",
+              "text": "It produces a 16-bit product."
+            }
+          ],
+          "correct": [
+            "a",
+            "b",
+            "c"
+          ],
+          "explanation": "There are three adder blocks, each with one half adder and three full adders: 3 half adders and 9 full adders in total. The 4×4 partial products require 4·4 = 16 AND gates. The product of two unsigned 4-bit numbers fits in 8 bits, since 15·15 = 225 < 256.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO17.md",
+            "heading": "3.2 Struktur des 4×4-Bit-Multiplizierers"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Regular parallel multiplier",
+            "Partial products",
+            "Half adders and full adders",
+            "Result width"
+          ]
+        },
+        {
+          "id": "era-17-l2-q10-r1",
+          "type": "truefalse",
+          "prompt": "Multiply the unsigned 4-bit numbers $A=1101_2$ and $B=1010_2$. Here, $A_0$ is the least significant bit and each partial product is $pp_i=(A_i\\cdot B)\\cdot 2^i$; the complete sum is represented using 8 bits. True or false: If the same partial products are added in the order $pp_3, pp_2, pp_1, pp_0$ instead of $pp_0, pp_1, pp_2, pp_3$, the product remains the same.",
+          "options": [
+            {
+              "id": "true",
+              "text": "True"
+            },
+            {
+              "id": "false",
+              "text": "False"
+            }
+          ],
+          "correct": [
+            "true"
+          ],
+          "explanation": "The bits of $A$ are $A_3A_2A_1A_0=1101_2$. Thus, the partial products are $pp_0=10$, $pp_1=0$, $pp_2=40$, and $pp_3=80$. Both orders sum the same values to $130=10000010_2$, so the product remains the same.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO17.md",
+            "heading": "3.5 Alternative: Beginn beim MSB"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Partial products",
+            "Summation order (Summationsreihenfolge)",
+            "Starting with the most significant bit (Beginn beim höchstwertigen Bit)"
+          ]
+        },
+        {
+          "id": "era-17-l2-q11",
+          "type": "cloze",
+          "prompt": "A carry-save adder preserves the sum by transforming ___ input words into two output words.",
+          "options": [
+            {
+              "id": "a",
+              "text": "six"
+            },
+            {
+              "id": "b",
+              "text": "four"
+            },
+            {
+              "id": "c",
+              "text": "two"
+            },
+            {
+              "id": "d",
+              "text": "three"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "A CSA compresses three input words into a sum word and a carry word without changing the total sum.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO17.md",
+            "heading": "4.1 Grundidee: 3 Wörter → 2 Wörter"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Carry-save adder"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "era-17-l3",
+      "index": 3,
+      "kind": "deepen",
+      "title": "Advanced",
+      "questions": [
+        {
+          "id": "era-17-l3-q01",
+          "type": "multi",
+          "prompt": "Which statements correctly distinguish carry-save and ripple-carry adders? **Select all correct statements; more than one may be correct.**",
+          "options": [
+            {
+              "id": "a",
+              "text": "A ripple-carry adder propagates carries during the addition."
+            },
+            {
+              "id": "b",
+              "text": "A carry-save adder processes three input words and produces two."
+            },
+            {
+              "id": "c",
+              "text": "The full adders in a carry-save stage have no carry dependencies on one another."
+            },
+            {
+              "id": "d",
+              "text": "A carry-save adder uses the carry from the previous position as an input at every bit position."
+            }
+          ],
+          "correct": [
+            "a",
+            "b",
+            "c"
+          ],
+          "explanation": "In ripple-carry addition, the carry propagates from one position to the next. In carry-save addition, the three equally weighted bits at each position are processed independently; the carry bits go into a separate word to be added later.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO17.md",
+            "heading": "4.3 Unterschied zum Ripple-Carry Addierer"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Carry-save adder",
+            "Carry chain"
+          ]
+        },
+        {
+          "id": "era-17-l3-q02",
+          "type": "calc",
+          "prompt": "An 8-bit CSA processes $u=00001011$, $v=00000111$, and $w=00000110$. Which two words $s$ and $c$ are produced? The carry word is already shifted.",
+          "options": [
+            {
+              "id": "a",
+              "text": "$s=00001010,\\ c=00001110$"
+            },
+            {
+              "id": "b",
+              "text": "$s=00011000,\\ c=00000000$"
+            },
+            {
+              "id": "c",
+              "text": "$s=00000100,\\ c=00010000$"
+            },
+            {
+              "id": "d",
+              "text": "$s=00001110,\\ c=00001010$"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "Bitwise compression yields $s=10$ and $c=14$. Only the subsequent ordinary addition produces $10+14=24$.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO17.md",
+            "heading": "4.4 Durchgerechnetes Zusatzbeispiel"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Carry-save adder",
+            "Carry chain"
+          ]
+        },
+        {
+          "id": "era-17-l3-q03",
+          "type": "truefalse",
+          "prompt": "For any three $k$-bit numbers, the carry above bit $k-1$ can always be ignored.",
+          "options": [
+            {
+              "id": "true",
+              "text": "True"
+            },
+            {
+              "id": "false",
+              "text": "False"
+            }
+          ],
+          "correct": [
+            "false"
+          ],
+          "explanation": "Three arbitrary $k$-bit numbers can require more than $k$ bits in total. A highest carry may be discarded only if the sum is known to fit in the word width or the calculation is performed modulo $2^k$.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO17.md",
+            "heading": "4.5 Spezialfall: Partialprodukte mit $2n$ Bits"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Carry-save adder",
+            "Result width"
+          ]
+        },
+        {
+          "id": "era-17-l3-q04",
+          "type": "single",
+          "prompt": "A CSA reduces the partial products of an unsigned $n\\times n$ multiplier using $2n$-bit words. Why can the carry beyond bit $2n-1$ be left unused?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Because a carry-save adder processes only $n$ bits"
+            },
+            {
+              "id": "b",
+              "text": "Because the nonnegative sum of the partial products is less than $2^{2n}$"
+            },
+            {
+              "id": "c",
+              "text": "Because the carry word never contains a value"
+            },
+            {
+              "id": "d",
+              "text": "Because every CSA stage always discards carries"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "The product of two unsigned $n$-bit numbers is less than $2^{2n}$. Every partial sum of nonnegative partial products stays below this bound, so no bit beyond the $2n$-bit width is needed.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO17.md",
+            "heading": "4.5 Spezialfall: Partialprodukte mit $2n$ Bits"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Carry-save adder",
+            "Result width"
+          ]
+        },
+        {
+          "id": "era-17-l3-q05",
+          "type": "diagram",
+          "prompt": "Which of the two structures shown has a carry dependency between adjacent full adders?",
+          "context": {
+            "type": "mermaid",
+            "content": "flowchart LR\n  subgraph RCA[\"Ripple-carry\"]\n    direction LR\n    R0[\"FA 0\"] -->|Carry| R1[\"FA 1\"]\n    R1 -->|Carry| R2[\"FA 2\"]\n    R2 -->|Carry| R3[\"FA 3\"]\n  end\n  subgraph CSA[\"Carry-save\"]\n    direction LR\n    C0[\"FA 0\"] --> O0[\"s₀ and c₁\"]\n    C1[\"FA 1\"] --> O1[\"s₁ and c₂\"]\n    C2[\"FA 2\"] --> O2[\"s₂ and c₃\"]\n    C3[\"FA 3\"] --> O3[\"s₃ and c₄\"]\n  end",
+            "caption": "Carry dependencies in two adder structures"
+          },
+          "options": [
+            {
+              "id": "a",
+              "text": "Neither structure"
+            },
+            {
+              "id": "b",
+              "text": "Only the carry-save adder"
+            },
+            {
+              "id": "c",
+              "text": "Both structures"
+            },
+            {
+              "id": "d",
+              "text": "Only the ripple-carry adder"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "In the ripple-carry diagram, each carry-out feeds the next full adder. The carry-save full adders work independently and send their carry bits to a separate word.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO17.md",
+            "heading": "4.3 Unterschied zum Ripple-Carry Addierer"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Carry-save adder",
+            "Carry chain"
+          ]
+        },
+        {
+          "id": "era-17-l3-q06",
+          "type": "calc",
+          "prompt": "A serial CSA chain reduces 8 partial products to two words. How many CSA stages does it need before the final adder?",
+          "options": [
+            {
+              "id": "a",
+              "text": "5"
+            },
+            {
+              "id": "b",
+              "text": "7"
+            },
+            {
+              "id": "c",
+              "text": "6"
+            },
+            {
+              "id": "d",
+              "text": "8"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Each CSA stage reduces the number of words by one. For $n$ partial products, $n-2$ stages are needed, so $8-2=6$; a final adder follows.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO17.md",
+            "heading": "5.1 Serielle Lösung"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Carry-save adder",
+            "Final adder"
+          ]
+        },
+        {
+          "id": "era-17-l3-q07-r1",
+          "type": "calc",
+          "prompt": "A reduction tree starts with 16 partial-product words. A 4-to-2 component converts 4 words into 2; all components at a tree level operate in parallel. Reduction ends when 2 words remain for the final adder. How many 4-to-2 tree levels does a path pass through before the final adder?",
+          "options": [
+            {
+              "id": "a",
+              "text": "6"
+            },
+            {
+              "id": "b",
+              "text": "3"
+            },
+            {
+              "id": "c",
+              "text": "2"
+            },
+            {
+              "id": "d",
+              "text": "4"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "The number of words decreases from 16 to 8, then to 4, and finally to 2 at each level. That is three 4-to-2 tree levels. Since each 4-to-2 component consists of two successive CSA stages, the critical path contains six CSA stages in total.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO17.md",
+            "heading": "5.3 Beispiel eines Reduktionsbaums für 16 Partialprodukte"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Tree-based partial-product reduction (Baumartige Partialproduktreduktion)",
+            "4-to-2 component (4-zu-2-Baustein)",
+            "Carry-save adder stages (Carry-Save-Addierer-Stufen)"
+          ]
+        },
+        {
+          "id": "era-17-l3-q08",
+          "type": "single",
+          "prompt": "A tree-based CSA reduction has depth $O(\\log n)$. What effect does an ordinary ripple-carry final adder have on the total depth?",
+          "options": [
+            {
+              "id": "a",
+              "text": "The total depth remains $O(\\log n)$."
+            },
+            {
+              "id": "b",
+              "text": "The total depth is independent of $n$."
+            },
+            {
+              "id": "c",
+              "text": "The total depth becomes $O(n)$ because the final addition has linear depth."
+            },
+            {
+              "id": "d",
+              "text": "The total depth becomes $O(n^2)$ because there are $n$ partial products."
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "The tree reduction remains logarithmic in depth, but the ripple-carry final adder has linear depth. Therefore, the depth of the entire circuit is $O(n)$.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO17.md",
+            "heading": "5.4 Komplexität"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Reduction tree",
+            "Final adder",
+            "Cost and depth"
+          ]
+        },
+        {
+          "id": "era-17-l3-q09",
+          "type": "multi",
+          "prompt": "An ALU implements each function with a separate circuit and then selects an output bus. Which statements are correct? **Select all correct statements; more than one may be correct.**",
+          "options": [
+            {
+              "id": "a",
+              "text": "Separate circuits may require redundant hardware."
+            },
+            {
+              "id": "b",
+              "text": "The multiplexer needs to select only a single result bit."
+            },
+            {
+              "id": "c",
+              "text": "All function circuits receive the operands."
+            },
+            {
+              "id": "d",
+              "text": "A multiplexer selects the output bus."
+            }
+          ],
+          "correct": [
+            "a",
+            "c",
+            "d"
+          ],
+          "explanation": "In this modular design, the functions are separate, and the MUX selects an entire output bus. This can duplicate hardware; the selection is not limited to a single bit.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO17.md",
+            "heading": "6.1 Möglichkeit 1: Einzelfunktionen getrennt realisieren"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "ALU",
+            "Select signal"
+          ]
+        },
+        {
+          "id": "era-17-l3-q10",
+          "type": "cloze",
+          "prompt": "With $m$ select bits, an ALU can address at most ___ different functions.",
+          "options": [
+            {
+              "id": "a",
+              "text": "$2m$"
+            },
+            {
+              "id": "b",
+              "text": "$m^2$"
+            },
+            {
+              "id": "c",
+              "text": "$m$"
+            },
+            {
+              "id": "d",
+              "text": "$2^m$"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "$m$ binary bits form $2^m$ different selection codes. Not every code has to be assigned to a function in use.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO17.md",
+            "heading": "6. ALU – Arithmetic Logic Unit"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "ALU",
+            "Select signal"
+          ]
+        },
+        {
+          "id": "era-17-l3-q11",
+          "type": "calc",
+          "prompt": "An ALU must offer 13 different functions. What is the minimum number of select bits it needs?",
+          "options": [
+            {
+              "id": "a",
+              "text": "13 bits"
+            },
+            {
+              "id": "b",
+              "text": "4 bits"
+            },
+            {
+              "id": "c",
+              "text": "5 bits"
+            },
+            {
+              "id": "d",
+              "text": "3 bits"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "Three bits provide only 8 codes. Four bits provide 16 codes, which is enough for 13 functions.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO17.md",
+            "heading": "6. ALU – Arithmetic Logic Unit"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "ALU",
+            "Select signal"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "era-17-l4",
+      "index": 4,
+      "kind": "boss",
+      "title": "Boss",
+      "questions": [
+        {
+          "id": "era-17-l4-q01",
+          "type": "calc",
+          "prompt": "Multiply the unsigned 4-bit numbers $1101_2$ and $1011_2$. Use the bits of the second operand to weight the partial products, and give the product using 8 bits.",
+          "options": [
+            {
+              "id": "a",
+              "text": "10110001"
+            },
+            {
+              "id": "b",
+              "text": "10001111"
+            },
+            {
+              "id": "c",
+              "text": "01101111"
+            },
+            {
+              "id": "d",
+              "text": "10000111"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "$1101_2=13$ and $1011_2=11$. The set bits of the second operand produce shifted partial products whose sum is 143, or $10001111_2$.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO17.md",
+            "heading": "2.3 Zwei mehrstellige Binärzahlen multiplizieren"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Partial products",
+            "Result width",
+            "Parallel multiplier"
+          ]
+        },
+        {
+          "id": "era-17-l4-q02",
+          "type": "calc",
+          "prompt": "A 5-bit CSA processes $u=01011_2$, $v=00110_2$, and $w=00101_2$. What sum and carry words are produced? The carry word is already shifted to account for its weight.",
+          "options": [
+            {
+              "id": "a",
+              "text": "$s=01000,\\ c=01110$"
+            },
+            {
+              "id": "b",
+              "text": "$s=00000,\\ c=10110$"
+            },
+            {
+              "id": "c",
+              "text": "$s=01110,\\ c=01000$"
+            },
+            {
+              "id": "d",
+              "text": "$s=10110,\\ c=00000$"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "Bitwise, the sum $s=8$ and the already shifted carry word $c=14$ are produced. Their sum is 22, equal to $11+6+5$.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO17.md",
+            "heading": "4.2 Aufbau pro Bit"
+          },
+          "difficulty": 5,
+          "concepts": [
+            "Carry-save adder",
+            "Carry chain"
+          ]
+        },
+        {
+          "id": "era-17-l4-q03",
+          "type": "multi",
+          "prompt": "A shared 4-bit adder/subtractor uses $b'_i=b_i\\oplus sub$ and $c_{in}=sub$. Which statements are true for $sub=1$? **Select all correct statements; more than one may be correct.**",
+          "options": [
+            {
+              "id": "a",
+              "text": "$b$ remains unchanged and the carry-in is 0."
+            },
+            {
+              "id": "b",
+              "text": "The carry-in is 1."
+            },
+            {
+              "id": "c",
+              "text": "The lower four result bits equal $a-b$ modulo 16."
+            },
+            {
+              "id": "d",
+              "text": "Each bit of $b$ is inverted."
+            }
+          ],
+          "correct": [
+            "b",
+            "c",
+            "d"
+          ],
+          "explanation": "When $sub=1$, all $b$ bits are XORed with 1, so they are inverted, and the carry-in is 1. The adder then computes $a+\\overline b+1$, which is subtraction modulo $2^4$.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO17.md",
+            "heading": "6.3 Möglichkeit 2: Gemeinsame Behandlung ähnlicher Funktionen"
+          },
+          "difficulty": 5,
+          "concepts": [
+            "Adder/subtractor",
+            "Full adder (Volladdierer)"
+          ]
+        },
+        {
+          "id": "era-17-l4-q04",
+          "type": "calc",
+          "prompt": "In the cost model used, a full adder has cost 5 and depth 3. An 8-bit CSA uses one full adder per bit; the bit positions operate independently. What cost and depth does this give?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Cost 24, depth 40"
+            },
+            {
+              "id": "b",
+              "text": "Cost 15, depth 8"
+            },
+            {
+              "id": "c",
+              "text": "Cost 40, depth 24"
+            },
+            {
+              "id": "d",
+              "text": "Cost 40, depth 3"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Eight independent full adders give a cost of $8\\cdot5=40$. Since there is no carry chain between positions, the depth remains 3.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO17.md",
+            "heading": "4.2 Aufbau pro Bit"
+          },
+          "difficulty": 5,
+          "concepts": [
+            "Carry-save adder",
+            "Cost and depth"
+          ]
+        },
+        {
+          "id": "era-17-l4-q05",
+          "type": "calc",
+          "prompt": "An ALU supports six functions. How many selection codes are unused when it uses the minimum number of select bits?",
+          "options": [
+            {
+              "id": "a",
+              "text": "2"
+            },
+            {
+              "id": "b",
+              "text": "4"
+            },
+            {
+              "id": "c",
+              "text": "1"
+            },
+            {
+              "id": "d",
+              "text": "0"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "Three select bits address eight codes. Six are needed for functions, leaving two unused codes.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO17.md",
+            "heading": "6. ALU – Arithmetic Logic Unit"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "ALU",
+            "Select signal"
+          ]
+        },
+        {
+          "id": "era-17-l4-q06",
+          "type": "truefalse",
+          "prompt": "The uniform $n+1$-bit output format of the ALU model described can represent the complete product of two $n$-bit numbers in general.",
+          "options": [
+            {
+              "id": "true",
+              "text": "True"
+            },
+            {
+              "id": "false",
+              "text": "False"
+            }
+          ],
+          "correct": [
+            "false"
+          ],
+          "explanation": "A complete product may require up to $2n$ bits. The ALU model provides $n+1$ output bits, so it cannot always produce the complete product.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO17.md",
+            "heading": "6. ALU – Arithmetic Logic Unit"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "ALU",
+            "Result width"
+          ]
+        },
+        {
+          "id": "era-17-l4-q07",
+          "type": "diagram",
+          "prompt": "What role does the select signal play in this ALU structure?",
+          "context": {
+            "type": "mermaid",
+            "content": "flowchart TD\n  A[\"Operands a, b, c\"] --> ADD[\"ADD\"]\n  A --> AND[\"AND\"]\n  A --> OR[\"OR\"]\n  ADD --> MUX[\"MUX\"]\n  AND --> MUX\n  OR --> MUX\n  SEL[\"select\"] --> MUX\n  MUX --> Y[\"Result bus\"]",
+            "caption": "Separate functions with shared result selection"
+          },
+          "options": [
+            {
+              "id": "a",
+              "text": "It connects the operands bit by bit."
+            },
+            {
+              "id": "b",
+              "text": "It increases the width of each function circuit."
+            },
+            {
+              "id": "c",
+              "text": "It computes the arithmetic function itself."
+            },
+            {
+              "id": "d",
+              "text": "It selects one of the computed output buses at the multiplexer."
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "The function circuits compute separate results. The select signal controls the multiplexer, which routes one output bus to the output.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO17.md",
+            "heading": "6.1 Möglichkeit 1: Einzelfunktionen getrennt realisieren"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "ALU",
+            "Select signal"
+          ]
+        },
+        {
+          "id": "era-17-l4-q08",
+          "type": "multi",
+          "prompt": "Which statements about the total depth of a tree-based CSA multiplier are correct? **Select all correct statements; more than one may be correct.**",
+          "options": [
+            {
+              "id": "a",
+              "text": "With a ripple-carry final adder, the total depth is $O(n)$."
+            },
+            {
+              "id": "b",
+              "text": "A ripple-carry final adder preserves logarithmic total depth."
+            },
+            {
+              "id": "c",
+              "text": "The partial-product reduction can be arranged in $O(\\log n)$ levels."
+            },
+            {
+              "id": "d",
+              "text": "For a total depth of $O(\\log n)$, the final adder must also have a depth of at most $O(\\log n)$."
+            }
+          ],
+          "correct": [
+            "a",
+            "c",
+            "d"
+          ],
+          "explanation": "The tree reduction has logarithmic depth, but the final addition must also be fast for the total depth to remain logarithmic. A ripple-carry final adder adds linear depth.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO17.md",
+            "heading": "5.4 Komplexität"
+          },
+          "difficulty": 5,
+          "concepts": [
+            "Reduction tree",
+            "Final adder",
+            "Cost and depth"
+          ]
+        },
+        {
+          "id": "era-17-l4-q09",
+          "type": "calc",
+          "prompt": "For a regular 8×8-bit multiplier, $N_{AND}=n^2$, $N_{HA}=n-1$, and $N_{VA}=(n-1)^2$ apply. What combination of AND gates, half adders, full adders, and product bits results?",
+          "options": [
+            {
+              "id": "a",
+              "text": "56 AND, 7 HA, 49 FA, 8 product bits"
+            },
+            {
+              "id": "b",
+              "text": "64 AND, 7 HA, 49 FA, 16 product bits"
+            },
+            {
+              "id": "c",
+              "text": "64 AND, 8 HA, 56 FA, 16 product bits"
+            },
+            {
+              "id": "d",
+              "text": "64 AND, 7 HA, 56 FA, 8 product bits"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "For $n=8$, this gives 64 AND gates, 7 half adders, and 49 full adders. The complete product has $2n=16$ bits.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO17.md",
+            "heading": "3.2 Struktur des 4×4-Bit-Multiplizierers"
+          },
+          "difficulty": 5,
+          "concepts": [
+            "Parallel multiplier",
+            "Half adders and full adders",
+            "Result width"
+          ]
+        },
+        {
+          "id": "era-17-l4-q10",
+          "type": "truefalse",
+          "prompt": "A serial CSA solution with $n$ partial products uses $n-2$ CSAs to obtain two words; an ordinary final adder is still needed afterward.",
+          "options": [
+            {
+              "id": "true",
+              "text": "True"
+            },
+            {
+              "id": "false",
+              "text": "False"
+            }
+          ],
+          "correct": [
+            "true"
+          ],
+          "explanation": "Each CSA stage decreases the number of words by one until two remain. These two words must still be added normally to obtain the final product.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO17.md",
+            "heading": "5.1 Serielle Lösung"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Carry-save adder",
+            "Final adder"
+          ]
+        },
+        {
+          "id": "era-17-l4-q11",
+          "type": "single",
+          "prompt": "Which statement correctly describes the scope of the multiplier shown?",
+          "options": [
+            {
+              "id": "a",
+              "text": "It handles signed and unsigned numbers identically without changes."
+            },
+            {
+              "id": "b",
+              "text": "It multiplies only numbers with a set sign bit."
+            },
+            {
+              "id": "c",
+              "text": "For signed numbers, it always produces a result with $n$ rather than $2n$ bits."
+            },
+            {
+              "id": "d",
+              "text": "It handles unsigned binary numbers; for two's complement, the sign bit must be handled differently."
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "The partial-product structure shown is described for unsigned numbers. Full two's-complement multiplication requires adjusted handling of the sign bit.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO17.md",
+            "heading": "2.4 Ergebnisbreite"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Unsigned multiplication",
+            "Result width"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "era-17-l5",
+      "index": 5,
+      "kind": "bonus",
+      "title": "In practice: The computation inside",
+      "questions": [
+        {
+          "id": "era-17-l5-q01",
+          "type": "single",
+          "prompt": "On your smartphone, a control code selects whether the processor adds, combines bits, or performs other basic operations. Which component brings together such arithmetic and logical functions?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Network module"
+            },
+            {
+              "id": "b",
+              "text": "ALU"
+            },
+            {
+              "id": "c",
+              "text": "Cache"
+            },
+            {
+              "id": "d",
+              "text": "Clock generator"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "The ALU performs arithmetic and logical operations. Select signals can choose the desired function.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO17.md",
+            "heading": "6. ALU – Arithmetic Logic Unit"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "ALU",
+            "Select signal"
+          ]
+        },
+        {
+          "id": "era-17-l5-q02",
+          "type": "single",
+          "prompt": "A graphics chip computes many products, for example for 3D coordinates. In a hardware design, all bit products are formed simultaneously as AND operations; the shifted partial products are then added in fixed, hardwired stages. Which approach is this?",
+          "options": [
+            {
+              "id": "a",
+              "text": "A select multiplexer"
+            },
+            {
+              "id": "b",
+              "text": "A ripple-carry final adder"
+            },
+            {
+              "id": "c",
+              "text": "A parallel multiplier"
+            },
+            {
+              "id": "d",
+              "text": "A single half adder"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "A parallel multiplier forms partial products using AND gates and sums them in fixed, hardwired stages. This implements multiplication as a combinational circuit.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO17.md",
+            "heading": "3. Paralleler Multiplizierer"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Parallel multiplier",
+            "Partial products",
+            "Combinational circuit"
+          ]
+        },
+        {
+          "id": "era-17-l5-q03",
+          "type": "estimate",
+          "prompt": "An ALU has 5 select bits. How many different bit patterns can these bits form?",
+          "options": [],
+          "correct": [],
+          "slider": {
+            "min": 0,
+            "max": 80,
+            "step": 1,
+            "answer": 32,
+            "tolerance": 1,
+            "unit": "Bit patterns",
+            "scale": "linear"
+          },
+          "explanation": "Each select bit has two possible values. Thus, there are $2^5=32$ different bit patterns.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO17.md",
+            "heading": "6. ALU – Arithmetic Logic Unit"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "ALU",
+            "Select signal"
+          ]
+        },
+        {
+          "id": "era-17-l5-q04",
+          "type": "single",
+          "prompt": "You are designing a circuit for a signal processor that sums several products for each sample. A component must compress three numbers of equal width into two numbers without propagating carries between adjacent bit positions. Which component fits?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Ripple-carry adder"
+            },
+            {
+              "id": "b",
+              "text": "Decoder"
+            },
+            {
+              "id": "c",
+              "text": "Half adder"
+            },
+            {
+              "id": "d",
+              "text": "Carry-save adder"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "A carry-save adder reduces three words to two while preserving their total sum. Its full adders work independently at each bit position; a final adder later produces the single result.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO17.md",
+            "heading": "4. Carry-Save Addierer (CSavA)"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Carry-save adder",
+            "Carry chain",
+            "Final adder"
+          ]
+        },
+        {
+          "id": "era-17-l5-q05",
+          "type": "truefalse",
+          "prompt": "An n-bit adder for two's-complement numbers must compute both $a+b$ and $a-b$. Is this statement correct: for subtraction, it can invert the second operand bit by bit and set the carry-in to 1?",
+          "options": [
+            {
+              "id": "true",
+              "text": "True"
+            },
+            {
+              "id": "false",
+              "text": "False"
+            }
+          ],
+          "correct": [
+            "true"
+          ],
+          "explanation": "In two's complement, modulo $2^n$, $a-b \\equiv a+\\overline{b}+1$. Therefore, for subtraction, the same adder circuit can invert the second operand and set the carry-in to 1.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO17.md",
+            "heading": "6.3 Möglichkeit 2: Gemeinsame Behandlung ähnlicher Funktionen"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "ALU",
+            "Adder/subtractor",
+            "Select signal"
+          ]
+        },
+        {
+          "id": "era-17-l5-q06",
+          "type": "estimate",
+          "prompt": "A hardware team is planning the unreduced formation of partial products for an 8×8-bit multiplier. One AND gate is used for each pair of bits. How many AND gates are needed?",
+          "options": [],
+          "correct": [],
+          "slider": {
+            "min": 0,
+            "max": 160,
+            "step": 1,
+            "answer": 64,
+            "tolerance": 1,
+            "unit": "AND gates",
+            "scale": "linear"
+          },
+          "explanation": "Two $n$-bit words produce $n^2$ individual bit products. For $n=8$, that is $8^2=64$ AND gates.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO17.md",
+            "heading": "3.2 Struktur des 4×4-Bit-Multiplizierers"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Partial products",
+            "Parallel multiplier"
+          ]
+        },
+        {
+          "id": "era-17-l5-q07",
+          "type": "single",
+          "prompt": "You are reading the circuit diagram for an industrial control system: an IEC symbol is labeled “≥1” and has a small circle at its output. Which function does it represent?",
+          "options": [
+            {
+              "id": "a",
+              "text": "XOR"
+            },
+            {
+              "id": "b",
+              "text": "NAND"
+            },
+            {
+              "id": "c",
+              "text": "NOR"
+            },
+            {
+              "id": "d",
+              "text": "OR"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "In the DIN/IEC system, “≥1” denotes OR. The circle at the output indicates inversion, so the result is NOR.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO17.md",
+            "heading": "DIN/IEC-Gattersymbole (Wiederholung)"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "DIN/IEC gate symbols"
+          ]
+        },
+        {
+          "id": "era-17-l5-q08",
+          "type": "estimate",
+          "prompt": "A serial carry-save multiplier starts with 18 partial-product words. Each carry-save adder reduces three words to two, decreasing the word count by one. How many carry-save adders are needed to obtain two words before the final adder?",
+          "options": [],
+          "correct": [],
+          "slider": {
+            "min": 0,
+            "max": 40,
+            "step": 1,
+            "answer": 16,
+            "tolerance": 1,
+            "unit": "Carry-save adders",
+            "scale": "linear"
+          },
+          "explanation": "Each carry-save adder decreases the number of words by one. Going from 18 words to 2 therefore requires $18-2=16$ adders; the final adder follows.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO17.md",
+            "heading": "5.1 Serielle Lösung"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Carry-save adder",
+            "Final adder"
+          ]
+        },
+        {
+          "id": "era-17-l5-q09",
+          "type": "single",
+          "prompt": "A measuring instrument multiplies two unsigned 8-bit raw values. The complete product must be preserved. What is the minimum width of the result bus?",
+          "options": [
+            {
+              "id": "a",
+              "text": "16 bits"
+            },
+            {
+              "id": "b",
+              "text": "17 bits"
+            },
+            {
+              "id": "c",
+              "text": "15 bits"
+            },
+            {
+              "id": "d",
+              "text": "8 bits"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "Two unsigned $n$-bit numbers require at most $2n$ bits for their complete product. For $n=8$, that is 16 bits; the maximum $255\\cdot255=65025$ fits in 16 bits.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO17.md",
+            "heading": "2.4 Ergebnisbreite"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Result width",
+            "Unsigned multiplication"
+          ]
+        },
+        {
+          "id": "era-17-l5-q10",
+          "type": "single",
+          "prompt": "A team reduces a multiplier's partial products using a tree of carry-save stages. The reduction has depth $O(\\log n)$. A ripple-carry final adder has depth $O(n)$, while a fast prefix final adder has depth $O(\\log n)$. Which choice enables logarithmic total depth?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Use the ripple-carry final adder"
+            },
+            {
+              "id": "b",
+              "text": "Use the fast prefix final adder"
+            },
+            {
+              "id": "c",
+              "text": "Omit the final adder and output two result words"
+            },
+            {
+              "id": "d",
+              "text": "Perform the reduction as a serial carry-save chain"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "The tree reduction alone does not guarantee logarithmic total depth. A ripple-carry final adder would have depth $O(n)$; a fast final adder with depth $O(\\log n)$ enables logarithmic total depth.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO17.md",
+            "heading": "5.4 Komplexität"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Reduction tree",
+            "Final adder",
+            "Cost and depth"
+          ]
+        }
+      ]
+    }
+  ]
+}

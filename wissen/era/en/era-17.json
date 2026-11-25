@@ -1,0 +1,578 @@
+{
+  "schemaVersion": 1,
+  "unitId": "era-17",
+  "module": "ERA",
+  "unitNumber": 17,
+  "unitTitle": "Multipliers and ALUs",
+  "sourceSha": "ac2734a9205f584cb67a7cfe8fc57896229c9595c108364771de9701647578c7",
+  "overview": "The unit develops unsigned binary multiplication (vorzeichenlose Binärmultiplikation) from AND operations, left shifts, and additions. Parallel multipliers sum partial products (Partialprodukte) using half adders and full adders; carry-save adders (Carry-Save-Addierer) reduce several words without a carry chain within a stage. Serial and tree-based reductions differ mainly in depth and require a final adder. An ALU combines arithmetic and logical functions and uses select signals to choose the desired result.",
+  "entries": [
+    {
+      "id": "era-17-k01",
+      "term": "Combinational circuit (kombinatorischer Schaltkreis)",
+      "kind": "definition",
+      "short": "A combinational circuit is a directed, acyclic graph of inputs, outputs, and gates.",
+      "explanation": "It can be described as $G=(V,E)$: the vertices $V$ are primary inputs and outputs as well as gates, and the edges $E$ carry signals. The graph is acyclic and therefore has no feedback. The outputs depend only on the current inputs.",
+      "example": "An AND gate and an OR gate can operate in parallel and then feed their results into an XOR gate.",
+      "pitfalls": [
+        "A combinational circuit contains no stored state."
+      ],
+      "related": [
+        "Cost and depth",
+        "DIN/IEC gate symbols"
+      ],
+      "heading": "1. Wiederholung: Schaltkreise"
+    },
+    {
+      "id": "era-17-k02",
+      "term": "Cost and depth (Kosten und Tiefe)",
+      "kind": "concept",
+      "short": "Cost counts gates, while depth counts the gates on the longest input-to-output path.",
+      "explanation": "In this model, the size or cost of a circuit is its gate count. Its depth is the greatest number of gates on a path from a primary input to a primary output. With uniform gate delays, depth approximates the delay of the critical path.",
+      "example": "A network with two parallel input gates followed by one gate has three gates and depth 2.",
+      "pitfalls": [
+        "Primary inputs and outputs do not count as gates.",
+        "Depth is an abstract measure of delay; actual delays also depend on gates and wires."
+      ],
+      "related": [
+        "Combinational circuit",
+        "Carry chain (Übertragskette)"
+      ],
+      "heading": "Kostenmaße"
+    },
+    {
+      "id": "era-17-k03",
+      "term": "DIN/IEC gate symbols (DIN/IEC-Gattersymbole)",
+      "kind": "notation",
+      "short": "IEC markings encode logic functions, and a bubble at the output indicates inversion.",
+      "explanation": "In DIN/IEC notation, `&` denotes AND, `≥1` denotes OR, and `1` with an inversion bubble denotes NOT. `&` with an inversion bubble denotes NAND, `≥1` with an inversion bubble denotes NOR, and `=1` denotes XOR for two inputs and XNOR with an inversion bubble. The bubble marks signal inversion at the respective terminal.",
+      "example": "A `≥1` gate with an inversion bubble computes $\\neg(a\\lor b)$, that is, NOR.",
+      "pitfalls": [
+        "`≥1` means that at least one input is 1; it is not a numerical comparison.",
+        "The inversion bubble inverts the signal at the respective terminal."
+      ],
+      "related": [
+        "Combinational circuit",
+        "Boolean algebra"
+      ],
+      "heading": "DIN/IEC-Gattersymbole (Wiederholung)"
+    },
+    {
+      "id": "era-17-k04",
+      "term": "Multiplication of two bits (Multiplikation zweier Bits)",
+      "kind": "theorem",
+      "short": "For bits $a,b\\in\\{0,1\\}$, their product equals their AND operation.",
+      "explanation": "We have $a\\cdot b=a\\land b$. The result is 1 exactly when both input bits are 1. Thus, an AND gate suffices to multiply two individual bits.",
+      "example": "For $a=1$ and $b=0$, the result is $a\\cdot b=a\\land b=0$.",
+      "pitfalls": [
+        "For multi-bit words, the place values must also be taken into account."
+      ],
+      "related": [
+        "Partial product",
+        "Parallel multiplier"
+      ],
+      "heading": "2.1 Multiplikation zweier Bits"
+    },
+    {
+      "id": "era-17-k05",
+      "term": "Multiplication of a word by one bit (Ein Wort mit einem Bit multiplizieren)",
+      "kind": "method",
+      "short": "Multiplying a bit word by a single bit applies AND between that bit and each bit of the word.",
+      "explanation": "For $B=(B_{n-1},\\ldots,B_0)$ and the bit $A_i$, the result is $(B_{n-1}\\land A_i,\\ldots,B_0\\land A_i)$. The $n$ AND gates can operate in parallel. When $A_i=0$, the result is the zero word; when $A_i=1$, $B$ is preserved.",
+      "example": "For $B=1011_2$, when $A_i=1$, we have $B\\cdot A_i=1011_2$; when $A_i=0$, the result is $0000_2$.",
+      "pitfalls": [
+        "The bit product has not yet been shifted by its position $i$; that shift is part of the partial product."
+      ],
+      "related": [
+        "Multiplication of two bits",
+        "Partial product"
+      ],
+      "heading": "2.2 Ein Wort mit einem Bit multiplizieren"
+    },
+    {
+      "id": "era-17-k06",
+      "term": "Partial product (Partialprodukt)",
+      "kind": "definition",
+      "short": "The partial product $pp_i$ is the word $B$ formed using $A_i$ and shifted left by $i$ positions.",
+      "explanation": "For unsigned words, the definition is $pp_i=(\\langle B\\rangle\\cdot A_i)\\cdot 2^i$. Multiplication by $A_i$ forms the individual AND results; the factor $2^i$ shifts them to the appropriate positions. A fixed shift can be implemented in hardware through wiring, with zeros in the lower positions.",
+      "example": "If $B=1011_2$ and $A_2=1$, then $pp_2=1011_2\\ll2=00101100_2$ in an 8-bit representation.",
+      "pitfalls": [
+        "Do not accidentally shift a partial product that has already been shifted a second time.",
+        "$A_0$ denotes the least significant bit."
+      ],
+      "related": [
+        "Multiplication of a word by one bit",
+        "Place weight of a partial-product bit",
+        "Parallel multiplier"
+      ],
+      "heading": "2.3 Zwei mehrstellige Binärzahlen multiplizieren"
+    },
+    {
+      "id": "era-17-k07",
+      "term": "Place weight of a partial-product bit (Stellengewicht eines Teilproduktbits)",
+      "kind": "theorem",
+      "short": "The bit product $A_iB_j$ contributes to the overall product with weight $2^{i+j}$.",
+      "explanation": "The bit $A_i$ represents the weight $2^i$, and $B_j$ represents $2^j$. If both bits are 1, their product contributes $2^i\\cdot2^j=2^{i+j}$. The partial-product bit is therefore at position $i+j$.",
+      "example": "The partial-product bit $A_2B_1$ has weight $2^3=8$ and belongs at bit position 3.",
+      "pitfalls": [
+        "The position is the sum of the bit indices, not their maximum."
+      ],
+      "related": [
+        "Partial product",
+        "Result width"
+      ],
+      "heading": "2.3 Zwei mehrstellige Binärzahlen multiplizieren"
+    },
+    {
+      "id": "era-17-k08",
+      "term": "Unsigned multiplication (vorzeichenlose Multiplikation)",
+      "kind": "concept",
+      "short": "Unsigned multiplication interprets binary words as nonnegative numbers and adds their partial products.",
+      "explanation": "For $n$-bit words, $\\langle A\\rangle=\\sum_{i=0}^{n-1}A_i2^i$ holds, and likewise for $B$. The product is the sum of the weighted bit products, or equivalently the shifted partial products: $\\langle P\\rangle=\\sum_{i=0}^{n-1}pp_i$. For two's-complement numbers, the sign bit must be handled differently.",
+      "example": "Under this interpretation, the word $1011_2$ is read as the unsigned number 11.",
+      "pitfalls": [
+        "The circuit described is not automatically a complete multiplier for signed two's-complement numbers."
+      ],
+      "related": [
+        "Partial product",
+        "Result width",
+        "Two's complement"
+      ],
+      "heading": "2.3 Zwei mehrstellige Binärzahlen multiplizieren"
+    },
+    {
+      "id": "era-17-k09",
+      "term": "Result width (Ergebnisbreite)",
+      "kind": "theorem",
+      "short": "The product of two unsigned $n$-bit numbers fits in $2n$ bits.",
+      "explanation": "Each such number lies between 0 and $2^n-1$. Therefore, $0\\leq\\langle P\\rangle\\leq(2^n-1)^2<2^{2n}$, which implies that at most $2n$ bits are needed. The sum of all partial products also fits in this width.",
+      "example": "$1111_2\\cdot1111_2=11100001_2$, so two 4-bit operands produce an 8-bit result.",
+      "pitfalls": [
+        "Do not allocate only $n$ result bits for the full product.",
+        "This width rule applies here to unsigned operands."
+      ],
+      "related": [
+        "Unsigned multiplication",
+        "Partial product",
+        "Place weight of a partial-product bit"
+      ],
+      "heading": "2.4 Ergebnisbreite"
+    },
+    {
+      "id": "era-17-k10",
+      "term": "11 × 5",
+      "kind": "example",
+      "short": "The product $1011_2\\cdot0101_2$ is $00110111_2$, found by adding the shifted partial products.",
+      "explanation": "Here, $B=1011_2=11$ and $A=0101_2=5$. Only $A_0$ and $A_2$ are 1, so only $pp_0=00001011_2$ and $pp_2=00101100_2$ are nonzero. Their sum is $00110111_2=55_{10}$.",
+      "example": "$00001011_2+00101100_2=00110111_2$.",
+      "pitfalls": [
+        "The partial product for $A_2$ must be shifted two places to the left."
+      ],
+      "related": [
+        "Partial product",
+        "Result width",
+        "Parallel multiplier"
+      ],
+      "heading": "2.5 Beispiel aus der Vorlesung: 11 × 5"
+    },
+    {
+      "id": "era-17-k11",
+      "term": "Multiplication implementations (Realisierungsvarianten der Multiplikation)",
+      "kind": "concept",
+      "short": "A multiplier can process partial products in parallel, sequentially, or using a hybrid approach.",
+      "explanation": "In a fully parallel implementation, all partial products are generated simultaneously and summed in hardwired adder stages. With stepwise processing, partial products are generated and accumulated one after another, allowing arithmetic hardware to be reused. Hybrid approaches combine parallel and stepwise processing.",
+      "example": "A fully parallel multiplier forms all bitwise AND products at once; a stepwise implementation can reuse one adder for several partial sums.",
+      "pitfalls": [
+        "Stepwise processing can save hardware, but it requires multiple processing steps."
+      ],
+      "related": [
+        "Parallel multiplier",
+        "Partial product",
+        "Carry-save adder (CSavA)"
+      ],
+      "heading": "2.6 Realisierungsvarianten"
+    },
+    {
+      "id": "era-17-k12",
+      "term": "Parallel multiplier (paralleler Multiplizierer)",
+      "kind": "definition",
+      "short": "A parallel multiplier forms all bit-level partial products simultaneously and sums them using hardwired adder stages.",
+      "explanation": "For two $n$-bit operands, $n^2$ bit products are formed with AND gates and arranged by place value into $n$ shifted partial products. Half adders and full adders reduce and add these words to produce the product. The partial products are formed in parallel, while later adder stages depend on earlier intermediate results.",
+      "example": "A regular 4×4-bit multiplier forms 16 bit products and produces a product of up to 8 bits.",
+      "pitfalls": [
+        "Parallel does not mean that every adder stage can operate simultaneously and independently of all the others.",
+        "The structure described applies to unsigned operands."
+      ],
+      "related": [
+        "Partial product",
+        "Half adder",
+        "Full adder",
+        "Carry-save adder (CSavA)"
+      ],
+      "heading": "3. Paralleler Multiplizierer"
+    },
+    {
+      "id": "era-17-k13",
+      "term": "Half adder (Halbaddierer)",
+      "kind": "definition",
+      "short": "A half adder adds two bits and outputs a sum bit and a carry bit.",
+      "explanation": "For inputs $x,y$, $s=x\\oplus y$ and $c_{out}=x\\land y$ hold. The sum bit remains at the same position; the carry has twice the place value. A half adder has no carry-in.",
+      "example": "For $x=y=1$, $s=0$ and $c_{out}=1$, so the sum is 2.",
+      "pitfalls": [
+        "A half adder cannot process an additional carry-in."
+      ],
+      "related": [
+        "Full adder",
+        "Carry-in and carry-out",
+        "Parallel multiplier"
+      ],
+      "heading": "3.1 Wiederholung: Halbaddierer und Volladdierer"
+    },
+    {
+      "id": "era-17-k14",
+      "term": "Full adder (Volladdierer)",
+      "kind": "definition",
+      "short": "A full adder adds two input bits and a carry-in to produce a sum bit and a carry-out.",
+      "explanation": "For $x,y,c_{in}\\in\\{0,1\\}$, $s=x\\oplus y\\oplus c_{in}$ and $c_{out}=(x\\land y)\\lor(x\\land c_{in})\\lor(y\\land c_{in})$ hold. Its arithmetic invariant is $x+y+c_{in}=s+2c_{out}$. The carry-out represents the carry to the next higher position.",
+      "example": "For $x=1$, $y=1$, and $c_{in}=1$, we obtain $s=1$ and $c_{out}=1$, so $3=1+2$.",
+      "pitfalls": [
+        "In a carry-save adder, the third input is a data bit with the same place value, not a carry from the adjacent full adder."
+      ],
+      "related": [
+        "Half adder",
+        "Carry-in and carry-out",
+        "Carry-save adder (CSavA)"
+      ],
+      "heading": "3.1 Wiederholung: Halbaddierer und Volladdierer"
+    },
+    {
+      "id": "era-17-k15",
+      "term": "Regular structure of the 4×4-bit multiplier (Reguläre Struktur des 4×4-Bit-Multiplizierers)",
+      "kind": "concept",
+      "short": "The regular multiplier structure adds partial products row by row and can start with the least significant operand bit.",
+      "explanation": "For the regular structure shown, with $n\\geq2$, there are $n^2$ AND gates, $n-1$ half adders, and $(n-1)^2$ full adders. In the 4×4 example, this gives 16 AND gates, 3 half adders, and 9 full adders. Starting the addition with $A_0$ can determine the least significant product bit early, since all later partial products are divisible by at least 2.",
+      "example": "For $1011_2\\cdot0101_2$, $P_0=A_0B_0=1$ is already determined by the first partial product.",
+      "pitfalls": [
+        "Block counts are not exact counts of elementary gates; they depend on how the adders are implemented.",
+        "$A_0$ is the LSB, not the MSB."
+      ],
+      "related": [
+        "Parallel multiplier",
+        "Half adder",
+        "Full adder",
+        "Partial product"
+      ],
+      "heading": "3.2 Struktur des 4×4-Bit-Multiplizierers"
+    },
+    {
+      "id": "era-17-k16",
+      "term": "2×2-bit multiplier (2×2-Bit-Multiplizierer)",
+      "kind": "example",
+      "short": "A 2×2-bit multiplier forms four bit products and adds the overlapping positions using half adders.",
+      "explanation": "For two 2-bit words, $P=A_0B_0+2(A_1B_0+A_0B_1)+4A_1B_1$ holds. The bit $A_0B_0$ is directly $P_0$; the two middle bit products are added. Another half adder processes the carry together with $A_1B_1$.",
+      "example": "For $A=11_2$ and $B=10_2$, the result is $P=0110_2=6$.",
+      "pitfalls": [
+        "The two middle bit products have the same place value and must be added."
+      ],
+      "related": [
+        "Parallel multiplier",
+        "Half adder",
+        "Place weight of a partial-product bit"
+      ],
+      "heading": "3.3 Vollständige Beispielschaltung: 2×2 Bit"
+    },
+    {
+      "id": "era-17-k17",
+      "term": "MSB-first implementation (MSB-first-Realisierung)",
+      "kind": "concept",
+      "short": "A parallel multiplier can start with the most significant bit, resulting in a less regular circuit structure.",
+      "explanation": "The partial products can be summed in a different order without changing the mathematical product. Starting the adder structure with $A_{n-1}$ instead of $A_0$ produces the less regular and less favorable structure shown in the lecture.",
+      "example": null,
+      "pitfalls": [
+        "Changing the order of the partial products does not change the result, but it can change the circuit structure."
+      ],
+      "related": [
+        "Parallel multiplier",
+        "Partial product"
+      ],
+      "heading": "3.5 Alternative: Beginn beim MSB"
+    },
+    {
+      "id": "era-17-k18",
+      "term": "Carry chain (Übertragskette)",
+      "kind": "definition",
+      "short": "A carry chain is a dependency in which the carry at one bit position affects the computation at the next position.",
+      "explanation": "In multi-bit addition, the carry-out from one position often becomes the carry-in to the next higher position. This can propagate computation across multiple bit positions, causing circuit depth to grow with word width. Avoiding a carry chain within a reduction stage is the key speed advantage of the carry-save adder.",
+      "example": "In a 4-bit ripple-carry adder, the carry can propagate from bit 0 through bit 3.",
+      "pitfalls": [
+        "A carry saved for a later stage is not automatically a carry chain within the current stage."
+      ],
+      "related": [
+        "Ripple-carry adder",
+        "Carry-save adder (CSavA)",
+        "Cost and depth"
+      ],
+      "heading": "4.3 Unterschied zum Ripple-Carry Addierer"
+    },
+    {
+      "id": "era-17-k19",
+      "term": "Carry-save adder (CSavA)",
+      "kind": "definition",
+      "short": "A carry-save adder reduces three input words to two output words while preserving their total sum.",
+      "explanation": "For inputs $u,v,w$, a carry-save adder produces a sum word $s$ and a carry word $c$ that is already shifted to the correct position, such that $\\langle u\\rangle+\\langle v\\rangle+\\langle w\\rangle=\\langle s\\rangle+\\langle c\\rangle$. The sum is therefore represented redundantly, rather than as a single result word. A final adder can combine the two words later.",
+      "example": "$11+7+6=10+14=24$; a CSavA can output the words 10 and 14 for this sum.",
+      "pitfalls": [
+        "In this notation, the carry word has already been shifted by one position.",
+        "The two output words are not yet the single final sum word."
+      ],
+      "related": [
+        "Full adder",
+        "Carry chain",
+        "Final adder",
+        "Reduction tree"
+      ],
+      "heading": "4.1 Grundidee: 3 Wörter → 2 Wörter"
+    },
+    {
+      "id": "era-17-k20",
+      "term": "CSavA bit slice (CSavA-Bitstufe)",
+      "kind": "concept",
+      "short": "Each bit slice of a carry-save adder uses an independent full adder for three input bits with the same place value.",
+      "explanation": "At position $i$, a full adder computes $s_i=u_i\\oplus v_i\\oplus w_i$ and $c_{i+1}=(u_i\\land v_i)\\lor(u_i\\land w_i)\\lor(v_i\\land w_i)$; $c_0=0$ holds. The local invariant is $u_i+v_i+w_i=s_i+2c_{i+1}$. Since no full adder needs the carry from an adjacent full adder, the bit slices operate in parallel and have a combined depth of $O(1)$ and cost linear in the word width.",
+      "example": "For bits $u_i=v_i=w_i=1$, we obtain $s_i=1$ and $c_{i+1}=1$, since $3=1+2$.",
+      "pitfalls": [
+        "Do not pass a slice's carry-out to the next bit slice as its carry-in.",
+        "The third input of each full adder is an operand bit, not an incoming carry."
+      ],
+      "related": [
+        "Carry-save adder (CSavA)",
+        "Full adder",
+        "Carry chain"
+      ],
+      "heading": "4.2 Aufbau pro Bit"
+    },
+    {
+      "id": "era-17-k21",
+      "term": "Ripple-carry adder (Ripple-Carry Addierer)",
+      "kind": "definition",
+      "short": "A ripple-carry adder adds two words by passing the carry from each bit position to the next.",
+      "explanation": "Each bit position processes the two operand bits and the carry-in, then produces a carry-out for the next position. For $k$ bits, this dependency path can span up to $k$ adder stages, giving a depth of $O(k)$. By contrast, the full adders in a CSavA stage do not pass carries between adjacent positions.",
+      "example": "In a 3-bit addition, position 2 can determine its carry only after the carry from position 1 is available.",
+      "pitfalls": [
+        "A ripple-carry final adder is simple, but its depth is linear in the word width."
+      ],
+      "related": [
+        "Carry chain",
+        "Carry-save adder (CSavA)",
+        "Final adder",
+        "Carry ripple adder"
+      ],
+      "heading": "4.3 Unterschied zum Ripple-Carry Addierer"
+    },
+    {
+      "id": "era-17-k22",
+      "term": "Word width and top carry in a CSavA (Wortbreite und oberster Carry beim CSavA)",
+      "kind": "concept",
+      "short": "A carry-save adder may discard the top carry only if the chosen word width is guaranteed to hold the entire sum.",
+      "explanation": "When multiplying two unsigned $n$-bit numbers, the partial products are represented using $2n$ bits because their total sum is less than $2^{2n}$. All partial sums are nonnegative and at most as large as the total sum, so they also fit within this width. In this case, the carry above bit $2n-1$ is zero.",
+      "example": "For the $2n$-bit reduction in such a multiplier, set $c_0=0$; the carry above bit $2n-1$ is unused.",
+      "pitfalls": [
+        "Do not discard the highest carry for three arbitrary words without justification.",
+        "Do not shift a carry word to the left again if it has already been shifted."
+      ],
+      "related": [
+        "Carry-save adder (CSavA)",
+        "Result width",
+        "Unsigned multiplication"
+      ],
+      "heading": "4.5 Spezialfall: Partialprodukte mit $2n$ Bits"
+    },
+    {
+      "id": "era-17-k23",
+      "term": "Serial CSavA chain (Serielle CSavA-Kette)",
+      "kind": "method",
+      "short": "A serial CSavA chain reduces $n$ partial products to two words using $n-2$ carry-save adders.",
+      "explanation": "Each carry-save adder takes three words and outputs two, reducing the word count by one. For $n\\geq2$, a final adder follows the reduction and adds the last two words to produce a product. The CSavA stages form a combinational chain and do not necessarily require multiple clock cycles.",
+      "example": "32 partial products require 30 CSavAs, followed by a final adder.",
+      "pitfalls": [
+        "“Serial” here refers to dependent combinational stages, not necessarily to multiple clock cycles.",
+        "Do not forget the final adder after the reduction."
+      ],
+      "related": [
+        "Carry-save adder (CSavA)",
+        "Final adder",
+        "Reduction tree"
+      ],
+      "heading": "5.1 Serielle Lösung"
+    },
+    {
+      "id": "era-17-k24",
+      "term": "4-to-2 compressor (4-zu-2-Baustein)",
+      "kind": "definition",
+      "short": "A 4-to-2 compressor uses two consecutive carry-save adders to reduce four words to two.",
+      "explanation": "The first carry-save adder reduces three input words to two; a second processes these two outputs together with the fourth input word. Since both reductions preserve the sum, $a+b+c+d=s+t$ holds. Multiple such compressors can operate in parallel at the same tree level.",
+      "example": "Four words $a,b,c,d$ produce two words $s,t$ with the same total sum after two CSavA stages.",
+      "pitfalls": [
+        "A 4-to-2 compressor contains two CSavA stages; it is not a single full adder."
+      ],
+      "related": [
+        "Carry-save adder (CSavA)",
+        "Reduction tree"
+      ],
+      "heading": "5.2 Baumartige Lösung: 4-zu-2-Baustein"
+    },
+    {
+      "id": "era-17-k25",
+      "term": "Reduction tree (Reduktionsbaum)",
+      "kind": "method",
+      "short": "A reduction tree groups many words into parallel levels until two words remain for the final adder.",
+      "explanation": "A balanced tree reduces several groups simultaneously instead of arranging all CSavAs in one long chain. For 16 words, for example, the word count can decrease as $16\\to8\\to4\\to2$. The final addition combines the two remaining words.",
+      "example": "For 16 partial products, the structure described uses 7 4-to-2 compressors, or 14 CSavAs; the critical path contains 6 CSavA stages.",
+      "pitfalls": [
+        "The total number of CSavAs can match that of the serial solution even though the critical path is shorter.",
+        "A tree still requires a conventional final adder."
+      ],
+      "related": [
+        "4-to-2 compressor",
+        "Carry-save adder (CSavA)",
+        "Final adder"
+      ],
+      "heading": "5.3 Beispiel eines Reduktionsbaums für 16 Partialprodukte"
+    },
+    {
+      "id": "era-17-k26",
+      "term": "Final adder (Endaddierer)",
+      "kind": "definition",
+      "short": "A final adder adds the two words remaining after carry-save reduction to produce one result word.",
+      "explanation": "Carry-save stages preserve the total sum as two words $s$ and $c$. The final adder computes $s+c$ from them and returns the product as a conventional binary word. Its depth affects the multiplier's total depth.",
+      "example": "After a CSavA reduction with $s=10$ and $c=14$, the final adder produces $24$.",
+      "pitfalls": [
+        "A CSavA is not itself the final adder and does not produce a single sum word.",
+        "The depth of a ripple-carry final adder grows linearly with the word width."
+      ],
+      "related": [
+        "Carry-save adder (CSavA)",
+        "Ripple-carry adder",
+        "Serial CSavA chain",
+        "Reduction tree"
+      ],
+      "heading": "5.1 Serielle Lösung"
+    },
+    {
+      "id": "era-17-k27",
+      "term": "Complexity of CSavA multipliers (Komplexität der CSavA-Multiplizierer)",
+      "kind": "theorem",
+      "short": "Serial and tree-based CSavA multipliers have $O(n^2)$ cost; their depth depends on the reduction structure and final adder.",
+      "explanation": "An $n\\times n$-bit multiplier has $n$ partial products, each with up to $2n$ bit positions, so the cost of the reduction architectures described is $O(n^2)$. A serial chain has $O(n)$ dependent CSavA stages and an overall depth of $O(n)$ with a ripple-carry final adder. A balanced reduction tree has a reduction depth of $O(\\log n)$; with a logarithmic-depth final adder, its total depth is also $O(\\log n)$, whereas with a ripple-carry final adder it is $O(n)$.",
+      "example": "For 16 partial products, the tree has fewer reduction levels, even if its number of CSavAs is no lower than that of the serial solution.",
+      "pitfalls": [
+        "Logarithmic total depth requires a fast final adder.",
+        "$O(\\log n)$ depth does not imply an asymptotic cost reduction compared with the serial solution."
+      ],
+      "related": [
+        "Serial CSavA chain",
+        "Reduction tree",
+        "Final adder",
+        "Cost and depth"
+      ],
+      "heading": "5.4 Komplexität"
+    },
+    {
+      "id": "era-17-k28",
+      "term": "ALU (Arithmetic Logic Unit)",
+      "kind": "definition",
+      "short": "An ALU combines arithmetic and logical operations and outputs the result of the selected function.",
+      "explanation": "An ALU receives operands $a$ and $b$, an optional carry-in $c$, and a select signal. It computes one of its supported functions and outputs the result. In the lecture model, the operands are $n$ bits wide and the uniform output is $n+1$ bits wide; a complete $2n$-bit multiplication result therefore generally does not fit in this output.",
+      "example": "Depending on the selection code, an ALU can perform addition, AND, OR, or XOR.",
+      "pitfalls": [
+        "The ALU is the functional unit that selects and performs operations; the select signal is a separate control input.",
+        "The modeled $n+1$-bit output is not wide enough for every complete $n\\times n$-bit product."
+      ],
+      "related": [
+        "Select signal",
+        "Generalized multiplexer",
+        "Adder/subtractor",
+        "Parallel multiplier"
+      ],
+      "heading": "6. ALU – Arithmetic Logic Unit"
+    },
+    {
+      "id": "era-17-k29",
+      "term": "Select signal (Select-Signal)",
+      "kind": "notation",
+      "short": "A select signal of $m$ bits chooses one of up to $2^m$ ALU function codes.",
+      "explanation": "The select bus can be read as the number $i=\\langle select\\rangle$; the ALU then returns $y=f_i(a,b,c)$. At least $m=\\lceil\\log_2 r\\rceil$ select bits are needed for $r$ different functions. Not every available code must be assigned to a distinct function.",
+      "example": "At least three bits suffice for five functions, since they can represent eight selection codes.",
+      "pitfalls": [
+        "$m$ is the number of select bits; the number of addressable functions is at most $2^m$, not $m$.",
+        "Unassigned selection codes can remain unused."
+      ],
+      "related": [
+        "ALU (Arithmetic Logic Unit)",
+        "Generalized multiplexer"
+      ],
+      "heading": "6. ALU – Arithmetic Logic Unit"
+    },
+    {
+      "id": "era-17-k30",
+      "term": "Separate function circuits (Getrennte Funktionsschaltkreise)",
+      "kind": "concept",
+      "short": "In a separate implementation, each ALU function has its own circuit, and the results are then selected.",
+      "explanation": "All function circuits receive the operands and any other shared inputs. Each computes its result, while a multiplexer uses the select signal to choose an output bus. This modular approach is easy to understand but can require redundant hardware.",
+      "example": "An adder and an AND circuit can compute results in parallel, and the ALU selects one of them.",
+      "pitfalls": [
+        "A separate implementation can require more hardware than a solution with shared subcircuits.",
+        "The multiplexer selects the function's output bus, not its input signals."
+      ],
+      "related": [
+        "ALU (Arithmetic Logic Unit)",
+        "Generalized multiplexer",
+        "Select signal"
+      ],
+      "heading": "6.1 Möglichkeit 1: Einzelfunktionen getrennt realisieren"
+    },
+    {
+      "id": "era-17-k31",
+      "term": "Generalized multiplexer (Verallgemeinerter Multiplexer)",
+      "kind": "definition",
+      "short": "A generalized multiplexer uses a control code to select one of several result buses of equal width.",
+      "explanation": "In an ALU, each multiplexer input corresponds to the result of one function. The select signal determines which bus is passed to the output. For example, an $n+1$-bit output can be built using $n+1$ individual multiplexers and one shared select signal.",
+      "example": "A 2-bit select signal can choose among four result buses.",
+      "pitfalls": [
+        "The multiplexer selects an entire result bus; the bits of a bus must jointly represent the result of the same function."
+      ],
+      "related": [
+        "Multiplexer",
+        "Select signal",
+        "Separate function circuits",
+        "ALU (Arithmetic Logic Unit)"
+      ],
+      "heading": "6.1 Möglichkeit 1: Einzelfunktionen getrennt realisieren"
+    },
+    {
+      "id": "era-17-k32",
+      "term": "Adder/subtractor (Addierer/Subtrahierer)",
+      "kind": "method",
+      "short": "A shared adder can perform addition and two's-complement subtraction by conditionally inverting the second operand and controlling the carry-in.",
+      "explanation": "With a control signal $sub\\in\\{0,1\\}$, form $b'_i=b_i\\oplus sub$ and set $c_{in}=sub$. The adder then computes $a+b'+sub$; for $sub=0$, this is $a+b$, and for $sub=1$, it is $a+\\overline b+1\\equiv a-b\\pmod{2^n}$. The lower $n$ bits form the result of the addition or subtraction.",
+      "example": "For $sub=1$, $b$ is inverted bitwise and 1 is added, so the adder computes $a-b$.",
+      "pitfalls": [
+        "For subtraction, both the second operand must be inverted and the carry-in set to 1.",
+        "Carry-out and signed overflow are distinct interpretations."
+      ],
+      "related": [
+        "Two's-complement subtraction",
+        "Carry-in and carry-out",
+        "ALU (Arithmetic Logic Unit)",
+        "Select signal"
+      ],
+      "heading": "6.3 Möglichkeit 2: Gemeinsame Behandlung ähnlicher Funktionen"
+    }
+  ],
+  "generator": {
+    "model": "gpt-6-luna",
+    "effort": "xhigh",
+    "promptVersion": "k1",
+    "generatedAt": "2026-11-24T23:32:47.117Z"
+  }
+}
