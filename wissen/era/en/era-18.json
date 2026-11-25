@@ -1,0 +1,467 @@
+{
+  "schemaVersion": 1,
+  "unitId": "era-18",
+  "module": "ERA",
+  "unitNumber": 18,
+  "unitTitle": "Storage: Latches, Registers, and Memory",
+  "sourceSha": "12b92718bfd9c013efdd7097ad6fb016544f48985a35b1752f94a9d542737c1d",
+  "overview": "This unit shows how feedback (Rückkopplung) preserves state (Zustand) and gives rise to latches, flip-flops, and registers. Addressable memory (adressierbarer Speicher) connects storage cells with write selection (Schreibselektion) and multiplexers. DRAM, SRAM, and matrix addressing (Matrixadressierung) explain how real memories are organized.",
+  "entries": [
+    {
+      "id": "era-18-k01",
+      "term": "Combinational circuit (Kombinatorische Schaltung)",
+      "kind": "definition",
+      "short": "The output of a combinational circuit depends only on its current inputs.",
+      "explanation": "A combinational circuit computes its output as a function of its current inputs, for example $y(t)=f(x(t))$. It has no stored state that affects the result. Adders and multiplexers are typical examples.",
+      "example": "For an AND gate with inputs 1 and 0, the output is 0.",
+      "pitfalls": [
+        "An output that depends on an earlier input indicates stored state and therefore sequential behavior."
+      ],
+      "related": [
+        "Sequential circuit and state",
+        "Multiplexer"
+      ],
+      "heading": "0. Big Picture"
+    },
+    {
+      "id": "era-18-k02",
+      "term": "Sequential circuit and state (Sequentielle Schaltung und Zustand)",
+      "kind": "concept",
+      "short": "A sequential circuit computes its next state from its current state and current inputs.",
+      "explanation": "In a sequential circuit, behavior depends on both the inputs and the stored state: $q(t+1)=g(q(t),x(t))$. Here, $q(t)$ denotes the current state and $q(t+1)$ the next state. $t$ counts state steps and need not mean a CPU clock cycle.",
+      "example": "A memory bit can retain its value even after the data input changes.",
+      "pitfalls": [
+        "The state step $t$ is not automatically a clock period."
+      ],
+      "related": [
+        "Combinational circuit",
+        "Feedback",
+        "D flip-flop"
+      ],
+      "heading": "0. Big Picture"
+    },
+    {
+      "id": "era-18-k03",
+      "term": "Feedback (Rückkopplung)",
+      "kind": "concept",
+      "short": "Feedback routes a circuit output back to an input and can thereby preserve a state.",
+      "explanation": "In a circuit with feedback, an earlier output affects the next output value. As a result, the circuit can take different stable values depending on its history. Feedback is the basis of latches and other memory circuits.",
+      "example": "If a gate's output is connected to one of its inputs, the output can contribute to calculating its next value.",
+      "pitfalls": [
+        "Feedback alone does not guarantee a deliberate way to clear a stored value."
+      ],
+      "related": [
+        "Sequential circuit and state",
+        "Feedback OR gate",
+        "RS latch / SR latch"
+      ],
+      "heading": "1. Rückkopplung – wie entsteht ein Gedächtnis? (Folie 5)"
+    },
+    {
+      "id": "era-18-k04",
+      "term": "Feedback OR gate (Rückgekoppeltes OR-Gatter)",
+      "kind": "concept",
+      "short": "A feedback OR gate can retain a 1 once set, but has no deliberate reset.",
+      "explanation": "For this example, $y(t+1)=a(t)\\lor y(t)$. With initial state $y(0)=0$, an input of $a=1$ sets the output to 1. As long as feedback remains, $y=1$, even when $a$ returns to 0. Because no input forces the output to 0, the circuit is not a complete set-reset storage element.",
+      "example": "Starting from $y=0$, $a=1$ leads to $y=1$; when $a=0$ follows, $y=1$ remains.",
+      "pitfalls": [
+        "The circuit cannot deliberately restore 0."
+      ],
+      "related": [
+        "Feedback",
+        "RS latch / SR latch"
+      ],
+      "heading": "1. Rückkopplung – wie entsteht ein Gedächtnis? (Folie 5)"
+    },
+    {
+      "id": "era-18-k05",
+      "term": "RS latch / SR latch (RS-Latch / SR-Latch)",
+      "kind": "definition",
+      "short": "An RS latch stores one bit using separate set and reset inputs.",
+      "explanation": "An RS latch consists of two gates with feedback and can store one of two stable states. $S$ denotes Set and requests the value 1; $R$ denotes Reset and requests the value 0. $Q$ is the stored bit; in a valid state, $Q$ and $\\overline Q$ are complementary.",
+      "example": "A valid stored value can be $Q=1$ and $\\overline Q=0$.",
+      "pitfalls": [
+        "The meaning and polarity of the active input levels depend on whether the latch is built from NOR or NAND gates."
+      ],
+      "related": [
+        "Feedback",
+        "NOR-based RS latch (active-high)",
+        "NAND-based RS latch (active-low)"
+      ],
+      "heading": "2. RS-Latch / SR-Latch (Folien 7–10)"
+    },
+    {
+      "id": "era-18-k06",
+      "term": "NOR-based RS latch (active-high) (NOR-RS-Latch (aktiv High))",
+      "kind": "definition",
+      "short": "A NOR-based RS latch holds when $R=S=0$, sets when $S=1$, and resets when $R=1$.",
+      "explanation": "In an active-high NOR RS latch, high levels at $S$ and $R$ indicate active requests. In the hold state, $R=S=0$; $S=1,R=0$ sets $Q$ to 1, and $R=1,S=0$ sets $Q$ to 0. For valid inputs, $Q(t+1)=S\\lor(\\neg R\\land Q(t))$.",
+      "example": "With $Q=0$, $S=1$, and $R=0$, $Q$ is set to 1.",
+      "pitfalls": [
+        "For the NOR latch, $R=S=1$ is forbidden.",
+        "The next-state equation does not apply to the forbidden input combination."
+      ],
+      "related": [
+        "RS latch / SR latch",
+        "Forbidden state of a NOR-based RS latch",
+        "NAND-based RS latch (active-low)"
+      ],
+      "heading": "2.1 NOR-RS-Latch (aktiv High)"
+    },
+    {
+      "id": "era-18-k07",
+      "term": "Forbidden state of a NOR-based RS latch (Verbotener Zustand beim NOR-RS-Latch)",
+      "kind": "concept",
+      "short": "When $R=S=1$, both outputs of the NOR-based RS latch are 0 and are no longer complementary.",
+      "explanation": "When both active-high inputs are 1 at the same time, both NOR gates produce 0. Thus, $Q=0$ and $\\overline Q=0$, which violates the normal complementarity of the outputs. If both inputs return to 0 at the same time, the resulting state depends on propagation-delay differences and cannot be predicted reliably.",
+      "example": null,
+      "pitfalls": [
+        "The state during $R=S=1$ must be distinguished from the uncertainty after the inputs are released."
+      ],
+      "related": [
+        "NOR-based RS latch (active-high)",
+        "NAND-based RS latch (active-low)"
+      ],
+      "heading": "2.3 Verbotener Zustand"
+    },
+    {
+      "id": "era-18-k08",
+      "term": "NAND-based RS latch (active-low) (NAND-RS-Latch (aktiv Low))",
+      "kind": "definition",
+      "short": "A NAND-based RS latch holds when $\\overline R=\\overline S=1$ and has a forbidden state when $\\overline R=\\overline S=0$.",
+      "explanation": "The control inputs of an active-low NAND RS latch are active only at a low level. With $\\overline S=0,\\overline R=1$, $Q$ is set to 1; with $\\overline R=0,\\overline S=1$, $Q$ is set to 0. When both inputs are 0, the NAND gates force both outputs high, so they are no longer complementary.",
+      "example": "A brief low level at $\\overline S$ while $\\overline R$ is high sets $Q$ to 1.",
+      "pitfalls": [
+        "Because of active-low control, the input levels have a different meaning than in a NOR-based RS latch.",
+        "The actual signal levels on the wires must be considered."
+      ],
+      "related": [
+        "RS latch / SR latch",
+        "NOR-based RS latch (active-high)",
+        "Forbidden state of a NOR-based RS latch"
+      ],
+      "heading": "2.4 NAND-RS-Latch (aktiv Low)"
+    },
+    {
+      "id": "era-18-k09",
+      "term": "D latch (D-Latch)",
+      "kind": "definition",
+      "short": "A D latch takes the value $D$ when $E=1$ and holds the stored value when $E=0$.",
+      "explanation": "A D latch can be built from a NOR-based RS latch, two AND gates, and an inverter. In this design, $S=E\\land D$ and $R=E\\land\\neg D$, so in the ideal model $S\\land R=0$ and Set and Reset are never active at the same time. Its characteristic equation is $Q(t+1)=(E\\land D)\\lor(\\neg E\\land Q(t))$.",
+      "example": "When $E=1,D=0$, $Q=0$; when $E=0$ follows, this value remains stored.",
+      "pitfalls": [
+        "Throughout the active Enable phase, the latch responds to $D$; it does not take just one value when $E$ is switched on."
+      ],
+      "related": [
+        "RS latch / SR latch",
+        "NOR-based RS latch (active-high)",
+        "Transparency of a D latch",
+        "D flip-flop"
+      ],
+      "heading": "3. D-Latch (Folien 11–14)"
+    },
+    {
+      "id": "era-18-k10",
+      "term": "Transparency of a D latch (Transparenz eines D-Latches)",
+      "kind": "concept",
+      "short": "A D latch is transparent as long as its Enable input is active.",
+      "explanation": "When $E=1$, the data path is open and $Q$ follows $D$ after the gate delay. When $E=0$, the data path is closed and the most recently captured value is retained. When the latch closes, it holds the value that was present most recently during the open phase.",
+      "example": "If $E=1$ remains true and $D$ changes from 0 to 1, $Q$ also changes to 1 after the propagation delay.",
+      "pitfalls": [
+        "A latch responds to data over a time window; an edge-triggered flip-flop captures data at a clock edge."
+      ],
+      "related": [
+        "D latch",
+        "D flip-flop",
+        "Latch and flip-flop comparison"
+      ],
+      "heading": "3.3 Transparenz und Timing"
+    },
+    {
+      "id": "era-18-k11",
+      "term": "D flip-flop (D-Flipflop)",
+      "kind": "definition",
+      "short": "A positive-edge-triggered D flip-flop captures $D$ only at the rising clock edge.",
+      "explanation": "The D flip-flop stores the value of $D$ when the Clock transitions from 0 to 1. Between these edges, it holds its state even if the data input changes. It stores one bit and, from the outside, is not transparent throughout an entire clock phase.",
+      "example": "If $D=1$ is present immediately before a rising edge, $Q=1$ is held after the edge.",
+      "pitfalls": [
+        "A clock held high does not cause repeated captures; each capture requires a new rising edge."
+      ],
+      "related": [
+        "D latch",
+        "Setup and hold time",
+        "Shift register",
+        "Register"
+      ],
+      "heading": "4. Taktflankengesteuertes D-Flipflop (Folien 15–16)"
+    },
+    {
+      "id": "era-18-k12",
+      "term": "Generating a short write pulse (Erzeugung eines kurzen Schreibpulses)",
+      "kind": "method",
+      "short": "A delayed clock signal can be combined with the undelayed clock to form a short pulse at the rising edge.",
+      "explanation": "A delay chain produces a time-delayed signal from $CLK$. This signal is inverted and ANDed with the undelayed Clock, so ideally $E(t)=CLK(t)\\land\\neg CLK(t-\\tau)$. The short active pulse opens a D latch near the rising clock edge.",
+      "example": "Immediately after the Clock rises, $CLK=1$ while the delayed signal is still 0; this briefly makes $E$ equal to 1.",
+      "pitfalls": [
+        "A real pulse has a finite duration; it is not a mathematical impulse of zero duration."
+      ],
+      "related": [
+        "D latch",
+        "D flip-flop",
+        "Master-slave D flip-flop"
+      ],
+      "heading": "4.1 Realisierung mit kurzem Schreibpuls (Folie 15)"
+    },
+    {
+      "id": "era-18-k13",
+      "term": "Master-slave D flip-flop (Master-Slave-D-Flipflop)",
+      "kind": "concept",
+      "short": "Two D latches controlled in opposite phases together form a positive-edge-triggered D flip-flop.",
+      "explanation": "The master latch is transparent when $CLK=0$ and follows the input; the slave latch holds its output during this phase. At the rising edge, the master closes and the slave opens, allowing the previously stored master value to reach the output. While $CLK=1$, the master remains closed, preventing input changes from passing through both latches to the output.",
+      "example": "A brief input pulse that ends before the next rising edge can change the master, but it is not captured at the output.",
+      "pitfalls": [
+        "The two latches must not both be transparent at the same time in a way that lets data pass directly from input to output without control."
+      ],
+      "related": [
+        "D latch",
+        "Transparency of a D latch",
+        "D flip-flop"
+      ],
+      "heading": "4.2 Realisierung mit zwei D-Latches (Master-Slave)"
+    },
+    {
+      "id": "era-18-k14",
+      "term": "Setup and hold time (Setup- und Holdzeit)",
+      "kind": "definition",
+      "short": "Setup and hold time specify how long $D$ must remain stable before and after the active clock edge.",
+      "explanation": "The setup time $t_{setup}$ is the minimum time for which $D$ must be stable before the active edge. The hold time $t_{hold}$ is the minimum time for which $D$ must remain stable after the edge. For an edge at time $t_f$, the data value must remain stable at least over the interval $[t_f-t_{setup},\\ t_f+t_{hold}]$.",
+      "example": "At a rising edge, $D$ must not change immediately before or after the edge if the change falls within the setup or hold window.",
+      "pitfalls": [
+        "These requirements apply around the active edge, not throughout the entire clock period."
+      ],
+      "related": [
+        "D flip-flop",
+        "Master-slave D flip-flop"
+      ],
+      "heading": "4.3 Setup- und Holdzeit"
+    },
+    {
+      "id": "era-18-k15",
+      "term": "Latch and flip-flop comparison (Latch und Flipflop im Vergleich)",
+      "kind": "concept",
+      "short": "A latch is level-sensitive; an edge-triggered flip-flop captures data at a clock edge.",
+      "explanation": "A D latch is transparent while the Enable level is active and can capture multiple changes to $D$ during this time window. A positive-edge-triggered D flip-flop captures the input at the rising clock edge and holds the value between edges. Both store one bit, but differ in when their input can affect the output.",
+      "example": "As long as $E=1$, a D latch follows changes to $D$; for a D flip-flop, $Q$ remains unchanged until a new rising edge.",
+      "pitfalls": [
+        "Latch and flip-flop are not interchangeable names for the same type of control."
+      ],
+      "related": [
+        "D latch",
+        "Transparency of a D latch",
+        "D flip-flop"
+      ],
+      "heading": "4.4 Latch vs. Flipflop – unbedingt unterscheiden"
+    },
+    {
+      "id": "era-18-k16",
+      "term": "Shift register (Schieberegister)",
+      "kind": "definition",
+      "short": "At each active clock edge, a shift register moves the stored bits by one stage.",
+      "explanation": "A shift register consists of several cascaded D flip-flops with a common clock. At each rising edge, the input signal is captured in the first stage, and each subsequent stage simultaneously captures the previous value of its preceding stage: $Q_0(t+1)=D(t)$ and $Q_i(t+1)=Q_{i-1}(t)$. Thus, the assignments use the old values of all stages.",
+      "example": "For the arrangement $Q_0,Q_1,Q_2,Q_3$, the state `0101` becomes `0010` after one edge with $D=0$.",
+      "pitfalls": [
+        "A 1 does not pass through all flip-flops within one edge; each edge shifts it by only one stage.",
+        "Whether the illustrated shift corresponds to a left or right shift depends on the bit-weight assignment."
+      ],
+      "related": [
+        "D flip-flop",
+        "Register"
+      ],
+      "heading": "5. Schieberegister (Folien 17–18)"
+    },
+    {
+      "id": "era-18-k17",
+      "term": "Register (Register)",
+      "kind": "definition",
+      "short": "An n-bit register stores n bits in parallel and, in this model, requires n D flip-flops.",
+      "explanation": "A simple register consists of $n$ D flip-flops with a common Clock and separate data and output lines. At the active edge, each stage captures its input bit, so for every $i$: $Q_i(t+1)=D_i(t)$. Registers store words and intermediate results; unlike a shift register, they do not move bits from stage to stage.",
+      "example": "A 4-bit register captures the four bits `1010` in parallel at a rising edge.",
+      "pitfalls": [
+        "A register loads the bits simultaneously; serial shifting is characteristic of a shift register."
+      ],
+      "related": [
+        "D flip-flop",
+        "Shift register",
+        "Addressable memory",
+        "Registers and register conventions"
+      ],
+      "heading": "6. Register (Folien 20–21)"
+    },
+    {
+      "id": "era-18-k18",
+      "term": "Addressable memory (Adressierbarer Speicher)",
+      "kind": "definition",
+      "short": "Addressable memory stores multiple words and selects a word using its address.",
+      "explanation": "Addressable memory contains storage cells for multiple words, write selection, and a mechanism for selecting the word to read. In the model considered here, D latches hold the bits; when writing, the address determines which row captures the data, and when reading, which word appears at the outputs. Reading uses combinational selection and does not change the stored contents.",
+      "example": "A memory with two words uses one address bit to select word 0 or word 1.",
+      "pitfalls": [
+        "The address selects the word; the word width determines how many bits each word contains."
+      ],
+      "related": [
+        "D latch",
+        "Write selection",
+        "Multiplexer",
+        "Memory size from address bits and word width",
+        "Main memory"
+      ],
+      "heading": "7. Adressierbarer Speicher (Folien 22–25)"
+    },
+    {
+      "id": "era-18-k19",
+      "term": "2 × 2-bit memory (2 × 2-Bit-Speicher)",
+      "kind": "example",
+      "short": "A 2 × 2-bit memory contains two words, each with two storable bits.",
+      "explanation": "This memory consists of four D latches, one address bit $A_0$, two input bits $I_1,I_0$, and two output bits $O_1,O_0$. The address bit selects word 0 or word 1; $D_{i,j}$ denotes bit position $i$ in the word at address $j$. The selected word address is sent to the multiplexers for reading and to the write selection for writing.",
+      "example": "When $A_0=1$, $(D_{1,1},D_{0,1})$ denotes the two stored bits of the word at address 1.",
+      "pitfalls": [
+        "Two address options mean two words, not two bit positions."
+      ],
+      "related": [
+        "Addressable memory",
+        "Write selection",
+        "Multiplexer"
+      ],
+      "heading": "7.1 Beispiel: 2 × 2 Bit Speicher"
+    },
+    {
+      "id": "era-18-k20",
+      "term": "Multiplexer (Multiplexer)",
+      "kind": "definition",
+      "short": "A multiplexer routes a selected input to the output, based on a control signal.",
+      "explanation": "A multiplexer is a combinational selection circuit. In the 2-word memory, two 2-to-1 multiplexers with the same address bit each select one bit from the two stored words. For bit position $i$, $O_i=(\\neg A_0\\land D_{i,0})\\lor(A_0\\land D_{i,1})$.",
+      "example": "When $A_0=0$, $D_{i,0}$ is output; when $A_0=1$, $D_{i,1}$ is output.",
+      "pitfalls": [
+        "A multiplexer selects an output path for reading; it does not activate a memory cell for writing."
+      ],
+      "related": [
+        "Combinational circuit",
+        "Addressable memory",
+        "2 × 2-bit memory",
+        "Write selection"
+      ],
+      "heading": "7.2 Lesen"
+    },
+    {
+      "id": "era-18-k21",
+      "term": "Write selection (Schreibselektion)",
+      "kind": "concept",
+      "short": "Write selection activates exactly the word selected by the address and the Write signal.",
+      "explanation": "For the 2-word memory, $E_0=W\\land\\neg A_0$ and $E_1=W\\land A_0$. When $W=0$, both latch Enable signals are inactive; when $W=1$, exactly the addressed word is enabled. To write, set the address and data, assert $W$, and then deactivate it again so the selected latches retain the value.",
+      "example": "With $W=1$ and $A_0=1$, $E_1=1$ and $E_0=0$; only word 1 captures the input data.",
+      "pitfalls": [
+        "If more than one memory row is activated, multiple words may capture the same input data."
+      ],
+      "related": [
+        "Addressable memory",
+        "2 × 2-bit memory",
+        "D latch",
+        "Multiplexer"
+      ],
+      "heading": "7.3 Schreiben"
+    },
+    {
+      "id": "era-18-k22",
+      "term": "Memory size from address bits and word width (Speichergröße aus Adressbits und Wortbreite)",
+      "kind": "method",
+      "short": "With $a$ address bits and $w$ bits per word, there are $2^a$ words and $2^a\\cdot w$ bits in total.",
+      "explanation": "Each of the $a$ address bits can be 0 or 1, so $N=2^a$ different words can be selected. For a word width of $w$ bits, the total capacity is $C=2^a\\cdot w$ bits. First determine the number of words, then multiply it by the word width.",
+      "example": "With 10 address bits and a word width of 32 bits, there are $2^{10}=1024$ words with $32768$ bits in total, or 4096 bytes (4 KiB).",
+      "pitfalls": [
+        "Address bits and word width describe different quantities.",
+        "Conversion to bytes assumes eight bits per byte; the addressable unit can vary between systems."
+      ],
+      "related": [
+        "Addressable memory",
+        "Register",
+        "Base-b representation"
+      ],
+      "heading": "7.4 Verallgemeinerung"
+    },
+    {
+      "id": "era-18-k23",
+      "term": "DRAM",
+      "kind": "definition",
+      "short": "DRAM typically stores a bit as charge in a capacitor and requires refresh.",
+      "explanation": "DRAM stands for Dynamic Random Access Memory. A memory cell stores information as charge in a capacitor, which dissipates over time; the contents therefore need to be refreshed regularly. DRAM is volatile and is typically used as main memory.",
+      "example": null,
+      "pitfalls": [
+        "DRAM does not retain its data indefinitely without refresh and power."
+      ],
+      "related": [
+        "SRAM",
+        "Volatile memory",
+        "Matrix addressing",
+        "Main memory"
+      ],
+      "heading": "8. Reale Speicher: DRAM und SRAM (Folien 26–27)"
+    },
+    {
+      "id": "era-18-k24",
+      "term": "SRAM",
+      "kind": "definition",
+      "short": "SRAM typically stores a bit in a static six-transistor cell and does not require refresh.",
+      "explanation": "SRAM stands for Static Random Access Memory. A typical SRAM cell uses a transistor circuit with feedback, often with six transistors, to hold its state as long as power is supplied. SRAM requires no refresh and is typically used in CPU caches.",
+      "example": null,
+      "pitfalls": [
+        "“Static” does not mean that SRAM retains data without power."
+      ],
+      "related": [
+        "DRAM",
+        "Volatile memory",
+        "Matrix addressing",
+        "Memory hierarchy"
+      ],
+      "heading": "8. Reale Speicher: DRAM und SRAM (Folien 26–27)"
+    },
+    {
+      "id": "era-18-k25",
+      "term": "Volatile memory (Flüchtiger Speicher)",
+      "kind": "definition",
+      "short": "Volatile memory loses its stored contents when the power supply is removed.",
+      "explanation": "Volatile memories require a continuous power supply to retain their stored state. DRAM also needs regular refresh, whereas SRAM needs no refresh as long as it is powered. Both types of memory are volatile.",
+      "example": "An SRAM bit retains its value without refresh while power is supplied, but loses it when the power is switched off.",
+      "pitfalls": [
+        "Refresh requirement and volatility are different properties: SRAM is volatile even though it does not require refresh."
+      ],
+      "related": [
+        "DRAM",
+        "SRAM"
+      ],
+      "heading": "8. Reale Speicher: DRAM und SRAM (Folien 26–27)"
+    },
+    {
+      "id": "era-18-k26",
+      "term": "Matrix addressing (Matrixadressierung)",
+      "kind": "method",
+      "short": "In matrix addressing, separate parts of the address select the memory row and column.",
+      "explanation": "The memory cells are arranged in rows and columns. One part of the address controls row selection, and another controls column selection; the cell at their intersection is selected. A square, one-bit matrix with $n$ row-address bits and the same number of column-address bits contains $2^n\\cdot2^n=2^{2n}$ cells.",
+      "example": "With the split `101 | 011`, the first part selects row 5 and the second part selects column 3.",
+      "pitfalls": [
+        "Assigning specific address bits to rows and columns is a design choice."
+      ],
+      "related": [
+        "DRAM",
+        "SRAM",
+        "Addressable memory",
+        "Memory size from address bits and word width"
+      ],
+      "heading": "8.1 Zweistufige Matrixadressierung"
+    }
+  ],
+  "generator": {
+    "model": "gpt-6-luna",
+    "effort": "xhigh",
+    "promptVersion": "k1",
+    "generatedAt": "2026-11-24T23:59:54.672Z"
+  }
+}

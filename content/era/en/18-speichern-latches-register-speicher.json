@@ -1,0 +1,2057 @@
+{
+  "schemaVersion": 1,
+  "id": "era-18",
+  "module": "ERA",
+  "number": 18,
+  "slug": "speichern-latches-register-speicher",
+  "title": "Storage: Latches, Registers, and Memory",
+  "summary": "This unit shows how feedback (Rückkopplung) allows circuits to store a state. It builds on this with RS latches (RS-Latches) and D latches (D-Latches), D flip-flops (D-Flipflops), shift registers (Schieberegister), and registers (Register). It then covers addressable memory (adressierbarer Speicher), DRAM and SRAM, and matrix addressing (Matrixadressierung).",
+  "concepts": [
+    "Feedback and state",
+    "NOR RS latch (NOR-RS-Latch)",
+    "NAND RS latch (NAND-RS-Latch)",
+    "D latch",
+    "D flip-flop",
+    "Setup and hold time (Setup- und Holdzeit)",
+    "Shift register",
+    "Register",
+    "Addressable memory",
+    "Write selection and multiplexers (Schreibselektion und Multiplexer)",
+    "DRAM and SRAM",
+    "Matrix addressing"
+  ],
+  "keyFacts": [
+    "A combinational circuit depends on its current inputs; a sequential circuit also depends on its stored state.",
+    "Feedback can preserve an output state, but a feedback-connected OR gate does not provide a controlled reset.",
+    "An RS latch stores one bit and has complementary outputs in its valid state.",
+    "For an active-high NOR RS latch, R=S=0 holds the state, Set is R=0 and S=1, and Reset is R=1 and S=0; R=S=1 is forbidden.",
+    "For an active-low NAND RS latch, S̅=R̅=1 holds the state; S̅=R̅=0 is forbidden.",
+    "A D latch can be built with S=E∧D and R=E∧¬D; this prevents Set and Reset from being active at the same time in the ideal model.",
+    "A D latch is transparent when E=1 and holds its state when E=0.",
+    "A positive-edge-triggered D flip-flop captures D on the rising clock edge and holds its state between edges.",
+    "D must remain stable around the active edge for at least the setup and hold times.",
+    "On each rising edge, a shift register simultaneously shifts the old values by one stage.",
+    "An n-bit register made of D flip-flops captures n input bits in parallel and requires n D flip-flops.",
+    "With a address bits there are 2ᵃ words; with a word width of w bits, the capacity is 2ᵃ·w bits.",
+    "For a 2-word memory, E₀=W∧¬A₀ and E₁=W∧A₀; when reading, the address selects the output word through multiplexers.",
+    "DRAM stores charge in capacitors and requires refresh; SRAM typically uses a 6-transistor cell and does not require refresh.",
+    "DRAM and SRAM are volatile; SRAM does not retain data without power.",
+    "In matrix addressing, one part of the address selects the row and another selects the column."
+  ],
+  "tags": [
+    "TUM/ERA",
+    "ERA/Schaltungen",
+    "ERA/Speicher"
+  ],
+  "links": [],
+  "source": {
+    "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO18.md",
+    "sha256": "12b92718bfd9c013efdd7097ad6fb016544f48985a35b1752f94a9d542737c1d",
+    "commit": "06b418e02f2741dd9ad462f5ad6cc0e3476f229c"
+  },
+  "generator": {
+    "model": "gpt-6-luna",
+    "effort": "xhigh",
+    "reviewEffort": "high",
+    "promptVersion": "v3",
+    "generatedAt": "2026-11-24T23:48:37.702Z",
+    "review": {
+      "checked": 43,
+      "fixed": 4,
+      "removed": 0,
+      "notes": "Geprüft: 43 Fragen. Die Zustandsfolge der Boss-Schieberegisterfrage war in der Erklärung falsch und wurde korrigiert. Zwei Fragen zum 2-Wort-Speicher erhielten fehlende Modellangaben im Prompt. Für die Rückkopplungsfrage wurde die Quelle auf die passende Überschrift gesetzt."
+    }
+  },
+  "levels": [
+    {
+      "id": "era-18-l1",
+      "index": 1,
+      "kind": "basics",
+      "title": "Fundamentals",
+      "questions": [
+        {
+          "id": "era-18-l1-q01",
+          "type": "single",
+          "prompt": "Which statement describes a sequential circuit?",
+          "options": [
+            {
+              "id": "a",
+              "text": "It can be built only from OR gates."
+            },
+            {
+              "id": "b",
+              "text": "Its output also depends on a stored state."
+            },
+            {
+              "id": "c",
+              "text": "It must not contain feedback."
+            },
+            {
+              "id": "d",
+              "text": "Its output depends only on the current inputs."
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "A sequential circuit uses its current state and inputs to determine the next state.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO18.md",
+            "heading": "0. Big Picture"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Feedback and state"
+          ]
+        },
+        {
+          "id": "era-18-l1-q02",
+          "type": "cloze",
+          "prompt": "In the next-state equation $q(t+1)=g(___,x(t))$, the blank represents the current state.",
+          "options": [
+            {
+              "id": "a",
+              "text": "q(t)"
+            },
+            {
+              "id": "b",
+              "text": "y(t)"
+            },
+            {
+              "id": "c",
+              "text": "q(t+1)"
+            },
+            {
+              "id": "d",
+              "text": "x(t+1)"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "The next state is determined by the current state q(t) and the current inputs x(t).",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO18.md",
+            "heading": "0. Big Picture"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Feedback and state"
+          ]
+        },
+        {
+          "id": "era-18-l1-q03",
+          "type": "single",
+          "prompt": "An active-high NOR RS latch receives $R=0$ and $S=1$. What happens to $Q$?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Q is reset to 0."
+            },
+            {
+              "id": "b",
+              "text": "Q is set to 1."
+            },
+            {
+              "id": "c",
+              "text": "Both outputs become 0."
+            },
+            {
+              "id": "d",
+              "text": "Q holds its previous value."
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "For a NOR RS latch, S=1 and R=0 means Set: the stored output Q becomes 1.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO18.md",
+            "heading": "2.1 NOR-RS-Latch (aktiv High)"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "NOR RS latch"
+          ]
+        },
+        {
+          "id": "era-18-l1-q04",
+          "type": "truefalse",
+          "prompt": "For an active-low NAND RS latch, the actual input levels $\\overline S=0$ and $\\overline R=0$ are forbidden.",
+          "options": [
+            {
+              "id": "true",
+              "text": "True"
+            },
+            {
+              "id": "false",
+              "text": "False"
+            }
+          ],
+          "correct": [
+            "true"
+          ],
+          "explanation": "With both active-low inputs asserted, the NAND gates force both outputs to 1, so they are no longer complementary.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO18.md",
+            "heading": "2.4 NAND-RS-Latch (aktiv Low)"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "NAND RS latch"
+          ]
+        },
+        {
+          "id": "era-18-l1-q05",
+          "type": "multi",
+          "prompt": "Which statements about a D latch are correct? Select all that apply.",
+          "options": [
+            {
+              "id": "a",
+              "text": "The latch captures D only on a rising clock edge."
+            },
+            {
+              "id": "b",
+              "text": "When E=1, D can propagate to the output Q."
+            },
+            {
+              "id": "c",
+              "text": "When E=0, the latch holds its stored state."
+            },
+            {
+              "id": "d",
+              "text": "In the ideal design, Set and Reset can be active at the same time."
+            }
+          ],
+          "correct": [
+            "b",
+            "c"
+          ],
+          "explanation": "E=0 blocks the data path and preserves the state; when E=1, the latch is transparent. The Set and Reset signals are formed from D and ¬D, so they cannot both be 1 at the same time.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO18.md",
+            "heading": "3.2 Aufbau"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "D latch"
+          ]
+        },
+        {
+          "id": "era-18-l1-q06",
+          "type": "single",
+          "prompt": "When is a D latch transparent?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Only when D=0."
+            },
+            {
+              "id": "b",
+              "text": "Only on a rising CLK edge."
+            },
+            {
+              "id": "c",
+              "text": "When E=0, because the data path is then blocked."
+            },
+            {
+              "id": "d",
+              "text": "When E=1, so Q follows changes in D."
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Throughout the active Enable phase E=1, Q follows input D after the gate propagation delay.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO18.md",
+            "heading": "3.3 Transparenz und Timing"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "D latch"
+          ]
+        },
+        {
+          "id": "era-18-l1-q07",
+          "type": "single",
+          "prompt": "On which clock transition does a positive-edge-triggered D flip-flop capture its input?",
+          "options": [
+            {
+              "id": "a",
+              "text": "On the falling edge from 1 to 0."
+            },
+            {
+              "id": "b",
+              "text": "On the rising edge from 0 to 1."
+            },
+            {
+              "id": "c",
+              "text": "Throughout the time when CLK=1."
+            },
+            {
+              "id": "d",
+              "text": "Only when CLK remains at 0."
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "A positive-edge-triggered flip-flop captures D on the rising edge and holds its state between edges.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO18.md",
+            "heading": "4. Taktflankengesteuertes D-Flipflop (Folien 15–16)"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "D flip-flop"
+          ]
+        },
+        {
+          "id": "era-18-l1-q08",
+          "type": "multi",
+          "prompt": "Which statements about setup and hold time are correct? Select all that apply.",
+          "options": [
+            {
+              "id": "a",
+              "text": "The setup time begins only after the active edge."
+            },
+            {
+              "id": "b",
+              "text": "D must remain stable during the hold time after the active edge."
+            },
+            {
+              "id": "c",
+              "text": "The hold time describes the required stability before the edge."
+            },
+            {
+              "id": "d",
+              "text": "D must be stable during the setup time before the active edge."
+            }
+          ],
+          "correct": [
+            "b",
+            "d"
+          ],
+          "explanation": "The setup time is before the edge, and the hold time is after it. Together, they define the interval during which D must remain stable around the active edge.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO18.md",
+            "heading": "4.3 Setup- und Holdzeit"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Setup and hold time"
+          ]
+        },
+        {
+          "id": "era-18-l1-q09",
+          "type": "single",
+          "prompt": "What happens in a shift register on a rising clock edge?",
+          "options": [
+            {
+              "id": "a",
+              "text": "The stored bits are erased."
+            },
+            {
+              "id": "b",
+              "text": "Only the last stage is updated."
+            },
+            {
+              "id": "c",
+              "text": "Each flip-flop output jumps directly to the new serial input."
+            },
+            {
+              "id": "d",
+              "text": "Each stage simultaneously captures the old value of its preceding stage."
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "All flip-flops simultaneously capture the old values at their inputs. Therefore, a new value advances at most one stage per edge.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO18.md",
+            "heading": "5. Schieberegister (Folien 17–18)"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Shift register"
+          ]
+        },
+        {
+          "id": "era-18-l1-q10",
+          "type": "cloze",
+          "prompt": "A simple $n$-bit register made of D flip-flops requires ___ D flip-flops.",
+          "options": [
+            {
+              "id": "a",
+              "text": "n"
+            },
+            {
+              "id": "b",
+              "text": "n−1"
+            },
+            {
+              "id": "c",
+              "text": "1"
+            },
+            {
+              "id": "d",
+              "text": "2ⁿ"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "Each bit of the register is stored by its own D flip-flop, so n bits require n flip-flops.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO18.md",
+            "heading": "6. Register (Folien 20–21)"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Register"
+          ]
+        },
+        {
+          "id": "era-18-l1-q11",
+          "type": "diagram",
+          "prompt": "Which component comes directly after the RS latch in the illustrated development path?",
+          "context": {
+            "type": "mermaid",
+            "content": "flowchart TD\n  A[Boolean gates] --> B[Feedback]\n  B --> C[RS latch]\n  C --> D[D latch]\n  D --> E[D flip-flop]\n  E --> F[Register]\n  E --> G[Shift register]\n  D --> H[Addressable memory]\n  H --> I[Physical memory]",
+            "caption": "From gates to memory"
+          },
+          "options": [
+            {
+              "id": "a",
+              "text": "SRAM"
+            },
+            {
+              "id": "b",
+              "text": "Shift register"
+            },
+            {
+              "id": "c",
+              "text": "D latch"
+            },
+            {
+              "id": "d",
+              "text": "Addressable memory"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "The illustrated path goes from the RS latch to the D latch, then to the D flip-flop, and continues to registers and memory components.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO18.md",
+            "heading": "0. Big Picture"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "NOR RS latch",
+            "D latch"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "era-18-l2",
+      "index": 2,
+      "kind": "apply",
+      "title": "Apply",
+      "questions": [
+        {
+          "id": "era-18-l2-q01",
+          "type": "calc",
+          "prompt": "For a valid NOR RS latch, $Q^+=S\\lor(\\neg R\\land Q)$. Calculate $Q^+$ for $R=0$, $S=1$, and $Q=0$.",
+          "options": [
+            {
+              "id": "a",
+              "text": "Q remains undetermined"
+            },
+            {
+              "id": "b",
+              "text": "0"
+            },
+            {
+              "id": "c",
+              "text": "1"
+            },
+            {
+              "id": "d",
+              "text": "Forbidden state"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "With S=1, the first term is 1. Therefore, the next state is Q⁺=1, regardless of the old Q.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO18.md",
+            "heading": "2.1 NOR-RS-Latch (aktiv High)"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "NOR RS latch"
+          ]
+        },
+        {
+          "id": "era-18-l2-q02",
+          "type": "calc",
+          "prompt": "A D latch follows $Q^+=(E\\land D)\\lor(\\neg E\\land Q)$. Calculate $Q^+$ for $E=0$, $D=1$, and the old state $Q=0$.",
+          "options": [
+            {
+              "id": "a",
+              "text": "1"
+            },
+            {
+              "id": "b",
+              "text": "0"
+            },
+            {
+              "id": "c",
+              "text": "The state is forbidden"
+            },
+            {
+              "id": "d",
+              "text": "D remains stored"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "When E=0, the data path is blocked and Q⁺=Q. Since the old state is 0, the new state also remains 0.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO18.md",
+            "heading": "3.2 Aufbau"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "D latch"
+          ]
+        },
+        {
+          "id": "era-18-l2-q03-r1",
+          "type": "calc",
+          "prompt": "A 4-stage shift register has a positive-edge-triggered D flip-flop at each stage. The serial input D is connected to the data input of Q₀; the output Qᵢ is connected to the data input of Qᵢ₊₁. On each rising edge, all stages simultaneously capture the values present at their data inputs immediately before the edge: Q₀ captures D, Q₁ captures the old value of Q₀, Q₂ the old value of Q₁, and Q₃ the old value of Q₂. Initially, (Q₀,Q₁,Q₂,Q₃) = 1100. Before two consecutive rising edges, D is 1 and then 0. What is the resulting state, in the order Q₀,Q₁,Q₂,Q₃?",
+          "options": [
+            {
+              "id": "a",
+              "text": "1100"
+            },
+            {
+              "id": "b",
+              "text": "0011"
+            },
+            {
+              "id": "c",
+              "text": "1011"
+            },
+            {
+              "id": "d",
+              "text": "0111"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "After the first edge, 1100 becomes 1110: Q₀ captures D = 1, and the other stages simultaneously capture the old values of their preceding stages. After the second edge with D = 0, the state becomes 0111.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO18.md",
+            "heading": "5. Schieberegister (Folien 17–18)"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Shift register",
+            "Simultaneous state capture",
+            "Rising clock edge"
+          ]
+        },
+        {
+          "id": "era-18-l2-q04",
+          "type": "calc",
+          "prompt": "A word-addressed memory has 3 address bits and a word width of 8 bits. What is its capacity?",
+          "options": [
+            {
+              "id": "a",
+              "text": "16 words, 128 bits = 16 bytes"
+            },
+            {
+              "id": "b",
+              "text": "8 words, 24 bits = 3 bytes"
+            },
+            {
+              "id": "c",
+              "text": "3 words, 24 bits = 3 bytes"
+            },
+            {
+              "id": "d",
+              "text": "8 words, 64 bits = 8 bytes"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Three address bits select 2³=8 words. At 8 bits per word, that is 64 bits or 8 bytes.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO18.md",
+            "heading": "7.4 Verallgemeinerung"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Addressable memory"
+          ]
+        },
+        {
+          "id": "era-18-l2-q05",
+          "type": "calc",
+          "prompt": "For a 2-word memory, $E_0=W\\land\\neg A_0$ and $E_1=W\\land A_0$. What are the resulting enables when $W=1$ and $A_0=1$?",
+          "options": [
+            {
+              "id": "a",
+              "text": "E₀=1, E₁=0"
+            },
+            {
+              "id": "b",
+              "text": "E₀=0, E₁=1"
+            },
+            {
+              "id": "c",
+              "text": "E₀=0, E₁=0"
+            },
+            {
+              "id": "d",
+              "text": "E₀=1, E₁=1"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "At address 1, E₁=W∧A₀=1. E₀=W∧¬A₀=0, so only word 1 is enabled.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO18.md",
+            "heading": "7.3 Schreiben"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Write selection and multiplexers"
+          ]
+        },
+        {
+          "id": "era-18-l2-q06",
+          "type": "calc",
+          "prompt": "A 2-word memory contains `10` at address 0 and `01` at address 1. Which word appears when reading with $A_0=1$?",
+          "options": [
+            {
+              "id": "a",
+              "text": "10"
+            },
+            {
+              "id": "b",
+              "text": "11"
+            },
+            {
+              "id": "c",
+              "text": "00"
+            },
+            {
+              "id": "d",
+              "text": "01"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Address 1 selects the output of the latch for word 1. The stored word there is 01.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO18.md",
+            "heading": "7.2 Lesen"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Write selection and multiplexers"
+          ]
+        },
+        {
+          "id": "era-18-l2-q07",
+          "type": "multi",
+          "prompt": "Which statements correctly describe writing to a 2-word memory? Select all that apply. Given $E_0=W\\land\\neg A_0$ and $E_1=W\\land A_0$, when Enable is active, the latches in the selected word row capture the input data.",
+          "options": [
+            {
+              "id": "a",
+              "text": "When W=1 and A₀=0, word 0 is enabled."
+            },
+            {
+              "id": "b",
+              "text": "The enabled word row captures the input data."
+            },
+            {
+              "id": "c",
+              "text": "When W=0, both word enables are 0."
+            },
+            {
+              "id": "d",
+              "text": "When W=1 and A₀=1, both words are enabled."
+            }
+          ],
+          "correct": [
+            "a",
+            "b",
+            "c"
+          ],
+          "explanation": "W=0 disables both rows. When Write is enabled, A₀ selects exactly one row, whose latches capture the input data.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO18.md",
+            "heading": "7.3 Schreiben"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Write selection and multiplexers"
+          ]
+        },
+        {
+          "id": "era-18-l2-q08",
+          "type": "single",
+          "prompt": "How does reading from a 2-word memory work? The stored words are in two word rows; address $A_0$ controls one 2-to-1 multiplexer for each bit.",
+          "options": [
+            {
+              "id": "a",
+              "text": "All words are shifted to the output one after another."
+            },
+            {
+              "id": "b",
+              "text": "Multiplexers combinationally select the addressed word; its contents are not changed."
+            },
+            {
+              "id": "c",
+              "text": "The address automatically rewrites the word."
+            },
+            {
+              "id": "d",
+              "text": "A Read signal loads the selected word into new latches."
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "The address controls the multiplexers, which route the selected word to the output. In this model, there is no separate Read signal, and reading does not change the memory.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO18.md",
+            "heading": "7.2 Lesen"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Write selection and multiplexers"
+          ]
+        },
+        {
+          "id": "era-18-l2-q09",
+          "type": "calc",
+          "prompt": "A word-addressed memory has 4 address bits and a word width of 16 bits. How many words and how many bytes does it contain?",
+          "options": [
+            {
+              "id": "a",
+              "text": "16 words and 16 bytes"
+            },
+            {
+              "id": "b",
+              "text": "32 words and 64 bytes"
+            },
+            {
+              "id": "c",
+              "text": "4 words and 8 bytes"
+            },
+            {
+              "id": "d",
+              "text": "16 words and 32 bytes"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Four address bits select 2⁴=16 words. Each word is 2 bytes, so the capacity is 32 bytes.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO18.md",
+            "heading": "7.4 Verallgemeinerung"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Addressable memory"
+          ]
+        },
+        {
+          "id": "era-18-l2-q10",
+          "type": "calc",
+          "prompt": "A square one-bit memory matrix is addressed using 6 address bits, 3 for the row and 3 for the column. How many memory cells does it have?",
+          "options": [
+            {
+              "id": "a",
+              "text": "64"
+            },
+            {
+              "id": "b",
+              "text": "36"
+            },
+            {
+              "id": "c",
+              "text": "8"
+            },
+            {
+              "id": "d",
+              "text": "6"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "Three bits select 2³=8 rows, and three more select 8 columns. The matrix contains 8·8=64 cells.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO18.md",
+            "heading": "8.1 Zweistufige Matrixadressierung"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Matrix addressing"
+          ]
+        },
+        {
+          "id": "era-18-l2-q11",
+          "type": "multi",
+          "prompt": "Which statements about DRAM and SRAM are correct? Select all that apply.",
+          "options": [
+            {
+              "id": "a",
+              "text": "DRAM stores information as the charge of a capacitor."
+            },
+            {
+              "id": "b",
+              "text": "SRAM requires regular refresh to retain data."
+            },
+            {
+              "id": "c",
+              "text": "DRAM requires refresh."
+            },
+            {
+              "id": "d",
+              "text": "A typical SRAM cell uses six transistors."
+            }
+          ],
+          "correct": [
+            "a",
+            "c",
+            "d"
+          ],
+          "explanation": "DRAM uses capacitor charge, which must be refreshed regularly. A typical SRAM cell has six transistors and does not require refresh.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO18.md",
+            "heading": "8. Reale Speicher: DRAM und SRAM (Folien 26–27)"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "DRAM and SRAM"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "era-18-l3",
+      "index": 3,
+      "kind": "deepen",
+      "title": "Explore Further",
+      "questions": [
+        {
+          "id": "era-18-l3-q01",
+          "type": "truefalse",
+          "prompt": "In a NOR RS latch, $R=S=1$ forces both outputs to 0. If both inputs are then returned to 0 at the same time, the stored next state cannot be reliably predicted.",
+          "options": [
+            {
+              "id": "true",
+              "text": "True"
+            },
+            {
+              "id": "false",
+              "text": "False"
+            }
+          ],
+          "correct": [
+            "true"
+          ],
+          "explanation": "While both inputs are active, both NOR outputs are 0 and therefore not complementary. If both inputs are released at the same time, the next state may depend on differences in propagation delay.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO18.md",
+            "heading": "2.3 Verbotener Zustand"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "NOR RS latch"
+          ]
+        },
+        {
+          "id": "era-18-l3-q02",
+          "type": "single",
+          "prompt": "Which input levels produce the hold state in an active-low NAND RS latch?",
+          "options": [
+            {
+              "id": "a",
+              "text": "$\\overline R=1$, $\\overline S=1$"
+            },
+            {
+              "id": "b",
+              "text": "$\\overline R=0$, $\\overline S=1$"
+            },
+            {
+              "id": "c",
+              "text": "$\\overline R=1$, $\\overline S=0$"
+            },
+            {
+              "id": "d",
+              "text": "$\\overline R=0$, $\\overline S=0$"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "The actual control inputs are active low. When both line levels are 1, neither control is active and the state is held.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO18.md",
+            "heading": "2.4 NAND-RS-Latch (aktiv Low)"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "NAND RS latch"
+          ]
+        },
+        {
+          "id": "era-18-l3-q03",
+          "type": "multi",
+          "prompt": "Which statements are correct about the ideal construction of a D latch from two AND gates and a NOR RS latch? Select all that apply.",
+          "options": [
+            {
+              "id": "a",
+              "text": "When E=0, Q continues to follow every change in D."
+            },
+            {
+              "id": "b",
+              "text": "$S=E\\land D$."
+            },
+            {
+              "id": "c",
+              "text": "$S\\land R=0$."
+            },
+            {
+              "id": "d",
+              "text": "$R=E\\land\\neg D$."
+            }
+          ],
+          "correct": [
+            "b",
+            "c",
+            "d"
+          ],
+          "explanation": "D and ¬D are each combined with E. Because D and ¬D cannot both be 1, S and R cannot both be active in the ideal model; when E=0, Q holds its state.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO18.md",
+            "heading": "3.2 Aufbau"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "D latch"
+          ]
+        },
+        {
+          "id": "era-18-l3-q04",
+          "type": "single",
+          "prompt": "D changes several times while E remains 1. Which description applies to a D latch?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Q holds its state until E becomes 1 again."
+            },
+            {
+              "id": "b",
+              "text": "Q follows changes in D during the active Enable phase."
+            },
+            {
+              "id": "c",
+              "text": "Q changes only on a rising clock edge."
+            },
+            {
+              "id": "d",
+              "text": "Q captures only the first D value after opening."
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "A D latch is transparent throughout the Enable phase. When it closes, it holds the value captured most recently.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO18.md",
+            "heading": "3.3 Transparenz und Timing"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "D latch"
+          ]
+        },
+        {
+          "id": "era-18-l3-q05",
+          "type": "single",
+          "prompt": "In a master-slave design, both the master and slave are D latches. What is true when $CLK=0$, given $E_M=\\neg CLK$ and $E_S=CLK$?",
+          "options": [
+            {
+              "id": "a",
+              "text": "The master holds; the slave is transparent."
+            },
+            {
+              "id": "b",
+              "text": "The master is transparent; the slave holds."
+            },
+            {
+              "id": "c",
+              "text": "Both are transparent."
+            },
+            {
+              "id": "d",
+              "text": "Both hold and cannot prepare a value."
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "When CLK=0, E_M=1 and E_S=0. The master is transparent, and the slave holds its previous output.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO18.md",
+            "heading": "4.2 Realisierung mit zwei D-Latches (Master-Slave)"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "D flip-flop",
+            "D latch"
+          ]
+        },
+        {
+          "id": "era-18-l3-q06",
+          "type": "cloze",
+          "prompt": "For a D flip-flop to capture a value reliably, D must remain stable starting at the latest $t_f-t_{setup}$ and at least until ___.",
+          "options": [
+            {
+              "id": "a",
+              "text": "$t_f-t_{hold}$"
+            },
+            {
+              "id": "b",
+              "text": "$t_f+t_{hold}$"
+            },
+            {
+              "id": "c",
+              "text": "$t_f$"
+            },
+            {
+              "id": "d",
+              "text": "$t_f+t_{setup}$"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "The hold time extends beyond the active edge: D must remain stable until t_f+t_hold.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO18.md",
+            "heading": "4.3 Setup- und Holdzeit"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Setup and hold time"
+          ]
+        },
+        {
+          "id": "era-18-l3-q07",
+          "type": "calc",
+          "prompt": "A short write pulse is modeled by $E=CLK\\land\\neg CLK_{verzögert}$. What is the value of E immediately after a rising edge when $CLK=1$ and $CLK_{verzögert}=0$?",
+          "options": [
+            {
+              "id": "a",
+              "text": "1"
+            },
+            {
+              "id": "b",
+              "text": "The state is forbidden."
+            },
+            {
+              "id": "c",
+              "text": "The value depends on D."
+            },
+            {
+              "id": "d",
+              "text": "0"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "CLK=1, and the inverted delayed clock is also 1. Their AND produces the short active pulse E=1.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO18.md",
+            "heading": "4.1 Realisierung mit kurzem Schreibpuls (Folie 15)"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "D flip-flop",
+            "D latch"
+          ]
+        },
+        {
+          "id": "era-18-l3-q08",
+          "type": "multi",
+          "prompt": "Which statements correctly distinguish registers from shift registers? Select all that apply.",
+          "options": [
+            {
+              "id": "a",
+              "text": "A simple n-bit register requires n D flip-flops."
+            },
+            {
+              "id": "b",
+              "text": "A register captures its bits in parallel."
+            },
+            {
+              "id": "c",
+              "text": "A register must shift its bits by one position on every edge."
+            },
+            {
+              "id": "d",
+              "text": "On an edge, a shift register transfers old values from one stage to the next."
+            }
+          ],
+          "correct": [
+            "a",
+            "b",
+            "d"
+          ],
+          "explanation": "A register captures the input bits in parallel and uses one flip-flop per bit. In a shift register, the old value of one stage is passed to the next.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO18.md",
+            "heading": "6. Register (Folien 20–21)"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Register",
+            "Shift register"
+          ]
+        },
+        {
+          "id": "era-18-l3-q09",
+          "type": "single",
+          "prompt": "Why does write selection enable only the addressed word during a write?",
+          "options": [
+            {
+              "id": "a",
+              "text": "So that multiplexers are turned off during reading."
+            },
+            {
+              "id": "b",
+              "text": "So that the word width is reduced."
+            },
+            {
+              "id": "c",
+              "text": "So that unaddressed words do not capture the same input data."
+            },
+            {
+              "id": "d",
+              "text": "So that the address is erased after the write."
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Write selection enables only the latches in the selected row. Otherwise, other words would also be overwritten with the data currently present at the inputs.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO18.md",
+            "heading": "7.3 Schreiben"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Write selection and multiplexers"
+          ]
+        },
+        {
+          "id": "era-18-l3-q10",
+          "type": "diagram",
+          "prompt": "In the illustrated matrix addressing scheme, what does the upper part of the address select?",
+          "context": {
+            "type": "mermaid",
+            "content": "flowchart TD\n  A[Address] --> R[Upper n bits]\n  A --> C[Lower n bits]\n  R --> RD[Row selection]\n  C --> CD[Column selection]\n  RD --> M[Memory matrix]\n  CD --> M\n  M --> Z[Selected memory cell]",
+            "caption": "Row and column selection"
+          },
+          "options": [
+            {
+              "id": "a",
+              "text": "The word width."
+            },
+            {
+              "id": "b",
+              "text": "The row of the memory matrix."
+            },
+            {
+              "id": "c",
+              "text": "The column of the memory matrix."
+            },
+            {
+              "id": "d",
+              "text": "The refresh interval."
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "The upper part of the address selects the row; the lower part selects the column. The selected cell is at their intersection.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO18.md",
+            "heading": "8.1 Zweistufige Matrixadressierung"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Matrix addressing"
+          ]
+        },
+        {
+          "id": "era-18-l3-q11",
+          "type": "truefalse",
+          "prompt": "\"Static\" in SRAM means that data is retained even without a supply voltage.",
+          "options": [
+            {
+              "id": "true",
+              "text": "True"
+            },
+            {
+              "id": "false",
+              "text": "False"
+            }
+          ],
+          "correct": [
+            "false"
+          ],
+          "explanation": "SRAM does not require refresh, but it retains data only while powered. SRAM is also volatile.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO18.md",
+            "heading": "8. Reale Speicher: DRAM und SRAM (Folien 26–27)"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "DRAM and SRAM"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "era-18-l4",
+      "index": 4,
+      "kind": "boss",
+      "title": "Boss",
+      "questions": [
+        {
+          "id": "era-18-l4-q01-r1",
+          "type": "calc",
+          "prompt": "A 4-stage shift register has a positive-edge-triggered D flip-flop at each stage. The serial input D is connected to the data input of Q₀; the output Qᵢ is connected to the data input of Qᵢ₊₁. On each rising edge, all stages simultaneously capture the values present at their data inputs immediately before the edge: Q₀ captures D, Q₁ captures the old value of Q₀, Q₂ the old value of Q₁, and Q₃ the old value of Q₂. Initially, (Q₀,Q₁,Q₂,Q₃) = 1010. Before three consecutive rising edges, D is 1, then 0, then 1. What is the resulting state, in the order Q₀,Q₁,Q₂,Q₃?",
+          "options": [
+            {
+              "id": "a",
+              "text": "1011"
+            },
+            {
+              "id": "b",
+              "text": "0111"
+            },
+            {
+              "id": "c",
+              "text": "1101"
+            },
+            {
+              "id": "d",
+              "text": "1110"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "The states after the three edges are 1101, 0110, and 1011, respectively. On each edge, Q₁, Q₂, and Q₃ capture the old values of their preceding stages; Q₀ captures the current serial input.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO18.md",
+            "heading": "5. Schieberegister (Folien 17–18)"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Shift register",
+            "Simultaneous state capture",
+            "Rising clock edge"
+          ]
+        },
+        {
+          "id": "era-18-l4-q02",
+          "type": "calc",
+          "prompt": "A word-addressed memory has 5 address bits and a word width of 16 bits. How many words are there, and what is its capacity in bytes?",
+          "options": [
+            {
+              "id": "a",
+              "text": "32 words, 256 bits = 32 bytes"
+            },
+            {
+              "id": "b",
+              "text": "16 words, 256 bits = 32 bytes"
+            },
+            {
+              "id": "c",
+              "text": "64 words, 1024 bits = 128 bytes"
+            },
+            {
+              "id": "d",
+              "text": "32 words, 512 bits = 64 bytes"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Five address bits select 2⁵=32 words. At 16 bits per word, the capacity is 512 bits, or 64 bytes.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO18.md",
+            "heading": "7.4 Verallgemeinerung"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Addressable memory"
+          ]
+        },
+        {
+          "id": "era-18-l4-q03",
+          "type": "calc",
+          "prompt": "A 2-word memory initially contains `01` at address 0 and `11` at address 1. With $W=1$, the input data `10` are written at $A_0=1$. Then $W=0$ is applied, and $A_0=0$ is applied to read. What appears at the output?",
+          "options": [
+            {
+              "id": "a",
+              "text": "10"
+            },
+            {
+              "id": "b",
+              "text": "00"
+            },
+            {
+              "id": "c",
+              "text": "01"
+            },
+            {
+              "id": "d",
+              "text": "11"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "The write changes only word 1 from 11 to 10. Reading afterward with address 0 still selects word 0, which is 01.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO18.md",
+            "heading": "7.3 Schreiben"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Addressable memory",
+            "Write selection and multiplexers"
+          ]
+        },
+        {
+          "id": "era-18-l4-q04",
+          "type": "multi",
+          "prompt": "Which statements apply to a positive-edge-triggered D flip-flop? Select all that apply.",
+          "options": [
+            {
+              "id": "a",
+              "text": "It holds its state between active edges."
+            },
+            {
+              "id": "b",
+              "text": "D must remain stable around the active edge during the setup and hold times."
+            },
+            {
+              "id": "c",
+              "text": "It captures D on the rising clock edge."
+            },
+            {
+              "id": "d",
+              "text": "When CLK remains high, changes in D continuously propagate to Q as they would in a transparent latch."
+            }
+          ],
+          "correct": [
+            "a",
+            "b",
+            "c"
+          ],
+          "explanation": "The flip-flop captures only on the rising edge; at other times, it holds its state. D must be stable during the setup and hold window, and a flip-flop is not transparent from the outside like a latch.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO18.md",
+            "heading": "4.4 Latch vs. Flipflop – unbedingt unterscheiden"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "D flip-flop",
+            "Setup and hold time",
+            "D latch"
+          ]
+        },
+        {
+          "id": "era-18-l4-q05",
+          "type": "diagram",
+          "prompt": "When $CLK=0$, $E_M=\\neg CLK$ and $E_S=CLK$. Which latch is transparent in the illustrated master-slave design?",
+          "context": {
+            "type": "mermaid",
+            "content": "flowchart LR\n  D[\"D in\"] --> M[\"Master D latch\"]\n  M --> S[\"Slave D latch\"]\n  S --> Q[\"Q out\"]\n  C[CLK] --> S\n  C --> N[NOT]\n  N --> M",
+            "caption": "Master-slave design using two D latches"
+          },
+          "options": [
+            {
+              "id": "a",
+              "text": "Neither latch."
+            },
+            {
+              "id": "b",
+              "text": "Both latches."
+            },
+            {
+              "id": "c",
+              "text": "Only the slave latch."
+            },
+            {
+              "id": "d",
+              "text": "Only the master latch."
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "When CLK=0, E_M=1 and E_S=0. Therefore, the master is transparent and the slave is closed.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO18.md",
+            "heading": "4.2 Realisierung mit zwei D-Latches (Master-Slave)"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "D latch",
+            "D flip-flop"
+          ]
+        },
+        {
+          "id": "era-18-l4-q06",
+          "type": "truefalse",
+          "prompt": "For a NOR RS latch, when $R=S=1$ the state is forbidden, but after both inputs are simultaneously reset to 0, the stored next state is guaranteed.",
+          "options": [
+            {
+              "id": "true",
+              "text": "True"
+            },
+            {
+              "id": "false",
+              "text": "False"
+            }
+          ],
+          "correct": [
+            "false"
+          ],
+          "explanation": "When R=S=1, both outputs are 0. If both inputs are released at the same time, the next state cannot be reliably predicted, so it is not guaranteed.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO18.md",
+            "heading": "2.3 Verbotener Zustand"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "NOR RS latch"
+          ]
+        },
+        {
+          "id": "era-18-l4-q07",
+          "type": "single",
+          "prompt": "An 8-bit value must be captured in parallel on each rising edge, with all eight bits available as separate outputs. Which structure is suitable?",
+          "options": [
+            {
+              "id": "a",
+              "text": "One D flip-flop whose Q output is reused eight times."
+            },
+            {
+              "id": "b",
+              "text": "A shift register that sets all bits to the same input on every edge."
+            },
+            {
+              "id": "c",
+              "text": "Eight D flip-flops with a shared clock and separate D and Q lines."
+            },
+            {
+              "id": "d",
+              "text": "Eight D latches that become transparent only on a rising edge."
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "A register stores each bit in its own D flip-flop. A shared clock provides parallel capture, while separate outputs make each bit available individually.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO18.md",
+            "heading": "6. Register (Folien 20–21)"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Register",
+            "D flip-flop"
+          ]
+        },
+        {
+          "id": "era-18-l4-q08",
+          "type": "multi",
+          "prompt": "A computer uses SRAM for CPU caches and DRAM as main memory. Which statements are consistent with this arrangement? Select all that apply.",
+          "options": [
+            {
+              "id": "a",
+              "text": "DRAM typically stores its bits as capacitor charge."
+            },
+            {
+              "id": "b",
+              "text": "SRAM in caches requires no refresh while power is supplied."
+            },
+            {
+              "id": "c",
+              "text": "SRAM does not lose data without power because it is called static."
+            },
+            {
+              "id": "d",
+              "text": "DRAM in main memory requires refresh."
+            }
+          ],
+          "correct": [
+            "a",
+            "b",
+            "d"
+          ],
+          "explanation": "This is the typical arrangement: SRAM in caches and DRAM as main memory. SRAM is still volatile; DRAM cells require refresh and store charge in capacitors.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO18.md",
+            "heading": "8. Reale Speicher: DRAM und SRAM (Folien 26–27)"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "DRAM and SRAM"
+          ]
+        },
+        {
+          "id": "era-18-l4-q09",
+          "type": "single",
+          "prompt": "An adder without feedback produces the same output for the same current inputs. For a feedback-connected OR gate, $y(t+1)=a(t)\\lor y(t)$ with $y(0)=0$; $a$ is initially 1 and is then always 0. Which statement is correct?",
+          "options": [
+            {
+              "id": "a",
+              "text": "The OR gate automatically sets y to 0 as soon as a=0."
+            },
+            {
+              "id": "b",
+              "text": "The feedback-connected OR gate can hold y=1 even after a returns to 0."
+            },
+            {
+              "id": "c",
+              "text": "Both circuits must store the same state."
+            },
+            {
+              "id": "d",
+              "text": "The adder stores the earlier input, but the OR gate does not."
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "After the first step, y=1. With a=0 afterward, y(t+1)=0∨1=1, so the feedback preserves the state. A combinational adder without feedback has no stored memory.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO18.md",
+            "heading": "1. Rückkopplung – wie entsteht ein Gedächtnis? (Folie 5)"
+          },
+          "difficulty": 5,
+          "concepts": [
+            "Feedback and state"
+          ]
+        },
+        {
+          "id": "era-18-l4-q10",
+          "type": "calc",
+          "prompt": "A byte-addressed memory has 2 address bits; each address selects exactly one 8-bit byte. What is the total addressable memory capacity?",
+          "options": [
+            {
+              "id": "a",
+              "text": "4 bytes = 32 bits"
+            },
+            {
+              "id": "b",
+              "text": "4 words of 32 bits each = 16 bytes"
+            },
+            {
+              "id": "c",
+              "text": "8 bytes = 64 bits"
+            },
+            {
+              "id": "d",
+              "text": "2 bytes = 16 bits"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "Two address bits select 2²=4 byte addresses. At 8 bits per byte, that is 32 bits. Byte addressing is a different assumption from a word-addressed model.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO4.md",
+            "heading": null
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Addressable memory"
+          ]
+        },
+        {
+          "id": "era-18-l4-q11",
+          "type": "calc",
+          "prompt": "A square one-bit memory matrix is addressed using 8 address bits. Four bits select the row and four bits select the column. How many cells are there?",
+          "options": [
+            {
+              "id": "a",
+              "text": "32"
+            },
+            {
+              "id": "b",
+              "text": "256"
+            },
+            {
+              "id": "c",
+              "text": "16"
+            },
+            {
+              "id": "d",
+              "text": "4096"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "Four bits select 2⁴=16 rows, and four more select 16 columns. There are 16·16=256 cells in total.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO18.md",
+            "heading": "8.1 Zweistufige Matrixadressierung"
+          },
+          "difficulty": 5,
+          "concepts": [
+            "Matrix addressing"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "era-18-l5",
+      "index": 5,
+      "kind": "bonus",
+      "title": "In Practice: Memory in Everyday Life",
+      "questions": [
+        {
+          "id": "era-18-l5-q01",
+          "type": "single",
+          "prompt": "You are building a control panel: one input should set a status bit, and another should reset it. When both are inactive, the last state is retained. Which component is suitable?",
+          "options": [
+            {
+              "id": "a",
+              "text": "A feedback-connected OR gate"
+            },
+            {
+              "id": "b",
+              "text": "A shift register"
+            },
+            {
+              "id": "c",
+              "text": "A NOR RS latch"
+            },
+            {
+              "id": "d",
+              "text": "A multiplexer"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "A NOR RS latch can deliberately set and reset a bit, and hold it when its inputs are inactive. A feedback-connected OR gate can retain a 1, but cannot deliberately clear it.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO18.md",
+            "heading": "2.1 NOR-RS-Latch (aktiv High)"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "NOR RS latch",
+            "Feedback and state"
+          ]
+        },
+        {
+          "id": "era-18-l5-q02",
+          "type": "single",
+          "prompt": "In a digital control system, a stored signal should follow input $D$ while enabled, when $E=1$. As soon as $E=0$, it should hold the last value. Which component does exactly this?",
+          "options": [
+            {
+              "id": "a",
+              "text": "A positive-edge-triggered D flip-flop"
+            },
+            {
+              "id": "b",
+              "text": "A D latch"
+            },
+            {
+              "id": "c",
+              "text": "An SRAM memory"
+            },
+            {
+              "id": "d",
+              "text": "A shift register"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "A D latch is transparent when Enable is active: its output then follows $D$. When $E=0$, it holds its stored state.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO18.md",
+            "heading": "3.3 Transparenz und Timing"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "D latch",
+            "Transparency and timing"
+          ]
+        },
+        {
+          "id": "era-18-l5-q03",
+          "type": "single",
+          "prompt": "A serial adapter receives a new bit on each clock edge. At every rising edge, the bits already stored move forward by one stage. Which component does this?",
+          "options": [
+            {
+              "id": "a",
+              "text": "A parallel register"
+            },
+            {
+              "id": "b",
+              "text": "A shift register"
+            },
+            {
+              "id": "c",
+              "text": "Addressable memory"
+            },
+            {
+              "id": "d",
+              "text": "A D latch"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "A shift register consists of flip-flops connected in sequence. On each rising clock edge, each stage captures the old value of the preceding stage.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO18.md",
+            "heading": "5. Schieberegister (Folien 17–18)"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Shift register",
+            "D flip-flop"
+          ]
+        },
+        {
+          "id": "era-18-l5-q04",
+          "type": "estimate",
+          "prompt": "A memory uses 5 address bits. How many different words can it address?",
+          "options": [],
+          "correct": [],
+          "slider": {
+            "min": 8,
+            "max": 64,
+            "step": 1,
+            "answer": 32,
+            "tolerance": 0,
+            "unit": "words",
+            "scale": "linear"
+          },
+          "explanation": "With $a$ address bits, there are $2^a$ possible addresses. In this case, that is $2^5=32$ words.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO18.md",
+            "heading": "7.4 Verallgemeinerung"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Addressable memory"
+          ]
+        },
+        {
+          "id": "era-18-l5-q05",
+          "type": "single",
+          "prompt": "A processor must store a result as a machine word and capture all bits together on a clock edge. Which structure is the best fit?",
+          "options": [
+            {
+              "id": "a",
+              "text": "A multiplexer without storage elements"
+            },
+            {
+              "id": "b",
+              "text": "A shift register that captures the bits one at a time"
+            },
+            {
+              "id": "c",
+              "text": "A register made of multiple D flip-flops"
+            },
+            {
+              "id": "d",
+              "text": "A single NOR RS latch"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "A register stores a multi-bit word in parallel. In the described model, it has one D flip-flop per bit, all sharing a clock.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO18.md",
+            "heading": "6. Register (Folien 20–21)"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Register",
+            "D flip-flop"
+          ]
+        },
+        {
+          "id": "era-18-l5-q06",
+          "type": "single",
+          "prompt": "A smartphone's main memory stores bits as charge in capacitors. Because this charge is gradually lost, the memory cells must be refreshed regularly. Which type of memory is this?",
+          "options": [
+            {
+              "id": "a",
+              "text": "DRAM"
+            },
+            {
+              "id": "b",
+              "text": "Flash memory"
+            },
+            {
+              "id": "c",
+              "text": "SRAM"
+            },
+            {
+              "id": "d",
+              "text": "A D flip-flop"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "DRAM stores bits as charge in capacitors and requires refresh. DRAM is volatile: data is not retained without a supply voltage.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO18.md",
+            "heading": "8. Reale Speicher: DRAM und SRAM (Folien 26–27)"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "DRAM",
+            "Addressable memory"
+          ]
+        },
+        {
+          "id": "era-18-l5-q07",
+          "type": "estimate",
+          "prompt": "An unsigned 12-bit word can represent every bit pattern from all zeros to all ones. How many different values are possible?",
+          "options": [],
+          "correct": [],
+          "slider": {
+            "min": 1024,
+            "max": 8192,
+            "step": 32,
+            "answer": 4096,
+            "tolerance": 0,
+            "unit": "values",
+            "scale": "linear"
+          },
+          "explanation": "Each bit has two possible states. In total, there are $2^{12}=4096$ bit patterns, and therefore 4096 unsigned values.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO18.md",
+            "heading": "6. Register (Folien 20–21)"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Register"
+          ]
+        },
+        {
+          "id": "era-18-l5-q08",
+          "type": "single",
+          "prompt": "A CPU cache should provide data quickly. Its memory cells need no regular refresh, but they lose their contents if the supply voltage is removed. Which type of memory has these properties?",
+          "options": [
+            {
+              "id": "a",
+              "text": "A NAND RS latch"
+            },
+            {
+              "id": "b",
+              "text": "DRAM"
+            },
+            {
+              "id": "c",
+              "text": "EPROM"
+            },
+            {
+              "id": "d",
+              "text": "SRAM"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "SRAM requires no refresh and is volatile: \"static\" does not mean that SRAM retains data without a supply voltage. SRAM is commonly used for CPU caches.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO18.md",
+            "heading": "8. Reale Speicher: DRAM und SRAM (Folien 26–27)"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "SRAM",
+            "Volatile memory (Flüchtiger Speicher)"
+          ]
+        },
+        {
+          "id": "era-18-l5-q09",
+          "type": "single",
+          "prompt": "A memory chip splits an address: one part selects a row, and another selects a column. The selected cell is at their intersection. What is this selection principle called?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Serial shifting"
+            },
+            {
+              "id": "b",
+              "text": "Feedback"
+            },
+            {
+              "id": "c",
+              "text": "Matrix addressing"
+            },
+            {
+              "id": "d",
+              "text": "Edge-triggered writing"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "In matrix addressing, separate parts of the address select the row and column. This selects the cell at their intersection.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO18.md",
+            "heading": "8.1 Zweistufige Matrixadressierung"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Matrix addressing",
+            "Addressable memory"
+          ]
+        },
+        {
+          "id": "era-18-l5-q10",
+          "type": "estimate",
+          "prompt": "An addressable memory has 7 address bits and stores 16 bits per word. What is its total capacity in bits?",
+          "options": [],
+          "correct": [],
+          "slider": {
+            "min": 512,
+            "max": 4096,
+            "step": 16,
+            "answer": 2048,
+            "tolerance": 0,
+            "unit": "Bit",
+            "scale": "linear"
+          },
+          "explanation": "The 7 address bits select $2^7=128$ words. At 16 bits per word, that gives $128\\cdot16=2048$ bits.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO18.md",
+            "heading": "7.4 Verallgemeinerung"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Addressable memory",
+            "Memory capacity"
+          ]
+        },
+        {
+          "id": "era-18-l5-q11",
+          "type": "single",
+          "prompt": "An RS latch is built from NAND gates. Its two control inputs are active low: one input is briefly pulled to 0 to set, and the other to reset. What levels must both inputs have for the latch to hold its state?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Both inputs are 0"
+            },
+            {
+              "id": "b",
+              "text": "Both inputs are 1"
+            },
+            {
+              "id": "c",
+              "text": "The Set input is 1 and the Reset input is 0"
+            },
+            {
+              "id": "d",
+              "text": "The Set input is 0 and the Reset input is 1"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "The inputs of a NAND RS latch are active low, so the inactive level is 1. With both inputs at 1, the latch holds its stored state.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO18.md",
+            "heading": "2.4 NAND-RS-Latch (aktiv Low)"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "NAND RS latch",
+            "Feedback and state"
+          ]
+        },
+        {
+          "id": "era-18-l5-q12",
+          "type": "single",
+          "prompt": "A positive-edge-triggered D flip-flop receives changing values at $D$ during a clock cycle. Which value is captured?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Every value of $D$ throughout the entire high phase of the clock"
+            },
+            {
+              "id": "b",
+              "text": "The value of $D$ immediately before the rising clock edge, provided setup and hold times are met"
+            },
+            {
+              "id": "c",
+              "text": "The average of all values of $D$ during the clock cycle"
+            },
+            {
+              "id": "d",
+              "text": "The value of $D$ immediately after the falling clock edge"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "A positive-edge-triggered D flip-flop captures the input on the rising clock edge. The input must be stable for the required setup and hold times around that edge.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO18.md",
+            "heading": "4.3 Setup- und Holdzeit"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "D flip-flop",
+            "Setup and hold time"
+          ]
+        }
+      ]
+    }
+  ]
+}
