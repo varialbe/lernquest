@@ -1,0 +1,637 @@
+{
+  "schemaVersion": 1,
+  "unitId": "ds-13",
+  "module": "DS",
+  "unitNumber": 13,
+  "unitTitle": "Functions and Cardinality (Funktionen und Kardinalität)",
+  "sourceSha": "cbf14388fcde066780576e422495cf88199e62c9510b33ff35d490af31929295",
+  "overview": "This unit covers functions, their inverses, permutations, images, and preimages. It compares sets using injections and bijections, introduces countability, and uses Cantor’s diagonal argument to show that power sets—and therefore the real numbers—are uncountable. Cardinal arithmetic and currying also describe relationships between function sets.",
+  "entries": [
+    {
+      "id": "ds-13-k01",
+      "term": "Function as a Relation (Funktion als Relation)",
+      "kind": "definition",
+      "short": "A function (Funktion) $f:A\\to B$ is a left-total and right-unique relation in $A\\times B$.",
+      "explanation": "Left-total means that every $a\\in A$ is related to at least one element of $B$. Right-unique means that at most one such element is associated with each $a$. Together, these conditions ensure that every argument has exactly one function value.",
+      "example": "The relation $\\{(1,r),(2,g)\\}$ is a function from $\\{1,2\\}$ to $\\{r,g\\}$.",
+      "pitfalls": [
+        "A relation that does not assign a value to some argument is not a function."
+      ],
+      "related": [
+        "Injectivity (Injektivität)",
+        "Surjectivity (Surjektivität)"
+      ],
+      "heading": "1.1 Definitionsübersicht"
+    },
+    {
+      "id": "ds-13-k02",
+      "term": "Injectivity (Injektivität)",
+      "kind": "definition",
+      "short": "A function is injective if equal function values come only from equal arguments.",
+      "explanation": "For $f:A\\to B$, this means $f(a)=f(a')\\Rightarrow a=a'$. Equivalently, every element of $B$ has at most one preimage. Injectivity does not require every element of $B$ to be attained.",
+      "example": "The function $f:\\mathbb N\\to 2\\mathbb N$ with $f(n)=2n$ is injective.",
+      "pitfalls": [
+        "Injectivity alone does not imply surjectivity."
+      ],
+      "related": [
+        "Function as a Relation (Funktion als Relation)",
+        "Surjectivity (Surjektivität)",
+        "Bijectivity (Bijektivität)"
+      ],
+      "heading": "1.1 Definitionsübersicht"
+    },
+    {
+      "id": "ds-13-k03",
+      "term": "Surjectivity (Surjektivität)",
+      "kind": "definition",
+      "short": "A function is surjective if every element of its codomain has at least one preimage.",
+      "explanation": "For $f:A\\to B$, this means $\\forall b\\in B\\;\\exists a\\in A:f(a)=b$. This is equivalent to $f(A)=B$. Surjectivity therefore depends on the specified codomain.",
+      "example": "The function $f:\\mathbb R\\to\\mathbb R$ with $f(x)=x^2$ is not surjective, because no negative real number is attained.",
+      "pitfalls": [
+        "The image $f(A)$ is not necessarily equal to the codomain $B$."
+      ],
+      "related": [
+        "Function as a Relation (Funktion als Relation)",
+        "Injectivity (Injektivität)",
+        "Bijectivity (Bijektivität)"
+      ],
+      "heading": "1.1 Definitionsübersicht"
+    },
+    {
+      "id": "ds-13-k04",
+      "term": "Bijectivity (Bijektivität)",
+      "kind": "definition",
+      "short": "A function is bijective if every element of the codomain has exactly one preimage.",
+      "explanation": "Bijectivity combines injectivity and surjectivity: every target is attained, and no target has two distinct preimages. Exactly in this case, $f:A\\to B$ has an inverse function $f^{-1}:B\\to A$. We have $f^{-1}\\circ f=\\operatorname{Id}_A$ and $f\\circ f^{-1}=\\operatorname{Id}_B$.",
+      "example": "The function $g:\\mathbb R_{\\geq0}\\to\\mathbb R_{\\geq0}$ with $g(x)=x^2$ is bijective.",
+      "pitfalls": [
+        "An inverse function defined on the entire codomain does not exist for every function."
+      ],
+      "related": [
+        "Injectivity (Injektivität)",
+        "Surjectivity (Surjektivität)",
+        "Inverse Function (Umkehrfunktion)"
+      ],
+      "heading": "1.1 Definitionsübersicht"
+    },
+    {
+      "id": "ds-13-k05",
+      "term": "Transposed Relation (Transponierte Relation)",
+      "kind": "definition",
+      "short": "The transposed relation of a function swaps arguments and function values.",
+      "explanation": "For $f\\subseteq A\\times B$, $f^\\top=\\{(b,a)\\mid(a,b)\\in f\\}\\subseteq B\\times A$. For $b\\in B$, $bf^\\top=\\{a\\in A\\mid f(a)=b\\}$ contains all preimages of $b$. The transposed relation is a function $B\\to A$ exactly when the original function is bijective.",
+      "example": "If $f(1)=r$ and $f$ is bijective, then $f^\\top$ contains the pair $(r,1)$.",
+      "pitfalls": [
+        "For a non-bijective function, an element of the codomain may have no preimage or several preimages."
+      ],
+      "related": [
+        "Inverse Function (Umkehrfunktion)",
+        "Injectivity (Injektivität)",
+        "Surjectivity (Surjektivität)",
+        "Bijectivity (Bijektivität)"
+      ],
+      "heading": "1.2 Transponierte Relation"
+    },
+    {
+      "id": "ds-13-k06",
+      "term": "Inverse Function (Umkehrfunktion)",
+      "kind": "definition",
+      "short": "The inverse of a bijective function assigns each function value its unique preimage.",
+      "explanation": "If $f:A\\to B$ is bijective, its inverse function is defined as $f^{-1}=f^\\top:B\\to A$. We have $(f^{-1})^{-1}=f$, $f^{-1}\\circ f=\\operatorname{Id}_A$, and $f\\circ f^{-1}=\\operatorname{Id}_B$. The notation $f^{-1}$ is also used for the preimage operation on sets.",
+      "example": "For $g(x)=x^2$ on $\\mathbb R_{\\geq0}$, $g^{-1}(x)=\\sqrt{x}$.",
+      "pitfalls": [
+        "$f^{-1}(x)$ does not mean $1/f(x)$; for a non-bijective function, $f^{-1}(Y)$ usually denotes the preimage of a set $Y$."
+      ],
+      "related": [
+        "Transposed Relation (Transponierte Relation)",
+        "Bijectivity (Bijektivität)",
+        "Image and Preimage (Bild und Urbild)"
+      ],
+      "heading": "1.2 Transponierte Relation"
+    },
+    {
+      "id": "ds-13-k07",
+      "term": "Reflection and Strict Monotonicity (Spiegelung und strenge Monotonie)",
+      "kind": "theorem",
+      "short": "The graph of the transposed relation is obtained by reflection across $y=x$, and strict monotonicity on totally ordered sets implies injectivity.",
+      "explanation": "A graph point $(x,f(x))$ corresponds to the point $(f(x),x)$ in the transposed relation. If $A$ and $B$ are totally ordered and $a<a'\\Rightarrow f(a)<f(a')$ holds, then distinct arguments have distinct function values. Thus $f$ is injective and, as a map onto its image $f(A)$, bijective.",
+      "example": "The function $x\\mapsto x^2$ is strictly monotone on $\\mathbb R_{\\geq0}$ and bijective onto $\\mathbb R_{\\geq0}$.",
+      "pitfalls": [
+        "Strict monotonicity does not guarantee surjectivity onto a larger specified codomain."
+      ],
+      "related": [
+        "Transposed Relation (Transponierte Relation)",
+        "Injectivity (Injektivität)",
+        "Bijectivity (Bijektivität)"
+      ],
+      "heading": "1.3 Spiegelung und Monotonie (131)"
+    },
+    {
+      "id": "ds-13-k08",
+      "term": "Composition of Functions (Komposition von Funktionen)",
+      "kind": "definition",
+      "short": "The composition $g\\circ f$ applies $f$ first and then $g$.",
+      "explanation": "For $f:A\\to B$ and $g:B\\to C$, $g\\circ f:A\\to C$ is defined by $(g\\circ f)(x)=g(f(x))$. If both functions are bijective, then $(g\\circ f)^{-1}=f^{-1}\\circ g^{-1}$. Thus, when taking the inverse, the order of the functions is reversed.",
+      "example": "For $x\\in A$, $x$ is mapped first by $f$ to $B$ and then by $g$ to $C$.",
+      "pitfalls": [
+        "Composition is evaluated from right to left."
+      ],
+      "related": [
+        "Inverse Function (Umkehrfunktion)",
+        "Bijectivity (Bijektivität)"
+      ],
+      "heading": "1.4 Komposition und Eigenschaften (132)"
+    },
+    {
+      "id": "ds-13-k09",
+      "term": "Characterizing Mutual Inverses (Charakterisierung gegenseitiger Umkehrfunktionen)",
+      "kind": "theorem",
+      "short": "If $f:A\\to B$ is bijective, either of the two identity equations suffices to identify a map $g:B\\to A$ as $f^{-1}$.",
+      "explanation": "If $g\\circ f=\\operatorname{Id}_A$ or $f\\circ g=\\operatorname{Id}_B$ holds, the bijectivity of $f$ implies $g=f^{-1}$. If $f$ and $g$ are not already known to be bijective, both identity equations must hold. The maps are then mutual inverses.",
+      "example": "For bijective $f:A\\to B$, $g=f^{-1}$ already follows from $f\\circ g=\\operatorname{Id}_B$.",
+      "pitfalls": [
+        "Without the assumed bijectivity of $f$, a single identity equation is generally insufficient."
+      ],
+      "related": [
+        "Composition of Functions (Komposition von Funktionen)",
+        "Inverse Function (Umkehrfunktion)",
+        "Bijectivity (Bijektivität)"
+      ],
+      "heading": "1.4 Komposition und Eigenschaften (132)"
+    },
+    {
+      "id": "ds-13-k10",
+      "term": "Permutation (Permutation)",
+      "kind": "definition",
+      "short": "A permutation of a set $A$ is a bijective self-map $A\\to A$.",
+      "explanation": "The set of all permutations of $A$ is denoted by $S_A=\\{f:A\\to A\\mid f\\text{ bijektiv}\\}$. The identity, the inverse, and the composition of permutations are again permutations. Thus, the permutations form a group under composition.",
+      "example": "On $\\{1,2,3\\}$, $1\\mapsto2$, $2\\mapsto3$, $3\\mapsto1$ is a permutation.",
+      "pitfalls": [
+        "A self-map is not automatically a permutation; it must be bijective."
+      ],
+      "related": [
+        "Bijectivity (Bijektivität)",
+        "Self-Map as a Directed Graph (Selbstabbildung als gerichteter Graph)",
+        "Composition of Permutations (Komposition von Permutationen)"
+      ],
+      "heading": "2.1 Permutation"
+    },
+    {
+      "id": "ds-13-k11",
+      "term": "Self-Map as a Directed Graph (Selbstabbildung als gerichteter Graph)",
+      "kind": "concept",
+      "short": "The graph of a self-map connects each vertex to its function value and has exactly one outgoing edge at each vertex.",
+      "explanation": "For $f:A\\to A$, $G_f=(A,\\{(a,f(a))\\mid a\\in A\\})$. Injectivity means that each vertex has at most one incoming edge; surjectivity means that each vertex has at least one incoming edge. A fixed point $a$ with $f(a)=a$ is a loop.",
+      "example": "For $f(1)=2$ and $f(2)=1$, the two vertices form a directed cycle.",
+      "pitfalls": [
+        "The function property guarantees exactly one outgoing edge, not an incoming edge."
+      ],
+      "related": [
+        "Function as a Relation (Funktion als Relation)",
+        "Injectivity (Injektivität)",
+        "Surjectivity (Surjektivität)",
+        "Permutation (Permutation)",
+        "Orbit and Cycle (Orbit und Zyklus)"
+      ],
+      "heading": "2.2 Selbstabbildung als gerichteter Graph (133)"
+    },
+    {
+      "id": "ds-13-k12",
+      "term": "Orbit and Cycle (Orbit und Zyklus)",
+      "kind": "concept",
+      "short": "The orbit of an element traces its repeated function values, and a cycle is a repeating closed segment of this trajectory.",
+      "explanation": "For a self-map $f:A\\to A$, set $f^0=\\operatorname{Id}_A$ and $f^{i+1}=f\\circ f^i$. The orbit of $a$ is the sequence $(f^i(a))_{i\\in\\mathbb N_0}$. If $f^i(a)=f^j(a)$ for $i<j$, the trajectory repeats periodically; if a path precedes it, the orbit has a lasso shape. A fixed point is a cycle of length one.",
+      "example": "For $1\\to2\\to3\\to4\\to5\\to3$, the orbit is $1,2,3,4,5,3,4,5,\\ldots$; the cycle is $3\\to4\\to5\\to3$.",
+      "pitfalls": [
+        "$f^i(a)$ denotes repeated function application, not the power $f(a)^i$."
+      ],
+      "related": [
+        "Self-Map as a Directed Graph (Selbstabbildung als gerichteter Graph)",
+        "Permutation (Permutation)"
+      ],
+      "heading": "Selbstabbildungen, Orbits und Zyklen"
+    },
+    {
+      "id": "ds-13-k13",
+      "term": "Finite Self-Map (Endliche Selbstabbildung)",
+      "kind": "theorem",
+      "short": "For a self-map of a finite set, injectivity, surjectivity, and bijectivity are equivalent.",
+      "explanation": "If $A$ is finite and $f:A\\to A$, then $f$ is injective exactly when $f$ is surjective; both are equivalent to bijectivity. The graph of such a bijective map consists of disjoint cycles, including possible fixed points. This equivalence does not hold in general for infinite sets.",
+      "example": "On $\\mathbb Z_6$ with $f(x)=(x+2)\\bmod 6$, the cycles $(0,2,4)$ and $(1,3,5)$ arise.",
+      "pitfalls": [
+        "The equivalence assumes the same finite set as both domain and codomain."
+      ],
+      "related": [
+        "Injectivity (Injektivität)",
+        "Surjectivity (Surjektivität)",
+        "Bijectivity (Bijektivität)",
+        "Orbit and Cycle (Orbit und Zyklus)"
+      ],
+      "heading": "2.2 Selbstabbildung als gerichteter Graph (133)"
+    },
+    {
+      "id": "ds-13-k14",
+      "term": "Collatz Conjecture (Collatz-Vermutung)",
+      "kind": "example",
+      "short": "The Collatz conjecture states that every orbit of the Collatz function eventually reaches the cycle $4\\to2\\to1\\to4$.",
+      "explanation": "The function $c:\\mathbb N\\to\\mathbb N$ is defined by $c(n)=n/2$ for even $n$ and $c(n)=3n+1$ for odd $n$. The conjecture claims that repeated application, starting from any positive natural number, eventually reaches the cycle $4\\to2\\to1\\to4$. It is an open problem, not a proven theorem.",
+      "example": "The orbit of $5$ begins with $5\\to16\\to8\\to4\\to2\\to1\\to4$.",
+      "pitfalls": [
+        "Many verified examples do not prove the conjecture for all natural numbers."
+      ],
+      "related": [
+        "Orbit and Cycle (Orbit und Zyklus)",
+        "Self-Map as a Directed Graph (Selbstabbildung als gerichteter Graph)"
+      ],
+      "heading": "2.3 Collatz (134)"
+    },
+    {
+      "id": "ds-13-k15",
+      "term": "Notations for Finite Permutations (Schreibweisen endlicher Permutationen)",
+      "kind": "notation",
+      "short": "A finite permutation can be written in two-line notation, as a value tuple, or as a product of disjoint cycles.",
+      "explanation": "In two-line notation, the arguments appear in the top row and their images below. A value tuple lists the images in a fixed argument order. In cycle notation, each cycle specifies the element to which the preceding element is mapped; cycles may be rotated cyclically, and disjoint cycles may be reordered.",
+      "example": "The map $1\\mapsto2$, $2\\mapsto3$, $3\\mapsto1$, $4\\mapsto4$ can be written as $\\begin{pmatrix}1&2&3&4\\\\2&3&1&4\\end{pmatrix}$, $(2,3,1,4)$, or $(1,2,3)(4)$.",
+      "pitfalls": [
+        "Value tuples and cycle notation follow different reading conventions.",
+        "Fixed points may be omitted in cycle notation when the underlying set is known."
+      ],
+      "related": [
+        "Permutation (Permutation)",
+        "Orbit and Cycle (Orbit und Zyklus)"
+      ],
+      "heading": "2.4 Drei Schreibweisen (135)"
+    },
+    {
+      "id": "ds-13-k16",
+      "term": "Composition of Permutations (Komposition von Permutationen)",
+      "kind": "method",
+      "short": "In a composition of permutations, the right-hand map is applied first, followed by the left-hand map.",
+      "explanation": "For each element $x$, when computing $f\\circ g$, first calculate $g(x)$ and then $f(g(x))$. Repeating this for every element of the finite underlying set gives arrows that can be written as disjoint cycles. The inverse permutation is obtained by reversing the direction of each cycle.",
+      "example": "For $f=(1,2,3)(4)$ and $g=(1)(2,3)(4)$, $f\\circ g=(1,2)(3)(4)$ holds, whereas $g\\circ f=(1,3)(2)(4)$.",
+      "pitfalls": [
+        "Composition is not commutative in general: $f\\circ g$ and $g\\circ f$ may differ."
+      ],
+      "related": [
+        "Permutation (Permutation)",
+        "Composition of Functions (Komposition von Funktionen)",
+        "Notations for Finite Permutations (Schreibweisen endlicher Permutationen)"
+      ],
+      "heading": "2.5 Permutationen komponieren (136)"
+    },
+    {
+      "id": "ds-13-k17",
+      "term": "Image and Preimage (Bild und Urbild)",
+      "kind": "definition",
+      "short": "The image of a subset contains its function values, and its preimage contains all arguments whose function values lie in a specified target subset.",
+      "explanation": "For $f:A\\to B$, $X\\subseteq A$, and $Y\\subseteq B$, $f(X)=\\{f(a)\\mid a\\in X\\}\\subseteq B$ and $f^{-1}(Y)=\\{a\\in A\\mid f(a)\\in Y\\}\\subseteq A$. The image operation is a map $2^A\\to2^B$, and the preimage operation is a map $2^B\\to2^A$. Both are defined for every function.",
+      "example": "If $f(1)=r$, $f(2)=g$, and $f(3)=r$, then $f(\\{1,2\\})=\\{r,g\\}$ and $f^{-1}(\\{r\\})=\\{1,3\\}$.",
+      "pitfalls": [
+        "The preimage of a single value may be empty or contain several elements.",
+        "The image $f(A)$ may be a proper subset of $B$."
+      ],
+      "related": [
+        "Injectivity (Injektivität)",
+        "Surjectivity (Surjektivität)",
+        "Inverse Function (Umkehrfunktion)"
+      ],
+      "heading": "3. Bilder und Urbilder (137–138)"
+    },
+    {
+      "id": "ds-13-k18",
+      "term": "Laws for Images and Preimages (Rechenregeln für Bilder und Urbilder)",
+      "kind": "theorem",
+      "short": "Preimages preserve unions, intersections, and differences, whereas images always preserve unions but require additional assumptions to preserve the others.",
+      "explanation": "For $X,X'\\subseteq A$ and $Y,Y'\\subseteq B$, $f(X\\cup X')=f(X)\\cup f(X')$ and $f^{-1}(Y\\cup Y')=f^{-1}(Y)\\cup f^{-1}(Y')$ hold. In addition, $f^{-1}(Y\\cap Y')=f^{-1}(Y)\\cap f^{-1}(Y')$ and $f^{-1}(Y\\setminus Y')=f^{-1}(Y)\\setminus f^{-1}(Y')$ hold. In general, $f(X\\cap X')\\subseteq f(X)\\cap f(X')$ and $f(X\\setminus X')\\supseteq f(X)\\setminus f(X')$.",
+      "example": "If $f(1)=f(2)=r$, $X=\\{1\\}$, and $X'=\\{2\\}$, then $f(X\\cap X')=\\varnothing$, but $f(X)\\cap f(X')=\\{r\\}$.",
+      "pitfalls": [
+        "For images of intersections and differences, in general only an inclusion holds, not necessarily equality."
+      ],
+      "related": [
+        "Image and Preimage (Bild und Urbild)",
+        "Injectivity (Injektivität)"
+      ],
+      "heading": "3.2 Allgemeine Regeln (137)"
+    },
+    {
+      "id": "ds-13-k19",
+      "term": "Characterizing Injectivity and Surjectivity via Images and Preimages",
+      "kind": "theorem",
+      "short": "Injectivity and surjectivity can be characterized by equalities involving images and preimages of all appropriate subsets.",
+      "explanation": "Surjectivity is equivalent to $f(A)=B$ and to $f(f^{-1}(Y))=Y$ holding for every $Y\\subseteq B$. Injectivity is equivalent to $f^{-1}(f(X))=X$ for every $X\\subseteq A$. Also equivalent to injectivity are $f(X\\cap X')=f(X)\\cap f(X')$ and $f(X\\setminus X')=f(X)\\setminus f(X')$ for all appropriate sets. For a bijection, we also have $f(A\\setminus X)=B\\setminus f(X)$ for every $X\\subseteq A$.",
+      "example": "If $f$ is injective and $f(a)\\in f(X)$, injectivity implies $a\\in X$.",
+      "pitfalls": [
+        "The equation $f^{-1}(f(X))=X$ characterizes injectivity when it holds for every $X\\subseteq A$."
+      ],
+      "related": [
+        "Injectivity (Injektivität)",
+        "Surjectivity (Surjektivität)",
+        "Image and Preimage (Bild und Urbild)",
+        "Laws for Images and Preimages (Rechenregeln für Bilder und Urbilder)"
+      ],
+      "heading": "3.3 Charakterisierung von Injektivität und Surjektivität (138)"
+    },
+    {
+      "id": "ds-13-k20",
+      "term": "Function-Induced Equivalence Relation (Funktionsinduzierte Äquivalenzrelation)",
+      "kind": "definition",
+      "short": "Two arguments are equivalent with respect to a function if they have the same function value.",
+      "explanation": "Define $a\\equiv_f a'\\iff f(a)=f(a')$. The relation is reflexive, symmetric, and transitive because equality of function values has these properties. The equivalence class $[a]_f$ is the fiber $f^{-1}(\\{f(a)\\})$. The quotient map $q(a)=[a]_f$ is surjective, and $\\tilde f([a]_f)=f(a)$ is well-defined and injective; as a map into $f(A)$, it is bijective.",
+      "example": "If $f(1)=f(5)=r$, $f(2)=f(4)=g$, and $f(3)=b$, the classes are $\\{1,5\\}$, $\\{2,4\\}$, and $\\{3\\}$.",
+      "pitfalls": [
+        "An equivalence class collects arguments with the same function value, not the function values themselves."
+      ],
+      "related": [
+        "Image and Preimage (Bild und Urbild)",
+        "Injectivity (Injektivität)",
+        "Surjectivity (Surjektivität)"
+      ],
+      "heading": "4. Funktionen und Äquivalenzrelationen (139)"
+    },
+    {
+      "id": "ds-13-k21",
+      "term": "Cardinality (Kardinalität)",
+      "kind": "definition",
+      "short": "Cardinality compares the sizes of sets by the injections and bijections that exist between them.",
+      "explanation": "We write $|A|\\leq|B|$ if an injection $A\\to B$ exists, and $|A|=|B|$ if a bijection $A\\to B$ exists. $|A|<|B|$ means $|A|\\leq|B|$ and that $A$ and $B$ are not equinumerous. For finite sets, $|A|=n$ means that $A$ is bijective with $[n]=\\{1,\\ldots,n\\}$.",
+      "example": "The bijection $n\\mapsto2n$ shows that $\\mathbb N$ and the positive even numbers are equinumerous.",
+      "pitfalls": [
+        "An infinite set can have the same cardinality as one of its proper subsets."
+      ],
+      "related": [
+        "Injectivity (Injektivität)",
+        "Bijectivity (Bijektivität)",
+        "Cantor–Bernstein–Schröder Theorem (Satz von Cantor-Bernstein-Schröder)"
+      ],
+      "heading": "5.1 Definitionen (141)"
+    },
+    {
+      "id": "ds-13-k22",
+      "term": "Cantor–Bernstein–Schröder Theorem (Satz von Cantor-Bernstein-Schröder)",
+      "kind": "theorem",
+      "short": "If there are injections in both directions between two sets, then there is also a bijection between them.",
+      "explanation": "For sets $A$ and $B$, $|A|=|B|$ holds exactly when $|A|\\leq|B|$ and $|B|\\leq|A|$. The injections in opposite directions need not be inverses of each other. The theorem is useful when it is difficult to give a direct bijection.",
+      "example": "An injection $A\\to B$ and an injection $B\\to A$ imply $|A|=|B|$.",
+      "pitfalls": [
+        "Two injections in opposite directions need not be inverses of each other."
+      ],
+      "related": [
+        "Cardinality (Kardinalität)",
+        "Injectivity (Injektivität)",
+        "Bijectivity (Bijektivität)"
+      ],
+      "heading": "5.2 Eigenschaften (142)"
+    },
+    {
+      "id": "ds-13-k23",
+      "term": "Countable Set (Abzählbare Menge)",
+      "kind": "definition",
+      "short": "A set is countable if its cardinality is at most that of the natural numbers.",
+      "explanation": "In this unit, $\\mathbb N=\\{1,2,\\ldots\\}$, and countable means $|A|\\leq|\\mathbb N|$. The term includes both finite sets and countably infinite sets, which are bijective with $\\mathbb N$. Sets that are not countable are called uncountable.",
+      "example": "Every finite set, including the empty set, is countable.",
+      "pitfalls": [
+        "Countable does not necessarily mean countably infinite."
+      ],
+      "related": [
+        "Cardinality (Kardinalität)",
+        "Uncountability of Binary Sequences and the Real Numbers (Überabzählbarkeit von Binärfolgen und reellen Zahlen)"
+      ],
+      "heading": "6. Abzählbarkeit (143, beide Varianten)"
+    },
+    {
+      "id": "ds-13-k24",
+      "term": "Countability of the Natural and Integer Numbers (Abzählbarkeit der natürlichen und ganzen Zahlen)",
+      "kind": "theorem",
+      "short": "The natural numbers, the positive even numbers, the nonnegative integers, and the integers are countably infinite.",
+      "explanation": "The map $n\\mapsto2n$ is a bijection from $\\mathbb N$ to the positive even numbers. A bijection $\\mathbb Z\\to\\mathbb N$ is given by $f(z)=2z+1$ for $z\\geq0$ and $f(z)=-2z$ for $z<0$. Thus, $\\mathbb N_0$ and $\\mathbb Z$ are also countable; since the prime numbers are infinite, they are countably infinite as well.",
+      "example": "The ordering $0,-1,1,-2,2,-3,3,\\ldots$ lists all integers.",
+      "pitfalls": [
+        "An infinite set can be equinumerous with one of its proper subsets."
+      ],
+      "related": [
+        "Countable Set (Abzählbare Menge)",
+        "Cantor Pairing Function (Cantorsche Paarungsfunktion)"
+      ],
+      "heading": "6.1 Natürliche, gerade und ganze Zahlen"
+    },
+    {
+      "id": "ds-13-k25",
+      "term": "Cantor Pairing Function (Cantorsche Paarungsfunktion)",
+      "kind": "definition",
+      "short": "The Cantor pairing function shows by a bijection that the product $\\mathbb N\\times\\mathbb N$ is countable.",
+      "explanation": "With the numbering from $1$ used in the lecture, $p(n,m)=m+\\frac{(m+n-1)(m+n-2)}{2}$. It lists pairs diagonally in the order $(1,1),(2,1),(1,2),(3,1),(2,2),(1,3),\\ldots$. Thus, $\\mathbb N\\times\\mathbb N$ is equinumerous with $\\mathbb N$.",
+      "example": "We have $p(2,1)=2$ and $p(1,2)=3$.",
+      "pitfalls": [
+        "Under this convention, $n$ is the first parameter and $m$ is the second."
+      ],
+      "related": [
+        "Countable Set (Abzählbare Menge)",
+        "Cardinal Arithmetic (Kardinalarithmetik)"
+      ],
+      "heading": "6.2 Cantorsche Paarungsfunktion"
+    },
+    {
+      "id": "ds-13-k26",
+      "term": "Countability of the Rational and Algebraic Numbers (Abzählbarkeit der rationalen und algebraischen Zahlen)",
+      "kind": "theorem",
+      "short": "The rational numbers and the algebraic numbers form countable sets.",
+      "explanation": "We have $|\\mathbb N|\\leq|\\mathbb Q|\\leq|\\mathbb Z\\times\\mathbb N|=|\\mathbb N|$. For the upper bound, each rational number is embedded in $\\mathbb Z\\times\\mathbb N$ by its uniquely reduced fraction with positive denominator; the pairing function shows that this product is countable. The Cantor–Bernstein–Schröder theorem gives $|\\mathbb Q|=|\\mathbb N|$. The algebraic numbers are countable because there are countably many integer-coefficient polynomials, and each nonconstant polynomial has only finitely many roots.",
+      "example": "The rational number $\\frac{2}{3}$ is represented by the pair $(2,3)$.",
+      "pitfalls": [
+        "For a unique fraction representation, the fraction must be fully reduced and its denominator must be positive."
+      ],
+      "related": [
+        "Countable Set (Abzählbare Menge)",
+        "Cantor Pairing Function (Cantorsche Paarungsfunktion)",
+        "Cantor–Bernstein–Schröder Theorem (Satz von Cantor-Bernstein-Schröder)"
+      ],
+      "heading": "6.3 Rationale Zahlen und endliche Wörter"
+    },
+    {
+      "id": "ds-13-k27",
+      "term": "Finite Words over a Countable Alphabet (Endliche Wörter über einem abzählbaren Alphabet)",
+      "kind": "theorem",
+      "short": "The set of all finite words over a countable alphabet is countable.",
+      "explanation": "For an alphabet $\\Sigma$, $\\Sigma^*=\\bigcup_{k\\in\\mathbb N_0}\\Sigma^k$ is the set of all finite words. For each fixed $k$, $\\Sigma^k$ is countable, and a countable union of countable sets is countable. In particular, finite binary words and programs over a countable alphabet are countable.",
+      "example": "The set $\\{0,1\\}^*$ contains all finite words over $\\{0,1\\}$, including the empty word.",
+      "pitfalls": [
+        "Finite words are not the same as infinite sequences."
+      ],
+      "related": [
+        "Countable Set (Abzählbare Menge)",
+        "Uncountability of Binary Sequences and the Real Numbers (Überabzählbarkeit von Binärfolgen und reellen Zahlen)"
+      ],
+      "heading": "6.3 Rationale Zahlen und endliche Wörter"
+    },
+    {
+      "id": "ds-13-k28",
+      "term": "Gödel Encoding of Finite Tuples (Gödel-Kodierung endlicher Tupel)",
+      "kind": "method",
+      "short": "Prime powers encode a finite tuple of positive natural numbers uniquely as a natural number.",
+      "explanation": "For $(n_1,\\ldots,n_k)$ with positive components, use $2^{n_1}3^{n_2}\\cdots p_k^{n_k}$, where $p_k$ is the $k$th prime. Unique prime factorization recovers the components. Because all exponents are positive, the tuple length can also be determined from the primes used.",
+      "example": "The tuple $(2,1)$ is encoded by $2^2\\cdot3^1=12$.",
+      "pitfalls": [
+        "The encoding given assumes positive components; exponents from $\\mathbb N_0$ require an additional convention."
+      ],
+      "related": [
+        "Cantor Pairing Function (Cantorsche Paarungsfunktion)",
+        "Countable Set (Abzählbare Menge)"
+      ],
+      "heading": "6.2 Cantorsche Paarungsfunktion"
+    },
+    {
+      "id": "ds-13-k29",
+      "term": "Power Set and the Notation 2^A (Potenzmenge und Notation 2^A)",
+      "kind": "notation",
+      "short": "The notation $2^A$ denotes the power set of $A$ and, via characteristic functions, corresponds to the function set $\\{0,1\\}^A$.",
+      "explanation": "The power set $\\mathcal P(A)$ contains all subsets of $A$; in the lecture it is also denoted by $2^A$. Each subset $X\\subseteq A$ corresponds to its characteristic function, which maps elements to $1$ or $0$ depending on whether they belong to the subset. Therefore, $|2^A|=|\\{0,1\\}^A|$.",
+      "example": "For $A=\\{a,b\\}$, $2^A=\\{\\varnothing,\\{a\\},\\{b\\},\\{a,b\\}\\}$.",
+      "pitfalls": [
+        "$2^A$ here is a set of subsets, not an ordinary numerical power."
+      ],
+      "related": [
+        "Cantor’s Theorem (Satz von Cantor)",
+        "Cardinal Arithmetic (Kardinalarithmetik)"
+      ],
+      "heading": "7. Satz von Cantor (144, beide Varianten)"
+    },
+    {
+      "id": "ds-13-k30",
+      "term": "Cantor’s Theorem (Satz von Cantor)",
+      "kind": "theorem",
+      "short": "For every set $A$, its power set has strictly greater cardinality than $A$.",
+      "explanation": "We have $|A|<|2^A|$. The map $a\\mapsto\\{a\\}$ is an injection $A\\to2^A$, so $|A|\\leq|2^A|$. Cantor’s diagonal argument also shows that there is no surjective map $A\\to2^A$, and hence no bijection.",
+      "example": "The power set $2^{\\mathbb N}$ has greater cardinality than $\\mathbb N$.",
+      "pitfalls": [
+        "The theorem says more than the mere inclusion $A\\subseteq2^A$; the key point is that no bijection exists."
+      ],
+      "related": [
+        "Power Set and the Notation 2^A (Potenzmenge und Notation 2^A)",
+        "Cantor’s Diagonal Argument (Cantors Diagonalargument)",
+        "Cardinality (Kardinalität)"
+      ],
+      "heading": "7. Satz von Cantor (144, beide Varianten)"
+    },
+    {
+      "id": "ds-13-k31",
+      "term": "Cantor’s Diagonal Argument (Cantors Diagonalargument)",
+      "kind": "method",
+      "short": "The diagonal argument constructs a subset that differs from every entry in a purported complete enumeration.",
+      "explanation": "Assume $f:A\\to2^A$ is surjective, and define $D=\\{a\\in A\\mid a\\notin f(a)\\}$. By surjectivity, there must be some $d\\in A$ such that $f(d)=D$. Then $d\\in D\\iff d\\notin f(d)\\iff d\\notin D$, a contradiction. Therefore, $f$ is not surjective.",
+      "example": "In a list of subsets of $\\mathbb N$, $n$ belongs to $D$ exactly when $n$ is not in the $n$th listed set.",
+      "pitfalls": [
+        "The diagonal set is defined by non-membership in $f(a)$."
+      ],
+      "related": [
+        "Cantor’s Theorem (Satz von Cantor)",
+        "Power Set and the Notation 2^A (Potenzmenge und Notation 2^A)"
+      ],
+      "heading": "7.1 Beweis – Diagonalargument"
+    },
+    {
+      "id": "ds-13-k32",
+      "term": "Diagonal Table for the Subsets of \\mathbb N (Diagonaltabelle für die Teilmengen von \\mathbb N)",
+      "kind": "example",
+      "short": "A table of characteristic sequences illustrates that the complemented diagonal appears in no row of a complete list.",
+      "explanation": "Each row encodes a subset of $\\mathbb N$ using zeros and ones. The diagonal sequence is flipped at every position. The resulting sequence differs from row $i$ at position $i$ and therefore cannot occur in any row of the purported complete list.",
+      "example": "If the diagonal begins with $0,1,0,0,\\ldots$, the complemented diagonal begins with $1,0,1,1,\\ldots$ and encodes $\\{1,3,4,\\ldots\\}$.",
+      "pitfalls": [
+        "For the contradiction, each row must be compared at its corresponding diagonal position."
+      ],
+      "related": [
+        "Cantor’s Diagonal Argument (Cantors Diagonalargument)",
+        "Cantor’s Theorem (Satz von Cantor)"
+      ],
+      "heading": "7.2 Diagonaltabelle für $A=\\mathbb N$"
+    },
+    {
+      "id": "ds-13-k33",
+      "term": "Uncountability of Binary Sequences and the Real Numbers (Überabzählbarkeit von Binärfolgen und reellen Zahlen)",
+      "kind": "theorem",
+      "short": "Infinite binary sequences and the real numbers are uncountable.",
+      "explanation": "Each subset of $\\mathbb N$ corresponds to its characteristic infinite binary sequence, so $|2^{\\mathbb N}|=|\\{0,1\\}^{\\mathbb N}|$. By Cantor’s theorem, this cardinality is greater than $|\\mathbb N|$; moreover, $|2^{\\mathbb N}|=|\\mathbb R|$. Therefore, the real numbers are also uncountable.",
+      "example": "The sequence $1,0,1,1,0,\\ldots$ encodes the set of natural numbers at the positions containing a $1$.",
+      "pitfalls": [
+        "Infinite binary sequences should be distinguished from countable finite binary words.",
+        "Dyadic rational numbers have two binary representations, so the usual binary representation does not directly give a bijection with $[0,1]$."
+      ],
+      "related": [
+        "Cantor’s Theorem (Satz von Cantor)",
+        "Countable Set (Abzählbare Menge)",
+        "Finite Words over a Countable Alphabet (Endliche Wörter über einem abzählbaren Alphabet)"
+      ],
+      "heading": "8.1 Endliche und unendliche Binärfolgen"
+    },
+    {
+      "id": "ds-13-k34",
+      "term": "Countability of Programs (Abzählbarkeit von Programmen)",
+      "kind": "concept",
+      "short": "Programs are finite strings and therefore form a countable set, whereas the real numbers are uncountable.",
+      "explanation": "Programs over a finite or countable alphabet are elements of a countable set of finite words. Thus, there are at most countably many programs and at most countably many real numbers computable by them. Since $\\mathbb R$ is uncountable, no program can compute every real number.",
+      "example": "The set of all finite Java, C, or Python programs is countable.",
+      "pitfalls": [
+        "The countability of programs does not mean that every mathematically described object can be computed by a program."
+      ],
+      "related": [
+        "Finite Words over a Countable Alphabet (Endliche Wörter über einem abzählbaren Alphabet)",
+        "Uncountability of Binary Sequences and the Real Numbers (Überabzählbarkeit von Binärfolgen und reellen Zahlen)"
+      ],
+      "heading": "8.2 Bedeutung für die Informatik"
+    },
+    {
+      "id": "ds-13-k35",
+      "term": "Cardinal Arithmetic (Kardinalarithmetik)",
+      "kind": "definition",
+      "short": "Cardinal multiplication and cardinal exponentiation are defined using Cartesian products and function sets.",
+      "explanation": "For sets $A$ and $B$, set $|A|\\cdot|B|:=|A\\times B|$ and $|B|^{|A|}:=|B^A|$, where $B^A$ is the set of all functions $A\\to B$. The lecture uses, among others, $|\\mathbb R|=|\\mathbb N^{\\mathbb N}|=|\\mathbb R^{\\mathbb N}|$. We also have $|\\mathbb R|<|2^{\\mathbb R}|=|\\mathbb R^{\\mathbb R}|$.",
+      "example": "$|A|\\cdot|B|$ is the cardinality of the set of pairs $(a,b)$ with $a\\in A$ and $b\\in B$.",
+      "pitfalls": [
+        "The cardinal exponentiation $|B|^{|A|}$ counts functions $A\\to B$, not functions $B\\to A$."
+      ],
+      "related": [
+        "Cardinality (Kardinalität)",
+        "Cantor Pairing Function (Cantorsche Paarungsfunktion)",
+        "Currying (Currying)"
+      ],
+      "heading": "8.3 Kardinalarithmetik und Currying"
+    },
+    {
+      "id": "ds-13-k36",
+      "term": "Currying (Currying)",
+      "kind": "concept",
+      "short": "Currying maps a function of two arguments to a function that takes one argument and returns a function of the other argument.",
+      "explanation": "A function $h:A\\times B\\to C$ corresponds bijectively to a function $A\\to C^B$ and likewise to a function $B\\to C^A$. Thus, $(C^B)^A\\cong C^{A\\times B}\\cong(C^A)^B$. For cardinalities, this yields $(|C|^{|B|})^{|A|}=|C|^{|A|\\cdot|B|}$.",
+      "example": "The function $h(a,b)$ becomes the function $a\\mapsto(b\\mapsto h(a,b))$.",
+      "pitfalls": [
+        "Currying changes the representation of a function, but not its assigned function values."
+      ],
+      "related": [
+        "Cardinal Arithmetic (Kardinalarithmetik)"
+      ],
+      "heading": "8.3 Kardinalarithmetik und Currying"
+    },
+    {
+      "id": "ds-13-k37",
+      "term": "Continuum Hypothesis (Kontinuumshypothese)",
+      "kind": "concept",
+      "short": "The continuum hypothesis asserts that no cardinality lies strictly between that of $\\mathbb N$ and that of $\\mathbb R$.",
+      "explanation": "It asserts that there is no set $A$ such that $|\\mathbb N|<|A|<|\\mathbb R|$. Cantor’s theorem shows that $|\\mathbb N|<|\\mathbb R|$, but does not decide whether an intermediate cardinality exists. The continuum hypothesis is independent of ZFC, assuming ZFC is consistent.",
+      "example": null,
+      "pitfalls": [
+        "Cantor’s theorem does not imply that the continuum hypothesis is true or false."
+      ],
+      "related": [
+        "Cardinality (Kardinalität)",
+        "Cantor’s Theorem (Satz von Cantor)",
+        "Uncountability of Binary Sequences and the Real Numbers (Überabzählbarkeit von Binärfolgen und reellen Zahlen)"
+      ],
+      "heading": "8.4 Kontinuumshypothese"
+    }
+  ],
+  "generator": {
+    "model": "gpt-6-luna",
+    "effort": "xhigh",
+    "promptVersion": "k1",
+    "generatedAt": "2026-11-25T00:32:40.031Z"
+  }
+}
