@@ -1,0 +1,637 @@
+{
+  "schemaVersion": 1,
+  "unitId": "ds-13",
+  "module": "DS",
+  "unitNumber": 13,
+  "unitTitle": "Funktionen und Kardinalität",
+  "sourceSha": "cbf14388fcde066780576e422495cf88199e62c9510b33ff35d490af31929295",
+  "overview": "Die Unit behandelt Funktionen, ihre Umkehrungen, Permutationen sowie Bilder und Urbilder. Sie vergleicht Mengen mithilfe von Injektionen und Bijektionen, führt Abzählbarkeit ein und zeigt mit Cantors Diagonalargument, dass Potenzmengen und damit auch die reellen Zahlen überabzählbar sind. Kardinalarithmetik und Currying beschreiben zusätzlich Beziehungen zwischen Funktionsmengen.",
+  "entries": [
+    {
+      "id": "ds-13-k01",
+      "term": "Funktion als Relation",
+      "kind": "definition",
+      "short": "Eine Funktion $f:A\\to B$ ist eine linkstotale und rechtseindeutige Relation in $A\\times B$.",
+      "explanation": "Linkstotal bedeutet, dass jedes $a\\in A$ mit mindestens einem Element aus $B$ in Beziehung steht. Rechtseindeutig bedeutet, dass zu einem $a$ höchstens ein solches Element gehört. Zusammen hat daher jedes Argument genau einen Funktionswert.",
+      "example": "Die Relation $\\{(1,r),(2,g)\\}$ ist eine Funktion von $\\{1,2\\}$ nach $\\{r,g\\}$.",
+      "pitfalls": [
+        "Eine Relation, die für ein Argument keinen Wert festlegt, ist keine Funktion."
+      ],
+      "related": [
+        "Injektivität",
+        "Surjektivität"
+      ],
+      "heading": "1.1 Definitionsübersicht"
+    },
+    {
+      "id": "ds-13-k02",
+      "term": "Injektivität",
+      "kind": "definition",
+      "short": "Eine Funktion ist injektiv, wenn gleiche Funktionswerte nur von gleichen Argumenten stammen.",
+      "explanation": "Für $f:A\\to B$ gilt dann $f(a)=f(a')\\Rightarrow a=a'$. Gleichwertig hat jedes Element von $B$ höchstens ein Urbild. Injektivität verlangt nicht, dass jedes Element von $B$ getroffen wird.",
+      "example": "Die Funktion $f:\\mathbb N\\to 2\\mathbb N$ mit $f(n)=2n$ ist injektiv.",
+      "pitfalls": [
+        "Injektivität allein bedeutet nicht Surjektivität."
+      ],
+      "related": [
+        "Funktion als Relation",
+        "Surjektivität",
+        "Bijektivität"
+      ],
+      "heading": "1.1 Definitionsübersicht"
+    },
+    {
+      "id": "ds-13-k03",
+      "term": "Surjektivität",
+      "kind": "definition",
+      "short": "Eine Funktion ist surjektiv, wenn jedes Element der Zielmenge mindestens ein Urbild hat.",
+      "explanation": "Für $f:A\\to B$ gilt dann $\\forall b\\in B\\;\\exists a\\in A:f(a)=b$. Das ist gleichbedeutend mit $f(A)=B$. Surjektivität hängt deshalb von der festgelegten Zielmenge ab.",
+      "example": "Die Funktion $f:\\mathbb R\\to\\mathbb R$ mit $f(x)=x^2$ ist nicht surjektiv, weil keine negative reelle Zahl getroffen wird.",
+      "pitfalls": [
+        "Die Bildmenge $f(A)$ ist nicht automatisch gleich der Zielmenge $B$."
+      ],
+      "related": [
+        "Funktion als Relation",
+        "Injektivität",
+        "Bijektivität"
+      ],
+      "heading": "1.1 Definitionsübersicht"
+    },
+    {
+      "id": "ds-13-k04",
+      "term": "Bijektivität",
+      "kind": "definition",
+      "short": "Eine Funktion ist bijektiv, wenn jedes Element der Zielmenge genau ein Urbild hat.",
+      "explanation": "Bijektivität vereint Injektivität und Surjektivität: Jedes Ziel wird getroffen, und kein Ziel hat zwei verschiedene Urbilder. Genau dann besitzt $f:A\\to B$ eine Umkehrfunktion $f^{-1}:B\\to A$. Es gilt $f^{-1}\\circ f=\\operatorname{Id}_A$ und $f\\circ f^{-1}=\\operatorname{Id}_B$.",
+      "example": "Die Funktion $g:\\mathbb R_{\\geq0}\\to\\mathbb R_{\\geq0}$ mit $g(x)=x^2$ ist bijektiv.",
+      "pitfalls": [
+        "Eine Umkehrfunktion auf der gesamten Zielmenge existiert nicht für jede Funktion."
+      ],
+      "related": [
+        "Injektivität",
+        "Surjektivität",
+        "Umkehrfunktion"
+      ],
+      "heading": "1.1 Definitionsübersicht"
+    },
+    {
+      "id": "ds-13-k05",
+      "term": "Transponierte Relation",
+      "kind": "definition",
+      "short": "Die transponierte Relation einer Funktion vertauscht Argumente und Funktionswerte.",
+      "explanation": "Für $f\\subseteq A\\times B$ ist $f^\\top=\\{(b,a)\\mid(a,b)\\in f\\}\\subseteq B\\times A$. Für $b\\in B$ enthält $bf^\\top=\\{a\\in A\\mid f(a)=b\\}$ alle Urbilder von $b$. Die transponierte Relation ist genau dann eine Funktion $B\\to A$, wenn die ursprüngliche Funktion bijektiv ist.",
+      "example": "Wenn $f(1)=r$ und $f$ bijektiv ist, enthält $f^\\top$ das Paar $(r,1)$.",
+      "pitfalls": [
+        "Bei einer nicht bijektiven Funktion kann ein Element der Zielmenge kein oder mehrere Urbilder haben."
+      ],
+      "related": [
+        "Umkehrfunktion",
+        "Injektivität",
+        "Surjektivität",
+        "Bijektivität"
+      ],
+      "heading": "1.2 Transponierte Relation"
+    },
+    {
+      "id": "ds-13-k06",
+      "term": "Umkehrfunktion",
+      "kind": "definition",
+      "short": "Die Umkehrfunktion einer bijektiven Funktion ordnet jedem Funktionswert sein eindeutiges Urbild zu.",
+      "explanation": "Ist $f:A\\to B$ bijektiv, wird ihre Umkehrfunktion als $f^{-1}=f^\\top:B\\to A$ definiert. Es gilt $(f^{-1})^{-1}=f$, $f^{-1}\\circ f=\\operatorname{Id}_A$ und $f\\circ f^{-1}=\\operatorname{Id}_B$. Die Schreibweise $f^{-1}$ wird auch für die Urbildoperation auf Mengen verwendet.",
+      "example": "Für $g(x)=x^2$ auf $\\mathbb R_{\\geq0}$ ist $g^{-1}(x)=\\sqrt{x}$.",
+      "pitfalls": [
+        "$f^{-1}(x)$ bedeutet nicht $1/f(x)$; bei einer nicht bijektiven Funktion bezeichnet $f^{-1}(Y)$ meist das Urbild einer Menge $Y$."
+      ],
+      "related": [
+        "Transponierte Relation",
+        "Bijektivität",
+        "Bild und Urbild"
+      ],
+      "heading": "1.2 Transponierte Relation"
+    },
+    {
+      "id": "ds-13-k07",
+      "term": "Spiegelung und strenge Monotonie",
+      "kind": "theorem",
+      "short": "Der Graph der transponierten Relation entsteht durch Spiegelung an $y=x$, und strenge Monotonie auf total geordneten Mengen impliziert Injektivität.",
+      "explanation": "Zu einem Graphpunkt $(x,f(x))$ gehört in der transponierten Relation der Punkt $(f(x),x)$. Sind $A$ und $B$ total geordnet und gilt $a<a'\\Rightarrow f(a)<f(a')$, dann haben verschiedene Argumente verschiedene Funktionswerte. Somit ist $f$ injektiv und als Abbildung auf ihre Bildmenge $f(A)$ bijektiv.",
+      "example": "Die Funktion $x\\mapsto x^2$ ist auf $\\mathbb R_{\\geq0}$ streng monoton und bijektiv auf $\\mathbb R_{\\geq0}$.",
+      "pitfalls": [
+        "Strenge Monotonie garantiert keine Surjektivität auf eine größere vorgegebene Zielmenge."
+      ],
+      "related": [
+        "Transponierte Relation",
+        "Injektivität",
+        "Bijektivität"
+      ],
+      "heading": "1.3 Spiegelung und Monotonie (131)"
+    },
+    {
+      "id": "ds-13-k08",
+      "term": "Komposition von Funktionen",
+      "kind": "definition",
+      "short": "Die Komposition $g\\circ f$ wendet zuerst $f$ und anschließend $g$ an.",
+      "explanation": "Für $f:A\\to B$ und $g:B\\to C$ ist $g\\circ f:A\\to C$ durch $(g\\circ f)(x)=g(f(x))$ definiert. Sind beide Funktionen bijektiv, gilt $(g\\circ f)^{-1}=f^{-1}\\circ g^{-1}$. Beim Invertieren kehrt sich die Reihenfolge der Funktionen also um.",
+      "example": "Für $x\\in A$ wird $x$ zunächst durch $f$ nach $B$ und dann durch $g$ nach $C$ abgebildet.",
+      "pitfalls": [
+        "Die Komposition wird von rechts nach links ausgewertet."
+      ],
+      "related": [
+        "Umkehrfunktion",
+        "Bijektivität"
+      ],
+      "heading": "1.4 Komposition und Eigenschaften (132)"
+    },
+    {
+      "id": "ds-13-k09",
+      "term": "Charakterisierung gegenseitiger Umkehrfunktionen",
+      "kind": "theorem",
+      "short": "Ist $f:A\\to B$ bijektiv, genügt eine der beiden Identitätsgleichungen, um eine Abbildung $g:B\\to A$ als $f^{-1}$ zu erkennen.",
+      "explanation": "Wenn $g\\circ f=\\operatorname{Id}_A$ oder $f\\circ g=\\operatorname{Id}_B$ gilt, folgt aus der Bijektivität von $f$, dass $g=f^{-1}$. Sind $f$ und $g$ nicht bereits als bijektiv bekannt, müssen beide Identitätsgleichungen gelten. Dann sind die Abbildungen gegenseitige Umkehrfunktionen.",
+      "example": "Für bijektives $f:A\\to B$ ist aus $f\\circ g=\\operatorname{Id}_B$ bereits $g=f^{-1}$ ableitbar.",
+      "pitfalls": [
+        "Ohne die vorausgesetzte Bijektivität von $f$ reicht im Allgemeinen eine einzige Identitätsgleichung nicht."
+      ],
+      "related": [
+        "Komposition von Funktionen",
+        "Umkehrfunktion",
+        "Bijektivität"
+      ],
+      "heading": "1.4 Komposition und Eigenschaften (132)"
+    },
+    {
+      "id": "ds-13-k10",
+      "term": "Permutation",
+      "kind": "definition",
+      "short": "Eine Permutation einer Menge $A$ ist eine bijektive Selbstabbildung $A\\to A$.",
+      "explanation": "Die Menge aller Permutationen von $A$ wird mit $S_A=\\{f:A\\to A\\mid f\\text{ bijektiv}\\}$ bezeichnet. Die Identität, die Umkehrfunktion und die Komposition von Permutationen sind wieder Permutationen. Damit bilden die Permutationen unter Komposition eine Gruppe.",
+      "example": "Auf $\\{1,2,3\\}$ ist $1\\mapsto2$, $2\\mapsto3$, $3\\mapsto1$ eine Permutation.",
+      "pitfalls": [
+        "Eine Selbstabbildung ist nicht automatisch eine Permutation; sie muss bijektiv sein."
+      ],
+      "related": [
+        "Bijektivität",
+        "Selbstabbildung als gerichteter Graph",
+        "Komposition von Permutationen"
+      ],
+      "heading": "2.1 Permutation"
+    },
+    {
+      "id": "ds-13-k11",
+      "term": "Selbstabbildung als gerichteter Graph",
+      "kind": "concept",
+      "short": "Der Graph einer Selbstabbildung verbindet jeden Knoten mit seinem Funktionswert und hat an jedem Knoten genau eine ausgehende Kante.",
+      "explanation": "Für $f:A\\to A$ ist $G_f=(A,\\{(a,f(a))\\mid a\\in A\\})$. Injektivität bedeutet, dass jeder Knoten höchstens eine eingehende Kante hat; Surjektivität bedeutet, dass jeder Knoten mindestens eine eingehende Kante hat. Ein Fixpunkt $a$ mit $f(a)=a$ ist eine Schleife.",
+      "example": "Für $f(1)=2$ und $f(2)=1$ bilden die beiden Knoten einen gerichteten Zyklus.",
+      "pitfalls": [
+        "Die Funktionseigenschaft sichert genau eine ausgehende Kante, nicht eine eingehende Kante."
+      ],
+      "related": [
+        "Funktion als Relation",
+        "Injektivität",
+        "Surjektivität",
+        "Permutation",
+        "Orbit und Zyklus"
+      ],
+      "heading": "2.2 Selbstabbildung als gerichteter Graph (133)"
+    },
+    {
+      "id": "ds-13-k12",
+      "term": "Orbit und Zyklus",
+      "kind": "concept",
+      "short": "Der Orbit eines Elements verfolgt die wiederholten Funktionswerte, und ein Zyklus ist ein sich wiederholender geschlossener Teil des Verlaufs.",
+      "explanation": "Für eine Selbstabbildung $f:A\\to A$ setzt man $f^0=\\operatorname{Id}_A$ und $f^{i+1}=f\\circ f^i$. Der Orbit von $a$ ist die Folge $(f^i(a))_{i\\in\\mathbb N_0}$. Wenn $f^i(a)=f^j(a)$ für $i<j$, wiederholt sich der Verlauf periodisch; liegt davor ein Pfad, hat der Orbit eine Lassoform. Ein Fixpunkt ist ein Zyklus der Länge eins.",
+      "example": "Für $1\\to2\\to3\\to4\\to5\\to3$ lautet der Orbit $1,2,3,4,5,3,4,5,\\ldots$; der Zyklus ist $3\\to4\\to5\\to3$.",
+      "pitfalls": [
+        "$f^i(a)$ bezeichnet wiederholte Funktionsanwendung, nicht die Potenz $f(a)^i$."
+      ],
+      "related": [
+        "Selbstabbildung als gerichteter Graph",
+        "Permutation"
+      ],
+      "heading": "Selbstabbildungen, Orbits und Zyklen"
+    },
+    {
+      "id": "ds-13-k13",
+      "term": "Endliche Selbstabbildung",
+      "kind": "theorem",
+      "short": "Für eine Selbstabbildung einer endlichen Menge sind Injektivität, Surjektivität und Bijektivität äquivalent.",
+      "explanation": "Ist $A$ endlich und $f:A\\to A$, dann gilt $f$ injektiv genau dann, wenn $f$ surjektiv ist; beides ist äquivalent zu Bijektivität. Der Graph einer solchen bijektiven Abbildung besteht aus disjunkten Zyklen, einschließlich möglicher Fixpunkte. Für unendliche Mengen gilt diese Äquivalenz im Allgemeinen nicht.",
+      "example": "Auf $\\mathbb Z_6$ mit $f(x)=(x+2)\\bmod 6$ entstehen die Zyklen $(0,2,4)$ und $(1,3,5)$.",
+      "pitfalls": [
+        "Die Äquivalenz setzt dieselbe endliche Menge als Definitions- und Zielmenge voraus."
+      ],
+      "related": [
+        "Injektivität",
+        "Surjektivität",
+        "Bijektivität",
+        "Orbit und Zyklus"
+      ],
+      "heading": "2.2 Selbstabbildung als gerichteter Graph (133)"
+    },
+    {
+      "id": "ds-13-k14",
+      "term": "Collatz-Vermutung",
+      "kind": "example",
+      "short": "Die Collatz-Vermutung besagt, dass jeder Orbit der Collatz-Funktion irgendwann den Zyklus $4\\to2\\to1\\to4$ erreicht.",
+      "explanation": "Die Funktion $c:\\mathbb N\\to\\mathbb N$ ist durch $c(n)=n/2$ für gerade $n$ und $c(n)=3n+1$ für ungerade $n$ definiert. Die Vermutung behauptet, dass wiederholte Anwendung für jede positive natürliche Zahl schließlich in den Zyklus $4\\to2\\to1\\to4$ mündet. Sie ist ein offenes Problem und kein bewiesener Satz.",
+      "example": "Der Orbit von $5$ beginnt mit $5\\to16\\to8\\to4\\to2\\to1\\to4$.",
+      "pitfalls": [
+        "Viele geprüfte Beispiele beweisen die Vermutung nicht für alle natürlichen Zahlen."
+      ],
+      "related": [
+        "Orbit und Zyklus",
+        "Selbstabbildung als gerichteter Graph"
+      ],
+      "heading": "2.3 Collatz (134)"
+    },
+    {
+      "id": "ds-13-k15",
+      "term": "Schreibweisen endlicher Permutationen",
+      "kind": "notation",
+      "short": "Eine endliche Permutation kann als Zweizeilenform, Wertetupel oder Produkt disjunkter Zyklen notiert werden.",
+      "explanation": "In der Zweizeilenform stehen oben die Argumente und darunter ihre Bilder. Ein Wertetupel listet die Bilder in einer festgelegten Argumentreihenfolge auf. In der Zykelschreibweise gibt jeder Zyklus an, auf welches Element das vorherige abgebildet wird; Zyklen dürfen zyklisch rotiert und disjunkte Zyklen umgeordnet werden.",
+      "example": "Die Abbildung $1\\mapsto2$, $2\\mapsto3$, $3\\mapsto1$, $4\\mapsto4$ lässt sich als $\\begin{pmatrix}1&2&3&4\\\\2&3&1&4\\end{pmatrix}$, $(2,3,1,4)$ oder $(1,2,3)(4)$ schreiben.",
+      "pitfalls": [
+        "Wertetupel und Zyklusnotation haben unterschiedliche Leseregeln.",
+        "Fixpunkte können in der Zyklusnotation entfallen, wenn die Grundmenge bekannt ist."
+      ],
+      "related": [
+        "Permutation",
+        "Orbit und Zyklus"
+      ],
+      "heading": "2.4 Drei Schreibweisen (135)"
+    },
+    {
+      "id": "ds-13-k16",
+      "term": "Komposition von Permutationen",
+      "kind": "method",
+      "short": "Bei der Komposition von Permutationen wird zuerst die rechte und danach die linke Abbildung angewendet.",
+      "explanation": "Für jedes Element $x$ berechnet man bei $f\\circ g$ zunächst $g(x)$ und dann $f(g(x))$. Wiederholt man dies für alle Elemente der endlichen Grundmenge, lassen sich die resultierenden Pfeile als disjunkte Zyklen schreiben. Die inverse Permutation erhält man, indem man die Richtung jedes Zyklus umkehrt.",
+      "example": "Für $f=(1,2,3)(4)$ und $g=(1)(2,3)(4)$ gilt $f\\circ g=(1,2)(3)(4)$, während $g\\circ f=(1,3)(2)(4)$.",
+      "pitfalls": [
+        "Die Komposition ist im Allgemeinen nicht kommutativ: $f\\circ g$ und $g\\circ f$ können verschieden sein."
+      ],
+      "related": [
+        "Permutation",
+        "Komposition von Funktionen",
+        "Schreibweisen endlicher Permutationen"
+      ],
+      "heading": "2.5 Permutationen komponieren (136)"
+    },
+    {
+      "id": "ds-13-k17",
+      "term": "Bild und Urbild",
+      "kind": "definition",
+      "short": "Das Bild einer Teilmenge enthält ihre Funktionswerte, und ihr Urbild enthält alle Argumente, deren Funktionswerte in einer vorgegebenen Zielteilmenge liegen.",
+      "explanation": "Für $f:A\\to B$, $X\\subseteq A$ und $Y\\subseteq B$ gilt $f(X)=\\{f(a)\\mid a\\in X\\}\\subseteq B$ und $f^{-1}(Y)=\\{a\\in A\\mid f(a)\\in Y\\}\\subseteq A$. Die Bildoperation ist eine Abbildung $2^A\\to2^B$, die Urbildoperation eine Abbildung $2^B\\to2^A$. Beide sind für jede Funktion definiert.",
+      "example": "Wenn $f(1)=r$, $f(2)=g$ und $f(3)=r$, dann ist $f(\\{1,2\\})=\\{r,g\\}$ und $f^{-1}(\\{r\\})=\\{1,3\\}$.",
+      "pitfalls": [
+        "Das Urbild eines einzelnen Wertes kann leer sein oder mehrere Elemente enthalten.",
+        "Die Bildmenge $f(A)$ kann eine echte Teilmenge von $B$ sein."
+      ],
+      "related": [
+        "Injektivität",
+        "Surjektivität",
+        "Umkehrfunktion"
+      ],
+      "heading": "3. Bilder und Urbilder (137–138)"
+    },
+    {
+      "id": "ds-13-k18",
+      "term": "Rechenregeln für Bilder und Urbilder",
+      "kind": "theorem",
+      "short": "Urbilder erhalten Vereinigungen, Schnitte und Differenzen, während Bilder ohne Zusatzannahme nur Vereinigungen stets erhalten.",
+      "explanation": "Für $X,X'\\subseteq A$ und $Y,Y'\\subseteq B$ gelten $f(X\\cup X')=f(X)\\cup f(X')$ und $f^{-1}(Y\\cup Y')=f^{-1}(Y)\\cup f^{-1}(Y')$. Außerdem gelten $f^{-1}(Y\\cap Y')=f^{-1}(Y)\\cap f^{-1}(Y')$ und $f^{-1}(Y\\setminus Y')=f^{-1}(Y)\\setminus f^{-1}(Y')$. Allgemein sind $f(X\\cap X')\\subseteq f(X)\\cap f(X')$ und $f(X\\setminus X')\\supseteq f(X)\\setminus f(X')$.",
+      "example": "Wenn $f(1)=f(2)=r$, $X=\\{1\\}$ und $X'=\\{2\\}$, dann ist $f(X\\cap X')=\\varnothing$, aber $f(X)\\cap f(X')=\\{r\\}$.",
+      "pitfalls": [
+        "Bei Bildern von Schnitten und Differenzen gilt allgemein nur eine Inklusion, nicht notwendig Gleichheit."
+      ],
+      "related": [
+        "Bild und Urbild",
+        "Injektivität"
+      ],
+      "heading": "3.2 Allgemeine Regeln (137)"
+    },
+    {
+      "id": "ds-13-k19",
+      "term": "Charakterisierung von Injektivität und Surjektivität durch Bilder und Urbilder",
+      "kind": "theorem",
+      "short": "Injektivität und Surjektivität lassen sich durch Gleichheiten für Bilder und Urbilder aller passenden Teilmengen charakterisieren.",
+      "explanation": "Surjektivität ist äquivalent zu $f(A)=B$ und dazu, dass $f(f^{-1}(Y))=Y$ für alle $Y\\subseteq B$ gilt. Injektivität ist äquivalent zu $f^{-1}(f(X))=X$ für alle $X\\subseteq A$. Ebenfalls äquivalent zur Injektivität sind $f(X\\cap X')=f(X)\\cap f(X')$ und $f(X\\setminus X')=f(X)\\setminus f(X')$ für alle passenden Mengen. Für Bijektivität gilt außerdem $f(A\\setminus X)=B\\setminus f(X)$ für jedes $X\\subseteq A$.",
+      "example": "Ist $f$ injektiv und $f(a)\\in f(X)$, dann folgt aus der Injektivität, dass $a\\in X$.",
+      "pitfalls": [
+        "Die Gleichung $f^{-1}(f(X))=X$ charakterisiert Injektivität, wenn sie für alle $X\\subseteq A$ gilt."
+      ],
+      "related": [
+        "Injektivität",
+        "Surjektivität",
+        "Bild und Urbild",
+        "Rechenregeln für Bilder und Urbilder"
+      ],
+      "heading": "3.3 Charakterisierung von Injektivität und Surjektivität (138)"
+    },
+    {
+      "id": "ds-13-k20",
+      "term": "Funktionsinduzierte Äquivalenzrelation",
+      "kind": "definition",
+      "short": "Zwei Argumente sind bezüglich einer Funktion äquivalent, wenn sie denselben Funktionswert haben.",
+      "explanation": "Definiere $a\\equiv_f a'\\iff f(a)=f(a')$. Die Relation ist reflexiv, symmetrisch und transitiv, weil Gleichheit der Funktionswerte diese Eigenschaften besitzt. Die Äquivalenzklasse $[a]_f$ ist die Faser $f^{-1}(\\{f(a)\\})$. Die Quotientenabbildung $q(a)=[a]_f$ ist surjektiv, und $\\tilde f([a]_f)=f(a)$ ist wohldefiniert und injektiv; als Abbildung nach $f(A)$ ist sie bijektiv.",
+      "example": "Wenn $f(1)=f(5)=r$, $f(2)=f(4)=g$ und $f(3)=b$, sind die Klassen $\\{1,5\\}$, $\\{2,4\\}$ und $\\{3\\}$.",
+      "pitfalls": [
+        "Eine Äquivalenzklasse sammelt Argumente mit gleichem Funktionswert, nicht die Funktionswerte selbst."
+      ],
+      "related": [
+        "Bild und Urbild",
+        "Injektivität",
+        "Surjektivität"
+      ],
+      "heading": "4. Funktionen und Äquivalenzrelationen (139)"
+    },
+    {
+      "id": "ds-13-k21",
+      "term": "Kardinalität",
+      "kind": "definition",
+      "short": "Kardinalität vergleicht die Größe von Mengen anhand der zwischen ihnen existierenden Injektionen und Bijektionen.",
+      "explanation": "Es gilt $|A|\\leq|B|$, wenn eine Injektion $A\\to B$ existiert, und $|A|=|B|$, wenn eine Bijektion $A\\to B$ existiert. $|A|<|B|$ bedeutet $|A|\\leq|B|$ und dass $A$ und $B$ nicht gleichmächtig sind. Für endliche Mengen bedeutet $|A|=n$, dass $A$ bijektiv zu $[n]=\\{1,\\ldots,n\\}$ ist.",
+      "example": "Die Bijektion $n\\mapsto2n$ zeigt, dass $\\mathbb N$ und die positiven geraden Zahlen gleichmächtig sind.",
+      "pitfalls": [
+        "Eine echte Teilmenge kann bei unendlichen Mengen dieselbe Kardinalität wie die Gesamtmenge haben."
+      ],
+      "related": [
+        "Injektivität",
+        "Bijektivität",
+        "Satz von Cantor-Bernstein-Schröder"
+      ],
+      "heading": "5.1 Definitionen (141)"
+    },
+    {
+      "id": "ds-13-k22",
+      "term": "Satz von Cantor-Bernstein-Schröder",
+      "kind": "theorem",
+      "short": "Gibt es Injektionen in beide Richtungen zwischen zwei Mengen, dann gibt es auch eine Bijektion zwischen ihnen.",
+      "explanation": "Für Mengen $A$ und $B$ gilt $|A|=|B|$ genau dann, wenn $|A|\\leq|B|$ und $|B|\\leq|A|$. Die Injektionen in entgegengesetzte Richtungen müssen keine Umkehrfunktionen voneinander sein. Der Satz ist nützlich, wenn sich eine direkte Bijektion nur schwer angeben lässt.",
+      "example": "Aus einer Injektion $A\\to B$ und einer Injektion $B\\to A$ folgt $|A|=|B|$.",
+      "pitfalls": [
+        "Zwei Injektionen in entgegengesetzte Richtungen müssen nicht miteinander invers sein."
+      ],
+      "related": [
+        "Kardinalität",
+        "Injektivität",
+        "Bijektivität"
+      ],
+      "heading": "5.2 Eigenschaften (142)"
+    },
+    {
+      "id": "ds-13-k23",
+      "term": "Abzählbare Menge",
+      "kind": "definition",
+      "short": "Eine Menge ist abzählbar, wenn ihre Kardinalität höchstens die der natürlichen Zahlen ist.",
+      "explanation": "In dieser Unit ist $\\mathbb N=\\{1,2,\\ldots\\}$ und abzählbar bedeutet $|A|\\leq|\\mathbb N|$. Der Begriff umfasst sowohl endliche Mengen als auch abzählbar unendliche Mengen, die bijektiv zu $\\mathbb N$ sind. Nicht abzählbare Mengen heißen überabzählbar.",
+      "example": "Jede endliche Menge, einschließlich der leeren Menge, ist abzählbar.",
+      "pitfalls": [
+        "Abzählbar bedeutet nicht zwingend abzählbar unendlich."
+      ],
+      "related": [
+        "Kardinalität",
+        "Überabzählbarkeit von Binärfolgen und reellen Zahlen"
+      ],
+      "heading": "6. Abzählbarkeit (143, beide Varianten)"
+    },
+    {
+      "id": "ds-13-k24",
+      "term": "Abzählbarkeit der natürlichen und ganzen Zahlen",
+      "kind": "theorem",
+      "short": "Die natürlichen Zahlen, die positiven geraden Zahlen, die nichtnegativen ganzen Zahlen und die ganzen Zahlen sind abzählbar unendlich.",
+      "explanation": "Die Abbildung $n\\mapsto2n$ ist eine Bijektion von $\\mathbb N$ auf die positiven geraden Zahlen. Eine Bijektion $\\mathbb Z\\to\\mathbb N$ ist durch $f(z)=2z+1$ für $z\\geq0$ und $f(z)=-2z$ für $z<0$ gegeben. Daher sind auch $\\mathbb N_0$ und $\\mathbb Z$ abzählbar; die Primzahlen sind wegen ihrer Unendlichkeit ebenfalls abzählbar unendlich.",
+      "example": "Die Reihenfolge $0,-1,1,-2,2,-3,3,\\ldots$ listet alle ganzen Zahlen auf.",
+      "pitfalls": [
+        "Eine unendliche Menge kann zu einer echten Teilmenge gleichmächtig sein."
+      ],
+      "related": [
+        "Abzählbare Menge",
+        "Cantorsche Paarungsfunktion"
+      ],
+      "heading": "6.1 Natürliche, gerade und ganze Zahlen"
+    },
+    {
+      "id": "ds-13-k25",
+      "term": "Cantorsche Paarungsfunktion",
+      "kind": "definition",
+      "short": "Die Cantorsche Paarungsfunktion zeigt durch eine Bijektion, dass das Produkt $\\mathbb N\\times\\mathbb N$ abzählbar ist.",
+      "explanation": "Bei der in der Vorlesung verwendeten Nummerierung ab $1$ ist $p(n,m)=m+\\frac{(m+n-1)(m+n-2)}{2}$. Sie listet Paare diagonal in der Reihenfolge $(1,1),(2,1),(1,2),(3,1),(2,2),(1,3),\\ldots$. Damit ist $\\mathbb N\\times\\mathbb N$ gleichmächtig zu $\\mathbb N$.",
+      "example": "Es gilt $p(2,1)=2$ und $p(1,2)=3$.",
+      "pitfalls": [
+        "In dieser Konvention ist $n$ der erste Parameter und $m$ der zweite."
+      ],
+      "related": [
+        "Abzählbare Menge",
+        "Kardinalarithmetik"
+      ],
+      "heading": "6.2 Cantorsche Paarungsfunktion"
+    },
+    {
+      "id": "ds-13-k26",
+      "term": "Abzählbarkeit der rationalen und algebraischen Zahlen",
+      "kind": "theorem",
+      "short": "Die rationalen Zahlen und die algebraischen Zahlen bilden abzählbare Mengen.",
+      "explanation": "Es gilt $|\\mathbb N|\\leq|\\mathbb Q|\\leq|\\mathbb Z\\times\\mathbb N|=|\\mathbb N|$. Für die obere Schranke wird jede rationale Zahl durch ihren eindeutig gekürzten Bruch mit positivem Nenner in $\\mathbb Z\\times\\mathbb N$ eingebettet; die Paarungsfunktion zeigt die Abzählbarkeit dieses Produkts. Der Satz von Cantor-Bernstein-Schröder ergibt $|\\mathbb Q|=|\\mathbb N|$. Algebraische Zahlen sind abzählbar, weil es abzählbar viele ganzzahlige Polynome gibt und jedes nicht konstante Polynom nur endlich viele Nullstellen hat.",
+      "example": "Die rationale Zahl $\\frac{2}{3}$ wird durch das Paar $(2,3)$ dargestellt.",
+      "pitfalls": [
+        "Für die eindeutige Bruchdarstellung muss der Bruch vollständig gekürzt und der Nenner positiv sein."
+      ],
+      "related": [
+        "Abzählbare Menge",
+        "Cantorsche Paarungsfunktion",
+        "Satz von Cantor-Bernstein-Schröder"
+      ],
+      "heading": "6.3 Rationale Zahlen und endliche Wörter"
+    },
+    {
+      "id": "ds-13-k27",
+      "term": "Endliche Wörter über einem abzählbaren Alphabet",
+      "kind": "theorem",
+      "short": "Die Menge aller endlichen Wörter über einem abzählbaren Alphabet ist abzählbar.",
+      "explanation": "Für ein Alphabet $\\Sigma$ ist $\\Sigma^*=\\bigcup_{k\\in\\mathbb N_0}\\Sigma^k$ die Menge aller endlichen Wörter. Für jedes feste $k$ ist $\\Sigma^k$ abzählbar, und eine abzählbare Vereinigung abzählbarer Mengen ist abzählbar. Insbesondere sind endliche Binärwörter und Programme über einem abzählbaren Alphabet abzählbar.",
+      "example": "Die Menge $\\{0,1\\}^*$ enthält alle endlichen Wörter über $\\{0,1\\}$, einschließlich des leeren Wortes.",
+      "pitfalls": [
+        "Endliche Wörter sind nicht dasselbe wie unendliche Folgen."
+      ],
+      "related": [
+        "Abzählbare Menge",
+        "Überabzählbarkeit von Binärfolgen und reellen Zahlen"
+      ],
+      "heading": "6.3 Rationale Zahlen und endliche Wörter"
+    },
+    {
+      "id": "ds-13-k28",
+      "term": "Gödel-Kodierung endlicher Tupel",
+      "kind": "method",
+      "short": "Primzahlpotenzen kodieren ein endliches Tupel positiver natürlicher Zahlen eindeutig als natürliche Zahl.",
+      "explanation": "Für $(n_1,\\ldots,n_k)$ mit positiven Komponenten verwendet man $2^{n_1}3^{n_2}\\cdots p_k^{n_k}$, wobei $p_k$ die $k$-te Primzahl ist. Die eindeutige Primfaktorzerlegung liefert die Komponenten zurück. Weil alle Exponenten positiv sind, ist auch die Tupellänge an den verwendeten Primzahlen erkennbar.",
+      "example": "Das Tupel $(2,1)$ wird durch $2^2\\cdot3^1=12$ kodiert.",
+      "pitfalls": [
+        "Die angegebene Kodierung setzt positive Komponenten voraus; Exponenten aus $\\mathbb N_0$ erfordern eine zusätzliche Festlegung."
+      ],
+      "related": [
+        "Cantorsche Paarungsfunktion",
+        "Abzählbare Menge"
+      ],
+      "heading": "6.2 Cantorsche Paarungsfunktion"
+    },
+    {
+      "id": "ds-13-k29",
+      "term": "Potenzmenge und Notation 2^A",
+      "kind": "notation",
+      "short": "Die Notation $2^A$ bezeichnet die Potenzmenge von $A$ und entspricht über charakteristische Funktionen der Funktionsmenge $\\{0,1\\}^A$.",
+      "explanation": "Die Potenzmenge $\\mathcal P(A)$ enthält alle Teilmengen von $A$; in der Vorlesung wird sie auch mit $2^A$ bezeichnet. Jeder Teilmenge $X\\subseteq A$ entspricht ihre charakteristische Funktion, die Elemente je nach Zugehörigkeit auf $1$ oder $0$ abbildet. Daher gilt $|2^A|=|\\{0,1\\}^A|$.",
+      "example": "Für $A=\\{a,b\\}$ ist $2^A=\\{\\varnothing,\\{a\\},\\{b\\},\\{a,b\\}\\}$.",
+      "pitfalls": [
+        "$2^A$ ist hier eine Menge von Teilmengen und keine gewöhnliche numerische Potenz."
+      ],
+      "related": [
+        "Satz von Cantor",
+        "Kardinalarithmetik"
+      ],
+      "heading": "7. Satz von Cantor (144, beide Varianten)"
+    },
+    {
+      "id": "ds-13-k30",
+      "term": "Satz von Cantor",
+      "kind": "theorem",
+      "short": "Für jede Menge $A$ ist ihre Potenzmenge strikt mächtiger als $A$.",
+      "explanation": "Es gilt $|A|<|2^A|$. Die Abbildung $a\\mapsto\\{a\\}$ ist eine Injektion $A\\to2^A$, also $|A|\\leq|2^A|$. Cantors Diagonalargument zeigt zusätzlich, dass es keine surjektive Abbildung $A\\to2^A$ und somit keine Bijektion gibt.",
+      "example": "Die Potenzmenge $2^{\\mathbb N}$ ist mächtiger als $\\mathbb N$.",
+      "pitfalls": [
+        "Der Satz sagt mehr aus als die bloße Inklusion $A\\subseteq2^A$; entscheidend ist, dass keine Bijektion existiert."
+      ],
+      "related": [
+        "Potenzmenge und Notation 2^A",
+        "Cantors Diagonalargument",
+        "Kardinalität"
+      ],
+      "heading": "7. Satz von Cantor (144, beide Varianten)"
+    },
+    {
+      "id": "ds-13-k31",
+      "term": "Cantors Diagonalargument",
+      "kind": "method",
+      "short": "Das Diagonalargument konstruiert eine Teilmenge, die sich von jedem Eintrag einer vermeintlich vollständigen Aufzählung unterscheidet.",
+      "explanation": "Angenommen, $f:A\\to2^A$ sei surjektiv, und definiere $D=\\{a\\in A\\mid a\\notin f(a)\\}$. Wegen der Surjektivität müsste ein $d\\in A$ mit $f(d)=D$ existieren. Dann gilt $d\\in D\\iff d\\notin f(d)\\iff d\\notin D$, ein Widerspruch. Also ist $f$ nicht surjektiv.",
+      "example": "In einer Liste von Teilmengen von $\\mathbb N$ gehört $n$ genau dann zu $D$, wenn $n$ nicht in der $n$-ten aufgelisteten Menge liegt.",
+      "pitfalls": [
+        "Die Diagonalmenge wird durch Nichtmitgliedschaft in $f(a)$ definiert."
+      ],
+      "related": [
+        "Satz von Cantor",
+        "Potenzmenge und Notation 2^A"
+      ],
+      "heading": "7.1 Beweis – Diagonalargument"
+    },
+    {
+      "id": "ds-13-k32",
+      "term": "Diagonaltabelle für die Teilmengen von \\mathbb N",
+      "kind": "example",
+      "short": "Eine Tabelle charakteristischer Folgen veranschaulicht, dass die negierte Diagonale in keiner Zeile einer vollständigen Liste steht.",
+      "explanation": "Jede Zeile kodiert eine Teilmenge von $\\mathbb N$ durch Nullen und Einsen. Die Diagonalfolge wird an jeder Position umgekehrt. Die so erzeugte Folge weicht von Zeile $i$ an Position $i$ ab und kann deshalb in keiner Zeile der angenommenen vollständigen Liste stehen.",
+      "example": "Beginnt die Diagonale mit $0,1,0,0,\\ldots$, beginnt die negierte Diagonale mit $1,0,1,1,\\ldots$ und kodiert $\\{1,3,4,\\ldots\\}$.",
+      "pitfalls": [
+        "Für den Widerspruch muss jede Zeile an der zugehörigen Diagonalposition verglichen werden."
+      ],
+      "related": [
+        "Cantors Diagonalargument",
+        "Satz von Cantor"
+      ],
+      "heading": "7.2 Diagonaltabelle für $A=\\mathbb N$"
+    },
+    {
+      "id": "ds-13-k33",
+      "term": "Überabzählbarkeit von Binärfolgen und reellen Zahlen",
+      "kind": "theorem",
+      "short": "Die unendlichen Binärfolgen und die reellen Zahlen sind überabzählbar.",
+      "explanation": "Jede Teilmenge von $\\mathbb N$ entspricht ihrer charakteristischen unendlichen Binärfolge, also gilt $|2^{\\mathbb N}|=|\\{0,1\\}^{\\mathbb N}|$. Nach dem Satz von Cantor ist diese Kardinalität größer als $|\\mathbb N|$; außerdem gilt $|2^{\\mathbb N}|=|\\mathbb R|$. Somit sind auch die reellen Zahlen überabzählbar.",
+      "example": "Die Folge $1,0,1,1,0,\\ldots$ kodiert die Menge der natürlichen Zahlen an den Positionen mit einer $1$.",
+      "pitfalls": [
+        "Unendliche Binärfolgen sind von den abzählbaren endlichen Binärwörtern zu unterscheiden.",
+        "Dyadische rationale Zahlen haben zwei Binärdarstellungen, daher ist die übliche Binärdarstellung nicht direkt eine Bijektion zu $[0,1]$."
+      ],
+      "related": [
+        "Satz von Cantor",
+        "Abzählbare Menge",
+        "Endliche Wörter über einem abzählbaren Alphabet"
+      ],
+      "heading": "8.1 Endliche und unendliche Binärfolgen"
+    },
+    {
+      "id": "ds-13-k34",
+      "term": "Abzählbarkeit von Programmen",
+      "kind": "concept",
+      "short": "Programme sind endliche Zeichenketten und bilden daher eine abzählbare Menge, während die reellen Zahlen überabzählbar sind.",
+      "explanation": "Programme über einem endlichen oder abzählbaren Alphabet sind Elemente einer abzählbaren Menge endlicher Wörter. Es gibt somit höchstens abzählbar viele Programme und höchstens abzählbar viele von ihnen berechenbare reelle Zahlen. Da $\\mathbb R$ überabzählbar ist, kann kein Programm jede reelle Zahl berechnen.",
+      "example": "Die Menge aller endlichen Java-, C- oder Python-Programme ist abzählbar.",
+      "pitfalls": [
+        "Die Abzählbarkeit der Programme bedeutet nicht, dass jedes mathematisch beschriebene Objekt durch ein Programm berechenbar ist."
+      ],
+      "related": [
+        "Endliche Wörter über einem abzählbaren Alphabet",
+        "Überabzählbarkeit von Binärfolgen und reellen Zahlen"
+      ],
+      "heading": "8.2 Bedeutung für die Informatik"
+    },
+    {
+      "id": "ds-13-k35",
+      "term": "Kardinalarithmetik",
+      "kind": "definition",
+      "short": "Kardinalmultiplikation und Kardinalpotenz werden mithilfe kartesischer Produkte und Funktionsmengen definiert.",
+      "explanation": "Für Mengen $A$ und $B$ setzt man $|A|\\cdot|B|:=|A\\times B|$ und $|B|^{|A|}:=|B^A|$, wobei $B^A$ die Menge aller Funktionen $A\\to B$ ist. Die Vorlesung verwendet unter anderem $|\\mathbb R|=|\\mathbb N^{\\mathbb N}|=|\\mathbb R^{\\mathbb N}|$. Außerdem gilt $|\\mathbb R|<|2^{\\mathbb R}|=|\\mathbb R^{\\mathbb R}|$.",
+      "example": "$|A|\\cdot|B|$ ist die Kardinalität der Menge der Paare $(a,b)$ mit $a\\in A$ und $b\\in B$.",
+      "pitfalls": [
+        "Die Kardinalpotenz $|B|^{|A|}$ zählt Funktionen $A\\to B$, nicht Funktionen $B\\to A$."
+      ],
+      "related": [
+        "Kardinalität",
+        "Cantorsche Paarungsfunktion",
+        "Currying"
+      ],
+      "heading": "8.3 Kardinalarithmetik und Currying"
+    },
+    {
+      "id": "ds-13-k36",
+      "term": "Currying",
+      "kind": "concept",
+      "short": "Currying ordnet einer Funktion zweier Argumente eine Funktion zu, die ein Argument entgegennimmt und eine Funktion des anderen Arguments zurückgibt.",
+      "explanation": "Eine Funktion $h:A\\times B\\to C$ entspricht bijektiv einer Funktion $A\\to C^B$ und ebenso einer Funktion $B\\to C^A$. Damit gilt $(C^B)^A\\cong C^{A\\times B}\\cong(C^A)^B$. Auf Kardinalitäten folgt $(|C|^{|B|})^{|A|}=|C|^{|A|\\cdot|B|}$.",
+      "example": "Aus $h(a,b)$ wird die Funktion $a\\mapsto(b\\mapsto h(a,b))$.",
+      "pitfalls": [
+        "Currying ändert die Darstellung der Funktion, aber nicht die zugeordneten Funktionswerte."
+      ],
+      "related": [
+        "Kardinalarithmetik"
+      ],
+      "heading": "8.3 Kardinalarithmetik und Currying"
+    },
+    {
+      "id": "ds-13-k37",
+      "term": "Kontinuumshypothese",
+      "kind": "concept",
+      "short": "Die Kontinuumshypothese behauptet, dass keine Kardinalität strikt zwischen der von $\\mathbb N$ und der von $\\mathbb R$ liegt.",
+      "explanation": "Sie behauptet, dass es keine Menge $A$ mit $|\\mathbb N|<|A|<|\\mathbb R|$ gibt. Cantors Satz zeigt, dass $|\\mathbb N|<|\\mathbb R|$, entscheidet aber nicht, ob eine Zwischenkardinalität existiert. Die Kontinuumshypothese ist von ZFC unabhängig, sofern ZFC konsistent ist.",
+      "example": null,
+      "pitfalls": [
+        "Aus Cantors Satz folgt nicht, dass die Kontinuumshypothese wahr oder falsch ist."
+      ],
+      "related": [
+        "Kardinalität",
+        "Satz von Cantor",
+        "Überabzählbarkeit von Binärfolgen und reellen Zahlen"
+      ],
+      "heading": "8.4 Kontinuumshypothese"
+    }
+  ],
+  "generator": {
+    "model": "gpt-6-luna",
+    "effort": "xhigh",
+    "promptVersion": "k1",
+    "generatedAt": "2026-11-25T00:32:40.031Z"
+  }
+}
