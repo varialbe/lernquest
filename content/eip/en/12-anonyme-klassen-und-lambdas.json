@@ -1,0 +1,2104 @@
+{
+  "schemaVersion": 1,
+  "id": "eip-12",
+  "module": "EIP",
+  "number": 12,
+  "slug": "anonyme-klassen-und-lambdas",
+  "title": "Anonymous Classes and Lambdas",
+  "summary": "Interfaces make it possible to pass behavior as a parameter (Verhalten als Parameter) to an algorithm. Anonymous classes (anonyme Klassen) and lambdas define this behavior directly; they can capture local values while reading current fields of the enclosing object. Functional interfaces and the different meanings of `this` are key building blocks.",
+  "concepts": [
+    "Behavior as a Parameter",
+    "Property and Search Algorithm",
+    "Anonymous Classes",
+    "Captured State",
+    "Effectively Final",
+    "Enclosing State",
+    "Functional Interfaces",
+    "Lambda Expressions",
+    "Type Inference",
+    "`this` Context",
+    "Short-Circuit Evaluation"
+  ],
+  "keyFacts": [
+    "`Property.test(Object)` takes an object and returns `true` or `false`.",
+    "`CheckArray.check` handles the traversal; `Property.test` handles the selection rule.",
+    "`CheckArray.check` immediately returns `true` on the first match; if there is no match, including when the array is empty, it returns `false`.",
+    "`new Property() { ... }` defines an unnamed class and creates an object that implements `Property`.",
+    "An anonymous class can implement an interface or extend an abstract or concrete class.",
+    "Anonymous classes must implement any remaining abstract methods and can have their own fields and methods.",
+    "Captured local variables and parameters must be `final` or effectively final; even reassigning the same value is not allowed.",
+    "When a reference is captured, the reference variable must be effectively final; the state of the referenced object may still change.",
+    "An anonymous object can continue to use local values after the enclosing method has ended.",
+    "When accessed through the enclosing object, its instance fields are read at the time of access; changes can therefore affect tests that have already been created.",
+    "A functional interface has exactly one abstract method requirement; implemented `default` methods do not count as additional abstract requirements.",
+    "`@FunctionalInterface` is optional and lets the compiler check that the interface is a functional interface.",
+    "A lambda supplies the behavior for the abstract method of a functional interface.",
+    "The target type determines a lambda's parameter and return types; without a target type, the compiler cannot infer them.",
+    "For a lambda with one inferred parameter, parentheses are optional; they are required for multiple parameters or explicit types.",
+    "An expression body can return the value directly; a block body requires a `return` for a method with a return value.",
+    "A functional interface's single abstract method can have multiple parameters.",
+    "In an anonymous class, `this` refers to the anonymous class's object; in a lambda, `this` refers to the lexically enclosing object.",
+    "Lambdas cannot extend their own class or declare their own instance fields.",
+    "In `r != null && ...`, the right-hand expression is not evaluated for `r == null` because of short-circuit evaluation."
+  ],
+  "tags": [
+    "TUM/EIP",
+    "java",
+    "oop",
+    "lambda"
+  ],
+  "links": [],
+  "source": {
+    "file": "EIP/01_Vorlesungen/EIP VO12.md",
+    "sha256": "e71fd31c7db7996c27fa1657579154e2536bebe0a8887716a9dc0aa75c20eca2",
+    "commit": "2d66b3222fa0da30f2d296b6c3c105bc89c3fa90"
+  },
+  "generator": {
+    "model": "gpt-6-luna",
+    "effort": "xhigh",
+    "reviewEffort": "high",
+    "promptVersion": "v3",
+    "generatedAt": "2026-11-26T10:55:43.983Z",
+    "review": {
+      "checked": 44,
+      "fixed": 7,
+      "removed": 0,
+      "notes": "44 Fragen geprüft. Ergänzt wurden fehlende bzw. unvollständige Erklärungen und Kontext zu StringSearch-Szenarien; Diagrammtexte wurden Mermaid-gerecht gequotet. Rechen- und Codeaufgaben sowie verify-Ausgaben geprüft."
+    }
+  },
+  "levels": [
+    {
+      "id": "eip-12-l1",
+      "index": 1,
+      "kind": "basics",
+      "title": "Fundamentals",
+      "questions": [
+        {
+          "id": "eip-12-l1-q01",
+          "type": "single",
+          "prompt": "What does the method `Property.test(Object r)` describe?",
+          "options": [
+            {
+              "id": "a",
+              "text": "It creates a new `Property` object."
+            },
+            {
+              "id": "b",
+              "text": "It returns the index of an object."
+            },
+            {
+              "id": "c",
+              "text": "It sorts an array of objects."
+            },
+            {
+              "id": "d",
+              "text": "It returns a Boolean statement about an object."
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "`test` takes an `Object` and returns a `boolean`. The method can, for example, express whether the object has a particular property.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO12.md",
+            "heading": "1.1 Interface"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Property and Search Algorithm",
+            "Behavior as a Parameter"
+          ]
+        },
+        {
+          "id": "eip-12-l1-q02-r1",
+          "type": "truefalse",
+          "prompt": "Evaluate the statement based on the code shown: `check` handles the traversal of the array; `p.test(...)` determines whether an element is a match.",
+          "context": {
+            "type": "code",
+            "content": "interface Property { boolean test(int x); }\nclass CheckArray {\n    static boolean check(int[] a, Property p) {\n        for (int i = 0; i < a.length; ++i) {\n            if (p.test(a[i])) return true;\n        }\n        return false;\n    }\n}",
+            "language": "java",
+            "caption": "The Search Method and the Property Interface"
+          },
+          "options": [
+            {
+              "id": "true",
+              "text": "True"
+            },
+            {
+              "id": "false",
+              "text": "False"
+            }
+          ],
+          "correct": [
+            "true"
+          ],
+          "explanation": "The loop in `check` visits the array elements. For each element visited, it calls `p.test`, whose result determines whether that element is a match.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO12.md",
+            "heading": "1.2 Der Suchalgorithmus"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Behavior as a Parameter",
+            "Separation of Traversal and Selection Rule"
+          ]
+        },
+        {
+          "id": "eip-12-l1-q03",
+          "type": "multi",
+          "prompt": "Which statements about `new Property() { ... }` are correct? Select all that apply.",
+          "options": [
+            {
+              "id": "a",
+              "text": "An interface can be instantiated directly here without a class body."
+            },
+            {
+              "id": "b",
+              "text": "An unnamed class is defined and an object of that class is created."
+            },
+            {
+              "id": "c",
+              "text": "The class body can implement the abstract method `test`."
+            },
+            {
+              "id": "d",
+              "text": "The expression creates an object of the interface type itself."
+            },
+            {
+              "id": "e",
+              "text": "The reference type can still be `Property`."
+            }
+          ],
+          "correct": [
+            "b",
+            "c",
+            "e"
+          ],
+          "explanation": "The class body defines an anonymous implementation, and an object is created from it. `new Property()` without a body would be invalid, and an interface itself is not instantiated.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO12.md",
+            "heading": "2.2 Anonyme Klasse direkt instanziieren"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Anonymous Classes",
+            "Property and Search Algorithm"
+          ]
+        },
+        {
+          "id": "eip-12-l1-q04",
+          "type": "cloze",
+          "prompt": "`new Property() { ... }` creates an object of an ___ class.",
+          "options": [
+            {
+              "id": "a",
+              "text": "static"
+            },
+            {
+              "id": "b",
+              "text": "anonymous"
+            },
+            {
+              "id": "c",
+              "text": "abstract"
+            },
+            {
+              "id": "d",
+              "text": "sealed"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "The class has no explicit name in the source code. The class body belongs to the anonymous implementation.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO12.md",
+            "heading": "2.2 Anonyme Klasse direkt instanziieren"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Anonymous Classes"
+          ]
+        },
+        {
+          "id": "eip-12-l1-q05",
+          "type": "diagram",
+          "prompt": "Which statement describes how concrete behavior reaches the algorithm?",
+          "context": {
+            "type": "mermaid",
+            "content": "flowchart TD\n    A[\"Interface\"] --> B[\"Named Class\"]\n    A --> C[\"Anonymous Class\"]\n    A --> D[\"Functional Interface\"]\n    D --> E[\"Lambda\"]\n    B --> F[\"Behavior as a Parameter\"]\n    C --> F\n    E --> F",
+            "caption": "Possible Implementations and Passing Behavior"
+          },
+          "options": [
+            {
+              "id": "a",
+              "text": "The algorithm must create a named class."
+            },
+            {
+              "id": "b",
+              "text": "The lambda determines the algorithm's class name."
+            },
+            {
+              "id": "c",
+              "text": "An implementation supplies behavior that is passed to the algorithm as a parameter."
+            },
+            {
+              "id": "d",
+              "text": "The interface performs the array traversal itself."
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "The diagram shows named classes, anonymous classes, and lambdas as possible sources of the behavior being passed. This lets the algorithm separate its traversal from the rule.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO12.md",
+            "heading": "EIP VO 11 – Anonymous Classes and Functional Interfaces"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Behavior as a Parameter",
+            "Anonymous Classes",
+            "Lambda Expressions"
+          ]
+        },
+        {
+          "id": "eip-12-l1-q06-r1",
+          "type": "single",
+          "prompt": "Which Boolean value does `check(values, p)` return in the program shown?",
+          "context": {
+            "type": "code",
+            "content": "interface Property { boolean test(int value); }\nclass Demo {\n    static boolean check(int[] values, Property p) {\n        for (int i = 0; i < values.length; ++i) {\n            if (p.test(values[i])) return true;\n        }\n        return false;\n    }\n    public static void main(String[] args) {\n        int[] values = {2, 4, 6};\n        Property p = value -> value % 2 != 0;\n        System.out.println(check(values, p));\n    }\n}",
+            "language": "java",
+            "caption": "Searching an Array for Odd Numbers"
+          },
+          "options": [
+            {
+              "id": "a",
+              "text": "`false`"
+            },
+            {
+              "id": "b",
+              "text": "`null`"
+            },
+            {
+              "id": "c",
+              "text": "`true`"
+            },
+            {
+              "id": "d",
+              "text": "`0`"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "The rule accepts odd numbers. The array contains only even numbers, so no match is found and the method returns `false` after the loop.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO12.md",
+            "heading": "1.2 Der Suchalgorithmus"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Search Algorithm",
+            "Return Value When There Is No Match"
+          ]
+        },
+        {
+          "id": "eip-12-l1-q07",
+          "type": "multi",
+          "prompt": "Which statements about functional interfaces are correct? Select all that apply.",
+          "options": [
+            {
+              "id": "a",
+              "text": "They may not contain methods with implementations."
+            },
+            {
+              "id": "b",
+              "text": "`@FunctionalInterface` is optional."
+            },
+            {
+              "id": "c",
+              "text": "Their abstract method must have exactly one parameter."
+            },
+            {
+              "id": "d",
+              "text": "They may also contain a `default` method."
+            },
+            {
+              "id": "e",
+              "text": "They have exactly one abstract method requirement."
+            }
+          ],
+          "correct": [
+            "b",
+            "d",
+            "e"
+          ],
+          "explanation": "What matters is that there is exactly one abstract method requirement, not how many parameters it has. Implemented methods such as `default` are also allowed; the annotation is optional.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO12.md",
+            "heading": "5. Functional Interfaces"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Functional Interfaces"
+          ]
+        },
+        {
+          "id": "eip-12-l1-q08",
+          "type": "cloze",
+          "prompt": "For a lambda with one inferred parameter, the parentheses in `___ r != null` are optional.",
+          "options": [
+            {
+              "id": "a",
+              "text": "`new r =>`"
+            },
+            {
+              "id": "b",
+              "text": "`r ->`"
+            },
+            {
+              "id": "c",
+              "text": "`return r ->`"
+            },
+            {
+              "id": "d",
+              "text": "`(r, ) ->`"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "The parentheses can be omitted for a single inferred parameter. The arrow separates the parameter list from the lambda body.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO12.md",
+            "heading": "6.2 Syntax und Type Inference"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Lambda Expressions",
+            "Type Inference"
+          ]
+        },
+        {
+          "id": "eip-12-l1-q09",
+          "type": "truefalse",
+          "prompt": "In `return r -> this == r;`, `this` refers to the object whose method contains the lambda.",
+          "options": [
+            {
+              "id": "true",
+              "text": "True"
+            },
+            {
+              "id": "false",
+              "text": "False"
+            }
+          ],
+          "correct": [
+            "true"
+          ],
+          "explanation": "A lambda does not introduce its own `this`. It uses the lexically enclosing `this` context.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO12.md",
+            "heading": null
+          },
+          "difficulty": 2,
+          "concepts": [
+            "`this` Context",
+            "Lambda Expressions"
+          ]
+        },
+        {
+          "id": "eip-12-l1-q10",
+          "type": "single",
+          "prompt": "A method returns a lambda that uses the local parameter `word`. What condition must `word` satisfy?",
+          "options": [
+            {
+              "id": "a",
+              "text": "`word` must be a primitive type."
+            },
+            {
+              "id": "b",
+              "text": "`word` must be `final` or effectively final."
+            },
+            {
+              "id": "c",
+              "text": "`word` must be `null` after the method returns."
+            },
+            {
+              "id": "d",
+              "text": "`word` must be an instance field."
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "A captured parameter or local variable must not be reassigned after initialization. It may be explicitly `final` or remain effectively final.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO12.md",
+            "heading": null
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Captured State",
+            "Effectively Final"
+          ]
+        },
+        {
+          "id": "eip-12-l1-q11-r1",
+          "type": "code_output",
+          "prompt": "What does the program print? The variable `calls` counts how many times the loop calls the property rule.",
+          "context": {
+            "type": "code",
+            "content": "interface Property { boolean test(Object r); }\nclass Demo {\n    static int calls = 0;\n    static boolean check(Object[] a, Property p) {\n        for (int i = 0; i < a.length; ++i) {\n            calls++;\n            if (p.test(a[i])) return true;\n        }\n        return false;\n    }\n    public static void main(String[] args) {\n        Property p = r -> ((Integer) r) % 2 == 0;\n        Object[] a = {3, 8, 10};\n        check(a, p);\n        System.out.println(calls);\n    }\n}",
+            "language": "java",
+            "caption": "The Search Stops at the First Even Value"
+          },
+          "options": [
+            {
+              "id": "a",
+              "text": "`2`"
+            },
+            {
+              "id": "b",
+              "text": "A compiler error occurs."
+            },
+            {
+              "id": "c",
+              "text": "`1`"
+            },
+            {
+              "id": "d",
+              "text": "`3`"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "The rule returns false for `3` and true for `8`. When `8` matches, `check` ends the search immediately. The property is therefore called twice.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO12.md",
+            "heading": "1.3 Beispiel und Short-Circuit"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Short-Circuit Evaluation",
+            "Behavior as a Parameter",
+            "Array Traversal"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "eip-12-l2",
+      "index": 2,
+      "kind": "apply",
+      "title": "Apply",
+      "questions": [
+        {
+          "id": "eip-12-l2-q01-r1",
+          "type": "code_output",
+          "prompt": "What does the program print? The anonymous class extends the abstract class `Base` and implements its abstract method.",
+          "context": {
+            "type": "code",
+            "content": "abstract class Base {\n    protected int x;\n    Base(int x) { this.x = x; }\n    abstract int value();\n}\nclass Demo {\n    public static void main(String[] args) {\n        Base item = new Base(7) {\n            int value() { return x * 3; }\n        };\n        System.out.println(item.value());\n    }\n}",
+            "language": "java",
+            "caption": "An Anonymous Subclass Implements `value()`"
+          },
+          "options": [
+            {
+              "id": "a",
+              "text": "`14`"
+            },
+            {
+              "id": "b",
+              "text": "A compiler error occurs."
+            },
+            {
+              "id": "c",
+              "text": "`7`"
+            },
+            {
+              "id": "d",
+              "text": "`21`"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "The constructor sets `x` to `7`. The implementation of `value()` returns three times that value, which is `21`.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO12.md",
+            "heading": "2.3 Anonyme Unterklasse einer abstrakten Klasse"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Anonymous Subclass",
+            "Abstract Class",
+            "Constructor and Overriding"
+          ]
+        },
+        {
+          "id": "eip-12-l2-q02",
+          "type": "single",
+          "prompt": "An anonymous subclass of `StoredValue` overrides `f()` with `return super.f() + 1;`. `StoredValue.f()` returns `x`, and `x` is `42`. What does the overriding method return?",
+          "options": [
+            {
+              "id": "a",
+              "text": "`84`"
+            },
+            {
+              "id": "b",
+              "text": "`41`"
+            },
+            {
+              "id": "c",
+              "text": "`43`"
+            },
+            {
+              "id": "d",
+              "text": "`42`"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "`super.f()` calls the implementation from `StoredValue` and returns `42`. Then `1` is added; the call does not recursively invoke the overriding method.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO12.md",
+            "heading": "2.4 Anonyme Unterklasse einer konkreten Klasse"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Anonymous Classes"
+          ]
+        },
+        {
+          "id": "eip-12-l2-q03",
+          "type": "truefalse",
+          "prompt": "A lambda captures a local variable. Even if the same value is assigned to it again later, it is no longer effectively final.",
+          "options": [
+            {
+              "id": "true",
+              "text": "True"
+            },
+            {
+              "id": "false",
+              "text": "False"
+            }
+          ],
+          "correct": [
+            "true"
+          ],
+          "explanation": "Effectively final requires that there be no reassignment after initialization. The reassigned value does not have to be different for the rule to be violated.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO12.md",
+            "heading": null
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Effectively Final",
+            "Captured State"
+          ]
+        },
+        {
+          "id": "eip-12-l2-q04",
+          "type": "cloze",
+          "prompt": "An interface with exactly one abstract method can be implemented directly with `r ___ r != null`.",
+          "options": [
+            {
+              "id": "a",
+              "text": "`::`"
+            },
+            {
+              "id": "b",
+              "text": "`->`"
+            },
+            {
+              "id": "c",
+              "text": "`=`"
+            },
+            {
+              "id": "d",
+              "text": "`=>`"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "A lambda expression separates its parameters from its body with `->`. Here, the body directly returns the Boolean expression.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO12.md",
+            "heading": "6.1 Von der anonymen Klasse zum Lambda"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Lambda Expressions"
+          ]
+        },
+        {
+          "id": "eip-12-l2-q05",
+          "type": "multi",
+          "prompt": "Which statements about lambda syntax are correct? Select all that apply.",
+          "options": [
+            {
+              "id": "a",
+              "text": "Parentheses are required for multiple parameters."
+            },
+            {
+              "id": "b",
+              "text": "A lambda always contains an explicit class declaration."
+            },
+            {
+              "id": "c",
+              "text": "An expression body for a method with a return value must always also contain `return`."
+            },
+            {
+              "id": "d",
+              "text": "Parentheses are optional for a single inferred parameter."
+            },
+            {
+              "id": "e",
+              "text": "For a block body, a non-`void` result must be returned with `return`."
+            }
+          ],
+          "correct": [
+            "a",
+            "d",
+            "e"
+          ],
+          "explanation": "The shorthand `r -> ...` is allowed for one inferred parameter. Multiple parameters require parentheses, and a block body explicitly returns the value with `return`; an expression body does not need this.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO12.md",
+            "heading": "6.2 Syntax und Type Inference"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Lambda Expressions",
+            "Type Inference"
+          ]
+        },
+        {
+          "id": "eip-12-l2-q06",
+          "type": "diagram",
+          "prompt": "A test returns `false` for `a[i]`. What is the next step in the search process shown?",
+          "context": {
+            "type": "mermaid",
+            "content": "flowchart TD\n    A[\"Start: i = 0\"] --> B{\"i < a.length?\"}\n    B -->|No| C[\"return false\"]\n    B -->|Yes| D{\"p.test(a[i])?\"}\n    D -->|true| E[\"return true\"]\n    D -->|false| F[\"i++\"]\n    F --> B",
+            "caption": "The Steps in a Search for a Matching Array Element"
+          },
+          "options": [
+            {
+              "id": "a",
+              "text": "The current index is returned as a match."
+            },
+            {
+              "id": "b",
+              "text": "The array is sorted."
+            },
+            {
+              "id": "c",
+              "text": "The method immediately returns `false`."
+            },
+            {
+              "id": "d",
+              "text": "The index is incremented and the loop condition is checked again."
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "After a negative test, `i` is incremented and control returns to check `i < a.length`. Only after all elements have been checked does the method return `false`.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO12.md",
+            "heading": "1.2 Der Suchalgorithmus"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Property and Search Algorithm"
+          ]
+        },
+        {
+          "id": "eip-12-l2-q07-r1",
+          "type": "code_output",
+          "prompt": "What does the program print? In Java, the anonymous class can capture the parameter `word`, which is not reassigned, and use its value even after `matching` returns.",
+          "context": {
+            "type": "code",
+            "content": "interface Property { boolean test(Object r); }\nclass Demo {\n    static Property matching(String word) {\n        return new Property() {\n            public boolean test(Object r) { return word.equals(r); }\n        };\n    }\n    public static void main(String[] args) {\n        Property p = matching(\"DS\");\n        System.out.print(p.test(\"DS\") + \" \");\n        System.out.println(p.test(\"ERA\"));\n    }\n}",
+            "language": "java",
+            "caption": "An Anonymous Class Uses a Captured Parameter"
+          },
+          "options": [
+            {
+              "id": "a",
+              "text": "`true true`"
+            },
+            {
+              "id": "b",
+              "text": "`false true`"
+            },
+            {
+              "id": "c",
+              "text": "`true false`"
+            },
+            {
+              "id": "d",
+              "text": "`false false`"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "The created object compares each argument with the captured string `DS`. The first comparison is true, and the second is false.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO12.md",
+            "heading": "3.2 Warum funktioniert der Test nach dem Methodenende?"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Captured State",
+            "Capturing a Parameter",
+            "Effectively Final"
+          ]
+        },
+        {
+          "id": "eip-12-l2-q08",
+          "type": "single",
+          "prompt": "An anonymous class extends the abstract class `AbstractValue`, whose constructor is `AbstractValue(int x)`. Which statement about creating an instance is correct?",
+          "options": [
+            {
+              "id": "a",
+              "text": "An abstract class can only be instantiated with `new AbstractValue()`."
+            },
+            {
+              "id": "b",
+              "text": "The value can be passed to the superclass constructor when the object is created."
+            },
+            {
+              "id": "c",
+              "text": "The anonymous subclass must declare a constructor with its own name."
+            },
+            {
+              "id": "d",
+              "text": "The superclass constructor is not executed until `f()` is called."
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "The anonymous subclass itself does not declare its own constructor. However, an argument such as `42` can be passed to the superclass constructor in the creation expression.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO12.md",
+            "heading": "2.3 Anonyme Unterklasse einer abstrakten Klasse"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Anonymous Classes"
+          ]
+        },
+        {
+          "id": "eip-12-l2-q09",
+          "type": "truefalse",
+          "prompt": "A `default` method in a functional interface is already implemented and therefore does not count as a second abstract method requirement.",
+          "options": [
+            {
+              "id": "true",
+              "text": "True"
+            },
+            {
+              "id": "false",
+              "text": "False"
+            }
+          ],
+          "correct": [
+            "true"
+          ],
+          "explanation": "The method with a body is already implemented. The SAM property is determined by the number of abstract method requirements.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO12.md",
+            "heading": "5. Functional Interfaces"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Functional Interfaces"
+          ]
+        },
+        {
+          "id": "eip-12-l2-q10",
+          "type": "multi",
+          "prompt": "Which statements correctly compare anonymous classes and lambdas? Select all that apply.",
+          "options": [
+            {
+              "id": "a",
+              "text": "An anonymous class can extend an abstract class."
+            },
+            {
+              "id": "b",
+              "text": "A lambda can declare its own instance fields."
+            },
+            {
+              "id": "c",
+              "text": "An anonymous class can implement multiple independent abstract methods."
+            },
+            {
+              "id": "d",
+              "text": "Both can implement a functional interface."
+            },
+            {
+              "id": "e",
+              "text": "A lambda can be declared as its own class with an explicit class name."
+            }
+          ],
+          "correct": [
+            "a",
+            "c",
+            "d"
+          ],
+          "explanation": "Anonymous classes can implement interfaces with multiple methods or extend classes. Lambdas are designed for functional interfaces and do not declare their own instance fields or named classes.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO12.md",
+            "heading": "8. Gesamtvergleich"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Anonymous Classes",
+            "Lambda Expressions",
+            "Functional Interfaces"
+          ]
+        },
+        {
+          "id": "eip-12-l2-q11-r1",
+          "type": "code_output",
+          "prompt": "What does the program print? `test` accepts strings that begin with `A`; the default method `rejects` returns the opposite of `test` each time.",
+          "context": {
+            "type": "code",
+            "content": "interface Property {\n    boolean test(Object r);\n    default boolean rejects(Object r) { return !test(r); }\n}\nclass Demo {\n    public static void main(String[] args) {\n        Property p = r -> ((String) r).startsWith(\"A\");\n        System.out.print(p.rejects(\"Bee\") + \" \");\n        System.out.println(p.rejects(\"Apple\"));\n    }\n}",
+            "language": "java",
+            "caption": "A Lambda Rule with a Default Method"
+          },
+          "options": [
+            {
+              "id": "a",
+              "text": "`true true`"
+            },
+            {
+              "id": "b",
+              "text": "`false true`"
+            },
+            {
+              "id": "c",
+              "text": "`false false`"
+            },
+            {
+              "id": "d",
+              "text": "`true false`"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "`Bee` does not begin with `A`, so `test(\"Bee\")` is false and `rejects(\"Bee\")` is true. `Apple` is accepted, so `rejects(\"Apple\")` returns false.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO12.md",
+            "heading": "5. Functional Interfaces"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Functional Interface",
+            "Default Method",
+            "Lambda Expression"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "eip-12-l3",
+      "index": 3,
+      "kind": "deepen",
+      "title": "Explore Further",
+      "questions": [
+        {
+          "id": "eip-12-l3-q01",
+          "type": "single",
+          "prompt": "A lambda expression uses a local reference variable `items`. The reference is never reassigned, but an array element in the referenced array is changed. Which statement is correct?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Changing the array automatically reassigns the local reference."
+            },
+            {
+              "id": "b",
+              "text": "Capturing is forbidden because arrays must always be immutable."
+            },
+            {
+              "id": "c",
+              "text": "Capturing is allowed only if the array is `null`."
+            },
+            {
+              "id": "d",
+              "text": "Capturing is allowed if `items` is effectively final."
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Effectively final applies to the reference variable: it must not be reassigned. Changes to the referenced object are separate and may be allowed.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO12.md",
+            "heading": null
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Captured State",
+            "Effectively Final"
+          ]
+        },
+        {
+          "id": "eip-12-l3-q02",
+          "type": "truefalse",
+          "prompt": "A lambda can capture a local variable even if it is reassigned after initialization, as long as the new value is the same.",
+          "options": [
+            {
+              "id": "true",
+              "text": "True"
+            },
+            {
+              "id": "false",
+              "text": "False"
+            }
+          ],
+          "correct": [
+            "false"
+          ],
+          "explanation": "Any reassignment violates effectively final, even if the same value is assigned. The compiler reports the error before runtime.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO12.md",
+            "heading": null
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Captured State",
+            "Effectively Final"
+          ]
+        },
+        {
+          "id": "eip-12-l3-q03",
+          "type": "multi",
+          "prompt": "Which statements about functional interfaces are correct? Select all that apply.",
+          "options": [
+            {
+              "id": "a",
+              "text": "A functional interface can also contain implemented methods."
+            },
+            {
+              "id": "b",
+              "text": "A `default` method body makes it a second abstract method requirement."
+            },
+            {
+              "id": "c",
+              "text": "The one abstract method requirement can have multiple parameters."
+            },
+            {
+              "id": "d",
+              "text": "An interface with two independent abstract methods is still a target type for a lambda."
+            },
+            {
+              "id": "e",
+              "text": "A lambda needs a target type that specifies its abstract method."
+            }
+          ],
+          "correct": [
+            "a",
+            "c",
+            "e"
+          ],
+          "explanation": "SAM refers to a single abstract method requirement, not a single parameter. Implemented methods are allowed, and the target type provides the compiler with the method contract for the lambda.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO12.md",
+            "heading": "6.4 Mehrere Parameter:"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Functional Interfaces",
+            "Lambda Expressions",
+            "Type Inference"
+          ]
+        },
+        {
+          "id": "eip-12-l3-q04-r1",
+          "type": "code_output",
+          "prompt": "What does the program print? In an anonymous class method, `this` refers to the anonymous object. In a lambda, `this` refers to the enclosing `Demo` instance. For references, `==` checks whether both point to the same object.",
+          "context": {
+            "type": "code",
+            "content": "interface Property { boolean test(Object r); }\nclass Demo {\n    Property anonymous() {\n        return new Property() {\n            public boolean test(Object r) { return this == r; }\n        };\n    }\n    Property lambda() { return r -> this == r; }\n    public static void main(String[] args) {\n        Demo owner = new Demo();\n        Property anonymous = owner.anonymous();\n        Property lambda = owner.lambda();\n        System.out.print(anonymous.test(anonymous) + \" \");\n        System.out.print(lambda.test(owner) + \" \");\n        System.out.print(anonymous.test(owner) + \" \");\n        System.out.println(lambda.test(lambda));\n    }\n}",
+            "language": "java",
+            "caption": "Identity Comparisons Using `this` in Two Implementations"
+          },
+          "options": [
+            {
+              "id": "a",
+              "text": "`false false true true`"
+            },
+            {
+              "id": "b",
+              "text": "`true false true false`"
+            },
+            {
+              "id": "c",
+              "text": "`true true false false`"
+            },
+            {
+              "id": "d",
+              "text": "`false true false true`"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "The four comparisons, in order, are: the anonymous object with itself (true), `owner` with itself in the lambda (true), the anonymous object with `owner` (false), and `owner` with the lambda object (false).",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO12.md",
+            "heading": "7.1 Vorlesungsbeispiel"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "`this` in Anonymous Classes",
+            "`this` in Lambdas",
+            "Reference Identity"
+          ]
+        },
+        {
+          "id": "eip-12-l3-q05",
+          "type": "diagram",
+          "prompt": "The call to `matching(\"hello\")` has finished. What information remains available for the later call to `test`?",
+          "context": {
+            "type": "mermaid",
+            "content": "sequenceDiagram\n    participant C as Aufrufer\n    participant M as matching(word)\n    participant P as Property-Objekt\n    C->>M: matching(\"hello\")\n    M->>P: word erfassen\n    M-->>C: Referenz helloTest\n    Note over M,P: matching ist beendet\n    C->>P: test(\"hello\")\n    P-->>C: true",
+            "caption": "Creating a Test and Later Using the Captured Value"
+          },
+          "options": [
+            {
+              "id": "a",
+              "text": "No information, because a returned object cannot use local values."
+            },
+            {
+              "id": "b",
+              "text": "Only the return value of `test`, which was computed earlier."
+            },
+            {
+              "id": "c",
+              "text": "The entire local stack frame of `matching`."
+            },
+            {
+              "id": "d",
+              "text": "The captured value of the parameter `word`."
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "The created object keeps the captured value available for the later call. The method call and its stack frame do not need to remain active.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO12.md",
+            "heading": "3.2 Warum funktioniert der Test nach dem Methodenende?"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Captured State"
+          ]
+        },
+        {
+          "id": "eip-12-l3-q06",
+          "type": "single",
+          "prompt": "Why can `var p = r -> r != null;` not determine the lambda's type?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Because every lambda expression requires a block body."
+            },
+            {
+              "id": "b",
+              "text": "Because `var` can store only primitive types."
+            },
+            {
+              "id": "c",
+              "text": "Because the lambda lacks a target type from which its parameter and return types can be inferred."
+            },
+            {
+              "id": "d",
+              "text": "Because lambdas can never be assigned to a variable."
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "In this context, a lambda does not have a type without context. A target type such as `Property` specifies which method is implemented and which types apply.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO12.md",
+            "heading": "6.3 Aufruf und Wiederverwendung"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Lambda Expressions",
+            "Type Inference"
+          ]
+        },
+        {
+          "id": "eip-12-l3-q07",
+          "type": "multi",
+          "prompt": "An object of `StringSearch` has the field `matchNull = false`. Its method `matching(String word)` returns a test that checks `word.equals(r) || (matchNull && r == null)`. Which statements about `word` and `matchNull` are correct? Select all that apply.",
+          "options": [
+            {
+              "id": "a",
+              "text": "`matchNull` is an instance field of the enclosing object."
+            },
+            {
+              "id": "b",
+              "text": "Each created test necessarily gets its own copy of `matchNull`."
+            },
+            {
+              "id": "c",
+              "text": "`matchNull` must be effectively final."
+            },
+            {
+              "id": "d",
+              "text": "A call to `allowNulls()` that sets `matchNull` to `true` can affect existing tests."
+            },
+            {
+              "id": "e",
+              "text": "`word` comes from the method parameter and is captured by each test."
+            }
+          ],
+          "correct": [
+            "a",
+            "d",
+            "e"
+          ],
+          "explanation": "Each test captures its local `word`, but reads `matchNull` through the same enclosing object. Therefore, a later change to the field can change the behavior of tests that have already been created.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO12.md",
+            "heading": "Captured vs. enclosing state"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Captured State",
+            "Enclosing State"
+          ]
+        },
+        {
+          "id": "eip-12-l3-q08",
+          "type": "code_output",
+          "prompt": "What do the three test calls print, in order?",
+          "context": {
+            "type": "code",
+            "content": "interface Property { boolean test(Object r); }\nclass Demo {\n    public static void main(String[] args) {\n        Property even = r -> r != null && ((Integer) r) % 2 == 0;\n        System.out.print(even.test(null) + \" \");\n        System.out.print(even.test(4) + \" \");\n        System.out.println(even.test(5));\n    }\n}",
+            "language": "java"
+          },
+          "options": [
+            {
+              "id": "a",
+              "text": "`false false true`"
+            },
+            {
+              "id": "b",
+              "text": "`true false true`"
+            },
+            {
+              "id": "c",
+              "text": "`true true false`"
+            },
+            {
+              "id": "d",
+              "text": "`false true false`"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "For `null`, `&&` stops after the left-hand expression, so no cast is performed and the result is `false`. The integer `4` is even; `5` is not.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO12.md",
+            "heading": "6.5 Capturing mit Lambdas (Ergänzung / Transfer)"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Lambda Expressions",
+            "Short-Circuit Evaluation"
+          ]
+        },
+        {
+          "id": "eip-12-l3-q09",
+          "type": "truefalse",
+          "prompt": "When a lambda captures a `String` parameter, a deep copy of the `String` object is necessarily stored.",
+          "options": [
+            {
+              "id": "true",
+              "text": "True"
+            },
+            {
+              "id": "false",
+              "text": "False"
+            }
+          ],
+          "correct": [
+            "false"
+          ],
+          "explanation": "For a reference type, the captured value is the reference. The notes explicitly distinguish between a reference and a deep copy of the referenced object.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO12.md",
+            "heading": "3.2 Warum funktioniert der Test nach dem Methodenende?"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Captured State"
+          ]
+        },
+        {
+          "id": "eip-12-l3-q10",
+          "type": "multi",
+          "prompt": "`StringSearch search` returns `p = search.matching(\"bye\")` and `q = search.matching(\"hello\")`. `matching` checks `word.equals(r) || (matchNull && r == null)`. Then `search.allowNulls()` is called; this method sets `matchNull` to `true`. Which statements are correct? Select all that apply.",
+          "options": [
+            {
+              "id": "a",
+              "text": "`p.test(\"hello\")` returns `true`."
+            },
+            {
+              "id": "b",
+              "text": "`q.test(null)` returns `true`."
+            },
+            {
+              "id": "c",
+              "text": "`p.test(null)` returns `true`."
+            },
+            {
+              "id": "d",
+              "text": "`allowNulls()` changes the word captured by each test."
+            },
+            {
+              "id": "e",
+              "text": "Both tests read the current field `matchNull` of the same object."
+            }
+          ],
+          "correct": [
+            "b",
+            "c",
+            "e"
+          ],
+          "explanation": "`allowNulls()` sets the shared field to `true`, so both tests accept `null`. `p` still retains its captured word `bye` and does not thereby accept the string `hello`.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO12.md",
+            "heading": "Captured vs. enclosing state"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Captured State",
+            "Enclosing State"
+          ]
+        },
+        {
+          "id": "eip-12-l3-q11",
+          "type": "single",
+          "prompt": "Why is `new Property()` invalid without a class body following it?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Because every interface name requires a parameter."
+            },
+            {
+              "id": "b",
+              "text": "Because a method `test` cannot have parameters."
+            },
+            {
+              "id": "c",
+              "text": "Because `new` can only be used with primitive types."
+            },
+            {
+              "id": "d",
+              "text": "Because `Property` is an interface, and the object can only be created through a concrete implementation."
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "An interface is not a concrete class type that can be instantiated directly. Here, the anonymous class body provides an implementation whose object can be created.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO12.md",
+            "heading": "2.2 Anonyme Klasse direkt instanziieren"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Anonymous Classes",
+            "Functional Interfaces"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "eip-12-l4",
+      "index": 4,
+      "kind": "boss",
+      "title": "Boss",
+      "questions": [
+        {
+          "id": "eip-12-l4-q01",
+          "type": "multi",
+          "prompt": "A `StringSearch` has the field `matchNull = false`. It creates `p = search.matching(\"bye\")`, where `matching` returns a test for `word.equals(r) || (matchNull && r == null)`. Then `search.allowNulls()` is called, setting `matchNull` to `true`. Which statements are correct? Select all that apply.",
+          "options": [
+            {
+              "id": "a",
+              "text": "`p.test(null)` returns `true`."
+            },
+            {
+              "id": "b",
+              "text": "The test reads the current value of the field `matchNull` on every call."
+            },
+            {
+              "id": "c",
+              "text": "`p.test(\"hello\")` returns `true`."
+            },
+            {
+              "id": "d",
+              "text": "`p.test(\"bye\")` returns `true`."
+            },
+            {
+              "id": "e",
+              "text": "The word captured by `p` is changed to `null` by `allowNulls()`."
+            }
+          ],
+          "correct": [
+            "a",
+            "b",
+            "d"
+          ],
+          "explanation": "The test retains the captured word `bye`, but reads the mutable field `matchNull` when called. Therefore, after `allowNulls()`, both `bye` and `null` are accepted, but `hello` is not.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO12.md",
+            "heading": "Captured vs. enclosing state"
+          },
+          "difficulty": 5,
+          "concepts": [
+            "Captured State",
+            "Enclosing State"
+          ]
+        },
+        {
+          "id": "eip-12-l4-q02",
+          "type": "code_output",
+          "prompt": "What does the program print?",
+          "context": {
+            "type": "code",
+            "content": "interface Property { boolean test(Object r); }\nclass Demo {\n    Property anonymous() {\n        return new Property() {\n            public boolean test(Object r) { return this == r; }\n        };\n    }\n    Property lambda() { return r -> this == r; }\n    public static void main(String[] args) {\n        Demo owner = new Demo();\n        Property anonymous = owner.anonymous();\n        Property lambda = owner.lambda();\n        System.out.print(anonymous.test(owner) + \" \");\n        System.out.println(lambda.test(lambda));\n    }\n}",
+            "language": "java"
+          },
+          "options": [
+            {
+              "id": "a",
+              "text": "`true true`"
+            },
+            {
+              "id": "b",
+              "text": "`false true`"
+            },
+            {
+              "id": "c",
+              "text": "`true false`"
+            },
+            {
+              "id": "d",
+              "text": "`false false`"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "The anonymous object is not identical to `owner`. In the lambda, `this` refers to `owner`, but the value passed in is `lambda`, a different reference.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO12.md",
+            "heading": "7.1 Vorlesungsbeispiel"
+          },
+          "difficulty": 5,
+          "concepts": [
+            "`this` Context",
+            "Anonymous Classes",
+            "Lambda Expressions"
+          ]
+        },
+        {
+          "id": "eip-12-l4-q03",
+          "type": "diagram",
+          "prompt": "Which evaluation is true according to the diagram?",
+          "context": {
+            "type": "mermaid",
+            "content": "flowchart TD\n    O[\"owner: Demo\"]\n    A[\"anonymous: Property\"]\n    L[\"lambda: Property\"]\n    O -->|creates| A\n    O -->|returns| L\n    A -->|this| A\n    L -->|this| O",
+            "caption": "References and `this` Contexts of Two Tests"
+          },
+          "options": [
+            {
+              "id": "a",
+              "text": "`lambda.test(owner)`"
+            },
+            {
+              "id": "b",
+              "text": "`anonymous.test(owner)`"
+            },
+            {
+              "id": "c",
+              "text": "`anonymous.test(lambda)`"
+            },
+            {
+              "id": "d",
+              "text": "`lambda.test(lambda)`"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "The lambda uses the enclosing `this`, which is `owner`. The comparison `lambda.test(owner)` therefore compares the same reference with itself. The anonymous object, by contrast, uses its own `this`.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO12.md",
+            "heading": "7.1 Vorlesungsbeispiel"
+          },
+          "difficulty": 5,
+          "concepts": [
+            "`this` Context",
+            "Anonymous Classes",
+            "Lambda Expressions"
+          ]
+        },
+        {
+          "id": "eip-12-l4-q04",
+          "type": "single",
+          "prompt": "A variable of type `Property` refers to an object of a concrete implementation that overrides `test`. Which implementation runs when `p.test(x)` is called?",
+          "options": [
+            {
+              "id": "a",
+              "text": "None, because interface references cannot be used to call methods."
+            },
+            {
+              "id": "b",
+              "text": "The implementation of the actual object that overrides `test`."
+            },
+            {
+              "id": "c",
+              "text": "Always an implementation from `Object`."
+            },
+            {
+              "id": "d",
+              "text": "The method is selected based on the variable name `p`."
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "The reference type permits a call to `test`; for an overridden instance method, the actual object's class determines which implementation runs. This is dynamic binding.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO10.md",
+            "heading": null
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Behavior as a Parameter",
+            "Property and Search Algorithm"
+          ]
+        },
+        {
+          "id": "eip-12-l4-q05",
+          "type": "code_output",
+          "prompt": "What does this program print?",
+          "context": {
+            "type": "code",
+            "content": "interface Property { boolean test(Object r); }\nclass Demo {\n    public static void main(String[] args) {\n        Property even = r -> r != null && ((Integer) r) % 2 == 0;\n        System.out.print(even.test(null) + \" \");\n        System.out.println(even.test(6));\n    }\n}",
+            "language": "java"
+          },
+          "options": [
+            {
+              "id": "a",
+              "text": "`true true`"
+            },
+            {
+              "id": "b",
+              "text": "`false true`"
+            },
+            {
+              "id": "c",
+              "text": "`true false`"
+            },
+            {
+              "id": "d",
+              "text": "`false false`"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "`r != null` is false on the first call; because of short-circuit evaluation, the right-hand expression is not evaluated and the cast to `Integer` is skipped. For the value `6`, the left-hand expression is true, and `6 % 2 == 0` is also true.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO12.md",
+            "heading": "6.5 Capturing mit Lambdas (Ergänzung / Transfer)"
+          },
+          "difficulty": 5,
+          "concepts": [
+            "Lambda Expressions",
+            "Short-Circuit Evaluation"
+          ]
+        },
+        {
+          "id": "eip-12-l4-q06",
+          "type": "single",
+          "prompt": "Two different references `a` and `b` point to distinct objects with the same content; a suitable `equals` method checks that content. Which statement is correct?",
+          "options": [
+            {
+              "id": "a",
+              "text": "`a == b` is `true` because the contents are equal."
+            },
+            {
+              "id": "b",
+              "text": "`a == b` is `false`, while `a.equals(b)` can be `true`."
+            },
+            {
+              "id": "c",
+              "text": "`==` and `equals` always check the same thing for references."
+            },
+            {
+              "id": "d",
+              "text": "`a.equals(b)` must be `false` if the references are different."
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "For references, `==` checks object identity. A suitable `equals` method can instead check value equality, so distinct objects can be equal in content.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO8.md",
+            "heading": null
+          },
+          "difficulty": 4,
+          "concepts": [
+            "`this` Context",
+            "Anonymous Classes",
+            "Lambda Expressions"
+          ]
+        },
+        {
+          "id": "eip-12-l4-q07",
+          "type": "multi",
+          "prompt": "Which statements about anonymous classes and lambdas are correct? Select all that apply.",
+          "options": [
+            {
+              "id": "a",
+              "text": "An anonymous class can implement an interface with multiple independent abstract methods."
+            },
+            {
+              "id": "b",
+              "text": "Both can capture local values from the enclosing method call."
+            },
+            {
+              "id": "c",
+              "text": "A lambda has its own `this` context."
+            },
+            {
+              "id": "d",
+              "text": "A lambda can extend a concrete class."
+            },
+            {
+              "id": "e",
+              "text": "An anonymous class can declare its own instance fields."
+            }
+          ],
+          "correct": [
+            "a",
+            "b",
+            "e"
+          ],
+          "explanation": "Anonymous classes can define their own methods and fields and are not limited to functional interfaces. Both forms can capture local values if they are final or effectively final; however, a lambda does not introduce its own `this`.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO12.md",
+            "heading": "8. Gesamtvergleich"
+          },
+          "difficulty": 5,
+          "concepts": [
+            "Anonymous Classes",
+            "Captured State",
+            "Lambda Expressions"
+          ]
+        },
+        {
+          "id": "eip-12-l4-q08",
+          "type": "single",
+          "prompt": "Why is `var p = r -> r != null;` not a valid replacement for `Property p = r -> r != null;`?",
+          "options": [
+            {
+              "id": "a",
+              "text": "In `var`, the target type that specifies the lambda contract and parameter types is missing."
+            },
+            {
+              "id": "b",
+              "text": "`Property` can only be used as a parameter, never as a variable type."
+            },
+            {
+              "id": "c",
+              "text": "A lambda cannot contain a Boolean expression."
+            },
+            {
+              "id": "d",
+              "text": "The name `p` is not allowed as a Java variable name."
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "The lambda expression requires a known target type. `Property` provides the signature of `test`; without this context, the compiler cannot infer the lambda's type.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO12.md",
+            "heading": "6.3 Aufruf und Wiederverwendung"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Lambda Expressions",
+            "Type Inference"
+          ]
+        },
+        {
+          "id": "eip-12-l4-q09",
+          "type": "truefalse",
+          "prompt": "A lambda can serve as an implementation for an interface with two independent abstract methods, provided both methods have the same return type.",
+          "options": [
+            {
+              "id": "true",
+              "text": "True"
+            },
+            {
+              "id": "false",
+              "text": "False"
+            }
+          ],
+          "correct": [
+            "false"
+          ],
+          "explanation": "A lambda supplies behavior for exactly one abstract method requirement. Two independent abstract methods mean the interface is not a functional interface, even if their return types are the same.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO12.md",
+            "heading": "5. Functional Interfaces"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Functional Interfaces",
+            "Lambda Expressions"
+          ]
+        },
+        {
+          "id": "eip-12-l4-q10",
+          "type": "cloze",
+          "prompt": "A functional interface has exactly one abstract ___, which a lambda implements.",
+          "options": [
+            {
+              "id": "a",
+              "text": "method requirement"
+            },
+            {
+              "id": "b",
+              "text": "instance variable"
+            },
+            {
+              "id": "c",
+              "text": "class declaration"
+            },
+            {
+              "id": "d",
+              "text": "constructor chaining"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "The SAM property refers to a single abstract method requirement. Its parameter count can still be greater than one.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO12.md",
+            "heading": "5. Functional Interfaces"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Functional Interfaces",
+            "Lambda Expressions"
+          ]
+        },
+        {
+          "id": "eip-12-l4-q11",
+          "type": "single",
+          "prompt": "A search algorithm should use the same loop for rules such as “not `null`” and “equal to a particular word.” Which design makes this possible?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Build a completely separate loop into the algorithm for each rule."
+            },
+            {
+              "id": "b",
+              "text": "Store the rule implementation in each element of the array."
+            },
+            {
+              "id": "c",
+              "text": "The interface must sort the array values before the search."
+            },
+            {
+              "id": "d",
+              "text": "The algorithm handles the traversal; a passed `Property` implementation handles the rule."
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "The algorithm stays the same for all rules and calls the passed test method for each element. This passes behavior as a parameter while keeping traversal separate from the selection rule.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO12.md",
+            "heading": "1. Passing a matching rule – Verhalten übergeben"
+          },
+          "difficulty": 5,
+          "concepts": [
+            "Behavior as a Parameter",
+            "Property and Search Algorithm",
+            "Lambda Expressions"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "eip-12-l5",
+      "index": 5,
+      "kind": "bonus",
+      "title": "Practice: Code in Everyday Use",
+      "questions": [
+        {
+          "id": "eip-12-l5-q01",
+          "type": "single",
+          "prompt": "You are building a Java route-planning app. The same loop should check candidate routes, but depending on the user's preference it should find either an accessible route or a route under 20 minutes. Which design fits this problem?",
+          "options": [
+            {
+              "id": "a",
+              "text": "The loop always selects the first route without evaluating a selection rule."
+            },
+            {
+              "id": "b",
+              "text": "The loop traverses the routes; the caller passes a `Property` with the desired selection rule."
+            },
+            {
+              "id": "c",
+              "text": "Java must rewrite the loop's source code at runtime to use a different selection rule."
+            },
+            {
+              "id": "d",
+              "text": "The `Property` itself determines which element the loop traverses next, making a loop unnecessary."
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "The traversal stays the same, while the passed `Property` determines what counts as a match. This passes behavior as a parameter.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO12.md",
+            "heading": "1.2 Der Suchalgorithmus"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Behavior as a Parameter",
+            "Property and Search Algorithm"
+          ]
+        },
+        {
+          "id": "eip-12-l5-q02",
+          "type": "single",
+          "prompt": "A Java app should perform an action when the user clicks “Save Draft.” The button API expects a listener interface with exactly one abstract method. Which solution uses a lambda appropriately?",
+          "options": [
+            {
+              "id": "a",
+              "text": "The listener interface must be an abstract class for a lambda to be used with it."
+            },
+            {
+              "id": "b",
+              "text": "Use a lambda to fully implement an interface with two abstract methods."
+            },
+            {
+              "id": "c",
+              "text": "Pass `event -> saveDraft()` directly as behavior in the button call."
+            },
+            {
+              "id": "d",
+              "text": "Pass the lambda to the button API as a text string."
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "The listener interface has one abstract method and can therefore serve as the target type for a lambda. The lambda supplies the action to perform on a click.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO12.md",
+            "heading": "6.1 Von der anonymen Klasse zum Lambda"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Functional Interfaces",
+            "Lambda Expressions"
+          ]
+        },
+        {
+          "id": "eip-12-l5-q03",
+          "type": "estimate",
+          "prompt": "A map app checks 30 routes in array order. The first match is at index 8 (counting starts at 0), and the search stops immediately when a match is found. How many calls to `Property.test` are made?",
+          "options": [],
+          "correct": [],
+          "slider": {
+            "min": 0,
+            "max": 30,
+            "step": 1,
+            "answer": 9,
+            "tolerance": 0,
+            "unit": "Calls",
+            "scale": "linear"
+          },
+          "explanation": "Indices 0 through 8 are checked, for a total of 9 elements. The search ends immediately when a match is found at index 8.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO12.md",
+            "heading": "1.3 Beispiel und Short-Circuit"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Search Algorithm",
+            "Short-Circuit Evaluation"
+          ]
+        },
+        {
+          "id": "eip-12-l5-q04",
+          "type": "single",
+          "prompt": "A game sensor needs a one-off implementation to handle two events (`onHit` and `onReset`) and store its own hit counter. Which solution meets these requirements?",
+          "options": [
+            {
+              "id": "a",
+              "text": "A `default` method that stores a separate counter for each sensor object."
+            },
+            {
+              "id": "b",
+              "text": "A captured local counter that is reassigned on every hit."
+            },
+            {
+              "id": "c",
+              "text": "A single lambda that automatically implements both abstract methods."
+            },
+            {
+              "id": "d",
+              "text": "An anonymous class that implements both methods and has its own counter field."
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "An anonymous class can implement multiple abstract methods and have its own fields. A lambda implements the single abstract method of a functional interface.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO12.md",
+            "heading": "2.2 Anonyme Klasse direkt instanziieren"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Anonymous Classes",
+            "Functional Interfaces"
+          ]
+        },
+        {
+          "id": "eip-12-l5-q05",
+          "type": "single",
+          "prompt": "A messaging app schedules a notification for later. The method that schedules it ends first, but the later callback should still use the `messageId` passed in when it was scheduled. Which concept makes this possible?",
+          "options": [
+            {
+              "id": "a",
+              "text": "The notification must read an instance field of the messaging app instead of the parameter."
+            },
+            {
+              "id": "b",
+              "text": "The callback automatically accesses the latest value of any local variable that can be reassigned."
+            },
+            {
+              "id": "c",
+              "text": "The compiler keeps the entire stack of the completed method in memory indefinitely."
+            },
+            {
+              "id": "d",
+              "text": "The callback captures the parameter `messageId`; it must be final or effectively final."
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "A callback can capture a local parameter and continue to use its value after the method ends. Captured local variables must not be reassigned.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO12.md",
+            "heading": "3.2 Warum funktioniert der Test nach dem Methodenende?"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Captured State",
+            "Effectively Final"
+          ]
+        },
+        {
+          "id": "eip-12-l5-q06",
+          "type": "estimate",
+          "prompt": "A playlist contains 40 entries, and exactly one matches the search. Assuming the matching entry is equally likely to be at any position and the search stops when it finds the match, how many calls to `Property.test` are made on average?",
+          "options": [],
+          "correct": [],
+          "slider": {
+            "min": 0,
+            "max": 80,
+            "step": 0.5,
+            "answer": 20.5,
+            "tolerance": 0,
+            "unit": "Average Calls",
+            "scale": "linear"
+          },
+          "explanation": "Each hit position is equally likely, corresponding to between 1 and 40 calls. The mean is $(1+40)/2=20{,}5$.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO12.md",
+            "heading": "1.2 Der Suchalgorithmus"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Search Algorithm",
+            "Short-Circuit Evaluation"
+          ]
+        },
+        {
+          "id": "eip-12-l5-q07",
+          "type": "single",
+          "prompt": "A dashboard filter is created in a controller method. Its rule reads the instance field `selectedCategory` of the same controller each time it checks an item. Later, the user changes the category, and the already-created filter should use the new selection. What describes this behavior?",
+          "options": [
+            {
+              "id": "a",
+              "text": "The compiler replaces the filter with an anonymous class after every change."
+            },
+            {
+              "id": "b",
+              "text": "The filter captured the field value as a local variable, which is automatically reassigned when the field changes."
+            },
+            {
+              "id": "c",
+              "text": "The filter reads the controller's current enclosing state on each call."
+            },
+            {
+              "id": "d",
+              "text": "The annotation `@FunctionalInterface` automatically makes the field mutable."
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "The instance field is read through the enclosing controller object. Therefore, changes to `selectedCategory` can affect the behavior of a filter that has already been created.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO12.md",
+            "heading": "4. Enclosing state – Zustand des umgebenden Objekts"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Enclosing State",
+            "Captured State"
+          ]
+        },
+        {
+          "id": "eip-12-l5-q08",
+          "type": "estimate",
+          "prompt": "You are writing a test generator for a four-digit PIN. Each digit can be from 0 to 9, and leading zeros are allowed. How many different candidates can a `Property` potentially check, in thousands?",
+          "options": [],
+          "correct": [],
+          "slider": {
+            "min": 0,
+            "max": 40,
+            "step": 1,
+            "answer": 10,
+            "tolerance": 0,
+            "unit": "Thousand PINs",
+            "scale": "linear"
+          },
+          "explanation": "Each of the four digits has 10 possibilities, so there are $10^4=10\\,000$ candidates. That is 10 thousand PINs that a passed rule could check.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO12.md",
+            "heading": "1.2 Der Suchalgorithmus"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Property and Search Algorithm",
+            "Behavior as a Parameter"
+          ]
+        },
+        {
+          "id": "eip-12-l5-q09",
+          "type": "single",
+          "prompt": "In an instance method of a Java controller, you pass `event -> this.refresh()` as a click action. Which statement about `this` is correct?",
+          "options": [
+            {
+              "id": "a",
+              "text": "`this` refers to the controller whose method contains the lambda."
+            },
+            {
+              "id": "b",
+              "text": "`this` refers to an automatically generated anonymous class object."
+            },
+            {
+              "id": "c",
+              "text": "A lambda can use `this` only if the controller is a functional interface."
+            },
+            {
+              "id": "d",
+              "text": "`this` always refers to the object currently invoking the click action."
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "A lambda does not introduce its own `this`; it uses the lexically enclosing context. Here, that is the controller.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO12.md",
+            "heading": "7.1 Vorlesungsbeispiel"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "`this` Context",
+            "Lambda Expressions"
+          ]
+        },
+        {
+          "id": "eip-12-l5-q10",
+          "type": "single",
+          "prompt": "A network parser checks a packet using `packet != null && packet.isValid()`. Which everyday situation demonstrates short-circuit behavior here?",
+          "options": [
+            {
+              "id": "a",
+              "text": "The compiler caches the result of `isValid()` for later packets."
+            },
+            {
+              "id": "b",
+              "text": "Both sides of `&&` are always evaluated, regardless of the left-hand result."
+            },
+            {
+              "id": "c",
+              "text": "If `packet` is `null`, `packet.isValid()` is not called."
+            },
+            {
+              "id": "d",
+              "text": "The parser skips `packet.isValid()` for every other packet."
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "With `&&`, the right-hand side is evaluated only if the left-hand side is `true`. This means that when `packet == null`, no method call on `null` is attempted.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO12.md",
+            "heading": "1.3 Beispiel und Short-Circuit"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Short-Circuit Evaluation",
+            "Property and Search Algorithm"
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,387 @@
+{
+  "schemaVersion": 1,
+  "unitId": "eip-12",
+  "module": "EIP",
+  "unitNumber": 12,
+  "unitTitle": "Anonymous Classes and Lambdas",
+  "sourceSha": "e71fd31c7db7996c27fa1657579154e2536bebe0a8887716a9dc0aa75c20eca2",
+  "overview": "This unit shows how an algorithm receives behavior as a parameter (Verhalten als Parameter): `CheckArray.check` traverses an array, while `Property.test` defines the selection rule. Anonymous classes (anonyme Klassen) and lambda expressions (Lambda-Ausdrücke) provide this rule directly and can capture local values. Captured variables (erfasste Variablen) must be `final` or effectively final; instance fields of the enclosing object, by contrast, are read with their current values on each call. Functional interfaces (funktionale Interfaces) provide the target type, and `this` has different meanings in anonymous classes and lambdas.",
+  "entries": [
+    {
+      "id": "eip-12-k01",
+      "term": "Behavior as a parameter (Verhalten als Parameter)",
+      "kind": "concept",
+      "short": "An algorithm can receive a rule as an argument, separating data processing from the selection decision.",
+      "explanation": "`CheckArray.check` defines how the array is traversed and receives the selection rule as a parameter. The caller determines which property is checked. This lets the same search algorithm work with different rules.",
+      "example": "Given the same array, `CheckArray.check(values, p)` can search for non-`null` elements or a particular word, depending on `p`.",
+      "pitfalls": [
+        "The rule passed in is not itself the search algorithm."
+      ],
+      "related": [
+        "Property",
+        "Search algorithm CheckArray.check (Suchalgorithmus CheckArray.check)"
+      ],
+      "heading": "1. Passing a matching rule – Verhalten übergeben"
+    },
+    {
+      "id": "eip-12-k02",
+      "term": "Predicate (Prädikat)",
+      "kind": "definition",
+      "short": "A predicate is a rule that returns `true` or `false` for an input.",
+      "explanation": "A predicate maps an input to a Boolean value. For example, `null` is not a predicate over references. A Java method may also read mutable fields, cause side effects, or throw an exception, so it is not automatically a pure mathematical function.",
+      "example": "For a reference `r`, the predicate “not null” is `r != null`.",
+      "pitfalls": [
+        "A predicate returns a Boolean value, not the element that was found."
+      ],
+      "related": [
+        "Property",
+        "Search algorithm CheckArray.check (Suchalgorithmus CheckArray.check)"
+      ],
+      "heading": "1.1 Interface"
+    },
+    {
+      "id": "eip-12-k03",
+      "term": "Property",
+      "kind": "definition",
+      "short": "`Property` describes a rule with the method `test(Object)`, which returns a `boolean`.",
+      "explanation": "`Property` is an interface with the abstract method `boolean test(Object r)`. The method receives an object or a `null` reference and indicates whether it satisfies the selected property. The caller provides the concrete implementation.",
+      "example": "```java\npublic interface Property {\n    boolean test(Object r);\n}\n```",
+      "pitfalls": [
+        "The interface specifies the contract, but not the concrete selection rule."
+      ],
+      "related": [
+        "Behavior as a parameter (Verhalten als Parameter)",
+        "Predicate (Prädikat)",
+        "Search algorithm CheckArray.check (Suchalgorithmus CheckArray.check)",
+        "Functional interface (funktionales Interface)"
+      ],
+      "heading": "1.1 Interface"
+    },
+    {
+      "id": "eip-12-k04",
+      "term": "Search algorithm CheckArray.check (Suchalgorithmus CheckArray.check)",
+      "kind": "method",
+      "short": "`CheckArray.check` immediately returns `true` for the first element for which `Property.test` returns `true`; otherwise, it returns `false`.",
+      "explanation": "The method traverses the array in order and calls `p.test(a[i])` for each element it reaches. As soon as a test returns `true`, the search ends; if no element matches, the method returns `false` after the loop. This also applies to an empty array. With constant work per test, the best case for a nonempty array is `Θ(1)` and the worst case is `Θ(n)` for an array of length `n`.",
+      "example": "For `{null, \"hello\", null}` and the rule `r != null`, the element at index `1` is the first match.",
+      "pitfalls": [
+        "The rule is called only for elements the loop actually reaches.",
+        "An empty array returns `false` because it contains no match."
+      ],
+      "related": [
+        "Property",
+        "Behavior as a parameter (Verhalten als Parameter)",
+        "Short-circuit evaluation (Kurzschlussauswertung)"
+      ],
+      "heading": "1.2 Der Suchalgorithmus"
+    },
+    {
+      "id": "eip-12-k05",
+      "term": "Short-circuit evaluation (Kurzschlussauswertung)",
+      "kind": "concept",
+      "short": "With `&&` and `||`, the right operand is evaluated only when it is still needed to determine the result.",
+      "explanation": "With `&&`, the right-hand expression is not evaluated if the left operand is `false`; with `||`, it is not evaluated if the left operand is `true`. This allows a null check to guard an unsafe follow-up expression. This is distinct from `CheckArray.check` stopping early: it tests no further elements after the first match.",
+      "example": "`r != null && r instanceof Integer` does not evaluate the right-hand expression when `r == null`.",
+      "pitfalls": [
+        "Short-circuit evaluation applies to `&&` and `||`, not to the Boolean operators `&` and `|`.",
+        "The search algorithm stops at the first match; this is a separate control flow, not a short-circuit operator."
+      ],
+      "related": [
+        "Search algorithm CheckArray.check (Suchalgorithmus CheckArray.check)"
+      ],
+      "heading": "1.3 Beispiel und Short-Circuit"
+    },
+    {
+      "id": "eip-12-k06",
+      "term": "Anonymous class (Anonyme Klasse)",
+      "kind": "definition",
+      "short": "An anonymous class is an unnamed class declaration whose object is created directly.",
+      "explanation": "An anonymous class can implement an interface or extend an abstract or concrete class. It must implement any remaining abstract methods and may have its own fields and methods. It cannot declare its own constructor because it has no class name.",
+      "example": "A one-off `Property` implementation can be passed directly to `CheckArray.check`.",
+      "pitfalls": [
+        "`new Property()` without a class body is invalid because an interface cannot be instantiated directly.",
+        "An anonymous class is not lambda syntax and can, for example, declare its own instance fields."
+      ],
+      "related": [
+        "Syntax `new Property() { ... }`",
+        "Anonymous subclass (Anonyme Unterklasse)",
+        "Lambda expression (Lambda-Ausdruck)",
+        "`this` context"
+      ],
+      "heading": "2. Anonymous Classes – Anonyme Klassen"
+    },
+    {
+      "id": "eip-12-k07",
+      "term": "Syntax `new Property() { ... }`",
+      "kind": "notation",
+      "short": "This syntax defines an anonymous class that implements `Property` and creates an object of that class.",
+      "explanation": "`new Property()` begins the creation expression with the interface as the supertype. The following `{ ... }` is the class body of the unnamed implementation and includes, among other things, the implementation of the abstract method. The declared reference type can still be `Property`.",
+      "example": "```java\nProperty p = new Property() {\n    @Override\n    public boolean test(Object r) {\n        return r != null;\n    }\n};\n```",
+      "pitfalls": [
+        "The class body belongs to the anonymous class; it is not an ordinary block following `new Property()`."
+      ],
+      "related": [
+        "Anonymous class (Anonyme Klasse)",
+        "Property"
+      ],
+      "heading": "2.2 Anonyme Klasse direkt instanziieren"
+    },
+    {
+      "id": "eip-12-k08",
+      "term": "Anonymous subclass (Anonyme Unterklasse)",
+      "kind": "concept",
+      "short": "An anonymous class body can directly create an object of a subclass of an abstract or concrete class.",
+      "explanation": "For an abstract superclass, the anonymous subclass implements any abstract methods that are still missing. The superclass constructor is called when the object is created. A concrete class can also be extended and an already implemented method overridden; `super.f()` calls the superclass implementation.",
+      "example": "```java\nAbstractValue a = new AbstractValue(42) {\n    @Override\n    public int f() {\n        return x;\n    }\n};\n```",
+      "pitfalls": [
+        "The abstract superclass itself is not instantiated; the object created is an instance of the anonymous subclass.",
+        "The anonymous subclass cannot declare its own constructor."
+      ],
+      "related": [
+        "Anonymous class (Anonyme Klasse)",
+        "Anonymous subclass of a concrete class (Anonyme Unterklasse einer konkreten Klasse)",
+        "Method overriding (Methodenüberschreibung)"
+      ],
+      "heading": "2.3 Anonyme Unterklasse einer abstrakten Klasse"
+    },
+    {
+      "id": "eip-12-k09",
+      "term": "Anonymous subclass of a concrete class (Anonyme Unterklasse einer konkreten Klasse)",
+      "kind": "example",
+      "short": "An anonymous class can extend a concrete class and override its methods.",
+      "explanation": "When the object is created, the concrete superclass constructor runs first. The anonymous subclass can provide a new implementation of an overridable method. Inside that method, `super.f()` calls the superclass implementation.",
+      "example": "```java\nStoredValue b = new StoredValue(42) {\n    @Override\n    public int f() {\n        return super.f() + 1;\n    }\n};\nSystem.out.println(b.f()); // 43\n```",
+      "pitfalls": [
+        "The superclass must be extensible, and the method being overridden must allow overriding."
+      ],
+      "related": [
+        "Anonymous subclass (Anonyme Unterklasse)",
+        "Anonymous class (Anonyme Klasse)",
+        "Method overriding (Methodenüberschreibung)"
+      ],
+      "heading": "2.4 Anonyme Unterklasse einer konkreten Klasse"
+    },
+    {
+      "id": "eip-12-k10",
+      "term": "Captured state (erfasster Zustand)",
+      "kind": "concept",
+      "short": "An anonymous class or lambda can capture local variables and parameters from the enclosing method call.",
+      "explanation": "An inner implementation may use a parameter or local variable from the enclosing method. A returned object can continue using the captured value after the method call ends. For example, `matching(word)` can return a `Property` object whose `test` method compares against `word`; in this case, `word` does not have to be `null`.",
+      "example": "```java\npublic static Property matching(String word) {\n    return new Property() {\n        @Override\n        public boolean test(Object r) {\n            return word.equals(r);\n        }\n    };\n}\n```",
+      "pitfalls": [
+        "The end of the method call does not make a captured value inaccessible while the returned object is still in use.",
+        "For a reference, the reference is captured; the referenced object is not automatically deep-copied."
+      ],
+      "related": [
+        "Effectively final",
+        "Captured reference and object state (erfasste Referenz und Objektzustand)",
+        "Enclosing state (Zustand des umgebenden Objekts)",
+        "Lambda expression (Lambda-Ausdruck)"
+      ],
+      "heading": "3. Captured state – Parameter und lokale Variablen einfangen"
+    },
+    {
+      "id": "eip-12-k11",
+      "term": "Effectively final",
+      "kind": "definition",
+      "short": "A variable is effectively final if it is not assigned again after initialization.",
+      "explanation": "A captured local variable or parameter must be explicitly `final` or effectively final. A variable without `final` is effectively final if it is initialized once and not assigned again afterward. Even assigning the same value again is not allowed; the compiler reports an error.",
+      "example": "`String word = \"hello\";` may be captured if there is no later assignment to `word`.",
+      "pitfalls": [
+        "An assignment is still a violation even if the new value is the same as the old one.",
+        "The rule concerns assignment to the variable, not automatically the state of an object it references."
+      ],
+      "related": [
+        "Captured state (erfasster Zustand)",
+        "Captured reference and object state (erfasste Referenz und Objektzustand)",
+        "Enclosing state (Zustand des umgebenden Objekts)"
+      ],
+      "heading": "3. Captured state – Parameter und lokale Variablen einfangen"
+    },
+    {
+      "id": "eip-12-k12",
+      "term": "Captured reference and object state (erfasste Referenz und Objektzustand)",
+      "kind": "concept",
+      "short": "For a captured reference, the reference variable must be effectively final, but the referenced object may change.",
+      "explanation": "Effectively final prevents the local reference variable from being assigned to a different object after initialization. It does not make the referenced object immutable: fields or array elements may change if the object permits those changes. The captured reference continues to point to the same object.",
+      "example": "`final int[] values = {1};` can be captured; `values[0] = 2;` changes the array but does not assign a new array to `values`.",
+      "pitfalls": [
+        "`final` on a reference does not automatically freeze the object's contents.",
+        "The reference variable itself must not be reassigned."
+      ],
+      "related": [
+        "Effectively final",
+        "Captured state (erfasster Zustand)",
+        "Array reference and aliasing (Array-Referenz und Aliasing)"
+      ],
+      "heading": "3.2 Warum funktioniert der Test nach dem Methodenende?"
+    },
+    {
+      "id": "eip-12-k13",
+      "term": "Enclosing state (Zustand des umgebenden Objekts)",
+      "kind": "concept",
+      "short": "An anonymous class or lambda can read the current value of the enclosing object's instance fields when accessed.",
+      "explanation": "An instance field such as `matchNull` belongs to the enclosing object, not to the local variables of the method call. An anonymous class or lambda can access it through the associated enclosing object and reads the field's current value when the test method runs. As a result, changing the field can affect tests that have already been created.",
+      "example": "A `Property` test can capture a word and also check the current `matchNull` field of its `StringSearch` object on every call.",
+      "pitfalls": [
+        "An instance field does not have to be effectively final.",
+        "Changing an instance field is different from reassigning a captured local variable."
+      ],
+      "related": [
+        "Captured state (erfasster Zustand)",
+        "Effectively final",
+        "`this` context"
+      ],
+      "heading": "4. Enclosing state – Zustand des umgebenden Objekts"
+    },
+    {
+      "id": "eip-12-k14",
+      "term": "Functional interface (funktionales Interface)",
+      "kind": "definition",
+      "short": "A functional interface has exactly one abstract method requirement and can serve as a lambda's target type.",
+      "explanation": "This single abstract method requirement is also called a SAM. The interface may also contain implemented `default` methods; these do not count as additional abstract requirements. The single abstract method may have multiple parameters. Under Java's precise rule, compatible inherited abstract methods and methods corresponding to public methods of `Object` are handled separately.",
+      "example": "```java\ninterface WordMatch {\n    boolean matches(String word, String other);\n}\n```",
+      "pitfalls": [
+        "A single abstract method requirement does not mean the method can have only one parameter.",
+        "Two independent abstract methods do not satisfy the functional interface requirement."
+      ],
+      "related": [
+        "Property",
+        "`@FunctionalInterface`",
+        "Lambda expression (Lambda-Ausdruck)",
+        "default methods"
+      ],
+      "heading": "5. Functional Interfaces"
+    },
+    {
+      "id": "eip-12-k15",
+      "term": "`@FunctionalInterface`",
+      "kind": "notation",
+      "short": "This optional annotation lets the compiler check whether an interface is a functional interface.",
+      "explanation": "The annotation appears before an interface declaration and marks the intended property. The compiler reports an error if the declaration does not qualify as a functional interface. An interface can still be a valid lambda target type without the annotation.",
+      "example": "```java\n@FunctionalInterface\ninterface Property {\n    boolean test(Object r);\n}\n```",
+      "pitfalls": [
+        "The annotation does not make an interface with several independent abstract requirements functional; it triggers a check."
+      ],
+      "related": [
+        "Functional interface (funktionales Interface)"
+      ],
+      "heading": "5. Functional Interfaces"
+    },
+    {
+      "id": "eip-12-k16",
+      "term": "Lambda expression (Lambda-Ausdruck)",
+      "kind": "definition",
+      "short": "A lambda expression provides a concise implementation of a functional interface's abstract method.",
+      "explanation": "The lambda body describes what behavior the abstract method performs. The functional interface supplies the contract, including the parameter and return types. A lambda needs a compatible target type, such as the type of a variable or method parameter.",
+      "example": "`Property p = r -> r != null;` defines the rule for `Property.test`.",
+      "pitfalls": [
+        "A lambda is not merely an anonymous class with shorter syntax; among other differences, the meaning of `this` differs."
+      ],
+      "related": [
+        "Functional interface (funktionales Interface)",
+        "Target type (Zieltyp)",
+        "Type inference (Typinferenz)",
+        "`this` context"
+      ],
+      "heading": "6. Lambda Expressions – kompakte Implementierung"
+    },
+    {
+      "id": "eip-12-k17",
+      "term": "Target type (Zieltyp)",
+      "kind": "concept",
+      "short": "A lambda expression's target type determines which functional interface and method contract it implements.",
+      "explanation": "From the target type, the compiler determines the abstract method and thus the expected parameter and return types. The target type may come, for example, from a variable declaration or a method parameter. Without this context, the compiler cannot assign a suitable type to a lambda.",
+      "example": "In `CheckArray.check(values, r -> r != null)`, the parameter type of `check` supplies the target type `Property`.",
+      "pitfalls": [
+        "`var p = r -> r != null;` does not work because no target type is provided for the lambda."
+      ],
+      "related": [
+        "Functional interface (funktionales Interface)",
+        "Lambda expression (Lambda-Ausdruck)",
+        "Type inference (Typinferenz)"
+      ],
+      "heading": "6.2 Syntax und Type Inference"
+    },
+    {
+      "id": "eip-12-k18",
+      "term": "Type inference (Typinferenz)",
+      "kind": "concept",
+      "short": "Type inference is the compiler's derivation of types from the target type and available context.",
+      "explanation": "For a lambda with inferred parameter types, the compiler derives them from the abstract method of the target functional interface. If `Property.test` has an `Object` parameter, `r` in `r -> r != null` is treated as an `Object`. The target type also supplies the expected return type of the lambda body.",
+      "example": "For a variable of type `Property`, you can use `r -> r != null`; the compiler infers `Object` as the type of `r`.",
+      "pitfalls": [
+        "Type inference does not replace the target type; it uses it to derive suitable types."
+      ],
+      "related": [
+        "Target type (Zieltyp)",
+        "Lambda expression (Lambda-Ausdruck)",
+        "Lambda parameter and body syntax (Lambda-Parameter- und Rumpfsyntax)"
+      ],
+      "heading": "6.2 Syntax und Type Inference"
+    },
+    {
+      "id": "eip-12-k19",
+      "term": "Lambda parameter and body syntax (Lambda-Parameter- und Rumpfsyntax)",
+      "kind": "notation",
+      "short": "Lambda syntax specifies the parameters and executable body using `->`.",
+      "explanation": "A single inferred parameter may be written without parentheses, for example `r -> ...`. Parentheses are required for multiple or no parameters, and when parameter types are explicit. An expression body returns its value directly; a block body for a method with a return value needs `return`.",
+      "example": "```java\nr -> r != null\n(Object r) -> r != null\n(word, other) -> word.equals(other)\n() -> 42\nr -> { return r != null; }\n```",
+      "pitfalls": [
+        "Explicit parameter types require parentheses, even for a single parameter.",
+        "A block body that returns a value needs `return`; an expression body does not."
+      ],
+      "related": [
+        "Lambda expression (Lambda-Ausdruck)",
+        "Target type (Zieltyp)",
+        "Type inference (Typinferenz)",
+        "Functional interface (funktionales Interface)"
+      ],
+      "heading": "6.2 Syntax und Type Inference"
+    },
+    {
+      "id": "eip-12-k20",
+      "term": "`this` context",
+      "kind": "concept",
+      "short": "In an anonymous class, `this` refers to the anonymous object; in a lambda, `this` refers to the lexically enclosing object.",
+      "explanation": "An anonymous class has its own `this` context. A lambda does not introduce its own `this` and uses the `this` of the enclosing lexical context. In an anonymous class, when an instance context is available, an outer object can also be referenced explicitly as `OuterClass.this`.",
+      "example": "In an instance method of `LambdaReceiverDemo`, `r -> this == r` evaluates to `true` for `r == owner`; in an anonymous `Property` class, `this` instead refers to the `Property` object.",
+      "pitfalls": [
+        "A lambda does not provide its own object for `this`.",
+        "A static context has no enclosing instance `this` for a lambda to access."
+      ],
+      "related": [
+        "Anonymous class (Anonyme Klasse)",
+        "Lambda expression (Lambda-Ausdruck)",
+        "Enclosing state (Zustand des umgebenden Objekts)",
+        "Object identity and value equality (Objektidentität und Wertgleichheit)"
+      ],
+      "heading": "7.1 Vorlesungsbeispiel"
+    },
+    {
+      "id": "eip-12-k21",
+      "term": "Limitations of lambda expressions (Grenzen von Lambda-Ausdrücken)",
+      "kind": "concept",
+      "short": "A lambda can provide behavior for a functional interface, but cannot define its own class with instance fields.",
+      "explanation": "A lambda cannot itself extend a class or declare its own instance fields or additional instance methods. It is suited to providing the behavior of an abstract method requirement. An anonymous class is appropriate when a class definition is needed with multiple abstract methods, its own fields, or its own `this` context.",
+      "example": "If a rule needs its own mutable instance counter as a field, an anonymous class can declare that field; a lambda cannot.",
+      "pitfalls": [
+        "Not every behavior that can be written as an anonymous class can be replaced with a lambda.",
+        "A conversion must preserve semantics, especially the meaning of `this`."
+      ],
+      "related": [
+        "Anonymous class (Anonyme Klasse)",
+        "Functional interface (funktionales Interface)",
+        "Lambda expression (Lambda-Ausdruck)",
+        "`this` context"
+      ],
+      "heading": "8. Gesamtvergleich"
+    }
+  ],
+  "generator": {
+    "model": "gpt-6-luna",
+    "effort": "xhigh",
+    "promptVersion": "k1",
+    "generatedAt": "2026-11-26T11:09:59.526Z"
+  }
+}
