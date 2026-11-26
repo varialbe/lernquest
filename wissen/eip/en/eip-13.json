@@ -1,0 +1,571 @@
+{
+  "schemaVersion": 1,
+  "unitId": "eip-13",
+  "module": "EIP",
+  "unitNumber": 13,
+  "unitTitle": "Polymorphism and Generics",
+  "sourceSha": "6323652d51df1fcb1c091d631b853143ffbfee996d8132af315872160b233009",
+  "overview": "This unit covers subclass polymorphism (Subclass-Polymorphismus), overloading as ad hoc polymorphism (Ad-hoc-Polymorphismus), and generics as parametric polymorphism (parametrischer Polymorphismus). For method calls, static types determine the accessible signatures and the overload selected; for virtual instance methods, the receiver's dynamic type determines the method body for that signature. Generics, bounds, and wildcards describe type-safe containers and functions. Function and Predicate enable higher-order methods such as map and filter, as well as function composition.",
+  "entries": [
+    {
+      "id": "eip-13-k01",
+      "term": "Subclass polymorphism (Subclass-Polymorphismus)",
+      "kind": "concept",
+      "short": "Code written for a supertype can work with objects of its subtypes.",
+      "explanation": "A reference to a supertype can refer to an object of a subclass. Thus, a call such as `account.withdraw(amount)` can execute different implementations depending on the actual account class. Shared code does not need a separate branch for each concrete subclass.",
+      "example": "`Bank_Account account = new Checking_Account();` allows code that expects `Bank_Account` to work with a `Checking_Account`.",
+      "pitfalls": [
+        "The reference's static type must include the method being called."
+      ],
+      "related": [
+        "Static and dynamic type",
+        "Dynamic method dispatch",
+        "Overriding"
+      ],
+      "heading": "1. Subclass polymorphism"
+    },
+    {
+      "id": "eip-13-k02",
+      "term": "Static and dynamic type (Statischer und dynamischer Typ)",
+      "kind": "definition",
+      "short": "The static type belongs to the expression; the dynamic type is the actual class of the referenced object.",
+      "explanation": "The static type is known at compile time and limits which methods are accessible through a reference. The dynamic type is the object's actual class at runtime. For a non-null reference, the dynamic type is either the static type or one of its subtypes; `null` has no dynamic object type.",
+      "example": "In `Bank_Account account = new Checking_Account();`, `Bank_Account` is the static type and `Checking_Account` is the dynamic type.",
+      "pitfalls": [
+        "The dynamic type does not select a different overload afterward."
+      ],
+      "related": [
+        "Subclass polymorphism",
+        "Overloading",
+        "Dynamic method dispatch"
+      ],
+      "heading": "1.1 Statischer und dynamischer Typ"
+    },
+    {
+      "id": "eip-13-k03",
+      "term": "Ad hoc polymorphism (Ad-hoc-Polymorphismus)",
+      "kind": "concept",
+      "short": "Ad hoc polymorphism provides different methods with the same name for different parameter lists.",
+      "explanation": "In this unit, ad hoc polymorphism is implemented through overloading. The compiler selects a suitable signature based on the static types of the receiver and arguments. This selection happens at compile time.",
+      "example": "`write(42)` can call `write(int)`, while `write(\"Hello\")` calls `write(String)`.",
+      "pitfalls": [
+        "Overloading selects a signature, not a method body at runtime."
+      ],
+      "related": [
+        "Overloading",
+        "Static and dynamic type"
+      ],
+      "heading": "0. Big Picture"
+    },
+    {
+      "id": "eip-13-k04",
+      "term": "Overloading (Überladen)",
+      "kind": "definition",
+      "short": "Overloading provides methods with the same name but different parameter lists.",
+      "explanation": "The parameter list distinguishes overloaded methods by parameter types or number. Based on the static types of the receiver and arguments, the compiler selects the most specific accessible signature that matches. The return type and parameter names alone do not create a new overload.",
+      "example": "For `void f(int x)` and `void f(String x)`, the compiler selects the signature `f(int)` for `f(42)`.",
+      "pitfalls": [
+        "Overloading is resolved at compile time.",
+        "A method with a different return type but the same parameter list is not a valid overload."
+      ],
+      "related": [
+        "Overriding",
+        "Four-step algorithm for method calls",
+        "Static and dynamic type"
+      ],
+      "heading": "2.1 Overloading (Überladen)"
+    },
+    {
+      "id": "eip-13-k05",
+      "term": "Overriding (Überschreiben)",
+      "kind": "definition",
+      "short": "With overriding, a subclass provides a new implementation of an inherited instance method with a matching signature.",
+      "explanation": "An overriding method replaces the inherited method body for subclass objects, provided the method can be overridden. In Java, the return type must be compatible and visibility cannot be restricted. `@Override` lets the compiler check whether a method is actually being overridden.",
+      "example": "If `StringOverride` overrides `f(String)` from `BaseString`, `BaseString x = new StringOverride(); x.f(\"Hi\");` executes the body from `StringOverride`.",
+      "pitfalls": [
+        "A method with a different parameter type does not override the original method; it may instead be an overload."
+      ],
+      "related": [
+        "Overloading",
+        "Dynamic method dispatch",
+        "Static and dynamic type"
+      ],
+      "heading": "2.2 Overriding (Überschreiben)"
+    },
+    {
+      "id": "eip-13-k06",
+      "term": "Dynamic method dispatch (Dynamischer Methodenaufruf)",
+      "kind": "concept",
+      "short": "For a virtual instance call, the receiver's dynamic type determines the method body for the selected signature.",
+      "explanation": "First, the compiler determines a method signature. At runtime, the JVM searches for the matching implementation, starting with the receiver's actual class. If it finds no override there, the inherited implementation is used.",
+      "example": "In `BaseString x = new StringOverride(); x.f(\"Hi\");`, the signature `f(String)` is called and its override in `StringOverride` is executed.",
+      "pitfalls": [
+        "Dynamic dispatch selects the method body, not a new overload.",
+        "Static methods, private methods, and explicit `super` calls do not use ordinary virtual dispatch."
+      ],
+      "related": [
+        "Overriding",
+        "Overloading",
+        "Four-step algorithm for method calls"
+      ],
+      "heading": "2.2 Overriding (Überschreiben)"
+    },
+    {
+      "id": "eip-13-k07",
+      "term": "Four-step algorithm for method calls (Vier-Schritte-Algorithmus für Methodenaufrufe)",
+      "kind": "method",
+      "short": "A call is resolved first by selecting a signature and then by dispatch.",
+      "explanation": "First determine the static types of the receiver and all arguments. Then collect the accessible methods, including inherited ones, and select the most specific matching signature according to Java's rules; if the choice is ambiguous, compilation fails. Next determine the receiver's dynamic class and search it and its superclasses for an override of that exact signature.",
+      "example": "In `BaseObject receiver = new StringChild(); receiver.f(\"Hi\");`, the compiler sees only `f(Object)`, so at runtime it searches for an override of `f(Object)`.",
+      "pitfalls": [
+        "The runtime types of argument objects do not select a new overload."
+      ],
+      "related": [
+        "Static and dynamic type",
+        "Overloading",
+        "Overriding",
+        "Dynamic method dispatch"
+      ],
+      "heading": "2.3 Der Vier-Schritte-Algorithmus (Folie 906)"
+    },
+    {
+      "id": "eip-13-k08",
+      "term": "Object and casting (Object und Casting)",
+      "kind": "concept",
+      "short": "`Object` is a supertype of reference objects, and a cast changes how a reference is viewed as a type.",
+      "explanation": "Methods from `Object`, such as `toString()`, are accessible through an `Object` reference; methods of a concrete subclass are not accessible without a cast. A downcast does not change the referenced object; it asserts a more specific static type and is checked at runtime. An invalid downcast can cause a `ClassCastException`; `instanceof` returns false for `null`.",
+      "example": "After `Object value = new Greeting();`, `value.toString()` is allowed, but `value.greeting()` requires a checked cast to `Greeting` first.",
+      "pitfalls": [
+        "A cast does not transform the object into an object of another class.",
+        "Casting a non-null reference to an incompatible type causes a `ClassCastException`."
+      ],
+      "related": [
+        "Static and dynamic type",
+        "ObjectList",
+        "Subclass polymorphism"
+      ],
+      "heading": "3.1 Object und Casting"
+    },
+    {
+      "id": "eip-13-k09",
+      "term": "ObjectList",
+      "kind": "concept",
+      "short": "An ObjectList stores references to objects of any class in linked nodes.",
+      "explanation": "Each node has an element of type `Object` and a reference to the next node. This lets the list hold strings and other objects together, for example, but the compiler does not know the element type. Reading an element's concrete methods requires a cast, whose safety the code must ensure; `null` represents the empty list.",
+      "example": "`ObjectList list = new ObjectList(\"Hallo\", null);` can also be extended with an object of another class.",
+      "pitfalls": [
+        "An ObjectList does not prevent an object of the wrong type from being inserted by mistake.",
+        "A cast when reading is safe only if the element really has the asserted type."
+      ],
+      "related": [
+        "Object and casting",
+        "Type parameter and type argument",
+        "Invariance of generics"
+      ],
+      "heading": "3.2 ObjectList"
+    },
+    {
+      "id": "eip-13-k10",
+      "term": "Type parameter and type argument (Typparameter und Typargument)",
+      "kind": "notation",
+      "short": "A type parameter represents an unspecified type; a type argument fills that place with a specific type.",
+      "explanation": "In `class List<T>`, `T` is a formal type parameter. In `List<String>`, `String` is the concrete type argument, which determines what values the list can accept and return. The diamond operator `<>` lets the compiler infer the type argument from context.",
+      "example": "`List<String> words = new List<>(\"Hallo\", null);` sets `T` to `String`.",
+      "pitfalls": [
+        "Generics parameterize types, not values.",
+        "`List<int>` is invalid in Java; for primitive values, `List<Integer>` is used, for example."
+      ],
+      "related": [
+        "ObjectList",
+        "Invariance of generics",
+        "Static generic method"
+      ],
+      "heading": "4.1 Typen als Parameter"
+    },
+    {
+      "id": "eip-13-k11",
+      "term": "Generic Comparable interface (Generisches Interface Comparable)",
+      "kind": "definition",
+      "short": "`Comparable<T>` specifies which type an object can be compared with through `compareTo`.",
+      "explanation": "A class that implements `Comparable<T>` provides `compareTo(T other)`. The result is negative, zero, or positive when the calling object is ranked as less than, equal to, or greater than `other`. The type parameter makes the expected comparison type visible statically.",
+      "example": "`class RankedValue implements Comparable<RankedValue>` can implement `compareTo(RankedValue other)`.",
+      "pitfalls": [
+        "The return value of `compareTo` indicates the sign; it need not be exactly −1, 0, or 1."
+      ],
+      "related": [
+        "Type parameter and type argument",
+        "Upper bound",
+        "Generics and inheritance"
+      ],
+      "heading": "4.2 Generische Interfaces: Comparable"
+    },
+    {
+      "id": "eip-13-k12",
+      "term": "Invariance of generics (Invarianz von Generics)",
+      "kind": "theorem",
+      "short": "A subtype relationship between type arguments does not imply a subtype relationship between the corresponding generic types.",
+      "explanation": "Although `String` is a subtype of `Object`, `List<String>` is not a subtype of `List<Object>`. If this assignment were allowed, an arbitrary object could be written to a string list through the `List<Object>` reference. Invariance prevents this unsafe write.",
+      "example": "`List<String> words = ...;` cannot be assigned to a variable of type `List<Object>`.",
+      "pitfalls": [
+        "Invariance applies despite the inheritance relationship between the type arguments.",
+        "Wildcards enable flexible APIs without turning `List<String>` into a `List<Object>`."
+      ],
+      "related": [
+        "Type parameter and type argument",
+        "Array covariance",
+        "Wildcard ? super T",
+        "Wildcard ? extends T"
+      ],
+      "heading": "4.3 Invarianz von Generics"
+    },
+    {
+      "id": "eip-13-k13",
+      "term": "Array covariance (Kovarianz von Arrays)",
+      "kind": "concept",
+      "short": "Reference-type arrays allow an array of a subtype to be assigned to an array reference of a supertype.",
+      "explanation": "For example, Java allows a `String[]` to be assigned to an `Object[]` reference. At runtime, however, the array object retains its actual element type. If an incompatible object is written through the broader reference, the runtime throws an `ArrayStoreException`.",
+      "example": "`Object[] objects = new String[] {\"Hallo\"}; objects[0] = new Object();` compiles, but throws an `ArrayStoreException` when writing to the array.",
+      "pitfalls": [
+        "Array covariance does not mean that generic lists are covariant."
+      ],
+      "related": [
+        "Invariance of generics",
+        "Object and casting"
+      ],
+      "heading": "4.4 Arrays sind dagegen kovariant"
+    },
+    {
+      "id": "eip-13-k14",
+      "term": "Generics and inheritance (Generics und Vererbung)",
+      "kind": "concept",
+      "short": "A subclass can pass on the type parameters of a generic superclass or specify them concretely.",
+      "explanation": "A generic supertype can take type parameters from a subclass, as in `Pair<S, T> extends Base<T>`. A subclass can also specify the type, as in `Words extends Base<String>`. Each type parameter used must be declared in the relevant scope.",
+      "example": "`class Words extends Base<String> {}` sets the superclass's type parameter to `String`.",
+      "pitfalls": [
+        "An undeclared name such as `T` cannot simply be used as a type argument."
+      ],
+      "related": [
+        "Type parameter and type argument",
+        "Invariance of generics",
+        "Upper bound"
+      ],
+      "heading": "4.5 Generics und Vererbung"
+    },
+    {
+      "id": "eip-13-k15",
+      "term": "Static generic method (Statische generische Methode)",
+      "kind": "notation",
+      "short": "A static generic method declares its own type parameter before the return type.",
+      "explanation": "The syntax `static <T> R method(...)` introduces `T` for this method. A static method in a generic class cannot access the class's type parameter for an instance, because it is not bound to such an instance. Its own type parameter is determined independently of the class type parameter.",
+      "example": "`static <T> boolean isEmpty(List<T> list) { return list == null; }` checks `null` as the representation of the empty list used in this lecture.",
+      "pitfalls": [
+        "`<T>` appears before the return type.",
+        "The class type parameter is unavailable in a static context."
+      ],
+      "related": [
+        "Type parameter and type argument",
+        "Upper bound"
+      ],
+      "heading": "4.6 Statische generische Methoden"
+    },
+    {
+      "id": "eip-13-k16",
+      "term": "Upper bound (Upper Bound)",
+      "kind": "notation",
+      "short": "`E extends B` restricts `E` to `B` or a subtype of `B`.",
+      "explanation": "An upper bound guarantees that operations of type `B` are available on a value of type `E`. In Java, the keyword `extends` is used even when `B` is an interface. Multiple bounds are joined with `&`, with a class bound listed first.",
+      "example": "`class ExecutableList<E extends Executable>` can call `element.execute()` because every `E` is an `Executable`.",
+      "pitfalls": [
+        "An interface bound also uses `extends`, not `implements`."
+      ],
+      "related": [
+        "Generic Comparable interface",
+        "Generics and inheritance",
+        "Wildcard ? extends T"
+      ],
+      "heading": "4.7 Upper Bounds – Typen mit garantierten Operationen"
+    },
+    {
+      "id": "eip-13-k17",
+      "term": "Parametric polymorphism (Parametrischer Polymorphismus)",
+      "kind": "concept",
+      "short": "Parametric polymorphism lets code work with different types through type parameters.",
+      "explanation": "Generics such as `List<T>` and `Function<T,R>` parameterize type declarations with types. The code can be used with different type arguments while the compiler checks the type relationships. Type parameters represent types, not values.",
+      "example": "`List<String>` and `List<Greeting>` use the same generic list declaration with different type arguments.",
+      "pitfalls": [
+        "Generic types in Java are invariant unless wildcards are used."
+      ],
+      "related": [
+        "Type parameter and type argument",
+        "Invariance of generics",
+        "Function<T,R>"
+      ],
+      "heading": "4. Generics – Parametric polymorphism"
+    },
+    {
+      "id": "eip-13-k18",
+      "term": "Function<T,R>",
+      "kind": "definition",
+      "short": "`Function<T,R>` describes behavior that accepts a value of type `T` and returns a value of type `R`.",
+      "explanation": "The functional interface has the operation `R apply(T argument)`. A lambda can implement this operation and runs only when `apply` is called. Unlike a predicate, its result need not be `boolean`.",
+      "example": "`Function<Greeting, String> toText = value -> value.greeting();` converts a `Greeting` to a string.",
+      "pitfalls": [
+        "Defining a lambda does not execute its function."
+      ],
+      "related": [
+        "Higher-order method",
+        "map",
+        "Function composition"
+      ],
+      "heading": "5. Generic Functions und Higher-Order Methods"
+    },
+    {
+      "id": "eip-13-k19",
+      "term": "Higher-order method (Higher-Order Method)",
+      "kind": "definition",
+      "short": "A higher-order method accepts behavior as an argument or returns behavior.",
+      "explanation": "A method such as `map` can receive a `Function<T,R>` as a parameter and use it to determine what happens to each element. This keeps the method's control flow the same while allowing the supplied behavior to vary. Generic types describe the behavior's input and output types.",
+      "example": "`list.map(toText)` passes the function `toText` to the list method.",
+      "pitfalls": [
+        "A function argument is not executed automatically when a method is defined; the method calls it as needed."
+      ],
+      "related": [
+        "Function<T,R>",
+        "map",
+        "filter"
+      ],
+      "heading": "5. Generic Functions und Higher-Order Methods"
+    },
+    {
+      "id": "eip-13-k20",
+      "term": "map",
+      "kind": "method",
+      "short": "`map` applies a function to each list element and returns the results in the same order.",
+      "explanation": "For a list `[x₁, …, xₙ]`, `map(f, [x₁, …, xₙ]) = [f(x₁), …, f(xₙ)]` holds. The element type can change from `T` to `R`, and the original order is preserved. The recursive implementation shown in the lecture applies `function.apply` to the current element, creates a new node, and processes the rest of the list recursively.",
+      "example": "Applying `toText` to two `Greeting` elements produces a `List<String>` with the two texts in the same order.",
+      "pitfalls": [
+        "`map` does not select elements; that is what `filter` is for.",
+        "Creating new list nodes does not automatically mean that the contained objects are copied."
+      ],
+      "related": [
+        "Function<T,R>",
+        "Higher-order method",
+        "filter"
+      ],
+      "heading": "5.1 map – eine Funktion auf alle Elemente anwenden"
+    },
+    {
+      "id": "eip-13-k21",
+      "term": "Predicate<T>",
+      "kind": "definition",
+      "short": "`Predicate<T>` describes a test that accepts a value of type `T` and returns `true` or `false`.",
+      "explanation": "The functional interface provides the operation `boolean test(T value)`. A predicate determines whether a value satisfies a condition. For example, it can be used as a parameter for `filter`.",
+      "example": "`Predicate<String> nonempty = word -> !word.isEmpty();` returns `true` for non-empty strings.",
+      "pitfalls": [
+        "A predicate returns `boolean`, whereas a general `Function<T,R>` can have any result type."
+      ],
+      "related": [
+        "filter",
+        "Predicate combinators: negate, and, and or",
+        "Short-circuit evaluation for predicates"
+      ],
+      "heading": "6.1 Generic Predicate"
+    },
+    {
+      "id": "eip-13-k22",
+      "term": "filter",
+      "kind": "method",
+      "short": "`filter` keeps the elements for which a predicate returns `true`.",
+      "explanation": "The result contains exactly the elements whose test returns `true`, also in their original order. The element type stays the same; duplicates are retained if they satisfy the condition. In the list implementation added in the lecture notes, `null` is returned when there are no matches, since it represents the empty list.",
+      "example": "Filtering `[\"Hallo\", \"\", \"Welt\"]` with `word -> !word.isEmpty()` retains `[\"Hallo\", \"Welt\"]`.",
+      "pitfalls": [
+        "`filter` keeps the element type; use `map` to change it.",
+        "The result is a sequence, not a set; matching duplicates are retained."
+      ],
+      "related": [
+        "Predicate<T>",
+        "map",
+        "Wildcard ? super T"
+      ],
+      "heading": "6.2 filter – Elemente anhand eines Prädikats auswählen"
+    },
+    {
+      "id": "eip-13-k23",
+      "term": "Wildcard ? super T",
+      "kind": "notation",
+      "short": "`? super T` represents an unknown type that is `T` or a supertype of `T`.",
+      "explanation": "A method that passes values of type `T` to an object can safely use a consumer for `T` or one of its supertypes. Thus, a `Predicate<Object>` can be used as a `Predicate<? super String>`. The wildcard does not remove the invariance of generic types; it allows a suitable unknown type parameter in this declaration.",
+      "example": "`Predicate<Object> nonNull = value -> value != null;` can be assigned to a variable of type `Predicate<? super String>`.",
+      "pitfalls": [
+        "A `Predicate<Object>` is not itself a subtype of `Predicate<String>`."
+      ],
+      "related": [
+        "Invariance of generics",
+        "Predicate<T>",
+        "Wildcard ? extends T"
+      ],
+      "heading": "6.3 Wildcards:"
+    },
+    {
+      "id": "eip-13-k24",
+      "term": "Ternary operator (Ternary Operator)",
+      "kind": "notation",
+      "short": "`condition ? whenTrue : whenFalse` selects one of two expressions depending on a condition.",
+      "explanation": "If the condition is `true`, only the expression after `?` is evaluated; otherwise, only the expression after `:` is evaluated. This lets an expression represent a simple conditional and enables short-circuit behavior. The two branches must have compatible result types.",
+      "example": "`boolean empty = value != null ? value.isEmpty() : false;` calls `isEmpty()` only if `value` is not `null`.",
+      "pitfalls": [
+        "The unselected branch is not evaluated."
+      ],
+      "related": [
+        "Short-circuit evaluation for predicates",
+        "Predicate combinators: negate, and, and or"
+      ],
+      "heading": "6.4 Ternary Operator"
+    },
+    {
+      "id": "eip-13-k25",
+      "term": "Predicate combinators: negate, and, and or",
+      "kind": "method",
+      "short": "The Predicate methods `negate`, `and`, and `or` create new predicates from existing tests.",
+      "explanation": "`negate` reverses the test result, `and` requires both tests to be true, and `or` requires at least one to be true. The methods return a new predicate and do not modify the original. `and` and `or` evaluate the second test only when the result is not already determined.",
+      "example": "`nonempty.and(nonNull)` returns a predicate that applies both tests to the same string.",
+      "pitfalls": [
+        "The order of tests can matter when they have side effects or throw exceptions."
+      ],
+      "related": [
+        "Predicate<T>",
+        "Short-circuit evaluation for predicates",
+        "Wildcard ? super T"
+      ],
+      "heading": "6.5 negate, and, or"
+    },
+    {
+      "id": "eip-13-k26",
+      "term": "Short-circuit evaluation for predicates (Short-Circuit-Auswertung bei Prädikaten)",
+      "kind": "concept",
+      "short": "`and` and `or` skip the second test when the result is already determined.",
+      "explanation": "For `p.and(q)`, `q` is evaluated only if `p` returns `true`; if `p` returns `false`, the overall result is already determined. For `p.or(q)`, `q` is evaluated only if `p` returns `false`. This can avoid unnecessary computation and certain errors.",
+      "example": "With `value != null && !value.isEmpty()`, `isEmpty()` is not called when `value` is `null`.",
+      "pitfalls": [
+        "A later test cannot retroactively protect against an earlier test that has already thrown an exception."
+      ],
+      "related": [
+        "Predicate combinators: negate, and, and or",
+        "Ternary operator",
+        "Short-circuit evaluation"
+      ],
+      "heading": "6.5 negate, and, or"
+    },
+    {
+      "id": "eip-13-k27",
+      "term": "Wildcard ? extends T",
+      "kind": "notation",
+      "short": "`? extends T` represents an unknown type that is `T` or a subtype of `T`.",
+      "explanation": "In `Function<? super R, ? extends V>`, the function can accept a value of type `R` or one of its supertypes, and returns `V` or one of its subtypes. This makes it safe to use the function's result as `V`. In a wildcard, `extends` denotes an upper bound.",
+      "example": "`Function<Object, String>` is compatible with `Function<? super Integer, ? extends CharSequence>` because `Object` can accept an Integer and `String` is a `CharSequence`.",
+      "pitfalls": [
+        "A `? extends T` reference is not generally suitable for adding arbitrary `T` values, because the concrete subtype is unknown."
+      ],
+      "related": [
+        "Wildcard ? super T",
+        "Upper bound",
+        "Function<T,R>",
+        "Invariance of generics"
+      ],
+      "heading": "7.1 Upper-bounded wildcard:"
+    },
+    {
+      "id": "eip-13-k28",
+      "term": "Function composition (Funktionskomposition)",
+      "kind": "concept",
+      "short": "Function composition links functions so that the output of one function becomes the input of the next.",
+      "explanation": "For `f: T → R` and `g: R → V`, the composition `g ∘ f` is defined as `(g ∘ f)(x) = g(f(x))`. The output and input types must match at the point of composition. Composition is associative but, in general, not commutative.",
+      "example": "A function that appends `\"1\"`, followed by a function that adds brackets, maps `\"Hello\"` to `\"[Hello1]\"`.",
+      "pitfalls": [
+        "The order of the functions matters; `g ∘ f` means `f` first, then `g`."
+      ],
+      "related": [
+        "Function<T,R>",
+        "Function.andThen",
+        "Function.compose",
+        "Identity function"
+      ],
+      "heading": "7. Function Composition – Funktionskomposition"
+    },
+    {
+      "id": "eip-13-k29",
+      "term": "Function.andThen",
+      "kind": "method",
+      "short": "`andThen` applies the current function first, followed by the function passed to it.",
+      "explanation": "Given `f: T → R` and `g: R → V`, `f.andThen(g)` is the function `g ∘ f`. Its input type is `T` and its result type is `V`. The result of the current function is passed to the supplied function.",
+      "example": "`digit.andThen(bracket).apply(\"Hello\")` yields `\"[Hello1]\"` when `digit` appends `\"1\"` and `bracket` adds brackets.",
+      "pitfalls": [
+        "`andThen` does not apply the supplied function first."
+      ],
+      "related": [
+        "Function composition",
+        "Function.compose",
+        "Wildcard ? extends T"
+      ],
+      "heading": "7.2 andThen"
+    },
+    {
+      "id": "eip-13-k30",
+      "term": "Function.compose",
+      "kind": "method",
+      "short": "`compose` applies the supplied function first, followed by the current function.",
+      "explanation": "Given `g: V → T` and `f: T → R`, `f.compose(g)` is the function `f ∘ g`. The supplied function first produces the value that the current function needs as input. The types must match at this point.",
+      "example": "`digit.compose(bracket).apply(\"Hello\")` yields `\"[Hello]1\"` when `bracket` adds brackets first and `digit` then appends `\"1\"`.",
+      "pitfalls": [
+        "`compose` applies the supplied function first, even though it appears as an argument in the method call."
+      ],
+      "related": [
+        "Function composition",
+        "Function.andThen",
+        "Wildcard ? extends T"
+      ],
+      "heading": "7.3 compose"
+    },
+    {
+      "id": "eip-13-k31",
+      "term": "Repeated function composition (Wiederholte Funktionskomposition)",
+      "kind": "concept",
+      "short": "A function can be applied multiple times in succession through repeated composition.",
+      "explanation": "For a function `f: T → T`, `f ∘ f` applies the function twice. If the result is repeatedly composed with itself, the number of applications doubles at each step. These function calls must actually be executed when using `apply`.",
+      "example": "`digit.andThen(digit)` appends two ones when the function `digit` appends `\"1\"`.",
+      "pitfalls": [
+        "Function powers count compositions; they are not arithmetic powers of function values."
+      ],
+      "related": [
+        "Function composition",
+        "Function.andThen",
+        "Identity function"
+      ],
+      "heading": "7.4 Wiederholte Komposition"
+    },
+    {
+      "id": "eip-13-k32",
+      "term": "Identity function (Identitätsfunktion)",
+      "kind": "definition",
+      "short": "The identity function returns its input unchanged and is the neutral element for composition.",
+      "explanation": "For a type `T`, `id_T: T → T` is defined by `id_T(x) = x`. For a compatible function `f`, `f ∘ id = f` and `id ∘ f = f` hold. As a static generic method, `identity` declares its own type parameter.",
+      "example": "`Function.identity().andThen(digit).apply(\"Hello\")` is equivalent to `digit.apply(\"Hello\")`.",
+      "pitfalls": [
+        "The identity function changes neither the value nor its type."
+      ],
+      "related": [
+        "Function composition",
+        "Function.andThen",
+        "Function.compose",
+        "Static generic method"
+      ],
+      "heading": "7.5 identity"
+    }
+  ],
+  "generator": {
+    "model": "gpt-6-luna",
+    "effort": "xhigh",
+    "promptVersion": "k1",
+    "generatedAt": "2026-11-26T11:36:52.949Z"
+  }
+}

@@ -1,0 +1,2008 @@
+{
+  "schemaVersion": 1,
+  "id": "eip-13",
+  "module": "EIP",
+  "number": 13,
+  "slug": "polymorphie-und-generics",
+  "title": "Polymorphism (Polymorphie) and Generics",
+  "summary": "Polymorphism lets code work with different types and implementations. This unit covers dynamic binding (dynamische Bindung), overloading (Überladung), and generics, as well as functions and predicates for transforming and filtering lists and composing functions.",
+  "concepts": [
+    "Subclass polymorphism",
+    "Static and dynamic types",
+    "Overloading",
+    "Overriding and dynamic dispatch",
+    "Object and casting",
+    "Generics and invariance",
+    "Array covariance",
+    "Bounds and wildcards",
+    "Function and Predicate",
+    "map and filter",
+    "Short-circuit predicates",
+    "Function composition",
+    "Higher-order methods",
+    "Identity function"
+  ],
+  "keyFacts": [
+    "The receiver's and arguments' static types determine which methods are accessible and which overload is selected.",
+    "For a virtual instance-method call, the receiver's dynamic type determines the method body for the already selected signature.",
+    "Overloading means using the same method name with different parameter lists; selection happens at compile time.",
+    "Overriding occurs when a subclass reimplements an inherited instance method with a matching signature.",
+    "A cast changes the type view of a reference, not the referenced object; an invalid downcast can throw a ClassCastException.",
+    "A type parameter such as T stands for a type; a concrete type argument such as String supplies it in List<String>.",
+    "Generic types are invariant: List<String> is not a subtype of List<Object>.",
+    "Reference-type arrays are covariant; an incompatible write can cause an ArrayStoreException at runtime.",
+    "A bound such as E extends Executable guarantees that operations of type Executable are available for E.",
+    "A static generic method declares its own type parameter before the return type.",
+    "Function<T,R> accepts a value of type T and returns a value of type R; Predicate<T> returns boolean.",
+    "map applies a function to each element, preserves the order, and can change the element type.",
+    "filter selects elements while preserving the element type, order, and matching duplicates.",
+    "Predicate.and evaluates the second predicate only if the first returns true; or evaluates it only if the first returns false.",
+    "Predicate<? super T> can accept a predicate for T or one of its supertypes.",
+    "Function.andThen first applies the current function, then the function passed to it.",
+    "Function.compose first applies the function passed to it, then the current function.",
+    "The identity function returns its input unchanged and is the neutral element of function composition."
+  ],
+  "tags": [
+    "TUM/EIP",
+    "Java",
+    "OOP",
+    "Generics",
+    "Polymorphism"
+  ],
+  "links": [],
+  "source": {
+    "file": "EIP/01_Vorlesungen/EIP VO13.md",
+    "sha256": "6323652d51df1fcb1c091d631b853143ffbfee996d8132af315872160b233009",
+    "commit": "2d66b3222fa0da30f2d296b6c3c105bc89c3fa90"
+  },
+  "generator": {
+    "model": "gpt-6-luna",
+    "effort": "xhigh",
+    "reviewEffort": "high",
+    "promptVersion": "v3",
+    "generatedAt": "2026-11-26T11:24:54.864Z",
+    "review": {
+      "checked": 44,
+      "fixed": 1,
+      "removed": 0,
+      "notes": "44 Fragen geprüft. Im Boss-Diagramm waren zwei Kompositionsoptionen funktional identisch; Option c wurde ersetzt. Das Mermaid-Label mit eckigen Klammern wurde zitiert und das Prüfs script an die geänderten Optionen angepasst."
+    }
+  },
+  "levels": [
+    {
+      "id": "eip-13-l1",
+      "index": 1,
+      "kind": "basics",
+      "title": "Fundamentals",
+      "questions": [
+        {
+          "id": "eip-13-l1-q01",
+          "type": "single",
+          "prompt": "Which mapping correctly describes the three forms of polymorphism?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Subclass: overloading; ad hoc: inheritance; parametric: casting"
+            },
+            {
+              "id": "b",
+              "text": "Subclass: casting; ad hoc: generics; parametric: overriding"
+            },
+            {
+              "id": "c",
+              "text": "Subclass: inheritance and dynamic dispatch; ad hoc: overloading; parametric: generics"
+            },
+            {
+              "id": "d",
+              "text": "Subclass: generics; ad hoc: dynamic dispatch; parametric: overloading"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Subclass polymorphism relies on inheritance and dynamic binding. Overloading is ad hoc polymorphism, and generics are parametric polymorphism.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO13.md",
+            "heading": "0. Big Picture"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Subclass polymorphism",
+            "Overloading",
+            "Generics and invariance"
+          ]
+        },
+        {
+          "id": "eip-13-l1-q02",
+          "type": "truefalse",
+          "prompt": "In `Bank_Account account = new Checking_Account();`, `Bank_Account` is the static type and `Checking_Account` is the dynamic type.",
+          "options": [
+            {
+              "id": "true",
+              "text": "True"
+            },
+            {
+              "id": "false",
+              "text": "False"
+            }
+          ],
+          "correct": [
+            "true"
+          ],
+          "explanation": "The static type appears in the reference declaration. The dynamic type is the actual class of the object at runtime.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO13.md",
+            "heading": "1.1 Statischer und dynamischer Typ"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Static and dynamic types"
+          ]
+        },
+        {
+          "id": "eip-13-l1-q03",
+          "type": "cloze",
+          "prompt": "For `receiver.f(argument)`, the overload is selected based on the static types of ___.",
+          "options": [
+            {
+              "id": "a",
+              "text": "only the dynamic receiver"
+            },
+            {
+              "id": "b",
+              "text": "the receiver and object state"
+            },
+            {
+              "id": "c",
+              "text": "the receiver and arguments"
+            },
+            {
+              "id": "d",
+              "text": "only the method body"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "The compiler considers the static types of the receiver and all arguments. Only after the signature is determined does the dynamic receiver determine which override is executed.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO13.md",
+            "heading": "2.3 Der Vier-Schritte-Algorithmus (Folie 906)"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Static and dynamic types",
+            "Overloading",
+            "Overriding and dynamic dispatch"
+          ]
+        },
+        {
+          "id": "eip-13-l1-q04",
+          "type": "multi",
+          "prompt": "Select all correct statements about overloading and overriding. More than one statement may be correct.",
+          "options": [
+            {
+              "id": "a",
+              "text": "Changing only the return type creates an overload."
+            },
+            {
+              "id": "b",
+              "text": "Overloading and overriding refer to the same mechanism."
+            },
+            {
+              "id": "c",
+              "text": "Overloading uses the same name with different parameter lists."
+            },
+            {
+              "id": "d",
+              "text": "For ordinary virtual instance methods, overriding is resolved at runtime."
+            }
+          ],
+          "correct": [
+            "c",
+            "d"
+          ],
+          "explanation": "Overloaded methods have different parameter lists; with overriding, a subclass reimplements an inherited signature. Changing only the return type is not enough to create an overload.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO13.md",
+            "heading": "2.1 Overloading (Überladen)"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Overloading",
+            "Overriding and dynamic dispatch"
+          ]
+        },
+        {
+          "id": "eip-13-l1-q05",
+          "type": "single",
+          "prompt": "A variable has the static type `Object` and refers to a `Greeting` object. Which method can the expression call without a cast?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Only methods declared by `Greeting` itself"
+            },
+            {
+              "id": "b",
+              "text": "`greeting()`"
+            },
+            {
+              "id": "c",
+              "text": "No instance methods"
+            },
+            {
+              "id": "d",
+              "text": "`toString()`"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "The static type limits the methods that are accessible. `toString()` is available in `Object`; a method declared only in `Greeting`, such as `greeting()`, requires a suitable cast here.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO13.md",
+            "heading": "3.1 Object und Casting"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Object and casting",
+            "Static and dynamic types"
+          ]
+        },
+        {
+          "id": "eip-13-l1-q06",
+          "type": "truefalse",
+          "prompt": "A downcast changes the referenced object into an object of the target class.",
+          "options": [
+            {
+              "id": "true",
+              "text": "True"
+            },
+            {
+              "id": "false",
+              "text": "False"
+            }
+          ],
+          "correct": [
+            "false"
+          ],
+          "explanation": "A cast changes the type view of the reference, not the object. An invalid downcast of a non-null reference can cause a ClassCastException.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO13.md",
+            "heading": "3.1 Object und Casting"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Object and casting"
+          ]
+        },
+        {
+          "id": "eip-13-l1-q07",
+          "type": "cloze",
+          "prompt": "In `List<String>`, `String` is the concrete ___ for the type parameter `T`.",
+          "options": [
+            {
+              "id": "a",
+              "text": "type argument"
+            },
+            {
+              "id": "b",
+              "text": "return object"
+            },
+            {
+              "id": "c",
+              "text": "method argument"
+            },
+            {
+              "id": "d",
+              "text": "constructor"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "`T` is the class's formal type parameter. In `List<String>`, `String` supplies a concrete type argument for that parameter.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO13.md",
+            "heading": "4.1 Typen als Parameter"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Generics and invariance"
+          ]
+        },
+        {
+          "id": "eip-13-l1-q08",
+          "type": "multi",
+          "prompt": "Select all correct statements about generics and arrays. More than one statement may be correct.",
+          "options": [
+            {
+              "id": "a",
+              "text": "Generics are covariant for reference types, just like arrays."
+            },
+            {
+              "id": "b",
+              "text": "A write through `Object[]` to a `String[]` can never fail."
+            },
+            {
+              "id": "c",
+              "text": "`String[]` can be assigned to a `Object[]` reference."
+            },
+            {
+              "id": "d",
+              "text": "`List<String>` is not automatically a subtype of `List<Object>`."
+            }
+          ],
+          "correct": [
+            "c",
+            "d"
+          ],
+          "explanation": "Generic types are invariant, whereas reference-type arrays are covariant. For arrays, a runtime check guards against incompatible elements, so a write can still fail.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO13.md",
+            "heading": "4.4 Arrays sind dagegen kovariant"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Generics and invariance",
+            "Array covariance"
+          ]
+        },
+        {
+          "id": "eip-13-l1-q09",
+          "type": "single",
+          "prompt": "Which types does `Function<T, R>` describe?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Both types must be `boolean`."
+            },
+            {
+              "id": "b",
+              "text": "`T` is the result type, and `R` is the input type."
+            },
+            {
+              "id": "c",
+              "text": "`T` is the input type, and `R` is the result type."
+            },
+            {
+              "id": "d",
+              "text": "`T` is the number of arguments, and `R` is their sum."
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "`Function<T,R>` models a function that accepts a value of type T and returns a value of type R.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO13.md",
+            "heading": "5. Generic Functions und Higher-Order Methods"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Function and Predicate",
+            "Higher-order methods"
+          ]
+        },
+        {
+          "id": "eip-13-l1-q10",
+          "type": "diagram",
+          "prompt": "Which mapping matches the branches in this polymorphism diagram?",
+          "context": {
+            "type": "mermaid",
+            "content": "flowchart TD\n  P[Polymorphism] --> S[Subclass]\n  P --> A[Ad hoc]\n  P --> G[Parametric]\n  S --> D[Dynamic dispatch]\n  A --> O[Overloading]\n  G --> T[Types as parameters]\n  T --> L[Generic containers]\n  T --> F[Generic functions]\n  F --> M[map and filter]\n  F --> C[Composition]",
+            "caption": "Three forms of polymorphism and their mechanisms"
+          },
+          "options": [
+            {
+              "id": "a",
+              "text": "Subclass polymorphism uses overloading; ad hoc polymorphism uses generics."
+            },
+            {
+              "id": "b",
+              "text": "Function composition is another name for overriding."
+            },
+            {
+              "id": "c",
+              "text": "Parametric polymorphism uses casting exclusively."
+            },
+            {
+              "id": "d",
+              "text": "Subclass polymorphism uses inheritance and dynamic dispatch; ad hoc polymorphism uses overloading."
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "The diagram associates dynamic dispatch with subclass polymorphism and overloading with ad hoc polymorphism. Generics represent parametric polymorphism.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO13.md",
+            "heading": "0. Big Picture"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Subclass polymorphism",
+            "Overloading",
+            "Generics and invariance"
+          ]
+        },
+        {
+          "id": "eip-13-l1-q11",
+          "type": "cloze",
+          "prompt": "Using `<E ___ Executable>` guarantees that values of type `E` provide the operation `execute()`.",
+          "options": [
+            {
+              "id": "a",
+              "text": "implements"
+            },
+            {
+              "id": "b",
+              "text": "extends"
+            },
+            {
+              "id": "c",
+              "text": "instanceof"
+            },
+            {
+              "id": "d",
+              "text": "super"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "In Java, an upper bound is specified with `extends`, even when the bound is an interface. This lets the compiler use the operations guaranteed by the bound.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO13.md",
+            "heading": "4.7 Upper Bounds – Typen mit garantierten Operationen"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Bounds and wildcards"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "eip-13-l2",
+      "index": 2,
+      "kind": "apply",
+      "title": "Apply",
+      "questions": [
+        {
+          "id": "eip-13-l2-q01",
+          "type": "code_output",
+          "prompt": "What does this code print?\n\n```java\nclass Base {\n    public void f(Object x) { System.out.print(\"O\"); }\n}\nclass Child extends Base {\n    public void f(String x) { System.out.print(\"S\"); }\n}\nclass Main {\n    public static void main(String[] args) {\n        Base receiver = new Child();\n        receiver.f(\"hi\");\n    }\n}\n```",
+          "options": [
+            {
+              "id": "a",
+              "text": "O"
+            },
+            {
+              "id": "b",
+              "text": "OS"
+            },
+            {
+              "id": "c",
+              "text": "S"
+            },
+            {
+              "id": "d",
+              "text": "Compiler error"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "The static receiver type `Base` exposes only `f(Object)` here. `f(String)` in `Child` is an overload, not an override of this signature.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO13.md",
+            "heading": "2.4 Beispiel A: Receiver-Typ begrenzt die Kandidaten"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Overloading",
+            "Static and dynamic types"
+          ]
+        },
+        {
+          "id": "eip-13-l2-q02",
+          "type": "single",
+          "prompt": "An object of type `PingValue` implements `Ping`. The receiver provides `f(PingValue)` and `f(Ping)`. Which signature is selected for `receiver.f(argument)` when the argument's static type is `PingValue`?",
+          "options": [
+            {
+              "id": "a",
+              "text": "`f(Ping)`"
+            },
+            {
+              "id": "b",
+              "text": "`f(PingValue)`"
+            },
+            {
+              "id": "c",
+              "text": "No signature, because `PingValue` implements an interface"
+            },
+            {
+              "id": "d",
+              "text": "Both signatures at once"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "Both overloads match the argument, but `PingValue` is more specific than its supertype, `Ping`. The fact that a method may be declared in a superclass does not change this selection.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO13.md",
+            "heading": "2.5 Beispiel B: Eine geerbte Überladung kann spezifischer sein"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Overloading",
+            "Static and dynamic types"
+          ]
+        },
+        {
+          "id": "eip-13-l2-q03",
+          "type": "code_output",
+          "prompt": "What is printed?\n\n```java\njava.util.function.Function<String, String> digit = text -> text + \"1\";\njava.util.function.Function<String, String> bracket = text -> \"[\" + text + \"]\";\nSystem.out.print(digit.andThen(bracket).apply(\"Hi\"));\n```",
+          "options": [
+            {
+              "id": "a",
+              "text": "[Hi]1"
+            },
+            {
+              "id": "b",
+              "text": "[Hi1]"
+            },
+            {
+              "id": "c",
+              "text": "Hi1"
+            },
+            {
+              "id": "d",
+              "text": "[Hi11]"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "`andThen` first applies `digit`: `Hi` becomes `Hi1`. Then `bracket` encloses the result in square brackets.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO13.md",
+            "heading": "7.2 andThen"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Function composition"
+          ]
+        },
+        {
+          "id": "eip-13-l2-q04",
+          "type": "single",
+          "prompt": "A sequence contains `Hello`, ``, `World`, and `Hello`. A predicate lets through only nonempty strings. Which sequence does `filter` return?",
+          "options": [
+            {
+              "id": "a",
+              "text": "[Hello, World, Hello]"
+            },
+            {
+              "id": "b",
+              "text": "[Hello, World]"
+            },
+            {
+              "id": "c",
+              "text": "[Hello, , World, Hello]"
+            },
+            {
+              "id": "d",
+              "text": "[World, Hello]"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "`filter` keeps only elements for which the predicate returns true. The order and duplicates are preserved, including both occurrences of `Hello`.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO13.md",
+            "heading": "6.2 filter – Elemente anhand eines Prädikats auswählen"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "map and filter",
+            "Function and Predicate"
+          ]
+        },
+        {
+          "id": "eip-13-l2-q05",
+          "type": "multi",
+          "prompt": "Select all correct statements about the predicates `p.and(q)` and `p.or(q)`. More than one statement may be correct.",
+          "options": [
+            {
+              "id": "a",
+              "text": "With `p.and(q)`, `q` is not evaluated if `p` returns false."
+            },
+            {
+              "id": "b",
+              "text": "`and` and `or` always evaluate both predicates."
+            },
+            {
+              "id": "c",
+              "text": "With `p.or(q)`, `q` is not evaluated if `p` returns true."
+            },
+            {
+              "id": "d",
+              "text": "`negate()` inverts the result of `p`."
+            }
+          ],
+          "correct": [
+            "a",
+            "c",
+            "d"
+          ],
+          "explanation": "The composed predicates use short-circuit evaluation. `and` stops at false, `or` stops at true, and `negate` negates the result.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO13.md",
+            "heading": "6.5 negate, and, or"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Short-circuit predicates",
+            "Function and Predicate"
+          ]
+        },
+        {
+          "id": "eip-13-l2-q06",
+          "type": "code_output",
+          "prompt": "What does this call print?\n\n```java\njava.util.function.Function<String, String> digit = text -> text + \"1\";\njava.util.function.Function<String, String> bracket = text -> \"[\" + text + \"]\";\nSystem.out.print(digit.compose(bracket).apply(\"Hi\"));\n```",
+          "options": [
+            {
+              "id": "a",
+              "text": "Hi"
+            },
+            {
+              "id": "b",
+              "text": "[Hi]1"
+            },
+            {
+              "id": "c",
+              "text": "[Hi1]"
+            },
+            {
+              "id": "d",
+              "text": "Hi1"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "`compose` first applies the function passed to it, `bracket`: `[Hi]`. Then `digit` appends `1`.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO13.md",
+            "heading": "7.3 compose"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Function composition"
+          ]
+        },
+        {
+          "id": "eip-13-l2-q07",
+          "type": "diagram",
+          "prompt": "A function is applied to every element in the input list. Which statement describes the result shown?",
+          "context": {
+            "type": "mermaid",
+            "content": "flowchart LR\n  subgraph Original\n    G1[Greeting 1] --> G2[Greeting 2]\n  end\n  subgraph Result\n    R1[Hello] --> R2[Hello]\n  end\n  G1 -- toText --> R1\n  G2 -- toText --> R2",
+            "caption": "A function is applied to every list element"
+          },
+          "options": [
+            {
+              "id": "a",
+              "text": "The list is filtered and the second element is discarded."
+            },
+            {
+              "id": "b",
+              "text": "The input list is sorted in reverse order."
+            },
+            {
+              "id": "c",
+              "text": "Both Greeting objects are combined into a single object."
+            },
+            {
+              "id": "d",
+              "text": "Each Greeting is transformed into a string; the order is preserved."
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "The diagram shows `map`: each `Greeting` is transformed into a string by `toText`. The order of the two elements remains the same.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO13.md",
+            "heading": "5.1 map – eine Funktion auf alle Elemente anwenden"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "map and filter",
+            "Higher-order methods"
+          ]
+        },
+        {
+          "id": "eip-13-l2-q08",
+          "type": "cloze",
+          "prompt": "`Predicate<Object>` can be used as `Predicate<? ___ String>` because a predicate for Object can accept any string.",
+          "options": [
+            {
+              "id": "a",
+              "text": "implements"
+            },
+            {
+              "id": "b",
+              "text": "extends"
+            },
+            {
+              "id": "c",
+              "text": "super"
+            },
+            {
+              "id": "d",
+              "text": "equals"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "`? super String` represents an unknown type that is String or a supertype of String. A Consumer for Object can therefore safely test a String.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO13.md",
+            "heading": "6.3 Wildcards:"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Bounds and wildcards",
+            "Function and Predicate"
+          ]
+        },
+        {
+          "id": "eip-13-l2-q09",
+          "type": "single",
+          "prompt": "Which declaration gives a static method its own type parameter `T`?",
+          "options": [
+            {
+              "id": "a",
+              "text": "`<T> static boolean isEmpty(List<T> list)`"
+            },
+            {
+              "id": "b",
+              "text": "`static boolean <T> isEmpty(List<T> list)`"
+            },
+            {
+              "id": "c",
+              "text": "`static <T> boolean isEmpty(List<T> list)`"
+            },
+            {
+              "id": "d",
+              "text": "`static boolean isEmpty(List<T> list)`"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "A generic method's type parameter appears before the return type. A static method cannot use the class type parameter of an instance class.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO13.md",
+            "heading": "4.6 Statische generische Methoden"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Generics and invariance"
+          ]
+        },
+        {
+          "id": "eip-13-l2-q10",
+          "type": "truefalse",
+          "prompt": "The assignment `List<Object> objects = words;` is allowed if `words` has type `List<String>`.",
+          "options": [
+            {
+              "id": "true",
+              "text": "True"
+            },
+            {
+              "id": "false",
+              "text": "False"
+            }
+          ],
+          "correct": [
+            "false"
+          ],
+          "explanation": "Generics are invariant. Otherwise, the assignment would allow an arbitrary Object to be added to a list that is still used as `List<String>`.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO13.md",
+            "heading": "4.3 Invarianz von Generics"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Generics and invariance"
+          ]
+        },
+        {
+          "id": "eip-13-l2-q11",
+          "type": "code_output",
+          "prompt": "What is printed?\n\n```java\nString value = null;\nboolean result = value != null ? value.isEmpty() : false;\nSystem.out.print(result);\n```",
+          "options": [
+            {
+              "id": "a",
+              "text": "NullPointerException"
+            },
+            {
+              "id": "b",
+              "text": "true"
+            },
+            {
+              "id": "c",
+              "text": "null"
+            },
+            {
+              "id": "d",
+              "text": "false"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Because `value` is null, only the branch after the colon is evaluated. The call to `isEmpty()` in the other branch is not made.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO13.md",
+            "heading": "6.4 Ternary Operator"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Short-circuit predicates"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "eip-13-l3",
+      "index": 3,
+      "kind": "deepen",
+      "title": "Deepen your understanding",
+      "questions": [
+        {
+          "id": "eip-13-l3-q01",
+          "type": "multi",
+          "prompt": "Select all correct steps and rules for `receiver.f(argument)`. More than one statement may be correct.",
+          "options": [
+            {
+              "id": "a",
+              "text": "First, determine the static types of the receiver and arguments."
+            },
+            {
+              "id": "b",
+              "text": "At runtime, overloads are selected again based on the dynamic types of the arguments."
+            },
+            {
+              "id": "c",
+              "text": "The dynamic receiver helps find the method body for the signature already selected."
+            },
+            {
+              "id": "d",
+              "text": "The appropriate overload is determined before dynamic dispatch."
+            },
+            {
+              "id": "e",
+              "text": "If there is no most specific matching signature, the runtime picks one at random."
+            }
+          ],
+          "correct": [
+            "a",
+            "c",
+            "d"
+          ],
+          "explanation": "The signature is determined at compile time based on the static types. Dynamic dispatch then finds the appropriate override for that signature; it does not select the overload again.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO13.md",
+            "heading": "2.3 Der Vier-Schritte-Algorithmus (Folie 906)"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Static and dynamic types",
+            "Overloading",
+            "Overriding and dynamic dispatch"
+          ]
+        },
+        {
+          "id": "eip-13-l3-q02",
+          "type": "truefalse",
+          "prompt": "If the argument's dynamic type changes at runtime, that can cause a different overload to be selected for the same call.",
+          "options": [
+            {
+              "id": "true",
+              "text": "True"
+            },
+            {
+              "id": "false",
+              "text": "False"
+            }
+          ],
+          "correct": [
+            "false"
+          ],
+          "explanation": "The overload is selected at compile time based on the static argument types. The receiver's dynamic type then affects the method body, not the signature selection.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO13.md",
+            "heading": "2.3 Der Vier-Schritte-Algorithmus (Folie 906)"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Overloading",
+            "Overriding and dynamic dispatch"
+          ]
+        },
+        {
+          "id": "eip-13-l3-q03",
+          "type": "code_output",
+          "prompt": "What does this code print?\n\n```java\ninterface Ping { void foo(); }\nclass PingValue implements Ping {\n    public void foo() { System.out.print(\"foo!\"); }\n}\nclass PingBase {\n    public void f(PingValue value) { value.foo(); }\n}\nclass PingOverload extends PingBase {\n    public void f(Ping value) { value.foo(); value.foo(); }\n}\nclass Main {\n    public static void main(String[] args) {\n        PingOverload receiver = new PingOverload();\n        PingValue argument = new PingValue();\n        receiver.f(argument);\n        System.out.print(\"|\");\n        Ping wider = argument;\n        receiver.f(wider);\n    }\n}\n```",
+          "options": [
+            {
+              "id": "a",
+              "text": "Compiler error"
+            },
+            {
+              "id": "b",
+              "text": "foo!|foo!"
+            },
+            {
+              "id": "c",
+              "text": "foo!|foo!foo!"
+            },
+            {
+              "id": "d",
+              "text": "foo!foo!|foo!"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "On the first call, the argument's static type is `PingValue`, so the more specific inherited signature `f(PingValue)` is selected. On the second call, its static type is `Ping`, so `f(Ping)` is selected and `foo()` is called twice.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO13.md",
+            "heading": "2.5 Beispiel B: Eine geerbte Überladung kann spezifischer sein"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Overloading",
+            "Static and dynamic types"
+          ]
+        },
+        {
+          "id": "eip-13-l3-q04",
+          "type": "code_output",
+          "prompt": "What does this code print?\n\n```java\nString[] strings = {\"abc\"};\nObject[] objects = strings;\ntry {\n    objects[0] = new Object();\n    System.out.print(\"ok\");\n} catch (ArrayStoreException e) {\n    System.out.print(\"caught\");\n}\n```",
+          "options": [
+            {
+              "id": "a",
+              "text": "ok"
+            },
+            {
+              "id": "b",
+              "text": "null"
+            },
+            {
+              "id": "c",
+              "text": "Compiler error"
+            },
+            {
+              "id": "d",
+              "text": "caught"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "`String[]` can be assigned to an `Object[]`. However, the actual array remains a `String[]`; the runtime check rejects the Object during the write.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO13.md",
+            "heading": "4.4 Arrays sind dagegen kovariant"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Array covariance",
+            "Generics and invariance"
+          ]
+        },
+        {
+          "id": "eip-13-l3-q05",
+          "type": "single",
+          "prompt": "A class `Task` implements `Executable`, which declares `execute()`. Which operation can the class call for `E extends Executable` without a cast?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Any method of any subclass"
+            },
+            {
+              "id": "b",
+              "text": "`execute()`"
+            },
+            {
+              "id": "c",
+              "text": "No methods, because `E` is unknown"
+            },
+            {
+              "id": "d",
+              "text": "Only methods from `Object`"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "The bound guarantees that E is `Executable` or a subtype of it. Therefore, the compiler can assume that `execute()` is an available operation.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO13.md",
+            "heading": "4.7 Upper Bounds – Typen mit garantierten Operationen"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Bounds and wildcards"
+          ]
+        },
+        {
+          "id": "eip-13-l3-q06-r1",
+          "type": "multi",
+          "prompt": "Given a list of type `List<String>`, `map(f)` applies `f` to each element and produces exactly one result per input element. `filter(p)` keeps only the unchanged elements for which `p` returns `true`, and returns them in their original order as a list. Select all correct statements.",
+          "options": [
+            {
+              "id": "a",
+              "text": "`filter` can produce more elements than the input list."
+            },
+            {
+              "id": "b",
+              "text": "`map` can change the element type, for example from `String` to `Integer`."
+            },
+            {
+              "id": "c",
+              "text": "`filter` removes matching duplicates because its result is a set."
+            },
+            {
+              "id": "d",
+              "text": "`map` preserves the number of elements, provided `f` produces exactly one result for each element."
+            },
+            {
+              "id": "e",
+              "text": "The result of `filter` has type `List<String>`."
+            }
+          ],
+          "correct": [
+            "b",
+            "d",
+            "e"
+          ],
+          "explanation": "`filter` selects elements without changing their type, so its result here is a `List<String>`. `map` produces one result per input element and can change the element type. `filter` can shorten the list but cannot lengthen it; the order and matching duplicates are preserved.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO13.md",
+            "heading": "5.1 map – eine Funktion auf alle Elemente anwenden"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "map",
+            "filter",
+            "Result type",
+            "List length",
+            "Duplicates"
+          ]
+        },
+        {
+          "id": "eip-13-l3-q07",
+          "type": "code_output",
+          "prompt": "What does the following expression print?\n\n```java\njava.util.function.Predicate<String> isNull = value -> value == null;\njava.util.function.Predicate<String> nonempty = value -> !value.isEmpty();\nSystem.out.print(isNull.or(nonempty).test(null));\n```",
+          "options": [
+            {
+              "id": "a",
+              "text": "true"
+            },
+            {
+              "id": "b",
+              "text": "Compiler error"
+            },
+            {
+              "id": "c",
+              "text": "false"
+            },
+            {
+              "id": "d",
+              "text": "NullPointerException"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "`isNull.test(null)` is true. With `or`, `nonempty` is then not evaluated, so its unsafe call to `isEmpty()` is skipped.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO13.md",
+            "heading": "6.5 negate, and, or"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Short-circuit predicates",
+            "Function and Predicate"
+          ]
+        },
+        {
+          "id": "eip-13-l3-q08",
+          "type": "diagram",
+          "prompt": "The call's signature has already been determined by the static types. Which step comes next in the process shown?",
+          "context": {
+            "type": "mermaid",
+            "content": "flowchart TD\n  A[Call] --> B[Static types]\n  B --> C[Collect signatures]\n  C --> D{Unique selection?}\n  D -- no --> E[Compiler error]\n  D -- yes --> F[Signature determined]\n  F --> G[Dynamic receiver class]\n  G --> H{Override?}\n  H -- yes --> I[Execute override]\n  H -- no --> J[Execute inherited body]",
+            "caption": "Signature selection and dynamic dispatch"
+          },
+          "options": [
+            {
+              "id": "a",
+              "text": "The method is chosen at random from all methods with the same name."
+            },
+            {
+              "id": "b",
+              "text": "The arguments are overloaded again based on their dynamic types."
+            },
+            {
+              "id": "c",
+              "text": "The receiver's dynamic class is determined."
+            },
+            {
+              "id": "d",
+              "text": "The static receiver type is changed after the fact."
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "After the signature is selected, the receiver's actual class is considered. The appropriate override is then searched for from that class.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO13.md",
+            "heading": "2.3 Der Vier-Schritte-Algorithmus (Folie 906)"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Static and dynamic types",
+            "Overriding and dynamic dispatch"
+          ]
+        },
+        {
+          "id": "eip-13-l3-q09",
+          "type": "single",
+          "prompt": "`f` has type `Function<String, Integer>`, and `g` has type `Function<Integer, Boolean>`. What is the type of `f.andThen(g)`?",
+          "options": [
+            {
+              "id": "a",
+              "text": "`Function<Integer, String>`"
+            },
+            {
+              "id": "b",
+              "text": "`Function<String, Boolean>`"
+            },
+            {
+              "id": "c",
+              "text": "`Function<Boolean, Integer>`"
+            },
+            {
+              "id": "d",
+              "text": "`Function<Integer, Boolean>`"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "`f` returns an Integer, which `g` accepts. The composed function therefore accepts a String and returns a Boolean.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO13.md",
+            "heading": "7.2 andThen"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Function composition",
+            "Bounds and wildcards"
+          ]
+        },
+        {
+          "id": "eip-13-l3-q10",
+          "type": "truefalse",
+          "prompt": "A static method in `List<T>` can use `T` directly as a class type parameter without declaring its own method type parameter.",
+          "options": [
+            {
+              "id": "true",
+              "text": "True"
+            },
+            {
+              "id": "false",
+              "text": "False"
+            }
+          ],
+          "correct": [
+            "false"
+          ],
+          "explanation": "A static method belongs to the class and cannot access the type parameter of a particular `List<T>` instance. It must declare its own type parameter.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO13.md",
+            "heading": "4.6 Statische generische Methoden"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Generics and invariance"
+          ]
+        },
+        {
+          "id": "eip-13-l3-q11",
+          "type": "cloze",
+          "prompt": "If `T` is a class and `B` and `C` are interfaces, the class bound comes first in the expression `<T extends ___ & B & C>`.",
+          "options": [
+            {
+              "id": "a",
+              "text": "B"
+            },
+            {
+              "id": "b",
+              "text": "A"
+            },
+            {
+              "id": "c",
+              "text": "C"
+            },
+            {
+              "id": "d",
+              "text": "Object"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "When there are multiple bounds, a class bound must come first; additional interface bounds can follow.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO13.md",
+            "heading": "4.7 Upper Bounds – Typen mit garantierten Operationen"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Bounds and wildcards"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "eip-13-l4",
+      "index": 4,
+      "kind": "boss",
+      "title": "Boss",
+      "questions": [
+        {
+          "id": "eip-13-l4-q01",
+          "type": "code_output",
+          "prompt": "What do the two calls print?\n\n```java\nclass A {\n    public void f(Object x) { System.out.println(\"A1\"); }\n    public void f(String x) { System.out.println(\"A2\"); }\n}\nclass B extends A {\n    @Override public void f(Object x) { System.out.println(\"B1\"); }\n    public void f(Integer x) { System.out.println(\"B3\"); }\n}\nclass Main {\n    public static void main(String[] args) {\n        A a = new B();\n        Object o = \"Hello\";\n        a.f(o);\n        a.f(\"Hello\");\n    }\n}\n```",
+          "options": [
+            {
+              "id": "a",
+              "text": "B3, then A2"
+            },
+            {
+              "id": "b",
+              "text": "A1, then B1"
+            },
+            {
+              "id": "c",
+              "text": "Compiler error at `a.f(\"Hello\")`"
+            },
+            {
+              "id": "d",
+              "text": "B1, then A2"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "For the first call, the static argument type is Object, so `f(Object)` is selected and overridden in B. For the second call, `f(String)` is selected statically; B does not override this signature, so A2 runs.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO13.md",
+            "heading": "2.3 Der Vier-Schritte-Algorithmus (Folie 906)"
+          },
+          "difficulty": 5,
+          "concepts": [
+            "Overloading",
+            "Overriding and dynamic dispatch",
+            "Static and dynamic types"
+          ]
+        },
+        {
+          "id": "eip-13-l4-q02",
+          "type": "multi",
+          "prompt": "Select all correct statements about these two declarations: `String[] strings = {\"abc\"}; Object[] objects = strings;` and `List<String> words = ...;`. More than one statement may be correct.",
+          "options": [
+            {
+              "id": "a",
+              "text": "Generic invariance prevents assigning `List<String>` to `List<Object>`."
+            },
+            {
+              "id": "b",
+              "text": "`objects = strings` is allowed because arrays are covariant."
+            },
+            {
+              "id": "c",
+              "text": "Writing `new Object()` to `objects[0]` can cause an ArrayStoreException at runtime."
+            },
+            {
+              "id": "d",
+              "text": "`List<Object> objects2 = words` is allowed because String is a subtype of Object."
+            }
+          ],
+          "correct": [
+            "a",
+            "b",
+            "c"
+          ],
+          "explanation": "Arrays allow covariant reference assignment, but check the actual element type at runtime. Generic lists are invariant, so the corresponding assignment fails during type checking.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO13.md",
+            "heading": "4.4 Arrays sind dagegen kovariant"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Generics and invariance",
+            "Array covariance"
+          ]
+        },
+        {
+          "id": "eip-13-l4-q03",
+          "type": "single",
+          "prompt": "Given the sequence `[a, , bb]`, the function `f(x) = x + \"!\"` is first applied with `map`, then `filter` keeps only strings longer than 1. What is the result?",
+          "options": [
+            {
+              "id": "a",
+              "text": "[bb!]"
+            },
+            {
+              "id": "b",
+              "text": "[a, bb]"
+            },
+            {
+              "id": "c",
+              "text": "[a!, bb!]"
+            },
+            {
+              "id": "d",
+              "text": "[a!, !, bb!]"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "`map` first produces `[a!, !, bb!]`. Then `filter` removes the single `!`, whose length is 1; the other elements retain their order.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO13.md",
+            "heading": "6.2 filter – Elemente anhand eines Prädikats auswählen"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "map and filter",
+            "Higher-order methods"
+          ]
+        },
+        {
+          "id": "eip-13-l4-q04",
+          "type": "diagram",
+          "prompt": "Which composition performs the order shown in the diagram and produces the displayed result for `Hi`?",
+          "context": {
+            "type": "mermaid",
+            "content": "flowchart LR\n  X[Hi] --> F[digit: append 1]\n  F --> A[Hi1]\n  A --> G[bracket]\n  G --> B[\"[Hi1]\"]",
+            "caption": "The function steps for the input Hi"
+          },
+          "options": [
+            {
+              "id": "a",
+              "text": "`digit.andThen(bracket)`"
+            },
+            {
+              "id": "b",
+              "text": "`bracket.andThen(bracket)`"
+            },
+            {
+              "id": "c",
+              "text": "`digit.compose(bracket)`"
+            },
+            {
+              "id": "d",
+              "text": "`Function.identity()`"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "First, `digit` appends a 1; then `bracket` puts the result in square brackets. This corresponds to `digit.andThen(bracket)`.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO13.md",
+            "heading": "7.2 andThen"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Function composition"
+          ]
+        },
+        {
+          "id": "eip-13-l4-q05",
+          "type": "multi",
+          "prompt": "Select all correct statements about composition. More than one statement may be correct.",
+          "options": [
+            {
+              "id": "a",
+              "text": "Function composition is generally commutative."
+            },
+            {
+              "id": "b",
+              "text": "`f.compose(g)` first applies g, then f."
+            },
+            {
+              "id": "c",
+              "text": "Function composition is associative."
+            },
+            {
+              "id": "d",
+              "text": "`f.andThen(g)` first applies f, then g."
+            }
+          ],
+          "correct": [
+            "b",
+            "c",
+            "d"
+          ],
+          "explanation": "`andThen` and `compose` differ in their order of application. Composition is associative but generally not commutative.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO13.md",
+            "heading": "7.3 compose"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Function composition"
+          ]
+        },
+        {
+          "id": "eip-13-l4-q06",
+          "type": "truefalse",
+          "prompt": "A lambda function compares `x` with `threshold`; after `threshold` is captured, it is incremented again in the enclosing method. This code satisfies the rule for captured local variables.",
+          "options": [
+            {
+              "id": "true",
+              "text": "True"
+            },
+            {
+              "id": "false",
+              "text": "False"
+            }
+          ],
+          "correct": [
+            "false"
+          ],
+          "explanation": "Captured local variables must be final or effectively final. A later reassignment such as `threshold++` violates this condition.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO12.md",
+            "heading": null
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Function and Predicate",
+            "Higher-order methods"
+          ]
+        },
+        {
+          "id": "eip-13-l4-q07",
+          "type": "code_output",
+          "prompt": "What does this code print?\n\n```java\ninterface Function<T, R> { R apply(T value); }\nclass Account {\n    String kind() { return \"base\"; }\n}\nclass Checking extends Account {\n    @Override String kind() { return \"checking\"; }\n}\nclass Main {\n    public static void main(String[] args) {\n        Account account = new Checking();\n        Function<Account, String> label = value -> value.kind();\n        System.out.print(label.apply(account));\n    }\n}\n```",
+          "options": [
+            {
+              "id": "a",
+              "text": "Account"
+            },
+            {
+              "id": "b",
+              "text": "Compiler error"
+            },
+            {
+              "id": "c",
+              "text": "checking"
+            },
+            {
+              "id": "d",
+              "text": "base"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "The lambda accepts a value with the static type Account and calls `kind()`. The referenced object is a Checking, however, so its override is executed dynamically.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO10.md",
+            "heading": null
+          },
+          "difficulty": 5,
+          "concepts": [
+            "Overriding and dynamic dispatch",
+            "Function and Predicate",
+            "Static and dynamic types"
+          ]
+        },
+        {
+          "id": "eip-13-l4-q08",
+          "type": "code_output",
+          "prompt": "What does the call print?\n\n```java\njava.util.function.Function<int[], Integer> touch = values -> {\n    values[0] = 9;\n    return values[0];\n};\nint[] data = {1};\nint result = touch.apply(data);\nSystem.out.print(result + \":\" + data[0]);\n```",
+          "options": [
+            {
+              "id": "a",
+              "text": "9:9"
+            },
+            {
+              "id": "b",
+              "text": "Compiler error"
+            },
+            {
+              "id": "c",
+              "text": "9:1"
+            },
+            {
+              "id": "d",
+              "text": "1:1"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "The lambda receives a copy of the array reference and changes the array both references point to. It then returns 9, and `data[0]` also contains 9.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO6.md",
+            "heading": null
+          },
+          "difficulty": 5,
+          "concepts": [
+            "Function and Predicate",
+            "Higher-order methods"
+          ]
+        },
+        {
+          "id": "eip-13-l4-q09",
+          "type": "single",
+          "prompt": "`nonempty` is defined as `value -> !value.isEmpty()` and `nonNull` as `value -> value != null`. What happens with `nonempty.and(nonNull).test(null)`?",
+          "options": [
+            {
+              "id": "a",
+              "text": "It returns false because `nonNull` checks the value first."
+            },
+            {
+              "id": "b",
+              "text": "It returns true because null is treated as empty."
+            },
+            {
+              "id": "c",
+              "text": "The compiler rejects the call as ambiguous."
+            },
+            {
+              "id": "d",
+              "text": "The call throws a NullPointerException."
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "`and` evaluates the left predicate first. `nonempty` calls `isEmpty()` on null and therefore throws a NullPointerException before `nonNull` can be executed.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO13.md",
+            "heading": "6.6 Beispiel der Vorlesung und wichtige null-Falle"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Short-circuit predicates",
+            "Function and Predicate"
+          ]
+        },
+        {
+          "id": "eip-13-l4-q10",
+          "type": "multi",
+          "prompt": "Select all correct statements about type parameters, bounds, and static generic methods. More than one statement may be correct.",
+          "options": [
+            {
+              "id": "a",
+              "text": "A static generic method must declare a type parameter for its own type."
+            },
+            {
+              "id": "b",
+              "text": "An undeclared type parameter can be used in `extends Base<T>`."
+            },
+            {
+              "id": "c",
+              "text": "A subclass can pass through its superclass's type parameter or specify a concrete type."
+            },
+            {
+              "id": "d",
+              "text": "`E extends Executable` allows access to `execute()`."
+            }
+          ],
+          "correct": [
+            "a",
+            "c",
+            "d"
+          ],
+          "explanation": "Type parameters must be declared in scope. Bounds guarantee that certain operations are available, and static methods declare any type parameters they need themselves.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO13.md",
+            "heading": "4.5 Generics und Vererbung"
+          },
+          "difficulty": 5,
+          "concepts": [
+            "Generics and invariance",
+            "Bounds and wildcards"
+          ]
+        },
+        {
+          "id": "eip-13-l4-q11",
+          "type": "single",
+          "prompt": "Which property makes `Function.identity()` a neutral starting value for a function chain?",
+          "options": [
+            {
+              "id": "a",
+              "text": "It automatically selects the appropriate override."
+            },
+            {
+              "id": "b",
+              "text": "It removes all null values from a list."
+            },
+            {
+              "id": "c",
+              "text": "It returns every input value unchanged."
+            },
+            {
+              "id": "d",
+              "text": "It converts every value to a string."
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "The identity function maps every value to itself. Therefore, composing it with another function does not change that function's result.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO13.md",
+            "heading": "7.5 identity"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Identity function",
+            "Function composition"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "eip-13-l5",
+      "index": 5,
+      "kind": "bonus",
+      "title": "Practice: Polymorphism in everyday life",
+      "questions": [
+        {
+          "id": "eip-13-l5-q01",
+          "type": "single",
+          "prompt": "You are modeling a navigation system with `RoutePlaner` and two subclasses: `SchnellsteRoute` and `KürzesteRoute`. Both override `berechnen(start, ziel)`. The caller knows only the type `RoutePlaner`; the actual object depends on the selected mode. Which concept ensures that the same call executes the appropriate implementation?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Dynamic dispatch: the object's dynamic type determines the method body."
+            },
+            {
+              "id": "b",
+              "text": "Array covariance: the route object is converted to another type during the call."
+            },
+            {
+              "id": "c",
+              "text": "Overloading: the compiler chooses between different parameter types based on the dynamic type."
+            },
+            {
+              "id": "d",
+              "text": "Generics: a type parameter selects the route calculation at runtime."
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "Both subclasses override the same method. The dynamic type of the `RoutePlaner` object determines which method body runs. This is overriding with dynamic dispatch.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO13.md",
+            "heading": "1.1 Statischer und dynamischer Typ"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Overriding",
+            "Dynamic dispatch"
+          ]
+        },
+        {
+          "id": "eip-13-l5-q02",
+          "type": "single",
+          "prompt": "A messaging app provides `verschlüssele(String text)` and `verschlüssele(byte[] anhang)`. The compiler decides which version to call based on the argument's static type. Which concept does this API use?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Overriding: a subclass replaces the method body."
+            },
+            {
+              "id": "b",
+              "text": "Overloading: the same method name with different parameter lists."
+            },
+            {
+              "id": "c",
+              "text": "Invariance: the container prevents storing a different type."
+            },
+            {
+              "id": "d",
+              "text": "Dynamic dispatch: the argument's actual class selects the signature."
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "The two methods have the same name but different parameter types. The compiler selects the appropriate signature at compile time: this is overloading.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO13.md",
+            "heading": "2.1 Overloading (Überladen)"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Overloading"
+          ]
+        },
+        {
+          "id": "eip-13-l5-q03",
+          "type": "estimate",
+          "prompt": "A playlist app filters tracks using the predicate “duration at most 3:00 minutes.” The durations are: `2:40, 3:20, 1:55, 4:10, 2:59, 3:00, 2:15, 3:05, 2:30, 2:50`. How many tracks remain in the playlist?",
+          "options": [],
+          "correct": [],
+          "slider": {
+            "min": 0,
+            "max": 10,
+            "step": 1,
+            "answer": 7,
+            "tolerance": 0,
+            "unit": "Tracks",
+            "scale": "linear"
+          },
+          "explanation": "Seven tracks last at most three minutes. `filter` keeps exactly the elements for which the predicate returns `true`, preserving their order.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO13.md",
+            "heading": "6.2 filter – Elemente anhand eines Prädikats auswählen"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "filter",
+            "Predicate"
+          ]
+        },
+        {
+          "id": "eip-13-l5-q04",
+          "type": "truefalse",
+          "prompt": "A database adapter returns a `List<String>` of customer IDs. Since every `String` is also an `Object`, you can reference the same list as a `List<Object>` without copying it. Is this correct?",
+          "options": [
+            {
+              "id": "true",
+              "text": "True"
+            },
+            {
+              "id": "false",
+              "text": "False"
+            }
+          ],
+          "correct": [
+            "false"
+          ],
+          "explanation": "Generic types are invariant: `List<String>` is not a subtype of `List<Object>`. Otherwise, an arbitrary object could be written to the original String list through the `List<Object>`.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO13.md",
+            "heading": "4.3 Invarianz von Generics"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Generics",
+            "Invariance"
+          ]
+        },
+        {
+          "id": "eip-13-l5-q05",
+          "type": "single",
+          "prompt": "In a game, a `List<Enemy>` contains the enemies in their play order. A function `spriteFor` converts each enemy into a sprite. You want to create a new list with one sprite per enemy in the same order. Which operation fits?",
+          "options": [
+            {
+              "id": "a",
+              "text": "`filter`: select elements and change their type to `Sprite`."
+            },
+            {
+              "id": "b",
+              "text": "Overloading: rename the enemy list as a sprite list."
+            },
+            {
+              "id": "c",
+              "text": "`andThen`: combine two lists."
+            },
+            {
+              "id": "d",
+              "text": "`map`: transform each element while preserving the number and order."
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "`map` applies `spriteFor` to every element and can change the element type from `Enemy` to `Sprite`. The order and number of elements are preserved.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO13.md",
+            "heading": "5.1 map – eine Funktion auf alle Elemente anwenden"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "map",
+            "Function"
+          ]
+        },
+        {
+          "id": "eip-13-l5-q06-r1",
+          "type": "estimate",
+          "prompt": "A list contains the 13 temperature values `18.2, 18.4, 18.1, 18.6, 19.0, 18.9, 19.1, 19.3, 19.0, 18.8, 18.5, 18.7, 18.6` °C. A `map` function calculates exactly one Fahrenheit value for each value using $F = \\frac{9}{5}C + 32$. How many values are in the result list?",
+          "options": [],
+          "correct": [],
+          "slider": {
+            "min": 0,
+            "max": 40,
+            "step": 1,
+            "answer": 13,
+            "tolerance": 0,
+            "unit": "Values",
+            "scale": "linear"
+          },
+          "explanation": "`map` produces exactly one result for each input value. The input list contains 13 values, so the result list also contains 13 values.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO13.md",
+            "heading": "5.1 map – eine Funktion auf alle Elemente anwenden"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "map",
+            "List length"
+          ]
+        },
+        {
+          "id": "eip-13-l5-q07",
+          "type": "single",
+          "prompt": "A registration form checks a text using two predicates: `notNull` returns `value != null`; `notBlank` checks whether the text is nonempty and not just whitespace, and throws an exception for `null`. Which composition skips `notBlank` if `notNull` returns false?",
+          "options": [
+            {
+              "id": "a",
+              "text": "`notNull.negate().and(notBlank)`"
+            },
+            {
+              "id": "b",
+              "text": "Negate `notNull` alone"
+            },
+            {
+              "id": "c",
+              "text": "`notNull.and(notBlank)`"
+            },
+            {
+              "id": "d",
+              "text": "`notNull.or(notBlank)`"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "With `Predicate.and`, the second predicate is evaluated only if the first returns `true`. If `value` is null, `notNull` returns false and `notBlank` is skipped.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO13.md",
+            "heading": "6.5 negate, and, or"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Predicate",
+            "Short-circuit predicates"
+          ]
+        },
+        {
+          "id": "eip-13-l5-q08-r1",
+          "type": "estimate",
+          "prompt": "A predicate of type `Predicate<String>` can check a string and returns either `true` or `false`. Consider all strings consisting of exactly four digits from `0` through `9`; leading zeros are allowed. How many different PIN strings could the predicate check?",
+          "options": [],
+          "correct": [],
+          "slider": {
+            "min": 0,
+            "max": 50000,
+            "step": 250,
+            "answer": 10000,
+            "tolerance": 0,
+            "unit": "PIN combinations",
+            "scale": "linear"
+          },
+          "explanation": "There are ten possible digits for each of the four positions. Thus there are $10^4 = 10\\,000$ different PIN strings.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO13.md",
+            "heading": "6.1 Generic Predicate"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Predicate",
+            "Input set",
+            "Combinatorics"
+          ]
+        },
+        {
+          "id": "eip-13-l5-q09",
+          "type": "single",
+          "prompt": "A photo app compresses an image and then uploads the file. `compress` and `upload` are functions; `compress` returns exactly the file type that `upload` accepts. What happens with `compress.andThen(upload)`?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Both functions run simultaneously."
+            },
+            {
+              "id": "b",
+              "text": "Upload first, then compress."
+            },
+            {
+              "id": "c",
+              "text": "The image remains unchanged; both functions are skipped."
+            },
+            {
+              "id": "d",
+              "text": "Compress first, then upload."
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "`andThen` first applies the current function and passes its result to the next one. So the image is compressed first and uploaded afterward.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO13.md",
+            "heading": "7.2 andThen"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Function composition",
+            "andThen"
+          ]
+        },
+        {
+          "id": "eip-13-l5-q10",
+          "type": "single",
+          "prompt": "You are writing a generic task chain `TaskChain<E>`. The interface `Executable` contains `execute()`. Every element must have this method so that `runAll()` can call it without a cast. What should you add to the type declaration?",
+          "options": [
+            {
+              "id": "a",
+              "text": "`TaskChain<E extends Executable>`"
+            },
+            {
+              "id": "b",
+              "text": "`TaskChain<E>` and a cast to `Executable` at every call"
+            },
+            {
+              "id": "c",
+              "text": "`TaskChain<E super Executable>`"
+            },
+            {
+              "id": "d",
+              "text": "`TaskChain<Executable extends E>`"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "The bound `E extends Executable` guarantees that `execute()` is available for every permitted `E`. This lets `runAll()` call the method directly, without a cast.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO13.md",
+            "heading": "4.7 Upper Bounds – Typen mit garantierten Operationen"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Generics",
+            "Bounds"
+          ]
+        }
+      ]
+    }
+  ]
+}
