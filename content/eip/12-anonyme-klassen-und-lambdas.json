@@ -1,0 +1,2104 @@
+{
+  "schemaVersion": 1,
+  "id": "eip-12",
+  "module": "EIP",
+  "number": 12,
+  "slug": "anonyme-klassen-und-lambdas",
+  "title": "Anonyme Klassen und Lambdas",
+  "summary": "Interfaces ermöglichen es, Verhalten als Parameter an einen Algorithmus zu übergeben. Anonyme Klassen und Lambdas definieren dieses Verhalten direkt; lokale Werte können dabei erfasst werden, während Felder des umgebenden Objekts aktuell gelesen werden. Functional Interfaces und die unterschiedliche Bedeutung von `this` sind zentrale Bausteine.",
+  "concepts": [
+    "Verhalten als Parameter",
+    "Property und Suchalgorithmus",
+    "Anonyme Klassen",
+    "Captured state",
+    "Effectively final",
+    "Enclosing state",
+    "Functional Interfaces",
+    "Lambda Expressions",
+    "Type Inference",
+    "`this`-Kontext",
+    "Short-Circuit"
+  ],
+  "keyFacts": [
+    "`Property.test(Object)` nimmt ein Objekt entgegen und liefert `true` oder `false`.",
+    "`CheckArray.check` übernimmt die Traversierung; `Property.test` übernimmt die Auswahlregel.",
+    "`CheckArray.check` gibt beim ersten Treffer sofort `true` zurück; ohne Treffer, auch bei leerem Array, liefert es `false`.",
+    "`new Property() { ... }` definiert eine namenlose Klasse und erzeugt ein Objekt, das `Property` implementiert.",
+    "Eine anonyme Klasse kann ein Interface implementieren oder eine abstrakte beziehungsweise konkrete Klasse erweitern.",
+    "Anonyme Klassen müssen verbleibende abstrakte Methoden implementieren und können eigene Felder und Methoden besitzen.",
+    "Erfasste lokale Variablen und Parameter müssen `final` oder effectively final sein; auch eine erneute Zuweisung desselben Wertes ist unzulässig.",
+    "Bei einer erfassten Referenz muss die Referenzvariable effectively final sein; der Zustand des referenzierten Objekts darf sich trotzdem ändern.",
+    "Ein anonymes Objekt kann lokale Werte nach dem Ende der umgebenden Methode weiterverwenden.",
+    "Instanzfelder des umgebenden Objekts werden bei einem Zugriff über dieses Objekt gelesen; Änderungen können daher bereits erzeugte Tests beeinflussen.",
+    "Ein Functional Interface hat genau eine abstrakte Funktionsanforderung; implementierte `default`-Methoden zählen nicht als weitere abstrakte Anforderungen.",
+    "`@FunctionalInterface` ist optional und lässt den Compiler die Functional-Interface-Eigenschaft prüfen.",
+    "Ein Lambda liefert das Verhalten für die abstrakte Methode eines Functional Interfaces.",
+    "Der Zieltyp bestimmt die Parameter- und Rückgabetypen eines Lambdas; ohne Zieltyp kann der Compiler sie nicht inferieren.",
+    "Bei einem Lambda mit einem inferierten Parameter sind Klammern optional; bei mehreren Parametern oder expliziten Typen sind sie erforderlich.",
+    "Ein Ausdrucksrumpf kann den Wert direkt liefern; ein Blockrumpf benötigt bei einer Methode mit Rückgabewert ein `return`.",
+    "Ein Functional Interface kann mehrere Parameter für seine einzige abstrakte Methode haben.",
+    "In einer anonymen Klasse bezeichnet `this` das Objekt der anonymen Klasse; in einem Lambda bezeichnet `this` das lexikalisch umgebende Objekt.",
+    "Lambdas können keine eigene Klasse erweitern und keine eigenen Instanzfelder deklarieren.",
+    "Bei `r != null && ...` wird der rechte Ausdruck bei `r == null` wegen Short-Circuit nicht ausgewertet."
+  ],
+  "tags": [
+    "TUM/EIP",
+    "java",
+    "oop",
+    "lambda"
+  ],
+  "links": [],
+  "source": {
+    "file": "EIP/01_Vorlesungen/EIP VO12.md",
+    "sha256": "e71fd31c7db7996c27fa1657579154e2536bebe0a8887716a9dc0aa75c20eca2",
+    "commit": "2d66b3222fa0da30f2d296b6c3c105bc89c3fa90"
+  },
+  "generator": {
+    "model": "gpt-6-luna",
+    "effort": "xhigh",
+    "reviewEffort": "high",
+    "promptVersion": "v3",
+    "generatedAt": "2026-11-26T10:55:43.983Z",
+    "review": {
+      "checked": 44,
+      "fixed": 7,
+      "removed": 0,
+      "notes": "44 Fragen geprüft. Ergänzt wurden fehlende bzw. unvollständige Erklärungen und Kontext zu StringSearch-Szenarien; Diagrammtexte wurden Mermaid-gerecht gequotet. Rechen- und Codeaufgaben sowie verify-Ausgaben geprüft."
+    }
+  },
+  "levels": [
+    {
+      "id": "eip-12-l1",
+      "index": 1,
+      "kind": "basics",
+      "title": "Grundlagen",
+      "questions": [
+        {
+          "id": "eip-12-l1-q01",
+          "type": "single",
+          "prompt": "Was beschreibt die Methode `Property.test(Object r)`?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Sie erzeugt ein neues `Property`-Objekt."
+            },
+            {
+              "id": "b",
+              "text": "Sie gibt den Index eines Objekts zurück."
+            },
+            {
+              "id": "c",
+              "text": "Sie sortiert ein Array von Objekten."
+            },
+            {
+              "id": "d",
+              "text": "Sie liefert für ein Objekt eine boolesche Aussage."
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "`test` nimmt ein `Object` entgegen und liefert einen `boolean`. Damit kann die Methode etwa ausdrücken, ob das Objekt eine bestimmte Eigenschaft erfüllt.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO12.md",
+            "heading": "1.1 Interface"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Property und Suchalgorithmus",
+            "Verhalten als Parameter"
+          ]
+        },
+        {
+          "id": "eip-12-l1-q02-r1",
+          "type": "truefalse",
+          "prompt": "Beurteile die Aussage anhand des gezeigten Codes: `check` übernimmt die Traversierung des Arrays; ob ein Element ein Treffer ist, entscheidet `p.test(...)`.",
+          "context": {
+            "type": "code",
+            "content": "interface Property { boolean test(int x); }\nclass CheckArray {\n    static boolean check(int[] a, Property p) {\n        for (int i = 0; i < a.length; ++i) {\n            if (p.test(a[i])) return true;\n        }\n        return false;\n    }\n}",
+            "language": "java",
+            "caption": "Die Suchmethode und das Property-Interface"
+          },
+          "options": [
+            {
+              "id": "true",
+              "text": "Wahr"
+            },
+            {
+              "id": "false",
+              "text": "Falsch"
+            }
+          ],
+          "correct": [
+            "true"
+          ],
+          "explanation": "Die Schleife in `check` besucht die Array-Elemente. Für jedes besuchte Element ruft sie `p.test` auf, dessen Ergebnis die Trefferentscheidung bestimmt.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO12.md",
+            "heading": "1.2 Der Suchalgorithmus"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Verhalten als Parameter",
+            "Trennung von Traversierung und Auswahlregel"
+          ]
+        },
+        {
+          "id": "eip-12-l1-q03",
+          "type": "multi",
+          "prompt": "Welche Aussagen über `new Property() { ... }` sind richtig? Wähle alle richtigen Aussagen.",
+          "options": [
+            {
+              "id": "a",
+              "text": "Ein Interface kann hier ohne Klassenrumpf direkt instanziiert werden."
+            },
+            {
+              "id": "b",
+              "text": "Dabei werden eine namenlose Klasse definiert und ein Objekt dieser Klasse erzeugt."
+            },
+            {
+              "id": "c",
+              "text": "Der Klassenrumpf kann die abstrakte Methode `test` implementieren."
+            },
+            {
+              "id": "d",
+              "text": "Der Ausdruck erzeugt ein Objekt des Interface-Typs selbst."
+            },
+            {
+              "id": "e",
+              "text": "Der Referenztyp kann weiterhin `Property` sein."
+            }
+          ],
+          "correct": [
+            "b",
+            "c",
+            "e"
+          ],
+          "explanation": "Der Klassenrumpf definiert eine anonyme Implementierung, von der ein Objekt erzeugt wird. `new Property()` ohne Rumpf wäre ungültig, und ein Interface-Objekt selbst wird nicht instanziiert.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO12.md",
+            "heading": "2.2 Anonyme Klasse direkt instanziieren"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Anonyme Klassen",
+            "Property und Suchalgorithmus"
+          ]
+        },
+        {
+          "id": "eip-12-l1-q04",
+          "type": "cloze",
+          "prompt": "`new Property() { ... }` erzeugt ein Objekt einer ___ Klasse.",
+          "options": [
+            {
+              "id": "a",
+              "text": "statischen"
+            },
+            {
+              "id": "b",
+              "text": "anonymen"
+            },
+            {
+              "id": "c",
+              "text": "abstrakten"
+            },
+            {
+              "id": "d",
+              "text": "versiegelten"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "Die Klasse besitzt keinen expliziten Namen im Quelltext. Der Klassenrumpf gehört zur anonymen Implementierung.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO12.md",
+            "heading": "2.2 Anonyme Klasse direkt instanziieren"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Anonyme Klassen"
+          ]
+        },
+        {
+          "id": "eip-12-l1-q05",
+          "type": "diagram",
+          "prompt": "Welche Aussage beschreibt den Weg, auf dem ein konkretes Verhalten beim Algorithmus ankommt?",
+          "context": {
+            "type": "mermaid",
+            "content": "flowchart TD\n    A[\"Interface\"] --> B[\"Benannte Klasse\"]\n    A --> C[\"Anonyme Klasse\"]\n    A --> D[\"Functional Interface\"]\n    D --> E[\"Lambda\"]\n    B --> F[\"Verhalten als Parameter\"]\n    C --> F\n    E --> F",
+            "caption": "Mögliche Implementierungen und die Übergabe von Verhalten"
+          },
+          "options": [
+            {
+              "id": "a",
+              "text": "Der Algorithmus erzeugt zwingend eine benannte Klasse."
+            },
+            {
+              "id": "b",
+              "text": "Das Lambda bestimmt den Klassennamen des Algorithmus."
+            },
+            {
+              "id": "c",
+              "text": "Eine Implementierung liefert Verhalten, das als Parameter an den Algorithmus übergeben wird."
+            },
+            {
+              "id": "d",
+              "text": "Das Interface führt selbst die Array-Traversierung aus."
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Das Diagramm zeigt benannte Klassen, anonyme Klassen und Lambdas als mögliche Quellen des übergebenen Verhaltens. Der Algorithmus kann so seine Traversierung von der Regel trennen.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO12.md",
+            "heading": "EIP VO 11 – Anonymous Classes and Functional Interfaces"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Verhalten als Parameter",
+            "Anonyme Klassen",
+            "Lambda Expressions"
+          ]
+        },
+        {
+          "id": "eip-12-l1-q06-r1",
+          "type": "single",
+          "prompt": "Welchen booleschen Wert liefert `check(values, p)` im gezeigten Programm?",
+          "context": {
+            "type": "code",
+            "content": "interface Property { boolean test(int value); }\nclass Demo {\n    static boolean check(int[] values, Property p) {\n        for (int i = 0; i < values.length; ++i) {\n            if (p.test(values[i])) return true;\n        }\n        return false;\n    }\n    public static void main(String[] args) {\n        int[] values = {2, 4, 6};\n        Property p = value -> value % 2 != 0;\n        System.out.println(check(values, p));\n    }\n}",
+            "language": "java",
+            "caption": "Suche nach ungeraden Zahlen in einem Array"
+          },
+          "options": [
+            {
+              "id": "a",
+              "text": "`false`"
+            },
+            {
+              "id": "b",
+              "text": "`null`"
+            },
+            {
+              "id": "c",
+              "text": "`true`"
+            },
+            {
+              "id": "d",
+              "text": "`0`"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "Die Regel akzeptiert ungerade Zahlen. Das Array enthält nur gerade Zahlen, daher wird kein Treffer gefunden und die Methode gibt nach der Schleife `false` zurück.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO12.md",
+            "heading": "1.2 Der Suchalgorithmus"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Suchalgorithmus",
+            "Rückgabewert ohne Treffer"
+          ]
+        },
+        {
+          "id": "eip-12-l1-q07",
+          "type": "multi",
+          "prompt": "Welche Aussagen zu Functional Interfaces sind richtig? Wähle alle richtigen Aussagen.",
+          "options": [
+            {
+              "id": "a",
+              "text": "Sie dürfen keine Methoden mit Implementierung enthalten."
+            },
+            {
+              "id": "b",
+              "text": "`@FunctionalInterface` ist optional."
+            },
+            {
+              "id": "c",
+              "text": "Ihre abstrakte Methode muss genau einen Parameter besitzen."
+            },
+            {
+              "id": "d",
+              "text": "Sie dürfen zusätzlich eine `default`-Methode enthalten."
+            },
+            {
+              "id": "e",
+              "text": "Sie haben genau eine abstrakte Funktionsanforderung."
+            }
+          ],
+          "correct": [
+            "b",
+            "d",
+            "e"
+          ],
+          "explanation": "Entscheidend ist genau eine abstrakte Funktionsanforderung, nicht die Anzahl der Parameter. Implementierte Methoden wie `default` sind zusätzlich erlaubt; die Annotation ist freiwillig.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO12.md",
+            "heading": "5. Functional Interfaces"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Functional Interfaces"
+          ]
+        },
+        {
+          "id": "eip-12-l1-q08",
+          "type": "cloze",
+          "prompt": "Bei einem Lambda mit einem einzelnen inferierten Parameter sind die runden Klammern in `___ r != null` optional.",
+          "options": [
+            {
+              "id": "a",
+              "text": "`new r =>`"
+            },
+            {
+              "id": "b",
+              "text": "`r ->`"
+            },
+            {
+              "id": "c",
+              "text": "`return r ->`"
+            },
+            {
+              "id": "d",
+              "text": "`(r, ) ->`"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "Bei einem einzelnen inferierten Parameter kann die Klammerung entfallen. Der Pfeil trennt Parameterliste und Lambda-Rumpf.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO12.md",
+            "heading": "6.2 Syntax und Type Inference"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Lambda Expressions",
+            "Type Inference"
+          ]
+        },
+        {
+          "id": "eip-12-l1-q09",
+          "type": "truefalse",
+          "prompt": "In `return r -> this == r;` bezeichnet `this` das Objekt, in dessen Methode das Lambda geschrieben steht.",
+          "options": [
+            {
+              "id": "true",
+              "text": "Wahr"
+            },
+            {
+              "id": "false",
+              "text": "Falsch"
+            }
+          ],
+          "correct": [
+            "true"
+          ],
+          "explanation": "Ein Lambda führt kein eigenes `this` ein. Es verwendet den lexikalisch umgebenden `this`-Kontext.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO12.md",
+            "heading": null
+          },
+          "difficulty": 2,
+          "concepts": [
+            "`this`-Kontext",
+            "Lambda Expressions"
+          ]
+        },
+        {
+          "id": "eip-12-l1-q10",
+          "type": "single",
+          "prompt": "Eine Methode gibt ein Lambda zurück, das den lokalen Parameter `word` verwendet. Welche Bedingung muss für `word` gelten?",
+          "options": [
+            {
+              "id": "a",
+              "text": "`word` muss ein primitiver Typ sein."
+            },
+            {
+              "id": "b",
+              "text": "`word` muss `final` oder effectively final sein."
+            },
+            {
+              "id": "c",
+              "text": "`word` muss nach der Rückgabe `null` sein."
+            },
+            {
+              "id": "d",
+              "text": "`word` muss ein Instanzfeld sein."
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "Ein erfasster Parameter oder eine erfasste lokale Variable darf nach ihrer Initialisierung nicht erneut zugewiesen werden. Sie darf explizit `final` sein oder effectively final bleiben.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO12.md",
+            "heading": null
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Captured state",
+            "Effectively final"
+          ]
+        },
+        {
+          "id": "eip-12-l1-q11-r1",
+          "type": "code_output",
+          "prompt": "Was gibt das Programm aus? Die Variable `calls` zählt, wie oft die Schleife die Property-Regel aufruft.",
+          "context": {
+            "type": "code",
+            "content": "interface Property { boolean test(Object r); }\nclass Demo {\n    static int calls = 0;\n    static boolean check(Object[] a, Property p) {\n        for (int i = 0; i < a.length; ++i) {\n            calls++;\n            if (p.test(a[i])) return true;\n        }\n        return false;\n    }\n    public static void main(String[] args) {\n        Property p = r -> ((Integer) r) % 2 == 0;\n        Object[] a = {3, 8, 10};\n        check(a, p);\n        System.out.println(calls);\n    }\n}",
+            "language": "java",
+            "caption": "Die Suche endet beim ersten geraden Wert"
+          },
+          "options": [
+            {
+              "id": "a",
+              "text": "`2`"
+            },
+            {
+              "id": "b",
+              "text": "Es gibt einen Compilerfehler."
+            },
+            {
+              "id": "c",
+              "text": "`1`"
+            },
+            {
+              "id": "d",
+              "text": "`3`"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "Die Regel liefert für `3` false und für `8` true. Beim Treffer auf `8` beendet `check` die Suche sofort. Die Property wird daher zweimal aufgerufen.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO12.md",
+            "heading": "1.3 Beispiel und Short-Circuit"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Short-Circuit",
+            "Verhalten als Parameter",
+            "Array-Traversierung"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "eip-12-l2",
+      "index": 2,
+      "kind": "apply",
+      "title": "Anwenden",
+      "questions": [
+        {
+          "id": "eip-12-l2-q01-r1",
+          "type": "code_output",
+          "prompt": "Was gibt das Programm aus? Die anonyme Klasse erweitert die abstrakte Klasse `Base` und implementiert deren abstrakte Methode.",
+          "context": {
+            "type": "code",
+            "content": "abstract class Base {\n    protected int x;\n    Base(int x) { this.x = x; }\n    abstract int value();\n}\nclass Demo {\n    public static void main(String[] args) {\n        Base item = new Base(7) {\n            int value() { return x * 3; }\n        };\n        System.out.println(item.value());\n    }\n}",
+            "language": "java",
+            "caption": "Eine anonyme Unterklasse implementiert `value()`"
+          },
+          "options": [
+            {
+              "id": "a",
+              "text": "`14`"
+            },
+            {
+              "id": "b",
+              "text": "Es gibt einen Compilerfehler."
+            },
+            {
+              "id": "c",
+              "text": "`7`"
+            },
+            {
+              "id": "d",
+              "text": "`21`"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Der Konstruktor setzt `x` auf `7`. Die Implementierung von `value()` gibt das Dreifache davon zurück, also `21`.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO12.md",
+            "heading": "2.3 Anonyme Unterklasse einer abstrakten Klasse"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Anonyme Unterklasse",
+            "Abstrakte Klasse",
+            "Konstruktor und Overriding"
+          ]
+        },
+        {
+          "id": "eip-12-l2-q02",
+          "type": "single",
+          "prompt": "Eine anonyme Unterklasse von `StoredValue` überschreibt `f()` mit `return super.f() + 1;`. `StoredValue.f()` gibt `x` zurück und `x` ist `42`. Was liefert die überschreibende Methode?",
+          "options": [
+            {
+              "id": "a",
+              "text": "`84`"
+            },
+            {
+              "id": "b",
+              "text": "`41`"
+            },
+            {
+              "id": "c",
+              "text": "`43`"
+            },
+            {
+              "id": "d",
+              "text": "`42`"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "`super.f()` ruft die Implementierung aus `StoredValue` auf und liefert `42`. Danach wird `1` addiert; der Aufruf springt nicht erneut in die eigene überschreibende Methode.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO12.md",
+            "heading": "2.4 Anonyme Unterklasse einer konkreten Klasse"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Anonyme Klassen"
+          ]
+        },
+        {
+          "id": "eip-12-l2-q03",
+          "type": "truefalse",
+          "prompt": "Eine lokale Variable wird von einem Lambda erfasst. Selbst wenn ihr später erneut derselbe Wert zugewiesen wird, ist sie nicht mehr effectively final.",
+          "options": [
+            {
+              "id": "true",
+              "text": "Wahr"
+            },
+            {
+              "id": "false",
+              "text": "Falsch"
+            }
+          ],
+          "correct": [
+            "true"
+          ],
+          "explanation": "Effectively final verlangt, dass es nach der Initialisierung keine erneute Zuweisung gibt. Der neu zugewiesene Wert muss nicht verschieden sein, damit die Regel verletzt ist.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO12.md",
+            "heading": null
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Effectively final",
+            "Captured state"
+          ]
+        },
+        {
+          "id": "eip-12-l2-q04",
+          "type": "cloze",
+          "prompt": "Ein Interface mit genau einer abstrakten Methode kann direkt durch `r ___ r != null` implementiert werden.",
+          "options": [
+            {
+              "id": "a",
+              "text": "`::`"
+            },
+            {
+              "id": "b",
+              "text": "`->`"
+            },
+            {
+              "id": "c",
+              "text": "`=`"
+            },
+            {
+              "id": "d",
+              "text": "`=>`"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "Ein Lambda-Ausdruck trennt Parameter und Rumpf mit `->`. Der Rumpf liefert hier direkt den booleschen Ausdruck.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO12.md",
+            "heading": "6.1 Von der anonymen Klasse zum Lambda"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Lambda Expressions"
+          ]
+        },
+        {
+          "id": "eip-12-l2-q05",
+          "type": "multi",
+          "prompt": "Welche Aussagen zur Lambda-Syntax sind richtig? Wähle alle richtigen Aussagen.",
+          "options": [
+            {
+              "id": "a",
+              "text": "Bei mehreren Parametern müssen Klammern stehen."
+            },
+            {
+              "id": "b",
+              "text": "Ein Lambda enthält immer eine explizite Klassendeklaration."
+            },
+            {
+              "id": "c",
+              "text": "Ein Ausdrucksrumpf für eine Methode mit Rückgabewert muss immer zusätzlich `return` enthalten."
+            },
+            {
+              "id": "d",
+              "text": "Bei einem einzelnen inferierten Parameter sind die Klammern optional."
+            },
+            {
+              "id": "e",
+              "text": "Bei einem Blockrumpf muss ein nicht-`void`-Ergebnis mit `return` zurückgegeben werden."
+            }
+          ],
+          "correct": [
+            "a",
+            "d",
+            "e"
+          ],
+          "explanation": "Die Kurzform `r -> ...` ist für einen inferierten Einzelparameter möglich. Mehrere Parameter benötigen Klammern, und ein Blockrumpf gibt den Wert explizit mit `return` zurück; bei einem Ausdrucksrumpf ist das nicht nötig.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO12.md",
+            "heading": "6.2 Syntax und Type Inference"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Lambda Expressions",
+            "Type Inference"
+          ]
+        },
+        {
+          "id": "eip-12-l2-q06",
+          "type": "diagram",
+          "prompt": "Ein Test liefert für `a[i]` `false`. Welcher nächste Schritt ist im dargestellten Suchablauf vorgesehen?",
+          "context": {
+            "type": "mermaid",
+            "content": "flowchart TD\n    A[\"Start: i = 0\"] --> B{\"i < a.length?\"}\n    B -->|Nein| C[\"return false\"]\n    B -->|Ja| D{\"p.test(a[i])?\"}\n    D -->|true| E[\"return true\"]\n    D -->|false| F[\"i++\"]\n    F --> B",
+            "caption": "Ablauf einer Suche nach einem passenden Arrayelement"
+          },
+          "options": [
+            {
+              "id": "a",
+              "text": "Der aktuelle Index wird als Treffer zurückgegeben."
+            },
+            {
+              "id": "b",
+              "text": "Das Array wird sortiert."
+            },
+            {
+              "id": "c",
+              "text": "Die Methode gibt sofort `false` zurück."
+            },
+            {
+              "id": "d",
+              "text": "Der Index wird erhöht und die Schleifenbedingung erneut geprüft."
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Nach einem negativen Test wird `i` erhöht und der Ablauf kehrt zur Prüfung `i < a.length` zurück. Erst wenn alle Elemente geprüft wurden, gibt die Methode `false` zurück.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO12.md",
+            "heading": "1.2 Der Suchalgorithmus"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Property und Suchalgorithmus"
+          ]
+        },
+        {
+          "id": "eip-12-l2-q07-r1",
+          "type": "code_output",
+          "prompt": "Was gibt das Programm aus? In Java kann die anonyme Klasse den nicht neu zugewiesenen Parameter `word` erfassen und seinen Wert auch nach der Rückkehr aus `matching` verwenden.",
+          "context": {
+            "type": "code",
+            "content": "interface Property { boolean test(Object r); }\nclass Demo {\n    static Property matching(String word) {\n        return new Property() {\n            public boolean test(Object r) { return word.equals(r); }\n        };\n    }\n    public static void main(String[] args) {\n        Property p = matching(\"DS\");\n        System.out.print(p.test(\"DS\") + \" \");\n        System.out.println(p.test(\"ERA\"));\n    }\n}",
+            "language": "java",
+            "caption": "Eine anonyme Klasse verwendet einen erfassten Parameter"
+          },
+          "options": [
+            {
+              "id": "a",
+              "text": "`true true`"
+            },
+            {
+              "id": "b",
+              "text": "`false true`"
+            },
+            {
+              "id": "c",
+              "text": "`true false`"
+            },
+            {
+              "id": "d",
+              "text": "`false false`"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Das erzeugte Objekt vergleicht jedes Argument mit dem erfassten String `DS`. Der erste Vergleich ist wahr, der zweite falsch.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO12.md",
+            "heading": "3.2 Warum funktioniert der Test nach dem Methodenende?"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Captured state",
+            "Parameter erfassen",
+            "Effectively final"
+          ]
+        },
+        {
+          "id": "eip-12-l2-q08",
+          "type": "single",
+          "prompt": "Eine anonyme Klasse erweitert die abstrakte Klasse `AbstractValue`, deren Konstruktor `AbstractValue(int x)` ist. Welche Aussage zur Erzeugung passt?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Eine abstrakte Klasse darf nur mit `new AbstractValue()` erzeugt werden."
+            },
+            {
+              "id": "b",
+              "text": "Der Wert kann beim Erzeugen an den Konstruktor der Oberklasse übergeben werden."
+            },
+            {
+              "id": "c",
+              "text": "Die anonyme Unterklasse muss einen Konstruktor mit eigenem Namen deklarieren."
+            },
+            {
+              "id": "d",
+              "text": "Der Oberklassenkonstruktor wird erst beim Aufruf von `f()` ausgeführt."
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "Die anonyme Unterklasse selbst deklariert keinen eigenen Konstruktor. Beim Erzeugungsausdruck kann aber ein Argument wie `42` an den Konstruktor der Oberklasse übergeben werden.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO12.md",
+            "heading": "2.3 Anonyme Unterklasse einer abstrakten Klasse"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Anonyme Klassen"
+          ]
+        },
+        {
+          "id": "eip-12-l2-q09",
+          "type": "truefalse",
+          "prompt": "Eine `default`-Methode in einem Functional Interface ist bereits implementiert und zählt daher nicht als zweite abstrakte Funktionsanforderung.",
+          "options": [
+            {
+              "id": "true",
+              "text": "Wahr"
+            },
+            {
+              "id": "false",
+              "text": "Falsch"
+            }
+          ],
+          "correct": [
+            "true"
+          ],
+          "explanation": "Die Methode mit Rumpf ist bereits implementiert. Die SAM-Eigenschaft wird durch die Anzahl der abstrakten Anforderungen bestimmt.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO12.md",
+            "heading": "5. Functional Interfaces"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Functional Interfaces"
+          ]
+        },
+        {
+          "id": "eip-12-l2-q10",
+          "type": "multi",
+          "prompt": "Welche Aussagen vergleichen anonyme Klassen und Lambdas korrekt? Wähle alle richtigen Aussagen.",
+          "options": [
+            {
+              "id": "a",
+              "text": "Eine anonyme Klasse kann eine abstrakte Klasse erweitern."
+            },
+            {
+              "id": "b",
+              "text": "Ein Lambda kann eigene Instanzfelder deklarieren."
+            },
+            {
+              "id": "c",
+              "text": "Eine anonyme Klasse kann mehrere unabhängige abstrakte Methoden implementieren."
+            },
+            {
+              "id": "d",
+              "text": "Beide können ein Functional Interface implementieren."
+            },
+            {
+              "id": "e",
+              "text": "Ein Lambda kann als eigene Klasse mit explizitem Klassennamen deklariert werden."
+            }
+          ],
+          "correct": [
+            "a",
+            "c",
+            "d"
+          ],
+          "explanation": "Anonyme Klassen können Interfaces mit mehreren Methoden implementieren oder Klassen erweitern. Lambdas sind auf Functional Interfaces ausgerichtet und deklarieren keine eigenen Instanzfelder oder benannte Klassen.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO12.md",
+            "heading": "8. Gesamtvergleich"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Anonyme Klassen",
+            "Lambda Expressions",
+            "Functional Interfaces"
+          ]
+        },
+        {
+          "id": "eip-12-l2-q11-r1",
+          "type": "code_output",
+          "prompt": "Was gibt das Programm aus? `test` akzeptiert Strings, die mit `A` beginnen; die Default-Methode `rejects` gibt jeweils das Gegenteil von `test` zurück.",
+          "context": {
+            "type": "code",
+            "content": "interface Property {\n    boolean test(Object r);\n    default boolean rejects(Object r) { return !test(r); }\n}\nclass Demo {\n    public static void main(String[] args) {\n        Property p = r -> ((String) r).startsWith(\"A\");\n        System.out.print(p.rejects(\"Bee\") + \" \");\n        System.out.println(p.rejects(\"Apple\"));\n    }\n}",
+            "language": "java",
+            "caption": "Eine Lambda-Regel mit einer Default-Methode"
+          },
+          "options": [
+            {
+              "id": "a",
+              "text": "`true true`"
+            },
+            {
+              "id": "b",
+              "text": "`false true`"
+            },
+            {
+              "id": "c",
+              "text": "`false false`"
+            },
+            {
+              "id": "d",
+              "text": "`true false`"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "`Bee` beginnt nicht mit `A`, daher ist `test(\"Bee\")` falsch und `rejects(\"Bee\")` wahr. `Apple` wird akzeptiert, also liefert `rejects(\"Apple\")` false.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO12.md",
+            "heading": "5. Functional Interfaces"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Functional Interface",
+            "Default-Methode",
+            "Lambda-Ausdruck"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "eip-12-l3",
+      "index": 3,
+      "kind": "deepen",
+      "title": "Vertiefen",
+      "questions": [
+        {
+          "id": "eip-12-l3-q01",
+          "type": "single",
+          "prompt": "Eine Lambda-Expression verwendet eine lokale Referenzvariable `items`. Die Referenz wird nie neu zugewiesen, aber ein Arrayelement des referenzierten Arrays wird geändert. Welche Aussage trifft zu?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Die Arrayänderung weist die lokale Referenz automatisch neu zu."
+            },
+            {
+              "id": "b",
+              "text": "Das Capturing ist verboten, weil Arrays immer unveränderlich sein müssen."
+            },
+            {
+              "id": "c",
+              "text": "Das Capturing ist nur erlaubt, wenn das Array `null` ist."
+            },
+            {
+              "id": "d",
+              "text": "Das Capturing ist erlaubt, wenn `items` effectively final ist."
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Effectively final bezieht sich auf die Referenzvariable: Sie darf nicht erneut zugewiesen werden. Änderungen am referenzierten Objekt sind davon getrennt und können erlaubt sein.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO12.md",
+            "heading": null
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Captured state",
+            "Effectively final"
+          ]
+        },
+        {
+          "id": "eip-12-l3-q02",
+          "type": "truefalse",
+          "prompt": "Ein Lambda darf eine lokale Variable erfassen, auch wenn diese nach ihrer Initialisierung erneut zugewiesen wird, solange der neue Wert gleich bleibt.",
+          "options": [
+            {
+              "id": "true",
+              "text": "Wahr"
+            },
+            {
+              "id": "false",
+              "text": "Falsch"
+            }
+          ],
+          "correct": [
+            "false"
+          ],
+          "explanation": "Jede erneute Zuweisung verletzt effectively final, auch wenn derselbe Wert zugewiesen wird. Der Compiler meldet den Fehler vor der Laufzeit.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO12.md",
+            "heading": null
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Captured state",
+            "Effectively final"
+          ]
+        },
+        {
+          "id": "eip-12-l3-q03",
+          "type": "multi",
+          "prompt": "Welche Aussagen zu Functional Interfaces treffen zu? Wähle alle richtigen Aussagen.",
+          "options": [
+            {
+              "id": "a",
+              "text": "Ein Functional Interface kann zusätzlich implementierte Methoden enthalten."
+            },
+            {
+              "id": "b",
+              "text": "Ein `default`-Methodenrumpf macht eine zweite abstrakte Anforderung daraus."
+            },
+            {
+              "id": "c",
+              "text": "Die eine abstrakte Funktionsanforderung darf mehrere Parameter haben."
+            },
+            {
+              "id": "d",
+              "text": "Ein Interface mit zwei unabhängigen abstrakten Methoden ist weiterhin ein Zieltyp für ein Lambda."
+            },
+            {
+              "id": "e",
+              "text": "Ein Lambda braucht einen Zieltyp, der seine abstrakte Methode festlegt."
+            }
+          ],
+          "correct": [
+            "a",
+            "c",
+            "e"
+          ],
+          "explanation": "SAM steht für eine abstrakte Funktionsanforderung, nicht für einen einzelnen Parameter. Implementierte Methoden sind möglich, und der Zieltyp liefert dem Compiler den Methodenvertrag für das Lambda.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO12.md",
+            "heading": "6.4 Mehrere Parameter:"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Functional Interfaces",
+            "Lambda Expressions",
+            "Type Inference"
+          ]
+        },
+        {
+          "id": "eip-12-l3-q04-r1",
+          "type": "code_output",
+          "prompt": "Was gibt das Programm aus? In einer anonymen Klassenmethode bezeichnet `this` das anonyme Objekt. In einem Lambda bezeichnet `this` die umgebende `Demo`-Instanz. Bei Referenzen prüft `==`, ob beide auf dasselbe Objekt zeigen.",
+          "context": {
+            "type": "code",
+            "content": "interface Property { boolean test(Object r); }\nclass Demo {\n    Property anonymous() {\n        return new Property() {\n            public boolean test(Object r) { return this == r; }\n        };\n    }\n    Property lambda() { return r -> this == r; }\n    public static void main(String[] args) {\n        Demo owner = new Demo();\n        Property anonymous = owner.anonymous();\n        Property lambda = owner.lambda();\n        System.out.print(anonymous.test(anonymous) + \" \");\n        System.out.print(lambda.test(owner) + \" \");\n        System.out.print(anonymous.test(owner) + \" \");\n        System.out.println(lambda.test(lambda));\n    }\n}",
+            "language": "java",
+            "caption": "Identitätsvergleiche mit `this` in zwei Implementierungen"
+          },
+          "options": [
+            {
+              "id": "a",
+              "text": "`false false true true`"
+            },
+            {
+              "id": "b",
+              "text": "`true false true false`"
+            },
+            {
+              "id": "c",
+              "text": "`true true false false`"
+            },
+            {
+              "id": "d",
+              "text": "`false true false true`"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Die vier Vergleiche sind der Reihe nach: anonymes Objekt mit sich selbst (wahr), `owner` mit sich selbst im Lambda (wahr), anonymes Objekt mit `owner` (falsch) und `owner` mit dem Lambda-Objekt (falsch).",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO12.md",
+            "heading": "7.1 Vorlesungsbeispiel"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "`this` in anonymen Klassen",
+            "`this` in Lambdas",
+            "Referenzidentität"
+          ]
+        },
+        {
+          "id": "eip-12-l3-q05",
+          "type": "diagram",
+          "prompt": "Der Aufruf von `matching(\"hello\")` ist beendet. Welche Information bleibt für den späteren Aufruf von `test` verfügbar?",
+          "context": {
+            "type": "mermaid",
+            "content": "sequenceDiagram\n    participant C as Aufrufer\n    participant M as matching(word)\n    participant P as Property-Objekt\n    C->>M: matching(\"hello\")\n    M->>P: word erfassen\n    M-->>C: Referenz helloTest\n    Note over M,P: matching ist beendet\n    C->>P: test(\"hello\")\n    P-->>C: true",
+            "caption": "Erzeugen eines Tests und spätere Verwendung des erfassten Werts"
+          },
+          "options": [
+            {
+              "id": "a",
+              "text": "Keine Information, denn ein zurückgegebenes Objekt darf keine lokalen Werte verwenden."
+            },
+            {
+              "id": "b",
+              "text": "Nur die Rückgabe von `test`, die schon vorher berechnet wurde."
+            },
+            {
+              "id": "c",
+              "text": "Der gesamte lokale Stack Frame von `matching`."
+            },
+            {
+              "id": "d",
+              "text": "Der erfasste Wert des Parameters `word`."
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Das erzeugte Objekt hält den erfassten Wert für den späteren Aufruf verfügbar. Dafür muss der Methodenaufruf samt Stack Frame nicht weiterbestehen.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO12.md",
+            "heading": "3.2 Warum funktioniert der Test nach dem Methodenende?"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Captured state"
+          ]
+        },
+        {
+          "id": "eip-12-l3-q06",
+          "type": "single",
+          "prompt": "Warum kann `var p = r -> r != null;` den Typ des Lambdas nicht bestimmen?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Weil jeder Lambda-Ausdruck einen Blockrumpf benötigt."
+            },
+            {
+              "id": "b",
+              "text": "Weil `var` ausschließlich primitive Typen speichern darf."
+            },
+            {
+              "id": "c",
+              "text": "Weil dem Lambda ein Zieltyp fehlt, aus dem Parameter- und Rückgabetyp abgeleitet werden."
+            },
+            {
+              "id": "d",
+              "text": "Weil Lambdas nie einer Variable zugewiesen werden dürfen."
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Ein Lambda ist in diesem Zusammenhang nicht ohne Kontext typisiert. Ein Zieltyp wie `Property` legt fest, welche Methode implementiert wird und welche Typen gelten.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO12.md",
+            "heading": "6.3 Aufruf und Wiederverwendung"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Lambda Expressions",
+            "Type Inference"
+          ]
+        },
+        {
+          "id": "eip-12-l3-q07",
+          "type": "multi",
+          "prompt": "Ein `StringSearch`-Objekt hat das Feld `matchNull = false`. Seine Methode `matching(String word)` liefert einen Test, der `word.equals(r) || (matchNull && r == null)` prüft. Welche Aussagen über `word` und `matchNull` sind richtig? Wähle alle richtigen Aussagen.",
+          "options": [
+            {
+              "id": "a",
+              "text": "`matchNull` ist ein Instanzfeld des umgebenden Objekts."
+            },
+            {
+              "id": "b",
+              "text": "Jeder erzeugte Test erhält zwingend eine eigene Kopie von `matchNull`."
+            },
+            {
+              "id": "c",
+              "text": "`matchNull` muss effectively final sein."
+            },
+            {
+              "id": "d",
+              "text": "Ein Aufruf von `allowNulls()`, der `matchNull` auf `true` setzt, kann vorhandene Tests beeinflussen."
+            },
+            {
+              "id": "e",
+              "text": "`word` stammt aus dem Methodenparameter und wird vom jeweiligen Test erfasst."
+            }
+          ],
+          "correct": [
+            "a",
+            "d",
+            "e"
+          ],
+          "explanation": "Jeder Test erfasst sein lokales `word`, aber liest `matchNull` über dasselbe umgebende Objekt. Deshalb kann eine spätere Änderung des Feldes das Verhalten bereits erzeugter Tests ändern.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO12.md",
+            "heading": "Captured vs. enclosing state"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Captured state",
+            "Enclosing state"
+          ]
+        },
+        {
+          "id": "eip-12-l3-q08",
+          "type": "code_output",
+          "prompt": "Was geben die drei Testaufrufe in dieser Reihenfolge aus?",
+          "context": {
+            "type": "code",
+            "content": "interface Property { boolean test(Object r); }\nclass Demo {\n    public static void main(String[] args) {\n        Property even = r -> r != null && ((Integer) r) % 2 == 0;\n        System.out.print(even.test(null) + \" \");\n        System.out.print(even.test(4) + \" \");\n        System.out.println(even.test(5));\n    }\n}",
+            "language": "java"
+          },
+          "options": [
+            {
+              "id": "a",
+              "text": "`false false true`"
+            },
+            {
+              "id": "b",
+              "text": "`true false true`"
+            },
+            {
+              "id": "c",
+              "text": "`true true false`"
+            },
+            {
+              "id": "d",
+              "text": "`false true false`"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Bei `null` stoppt `&&` nach dem linken Ausdruck, sodass kein Cast ausgeführt wird und das Ergebnis `false` ist. Der Integer `4` ist gerade, `5` nicht.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO12.md",
+            "heading": "6.5 Capturing mit Lambdas (Ergänzung / Transfer)"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Lambda Expressions",
+            "Short-Circuit"
+          ]
+        },
+        {
+          "id": "eip-12-l3-q09",
+          "type": "truefalse",
+          "prompt": "Wenn ein Lambda einen `String`-Parameter einfängt, wird zwingend eine tiefe Kopie des `String`-Objekts gespeichert.",
+          "options": [
+            {
+              "id": "true",
+              "text": "Wahr"
+            },
+            {
+              "id": "false",
+              "text": "Falsch"
+            }
+          ],
+          "correct": [
+            "false"
+          ],
+          "explanation": "Bei einem Referenztyp ist der erfasste Wert die Referenz. Die Mitschrift unterscheidet ausdrücklich zwischen einer Referenz und einer tiefen Kopie des referenzierten Objekts.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO12.md",
+            "heading": "3.2 Warum funktioniert der Test nach dem Methodenende?"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Captured state"
+          ]
+        },
+        {
+          "id": "eip-12-l3-q10",
+          "type": "multi",
+          "prompt": "`StringSearch search` liefert `p = search.matching(\"bye\")` und `q = search.matching(\"hello\")`. `matching` prüft `word.equals(r) || (matchNull && r == null)`. Danach wird `search.allowNulls()` aufgerufen; diese Methode setzt `matchNull` auf `true`. Welche Aussagen sind richtig? Wähle alle richtigen Aussagen.",
+          "options": [
+            {
+              "id": "a",
+              "text": "`p.test(\"hello\")` liefert `true`."
+            },
+            {
+              "id": "b",
+              "text": "`q.test(null)` liefert `true`."
+            },
+            {
+              "id": "c",
+              "text": "`p.test(null)` liefert `true`."
+            },
+            {
+              "id": "d",
+              "text": "`allowNulls()` ändert das jeweils erfasste Wort."
+            },
+            {
+              "id": "e",
+              "text": "Beide Tests lesen das aktuelle Feld `matchNull` desselben Objekts."
+            }
+          ],
+          "correct": [
+            "b",
+            "c",
+            "e"
+          ],
+          "explanation": "`allowNulls()` setzt das gemeinsame Feld auf `true`, daher akzeptieren beide Tests `null`. `p` behält trotzdem sein erfasstes Wort `bye` und akzeptiert nicht dadurch den String `hello`.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO12.md",
+            "heading": "Captured vs. enclosing state"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Captured state",
+            "Enclosing state"
+          ]
+        },
+        {
+          "id": "eip-12-l3-q11",
+          "type": "single",
+          "prompt": "Warum ist `new Property()` ohne anschließenden Klassenrumpf ungültig?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Weil jeder Interface-Name einen Parameter benötigt."
+            },
+            {
+              "id": "b",
+              "text": "Weil eine Methode `test` keine Parameter haben darf."
+            },
+            {
+              "id": "c",
+              "text": "Weil `new` nur mit primitiven Typen verwendet werden darf."
+            },
+            {
+              "id": "d",
+              "text": "Weil `Property` ein Interface ist und das Objekt erst durch eine konkrete Implementierung erzeugt werden kann."
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Ein Interface ist kein direkt instanziierbarer konkreter Klassentyp. Der anonyme Klassenrumpf liefert hier eine Implementierung, deren Objekt erzeugt werden kann.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO12.md",
+            "heading": "2.2 Anonyme Klasse direkt instanziieren"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Anonyme Klassen",
+            "Functional Interfaces"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "eip-12-l4",
+      "index": 4,
+      "kind": "boss",
+      "title": "Boss",
+      "questions": [
+        {
+          "id": "eip-12-l4-q01",
+          "type": "multi",
+          "prompt": "Ein `StringSearch` besitzt das Feld `matchNull = false`. Es erzeugt `p = search.matching(\"bye\")`, wobei `matching` einen Test für `word.equals(r) || (matchNull && r == null)` liefert. Anschließend wird `search.allowNulls()` aufgerufen, wodurch `matchNull` auf `true` gesetzt wird. Welche Aussagen stimmen? Wähle alle richtigen Aussagen.",
+          "options": [
+            {
+              "id": "a",
+              "text": "`p.test(null)` liefert `true`."
+            },
+            {
+              "id": "b",
+              "text": "Der Test liest bei jedem Aufruf den aktuellen Wert des Feldes `matchNull`."
+            },
+            {
+              "id": "c",
+              "text": "`p.test(\"hello\")` liefert `true`."
+            },
+            {
+              "id": "d",
+              "text": "`p.test(\"bye\")` liefert `true`."
+            },
+            {
+              "id": "e",
+              "text": "Das erfasste Wort von `p` wird durch `allowNulls()` zu `null`."
+            }
+          ],
+          "correct": [
+            "a",
+            "b",
+            "d"
+          ],
+          "explanation": "Der Test behält das erfasste Wort `bye`, liest aber das veränderliche Feld `matchNull` beim Aufruf. Nach `allowNulls()` werden daher sowohl `bye` als auch `null` akzeptiert, `hello` nicht.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO12.md",
+            "heading": "Captured vs. enclosing state"
+          },
+          "difficulty": 5,
+          "concepts": [
+            "Captured state",
+            "Enclosing state"
+          ]
+        },
+        {
+          "id": "eip-12-l4-q02",
+          "type": "code_output",
+          "prompt": "Was gibt das Programm aus?",
+          "context": {
+            "type": "code",
+            "content": "interface Property { boolean test(Object r); }\nclass Demo {\n    Property anonymous() {\n        return new Property() {\n            public boolean test(Object r) { return this == r; }\n        };\n    }\n    Property lambda() { return r -> this == r; }\n    public static void main(String[] args) {\n        Demo owner = new Demo();\n        Property anonymous = owner.anonymous();\n        Property lambda = owner.lambda();\n        System.out.print(anonymous.test(owner) + \" \");\n        System.out.println(lambda.test(lambda));\n    }\n}",
+            "language": "java"
+          },
+          "options": [
+            {
+              "id": "a",
+              "text": "`true true`"
+            },
+            {
+              "id": "b",
+              "text": "`false true`"
+            },
+            {
+              "id": "c",
+              "text": "`true false`"
+            },
+            {
+              "id": "d",
+              "text": "`false false`"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Das anonyme Objekt ist nicht mit `owner` identisch. Beim Lambda bezeichnet `this` dagegen `owner`, aber der übergebene Wert ist `lambda`, also eine andere Referenz.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO12.md",
+            "heading": "7.1 Vorlesungsbeispiel"
+          },
+          "difficulty": 5,
+          "concepts": [
+            "`this`-Kontext",
+            "Anonyme Klassen",
+            "Lambda Expressions"
+          ]
+        },
+        {
+          "id": "eip-12-l4-q03",
+          "type": "diagram",
+          "prompt": "Welche Auswertung ist gemäß dem Diagramm wahr?",
+          "context": {
+            "type": "mermaid",
+            "content": "flowchart TD\n    O[\"owner: Demo\"]\n    A[\"anonymous: Property\"]\n    L[\"lambda: Property\"]\n    O -->|erzeugt| A\n    O -->|liefert| L\n    A -->|this| A\n    L -->|this| O",
+            "caption": "Referenzen und `this`-Kontexte zweier Tests"
+          },
+          "options": [
+            {
+              "id": "a",
+              "text": "`lambda.test(owner)`"
+            },
+            {
+              "id": "b",
+              "text": "`anonymous.test(owner)`"
+            },
+            {
+              "id": "c",
+              "text": "`anonymous.test(lambda)`"
+            },
+            {
+              "id": "d",
+              "text": "`lambda.test(lambda)`"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "Das Lambda verwendet den umgebenden `this`, also `owner`. Der Vergleich `lambda.test(owner)` vergleicht daher dieselbe Referenz mit sich selbst. Das anonyme Objekt verwendet dagegen sein eigenes `this`.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO12.md",
+            "heading": "7.1 Vorlesungsbeispiel"
+          },
+          "difficulty": 5,
+          "concepts": [
+            "`this`-Kontext",
+            "Anonyme Klassen",
+            "Lambda Expressions"
+          ]
+        },
+        {
+          "id": "eip-12-l4-q04",
+          "type": "single",
+          "prompt": "Eine Variable vom Typ `Property` verweist auf ein Objekt einer konkreten Implementierung, die `test` überschreibt. Welche Implementierung wird bei `p.test(x)` ausgeführt?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Keine, weil Interface-Referenzen keine Methoden aufrufen dürfen."
+            },
+            {
+              "id": "b",
+              "text": "Die Implementierung des tatsächlichen Objekts, das `test` überschreibt."
+            },
+            {
+              "id": "c",
+              "text": "Immer eine Implementierung aus `Object`."
+            },
+            {
+              "id": "d",
+              "text": "Die Methode wird anhand des Variablennamens `p` ausgewählt."
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "Der Referenztyp erlaubt den Aufruf von `test`; bei einer überschriebenen Instanzmethode bestimmt die tatsächliche Objektklasse die ausgeführte Implementierung. Das ist dynamische Bindung.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO10.md",
+            "heading": null
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Verhalten als Parameter",
+            "Property und Suchalgorithmus"
+          ]
+        },
+        {
+          "id": "eip-12-l4-q05",
+          "type": "code_output",
+          "prompt": "Was gibt dieses Programm aus?",
+          "context": {
+            "type": "code",
+            "content": "interface Property { boolean test(Object r); }\nclass Demo {\n    public static void main(String[] args) {\n        Property even = r -> r != null && ((Integer) r) % 2 == 0;\n        System.out.print(even.test(null) + \" \");\n        System.out.println(even.test(6));\n    }\n}",
+            "language": "java"
+          },
+          "options": [
+            {
+              "id": "a",
+              "text": "`true true`"
+            },
+            {
+              "id": "b",
+              "text": "`false true`"
+            },
+            {
+              "id": "c",
+              "text": "`true false`"
+            },
+            {
+              "id": "d",
+              "text": "`false false`"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "`r != null` ist beim ersten Aufruf falsch; wegen Short-Circuit wird der rechte Ausdruck nicht ausgewertet und der Cast auf `Integer` entfällt. Beim Wert `6` ist der linke Ausdruck wahr und `6 % 2 == 0` ebenfalls.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO12.md",
+            "heading": "6.5 Capturing mit Lambdas (Ergänzung / Transfer)"
+          },
+          "difficulty": 5,
+          "concepts": [
+            "Lambda Expressions",
+            "Short-Circuit"
+          ]
+        },
+        {
+          "id": "eip-12-l4-q06",
+          "type": "single",
+          "prompt": "Zwei verschiedene Referenzen `a` und `b` zeigen auf unterschiedliche Objekte mit demselben Inhalt; eine passende `equals`-Methode prüft diesen Inhalt. Welche Aussage gilt?",
+          "options": [
+            {
+              "id": "a",
+              "text": "`a == b` ist `true`, weil die Inhalte gleich sind."
+            },
+            {
+              "id": "b",
+              "text": "`a == b` ist `false`, während `a.equals(b)` `true` sein kann."
+            },
+            {
+              "id": "c",
+              "text": "`==` und `equals` prüfen bei Referenzen immer dasselbe."
+            },
+            {
+              "id": "d",
+              "text": "`a.equals(b)` muss `false` sein, wenn die Referenzen verschieden sind."
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "`==` prüft bei Referenzen die Objektidentität. Eine passende `equals`-Methode kann dagegen Wertgleichheit prüfen, sodass unterschiedliche Objekte inhaltlich gleich sein können.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO8.md",
+            "heading": null
+          },
+          "difficulty": 4,
+          "concepts": [
+            "`this`-Kontext",
+            "Anonyme Klassen",
+            "Lambda Expressions"
+          ]
+        },
+        {
+          "id": "eip-12-l4-q07",
+          "type": "multi",
+          "prompt": "Welche Aussagen zum Vergleich von anonymen Klassen und Lambdas treffen zu? Wähle alle richtigen Aussagen.",
+          "options": [
+            {
+              "id": "a",
+              "text": "Eine anonyme Klasse kann ein Interface mit mehreren unabhängigen abstrakten Methoden implementieren."
+            },
+            {
+              "id": "b",
+              "text": "Beide können lokale Werte aus dem umgebenden Methodenaufruf erfassen."
+            },
+            {
+              "id": "c",
+              "text": "Ein Lambda hat einen eigenen `this`-Kontext."
+            },
+            {
+              "id": "d",
+              "text": "Ein Lambda kann eine konkrete Klasse erweitern."
+            },
+            {
+              "id": "e",
+              "text": "Eine anonyme Klasse kann eigene Instanzfelder deklarieren."
+            }
+          ],
+          "correct": [
+            "a",
+            "b",
+            "e"
+          ],
+          "explanation": "Anonyme Klassen können Methoden und Felder selbst definieren und sind nicht auf Functional Interfaces beschränkt. Beide Formen können lokale Werte erfassen, sofern diese final oder effectively final sind; ein Lambda erweitert aber keine Klasse und führt kein eigenes `this` ein.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO12.md",
+            "heading": "8. Gesamtvergleich"
+          },
+          "difficulty": 5,
+          "concepts": [
+            "Anonyme Klassen",
+            "Captured state",
+            "Lambda Expressions"
+          ]
+        },
+        {
+          "id": "eip-12-l4-q08",
+          "type": "single",
+          "prompt": "Warum ist `var p = r -> r != null;` kein gültiger Ersatz für `Property p = r -> r != null;`?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Bei `var` fehlt der Zieltyp, der den Lambda-Vertrag und die Parametertypen festlegt."
+            },
+            {
+              "id": "b",
+              "text": "`Property` darf nur als Parameter und nie als Variablentyp verwendet werden."
+            },
+            {
+              "id": "c",
+              "text": "Ein Lambda darf keinen booleschen Ausdruck enthalten."
+            },
+            {
+              "id": "d",
+              "text": "Der Name `p` ist als Java-Variablenname verboten."
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "Der Lambda-Ausdruck benötigt einen bekannten Zieltyp. `Property` liefert die Signatur von `test`; ohne diesen Kontext kann der Compiler den Lambda-Typ nicht inferieren.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO12.md",
+            "heading": "6.3 Aufruf und Wiederverwendung"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Lambda Expressions",
+            "Type Inference"
+          ]
+        },
+        {
+          "id": "eip-12-l4-q09",
+          "type": "truefalse",
+          "prompt": "Ein Lambda kann als Implementierung für ein Interface mit zwei unabhängigen abstrakten Methoden dienen, sofern beide Methoden denselben Rückgabetyp haben.",
+          "options": [
+            {
+              "id": "true",
+              "text": "Wahr"
+            },
+            {
+              "id": "false",
+              "text": "Falsch"
+            }
+          ],
+          "correct": [
+            "false"
+          ],
+          "explanation": "Ein Lambda liefert das Verhalten für genau eine abstrakte Funktionsanforderung. Zwei unabhängige abstrakte Methoden machen das Interface nicht zu einem Functional Interface, auch wenn ihre Rückgabetypen gleich sind.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO12.md",
+            "heading": "5. Functional Interfaces"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Functional Interfaces",
+            "Lambda Expressions"
+          ]
+        },
+        {
+          "id": "eip-12-l4-q10",
+          "type": "cloze",
+          "prompt": "Ein Functional Interface hat genau eine abstrakte ___, die ein Lambda implementiert.",
+          "options": [
+            {
+              "id": "a",
+              "text": "Funktionsanforderung"
+            },
+            {
+              "id": "b",
+              "text": "Instanzvariable"
+            },
+            {
+              "id": "c",
+              "text": "Klassendeklaration"
+            },
+            {
+              "id": "d",
+              "text": "Konstruktorverkettung"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "Die SAM-Eigenschaft steht für eine einzelne abstrakte Funktionsanforderung. Ihre Parameterzahl kann trotzdem größer als eins sein.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO12.md",
+            "heading": "5. Functional Interfaces"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Functional Interfaces",
+            "Lambda Expressions"
+          ]
+        },
+        {
+          "id": "eip-12-l4-q11",
+          "type": "single",
+          "prompt": "Ein Suchalgorithmus soll dieselbe Schleife für Regeln wie „nicht `null`“ und „gleich einem bestimmten Wort“ verwenden. Welche Aufteilung macht das möglich?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Für jede Regel wird eine vollständig eigene Schleife im Algorithmus eingebaut."
+            },
+            {
+              "id": "b",
+              "text": "Das Array speichert die Implementierung der Regel in jedem Element."
+            },
+            {
+              "id": "c",
+              "text": "Das Interface muss die Werte des Arrays vor der Suche sortieren."
+            },
+            {
+              "id": "d",
+              "text": "Der Algorithmus übernimmt die Traversierung; eine übergebene `Property`-Implementierung übernimmt die Regel."
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Der Algorithmus bleibt für alle Regeln gleich und ruft für jedes Element die übergebene Testmethode auf. So wird Verhalten als Parameter übergeben, während Traversierung und Auswahlregel getrennt bleiben.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO12.md",
+            "heading": "1. Passing a matching rule – Verhalten übergeben"
+          },
+          "difficulty": 5,
+          "concepts": [
+            "Verhalten als Parameter",
+            "Property und Suchalgorithmus",
+            "Lambda Expressions"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "eip-12-l5",
+      "index": 5,
+      "kind": "bonus",
+      "title": "Praxis: Code im Alltag",
+      "questions": [
+        {
+          "id": "eip-12-l5-q01",
+          "type": "single",
+          "prompt": "Du baust eine Java-Routen-App. Dieselbe Schleife soll Kandidatenrouten prüfen, je nach Wunsch aber entweder eine barrierefreie Route oder eine Route unter 20 Minuten finden. Welches Design passt zu diesem Problem?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Die Schleife nimmt stets die erste Route, ohne eine Auswahlregel auszuwerten."
+            },
+            {
+              "id": "b",
+              "text": "Die Schleife durchläuft die Routen; der Aufrufer übergibt eine `Property` mit der gewünschten Auswahlregel."
+            },
+            {
+              "id": "c",
+              "text": "Java muss zur Laufzeit den Quelltext der Schleife umschreiben, damit sie eine andere Auswahlregel nutzt."
+            },
+            {
+              "id": "d",
+              "text": "Die `Property` bestimmt selbst, welches Element die Schleife als Nächstes durchläuft; eine Schleife wird dadurch überflüssig."
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "Die Traversierung bleibt gleich, während die übergebene `Property` festlegt, was als Treffer gilt. So wird Verhalten als Parameter übergeben.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO12.md",
+            "heading": "1.2 Der Suchalgorithmus"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Verhalten als Parameter",
+            "Property und Suchalgorithmus"
+          ]
+        },
+        {
+          "id": "eip-12-l5-q02",
+          "type": "single",
+          "prompt": "Eine Java-App soll beim Tippen auf „Entwurf speichern“ eine Aktion ausführen. Die Button-API erwartet ein Listener-Interface mit genau einer abstrakten Methode. Welche Lösung nutzt ein Lambda passend?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Das Listener-Interface muss eine abstrakte Klasse sein, damit ein Lambda dafür verwendet werden kann."
+            },
+            {
+              "id": "b",
+              "text": "Ein Lambda verwenden, um ein Interface mit zwei abstrakten Methoden vollständig zu implementieren."
+            },
+            {
+              "id": "c",
+              "text": "Direkt beim Button-Aufruf `event -> saveDraft()` als Verhalten übergeben."
+            },
+            {
+              "id": "d",
+              "text": "Das Lambda als Textzeichenfolge an die Button-API übergeben."
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Das Listener-Interface hat eine abstrakte Methode und kann daher als Zieltyp für ein Lambda dienen. Das Lambda liefert die Aktion für den Klick.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO12.md",
+            "heading": "6.1 Von der anonymen Klasse zum Lambda"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Functional Interfaces",
+            "Lambda Expressions"
+          ]
+        },
+        {
+          "id": "eip-12-l5-q03",
+          "type": "estimate",
+          "prompt": "Eine Karten-App prüft 30 Routen in Array-Reihenfolge. Der erste Treffer liegt an Index 8 (die Zählung beginnt bei 0); bei einem Treffer stoppt die Suche sofort. Wie viele `Property.test`-Aufrufe erfolgen?",
+          "options": [],
+          "correct": [],
+          "slider": {
+            "min": 0,
+            "max": 30,
+            "step": 1,
+            "answer": 9,
+            "tolerance": 0,
+            "unit": "Aufrufe",
+            "scale": "linear"
+          },
+          "explanation": "Die Indizes 0 bis 8 werden geprüft, also insgesamt 9 Einträge. Beim Treffer an Index 8 endet die Suche sofort.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO12.md",
+            "heading": "1.3 Beispiel und Short-Circuit"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Suchalgorithmus",
+            "Short-Circuit"
+          ]
+        },
+        {
+          "id": "eip-12-l5-q04",
+          "type": "single",
+          "prompt": "In einem Spielsensor soll eine einmalige Implementierung zwei Ereignisse behandeln (`onHit` und `onReset`) und einen eigenen Trefferzähler speichern. Welche Lösung passt zu diesen Anforderungen?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Eine `default`-Methode, die den Zähler für jedes Sensorobjekt separat speichert."
+            },
+            {
+              "id": "b",
+              "text": "Ein captured lokaler Zähler, der bei jedem Treffer neu zugewiesen wird."
+            },
+            {
+              "id": "c",
+              "text": "Ein einzelnes Lambda, das automatisch beide abstrakten Methoden implementiert."
+            },
+            {
+              "id": "d",
+              "text": "Eine anonyme Klasse, die beide Methoden implementiert und ein eigenes Feld für den Zähler besitzt."
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Eine anonyme Klasse kann mehrere abstrakte Methoden implementieren und eigene Felder besitzen. Ein Lambda implementiert die eine abstrakte Methode eines Functional Interfaces.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO12.md",
+            "heading": "2.2 Anonyme Klasse direkt instanziieren"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Anonyme Klassen",
+            "Functional Interfaces"
+          ]
+        },
+        {
+          "id": "eip-12-l5-q05",
+          "type": "single",
+          "prompt": "Ein Messenger plant eine Benachrichtigung für später. Die Methode, die sie plant, endet vorher; der spätere Callback soll trotzdem noch die beim Planen übergebene `messageId` verwenden. Welches Konzept ermöglicht das?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Die Benachrichtigung muss ein Instanzfeld des Messengers statt des Parameters lesen."
+            },
+            {
+              "id": "b",
+              "text": "Der Callback greift automatisch auf den jeweils neuesten Wert einer beliebig neu zuweisbaren lokalen Variable zu."
+            },
+            {
+              "id": "c",
+              "text": "Der Compiler hält den gesamten Stack der beendeten Methode dauerhaft im Speicher."
+            },
+            {
+              "id": "d",
+              "text": "Der Callback erfasst den Parameter `messageId`; dieser muss final oder effectively final sein."
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "Ein Callback kann einen lokalen Parameter erfassen und den Wert nach dem Methodenende weiterverwenden. Erfasste lokale Variablen dürfen nicht erneut zugewiesen werden.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO12.md",
+            "heading": "3.2 Warum funktioniert der Test nach dem Methodenende?"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Captured state",
+            "Effectively final"
+          ]
+        },
+        {
+          "id": "eip-12-l5-q06",
+          "type": "estimate",
+          "prompt": "Eine Playlist enthält 40 Einträge und genau einer passt zur Suche. Angenommen, der passende Eintrag ist gleich wahrscheinlich an jeder Position und die Suche stoppt beim Treffer: Wie viele `Property.test`-Aufrufe sind es im Durchschnitt?",
+          "options": [],
+          "correct": [],
+          "slider": {
+            "min": 0,
+            "max": 80,
+            "step": 0.5,
+            "answer": 20.5,
+            "tolerance": 0,
+            "unit": "Aufrufe im Mittel",
+            "scale": "linear"
+          },
+          "explanation": "Die Trefferposition entspricht gleich wahrscheinlich einer Aufrufzahl von 1 bis 40. Der Mittelwert ist $(1+40)/2=20{,}5$.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO12.md",
+            "heading": "1.2 Der Suchalgorithmus"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Suchalgorithmus",
+            "Short-Circuit"
+          ]
+        },
+        {
+          "id": "eip-12-l5-q07",
+          "type": "single",
+          "prompt": "Ein Dashboard-Filter wird in einer Controller-Methode erstellt. Seine Regel liest bei jeder Prüfung das Instanzfeld `selectedCategory` desselben Controllers. Später ändert der Nutzer die Kategorie, und der schon erstellte Filter soll die neue Auswahl verwenden. Was beschreibt das?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Der Compiler ersetzt den Filter nach jeder Änderung durch eine anonyme Klasse."
+            },
+            {
+              "id": "b",
+              "text": "Der Filter hat den Wert des Feldes als lokale Variable eingefangen; diese Variable wird beim Feldwechsel automatisch neu zugewiesen."
+            },
+            {
+              "id": "c",
+              "text": "Der Filter liest bei jedem Aufruf den aktuellen Enclosing state des Controllers."
+            },
+            {
+              "id": "d",
+              "text": "Die Annotation `@FunctionalInterface` macht das Feld automatisch veränderlich."
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Das Instanzfeld wird über das umgebende Controller-Objekt gelesen. Deshalb können Änderungen an `selectedCategory` auch das Verhalten eines bereits erstellten Filters beeinflussen.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO12.md",
+            "heading": "4. Enclosing state – Zustand des umgebenden Objekts"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Enclosing state",
+            "Captured state"
+          ]
+        },
+        {
+          "id": "eip-12-l5-q08",
+          "type": "estimate",
+          "prompt": "Du schreibst einen Testgenerator für eine vierstellige PIN. Jede Stelle darf eine Ziffer von 0 bis 9 sein; führende Nullen sind erlaubt. Wie viele verschiedene Kandidaten kann eine `Property` grundsätzlich prüfen, in Tausendern?",
+          "options": [],
+          "correct": [],
+          "slider": {
+            "min": 0,
+            "max": 40,
+            "step": 1,
+            "answer": 10,
+            "tolerance": 0,
+            "unit": "Tsd. PINs",
+            "scale": "linear"
+          },
+          "explanation": "Jede der vier Stellen hat 10 Möglichkeiten, also gibt es $10^4=10\\,000$ Kandidaten. Das sind 10 Tausend PINs, die eine übergebene Regel prüfen könnte.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO12.md",
+            "heading": "1.2 Der Suchalgorithmus"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Property und Suchalgorithmus",
+            "Verhalten als Parameter"
+          ]
+        },
+        {
+          "id": "eip-12-l5-q09",
+          "type": "single",
+          "prompt": "In einer Instanzmethode eines Java-Controllers übergibst du `event -> this.refresh()` als Klickaktion. Welche Aussage über `this` stimmt?",
+          "options": [
+            {
+              "id": "a",
+              "text": "`this` bezeichnet den Controller, in dessen Methode das Lambda steht."
+            },
+            {
+              "id": "b",
+              "text": "`this` bezeichnet ein automatisch erzeugtes Objekt einer anonymen Klasse."
+            },
+            {
+              "id": "c",
+              "text": "Ein Lambda darf `this` nur verwenden, wenn der Controller ein Functional Interface ist."
+            },
+            {
+              "id": "d",
+              "text": "`this` bezeichnet immer das Objekt, das die Klickaktion gerade aufruft."
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "Ein Lambda führt kein eigenes `this` ein, sondern verwendet den lexikalisch umgebenden Kontext. Hier ist das der Controller.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO12.md",
+            "heading": "7.1 Vorlesungsbeispiel"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "`this`-Kontext",
+            "Lambda Expressions"
+          ]
+        },
+        {
+          "id": "eip-12-l5-q10",
+          "type": "single",
+          "prompt": "Ein Netzwerkparser prüft ein Paket mit `packet != null && packet.isValid()`. Welcher Alltagsfall zeigt hier Short-Circuit-Verhalten?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Der Compiler speichert das Ergebnis von `isValid()` für spätere Pakete zwischen."
+            },
+            {
+              "id": "b",
+              "text": "Beide Seiten von `&&` werden immer ausgewertet, unabhängig vom linken Ergebnis."
+            },
+            {
+              "id": "c",
+              "text": "Wenn `packet` `null` ist, wird `packet.isValid()` nicht aufgerufen."
+            },
+            {
+              "id": "d",
+              "text": "Der Parser überspringt `packet.isValid()` bei jedem zweiten Paket."
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Bei `&&` wird die rechte Seite nur ausgewertet, wenn die linke Seite `true` ist. So wird bei `packet == null` kein Methodenaufruf auf `null` versucht.",
+          "source": {
+            "file": "EIP/01_Vorlesungen/EIP VO12.md",
+            "heading": "1.3 Beispiel und Short-Circuit"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Short-Circuit",
+            "Property und Suchalgorithmus"
+          ]
+        }
+      ]
+    }
+  ]
+}
