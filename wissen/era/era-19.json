@@ -1,0 +1,393 @@
+{
+  "schemaVersion": 1,
+  "unitId": "era-19",
+  "module": "ERA",
+  "unitNumber": 19,
+  "unitTitle": "Addierer, Multiplizierer und Speicher",
+  "sourceSha": "46d6faee8efb7cef2fa2587b5dfac8d6d8f5c982d4be97771206fc31d553b3c5",
+  "overview": "Die Unit behandelt Halb- und Volladdierer, daraus aufgebaute Addierer und Subtraktion mit Zweierkomplement. Sie zeigt, wie Partialprodukte und Carry-Save-Stufen Multiplikationen effizient berechnen, und führt anschließend Latches, Flipflops, Register und einen synchronen Inkrementzähler ein.",
+  "entries": [
+    {
+      "id": "era-19-k01",
+      "term": "Halbaddierer (HA)",
+      "kind": "definition",
+      "short": "Ein Halbaddierer addiert zwei Bits und liefert Summe und Übertrag, aber keinen Carry-in.",
+      "explanation": "Für die Eingabebits $a$ und $b$ gilt $s=a\\oplus b$ und $c=a\\land b$. Die Summe ist das niederwertige Bit und der Carry $c$ das höherwertige Bit der Addition, sodass $a+b=s+2c$ gilt.",
+      "example": "Für $a=b=1$ gilt $s=0$ und $c=1$, also $1+1=0+2\\cdot1$.",
+      "pitfalls": [
+        "Ein Halbaddierer kann keinen Übertrag aus einer vorherigen Stelle verarbeiten."
+      ],
+      "related": [
+        "Volladdierer (VA / FA)",
+        "Ripple-Carry-Addierer (RCA)",
+        "Boolesche Algebra"
+      ],
+      "heading": "1. Halbaddierer (HA) – Folie 3"
+    },
+    {
+      "id": "era-19-k02",
+      "term": "Volladdierer (VA / FA)",
+      "kind": "definition",
+      "short": "Ein Volladdierer addiert zwei Bits und einen eingehenden Übertrag.",
+      "explanation": "Für die Eingänge $a$, $b$ und $c_{in}$ gilt $s=a\\oplus b\\oplus c_{in}$ und $c_{out}=(a\\land b)\\lor(a\\land c_{in})\\lor(b\\land c_{in})$. Die Summe ist 1, wenn eine ungerade Anzahl der Eingänge 1 ist; der Carry-out ist 1, wenn mindestens zwei Eingänge 1 sind. Damit gilt $a+b+c_{in}=s+2c_{out}$.",
+      "example": "Für $a=1$, $b=0$ und $c_{in}=1$ ergeben sich $s=0$ und $c_{out}=1$, also $1+0+1=0+2$.",
+      "pitfalls": [
+        "Der Carry-out ist die Mehrheitsfunktion der drei Eingänge, nicht deren Parität.",
+        "Ein Volladdierer hat einen Carry-in; ein Halbaddierer hat keinen."
+      ],
+      "related": [
+        "Halbaddierer (HA)",
+        "Ripple-Carry-Addierer (RCA)",
+        "Carry-Save-Addierer"
+      ],
+      "heading": "2. Volladdierer (VA / FA) – Folien 4–5"
+    },
+    {
+      "id": "era-19-k03",
+      "term": "Ripple-Carry-Addierer (RCA)",
+      "kind": "definition",
+      "short": "Ein Ripple-Carry-Addierer verkettet Volladdierer, sodass der Übertrag von Stelle zu Stelle weiterläuft.",
+      "explanation": "An jeder Bitstelle $i$ berechnet ein Volladdierer $s_i=a_i\\oplus b_i\\oplus c_{i-1}$ und den Carry-out $c_i=(a_i\\land b_i)\\lor((a_i\\oplus b_i)\\land c_{i-1})$. Bei einer gewöhnlichen Addition ist der anfängliche Carry $c_{-1}=0$; bei vorzeichenloser Addition kann der letzte Carry das zusätzliche Ergebnisbit sein. Im ungünstigsten Fall durchläuft der Carry alle $n$ Stufen, sodass die logische Tiefe bei konstanter Tiefe pro Volladdierer mit der Wortbreite linear wächst: $\\Theta(n)$.",
+      "example": "Bei $0111_2+0001_2$ läuft der Carry durch die unteren drei Stellen und das Ergebnis ist $1000_2$.",
+      "pitfalls": [
+        "Der Carry läuft von der niederwertigsten zur höchstwertigen Stelle.",
+        "Bei fester Ergebniswortbreite gehört der letzte Carry-out nicht automatisch zu den gespeicherten Ergebnisbits."
+      ],
+      "related": [
+        "Volladdierer (VA / FA)",
+        "Conditional-Sum-Addierer",
+        "Zweierkomplement-Subtraktion mit einer Addier-Subtrahier-Schaltung"
+      ],
+      "heading": "3. Ripple-Carry-Addierer (RCA) – Folien 6–7"
+    },
+    {
+      "id": "era-19-k04",
+      "term": "Multiplexer (MUX)",
+      "kind": "definition",
+      "short": "Ein Multiplexer wählt abhängig von einem Select-Signal einen seiner Dateneingänge als Ausgang aus.",
+      "explanation": "Ein MUX mit zwei Dateneingängen gibt je nach Select-Signal einen der beiden Werte weiter. Im Conditional-Sum-Addierer wählt er das vorab berechnete Teilergebnis passend zum tatsächlichen Carry der unteren Hälfte. Beim D-Latch kann ein MUX zwischen dem alten Zustand und dem neuen Datenwert wählen.",
+      "example": "Wenn der Select-Wert 1 ist, gibt ein 2-zu-1-MUX den Dateneingang weiter, der diesem Select-Wert zugeordnet ist.",
+      "pitfalls": [
+        "Der MUX berechnet die möglichen Addierergebnisse nicht selbst, sondern wählt eines der bereits berechneten Ergebnisse aus."
+      ],
+      "related": [
+        "Conditional-Sum-Addierer",
+        "D-Latch"
+      ],
+      "heading": "4. Conditional Sum – Folien 8–14"
+    },
+    {
+      "id": "era-19-k05",
+      "term": "Conditional-Sum-Addierer",
+      "kind": "method",
+      "short": "Ein Conditional-Sum-Addierer berechnet mögliche Carry-Fälle parallel und wählt anschließend das passende Ergebnis aus.",
+      "explanation": "Die untere Hälfte wird mit dem tatsächlichen Carry-in addiert. Für die obere Hälfte werden parallel zwei Ergebnisse berechnet: eines unter der Annahme Carry-in 0 und eines unter Carry-in 1. Der Carry-out der unteren Hälfte steuert den MUX, der das passende obere Ergebnis auswählt. Bei rekursiver Halbierung ergibt sich im idealisierten Modell eine Tiefe von $\\Theta(\\log n)$, benötigt wird dafür zusätzliche Hardware.",
+      "example": "Für $A=0111_2$ und $B=0001_2$ liefert die untere Hälfte $11+01=100$, also Ergebnisbits $00$ und Carry 1. Oben wählt der MUX das Ergebnis $01+00+1=10$; zusammengesetzt ergibt das $1000_2$ mit Endcarry 0.",
+      "pitfalls": [
+        "Der MUX muss das Ergebnis auswählen, das zum tatsächlichen Carry der unteren Hälfte passt.",
+        "Die geringere Tiefe wird mit zusätzlicher Rechenlogik erkauft."
+      ],
+      "related": [
+        "Multiplexer (MUX)",
+        "Ripple-Carry-Addierer (RCA)",
+        "Volladdierer (VA / FA)"
+      ],
+      "heading": "4. Conditional Sum – Folien 8–14"
+    },
+    {
+      "id": "era-19-k06",
+      "term": "Zweierkomplement-Subtraktion mit einer Addier-Subtrahier-Schaltung",
+      "kind": "method",
+      "short": "Bei fester Wortbreite berechnet dieselbe Addierschaltung $A-B$ als $A+\\overline B+1$ modulo $2^n$.",
+      "explanation": "Im Zweierkomplement gilt $-B\\equiv\\overline B+1\\pmod{2^n}$ und damit $A-B\\equiv A+\\overline B+1\\pmod{2^n}$. Ein Steuersignal $sub$ invertiert jedes Bit von $B$ durch $b_i'=b_i\\oplus sub$ und wird zugleich als anfänglicher Carry-in verwendet: $c_{-1}=sub$. Bei $sub=0$ entsteht $A+B$; bei $sub=1$ entsteht $A-B$.",
+      "example": "Bei 4 Bit ergibt $5-3$ die Rechnung $0101+1100+1=1\\,0010$; die unteren vier Bits sind $0010_2=2$.",
+      "pitfalls": [
+        "Das Ergebnis ist bei fester Wortbreite modulo $2^n$ zu verstehen.",
+        "Der Endcarry und der signed Overflow sind verschiedene Größen."
+      ],
+      "related": [
+        "Zweierkomplement",
+        "Ripple-Carry-Addierer (RCA)",
+        "Volladdierer (VA / FA)"
+      ],
+      "heading": "5. Addition und Subtraktion mit derselben Schaltung – Folien 15–16"
+    },
+    {
+      "id": "era-19-k07",
+      "term": "Binäre Multiplikation mit Partialprodukten",
+      "kind": "method",
+      "short": "Bei der binären Multiplikation werden gewichtete Partialprodukte gebildet und zu einem Produkt addiert.",
+      "explanation": "Schreibt man $A=\\sum_i a_i2^i$, gilt $A\\cdot B=\\sum_i(a_i\\cdot B)2^i$. Für jede Stelle $i$ wird $B$ mit $a_i$ verundet und um $i$ Stellen nach links verschoben. Ein einzelnes Partialproduktbit $a_i\\land b_j$ hat deshalb den Stellenwert $2^{i+j}$. Das vollständige Produkt zweier vorzeichenloser $n$-Bit-Zahlen passt in $2n$ Bit.",
+      "example": "Bei $1011_2\\cdot0101_2$ sind die nichtnullwertigen verschobenen Zeilen $00001011$ und $00101100$; ihre Summe ist $00110111_2=55_{10}$.",
+      "pitfalls": [
+        "Jede Partialproduktzeile muss entsprechend der Position des erzeugenden Bits verschoben werden.",
+        "Ein Bit $a_i\\land b_j$ liegt in Spalte $i+j$, nicht in Spalte $j$."
+      ],
+      "related": [
+        "Partialprodukte",
+        "Paralleler Multiplizierer",
+        "Carry-Save-Addierer",
+        "Binäre Multiplikation und Division"
+      ],
+      "heading": "6. Binäre Multiplikation – Folien 17–20"
+    },
+    {
+      "id": "era-19-k08",
+      "term": "Partialprodukte",
+      "kind": "definition",
+      "short": "Ein Partialprodukt ist ein gewichteter Teilbeitrag zur Multiplikation zweier Zahlen.",
+      "explanation": "Beim Multiplizieren von $A=\\sum_i a_i2^i$ mit $B=\\sum_j b_j2^j$ entsteht für jedes Bitpaar der Beitrag $(a_i\\land b_j)2^{i+j}$. Beiträge mit gleichem Stellenwert werden in einer Spalte gesammelt und anschließend addiert. So entsteht die bitweise Form der schriftlichen Multiplikation.",
+      "example": "Für $a_2=1$ und $b_1=1$ ist das Partialproduktbit 1 und hat das Gewicht $2^{2+1}=8$.",
+      "pitfalls": [
+        "Der Stellenwert hängt von den Positionen beider Bits ab.",
+        "Ein Partialprodukt muss vor der Addition an seiner gewichteten Stelle stehen."
+      ],
+      "related": [
+        "Binäre Multiplikation mit Partialprodukten",
+        "Paralleler Multiplizierer",
+        "Carry-Save-Addierer"
+      ],
+      "heading": "6. Binäre Multiplikation – Folien 17–20"
+    },
+    {
+      "id": "era-19-k09",
+      "term": "Paralleler Multiplizierer",
+      "kind": "definition",
+      "short": "Ein paralleler Multiplizierer bildet Partialprodukte gleichzeitig und summiert sie mit Addierern zu einem Produkt.",
+      "explanation": "AND-Gatter berechnen die Partialproduktbits; Halb- und Volladdierer fassen Bits gleicher Gewichtung zusammen. Die Schaltung bildet die schriftliche Multiplikation als kombinatorische Hardware ab. Bei mehreren Partialproduktzeilen können Carry-Save-Stufen die Zahlen reduzieren, bevor ein abschließender Addierer das Produkt fertigstellt.",
+      "example": "Bei zwei 4-Bit-Faktoren entstehen bis zu vier verschobene Partialproduktzeilen, die zur Produktzahl addiert werden.",
+      "pitfalls": [
+        "Für das vollständige Produkt zweier vorzeichenloser $n$-Bit-Faktoren sind bis zu $2n$ Ergebnisbits erforderlich."
+      ],
+      "related": [
+        "Partialprodukte",
+        "Binäre Multiplikation mit Partialprodukten",
+        "Carry-Save-Addierer",
+        "Halbaddierer (HA)",
+        "Volladdierer (VA / FA)"
+      ],
+      "heading": "6. Binäre Multiplikation – Folien 17–20"
+    },
+    {
+      "id": "era-19-k10",
+      "term": "Carry-Save-Addierer",
+      "kind": "method",
+      "short": "Ein Carry-Save-Addierer reduziert drei Zahlen spaltenweise auf zwei Zahlen, ohne Carries innerhalb der Stufe weiterzureichen.",
+      "explanation": "Für drei Bits $x_i,y_i,z_i$ in Spalte $i$ berechnet die Stufe $s_i=x_i\\oplus y_i\\oplus z_i$ und den Carry $c_{i+1}=(x_i\\land y_i)\\lor(x_i\\land z_i)\\lor(y_i\\land z_i)$. Der Carry wird in der nächsten Spalte der Ausgabenzahl $C$ notiert, sodass $C$ bereits um eine Stelle nach links verschoben ist. Die Summe bleibt erhalten: $X+Y+Z=S+C$. Die beiden Ausgaben können in weiteren Carry-Save-Stufen reduziert werden; am Ende ist eine Carry-verrechnende Schlussaddition nötig.",
+      "example": "Die drei Zahlen 7, 14 und 28 lassen sich zu $S=21$ und $C=28$ reduzieren; $21+28=49$.",
+      "pitfalls": [
+        "Carry-Save liefert zwei Zahlen, nicht direkt das fertige Ergebnis.",
+        "Wenn $C$ bereits als verschobene Zahl notiert ist, darf es nicht nochmals verschoben werden.",
+        "CSA kann sowohl Conditional Sum Adder als auch Carry-Save Adder bedeuten; der Kontext entscheidet."
+      ],
+      "related": [
+        "Partialprodukte",
+        "Paralleler Multiplizierer",
+        "Volladdierer (VA / FA)",
+        "Conditional-Sum-Addierer"
+      ],
+      "heading": "7. Carry-Save-Addierer – Folien 21–27"
+    },
+    {
+      "id": "era-19-k11",
+      "term": "Carry-Save-Beispiel 111 × 111",
+      "kind": "example",
+      "short": "Das Produkt $111_2\\times111_2$ zeigt, wie Carry-Save drei Partialprodukte auf zwei Zahlen reduziert.",
+      "explanation": "Beide Faktoren sind 7; die Partialprodukte sind $p_0=7$, $p_1=14$ und $p_2=28$. Eine Carry-Save-Stufe reduziert sie zu $S=21$ und $C=28$. Die Schlussaddition ergibt $010101_2+011100_2=110001_2=49_{10}$.",
+      "example": null,
+      "pitfalls": [
+        "Die Zahl $C=28$ ist in dieser Darstellung bereits verschoben.",
+        "Nach der Carry-Save-Stufe ist noch die Addition von $S$ und $C$ erforderlich."
+      ],
+      "related": [
+        "Carry-Save-Addierer",
+        "Partialprodukte"
+      ],
+      "heading": "7. Carry-Save-Addierer – Folien 21–27"
+    },
+    {
+      "id": "era-19-k12",
+      "term": "Rückkopplung und Zustand",
+      "kind": "concept",
+      "short": "Rückkopplung kann den vorherigen Ausgang einer Schaltung erhalten und ihr dadurch einen speicherbaren Zustand geben.",
+      "explanation": "Bei einer rein kombinatorischen Schaltung hängen die Ausgänge nur von den aktuellen Eingängen ab. Werden Ausgänge auf Eingänge zurückgeführt, kann die Schaltung abhängig von ihrer bisherigen Lage unterschiedliche stabile Zustände halten. Latches und Flipflops nutzen Rückkopplung, um Bits zu speichern.",
+      "example": "Ein NOR-RS-Latch führt seine beiden Ausgänge jeweils auf das andere NOR-Gatter zurück und kann so einen Zustand halten.",
+      "pitfalls": [
+        "Bei einer Schaltung mit Rückkopplung zählt für den Ausgang neben den aktuellen externen Eingängen auch der bisherige Zustand."
+      ],
+      "related": [
+        "RS-Latch (aktiv-hohe NOR-Variante)",
+        "D-Latch",
+        "D-Flipflop",
+        "Register"
+      ],
+      "heading": "8. RS-Latch – Folie 28"
+    },
+    {
+      "id": "era-19-k13",
+      "term": "RS-Latch (aktiv-hohe NOR-Variante)",
+      "kind": "definition",
+      "short": "Ein aktiv-hohes NOR-RS-Latch speichert ein Bit und reagiert auf Set- und Reset-Eingänge.",
+      "explanation": "Das Latch besteht aus zwei rückgekoppelten NOR-Gattern mit $S$ für Set und $R$ für Reset. Bei $S=R=0$ hält es $Q_t$; $S=1,R=0$ setzt $Q$ auf 1 und $S=0,R=1$ löscht es auf 0. Bei $S=R=1$ sind beide NOR-Ausgänge 0, sodass die Kombination unzulässig ist und der Zustand nach gleichzeitigem Loslassen unbestimmt sein kann.",
+      "example": "Ausgehend von $Q=0$ setzt $S=1,R=0$ den gespeicherten Ausgang auf $Q=1$.",
+      "pitfalls": [
+        "Die Eingangsbelegung hängt davon ab, ob die Schaltung mit NOR- oder NAND-Gattern und aktiv-hohen oder aktiv-niedrigen Signalen gebaut ist.",
+        "Bei der hier beschriebenen NOR-Variante ist $S=R=1$ unzulässig."
+      ],
+      "related": [
+        "Rückkopplung und Zustand",
+        "D-Latch",
+        "NAND-RS-Latch"
+      ],
+      "heading": "8. RS-Latch – Folie 28"
+    },
+    {
+      "id": "era-19-k14",
+      "term": "D-Latch",
+      "kind": "definition",
+      "short": "Ein D-Latch übernimmt bei aktivem Enable den Datenwert D und hält ihn bei inaktivem Enable.",
+      "explanation": "Für das Enable $E$ wird das RS-Latch so angesteuert, dass $S=D\\land E$ und $R=\\neg D\\land E$ gilt. Damit ist $Q_{t+1}=(\\neg E\\land Q_t)\\lor(D\\land E)$: Bei $E=1$ folgt $Q$ dem Eingang $D$ nach der Gatterlaufzeit, bei $E=0$ bleibt der alte Zustand erhalten. Ein D-Latch ist pegel- oder pulsgesteuert und benötigt ein ausreichend langes aktives Enable, damit sich der Zustand einstellen kann.",
+      "example": "Ist $E=1$ und ändert $D$ von 1 auf 0, folgt $Q$ während des aktiven Pegels ebenfalls auf 0; nach dem Abfallen von $E$ hält es diesen Wert.",
+      "pitfalls": [
+        "Ein transparentes D-Latch übernimmt Änderungen während des gesamten aktiven Pegels, nicht nur an einer Taktflanke.",
+        "Bei $E=0$ kann ein Wechsel von $D$ den gespeicherten Wert nicht ändern."
+      ],
+      "related": [
+        "RS-Latch (aktiv-hohe NOR-Variante)",
+        "Multiplexer (MUX)",
+        "D-Flipflop",
+        "Rückkopplung und Zustand"
+      ],
+      "heading": "9. D-Latch – Folien 29–30 und 35–40"
+    },
+    {
+      "id": "era-19-k15",
+      "term": "D-Latch-Zustandsgleichung und Wahrheitstabelle",
+      "kind": "theorem",
+      "short": "Die nächste Ausgabe des D-Latches ist entweder der gehaltene alte Wert oder der bei Enable übernommene Datenwert.",
+      "explanation": "Die Wahrheitstabelle für $D$, $E$ und $Q_t$ lässt sich als disjunktive Normalform schreiben und zu $Q_{t+1}=(\\neg E\\land Q_t)\\lor(D\\land E)$ vereinfachen. Der erste Term erhält den Zustand, wenn $E=0$ ist; der zweite liefert $D$, wenn $E=1$ ist. Die Gleichung entspricht einem MUX, der zwischen Rückkopplung und Dateneingang wählt.",
+      "example": "Bei $E=0$, $Q_t=1$ und beliebigem $D$ ergibt die Gleichung $Q_{t+1}=1$.",
+      "pitfalls": [
+        "Der Term $D\\land E$ allein beschreibt nicht die Haltefunktion; dazu braucht es den Rückkopplungsterm $\\neg E\\land Q_t$."
+      ],
+      "related": [
+        "D-Latch",
+        "Multiplexer (MUX)",
+        "Boolesche Algebra",
+        "Disjunktive Normalform"
+      ],
+      "heading": "9. D-Latch – Folien 29–30 und 35–40"
+    },
+    {
+      "id": "era-19-k16",
+      "term": "D-Flipflop",
+      "kind": "definition",
+      "short": "Ein positiv flankengesteuertes D-Flipflop übernimmt D an der steigenden Taktflanke und hält Q zwischen den Flanken.",
+      "explanation": "Der Ausgang ändert sich nur an der aktiven Taktflanke; zwischen zwei solchen Flanken bleibt der gespeicherte Wert konstant. Ein Master-Slave-Aufbau aus zwei D-Latches kann dieses Verhalten erzeugen, indem Master und Slave auf entgegengesetzten Taktpegeln transparent sind. Erhält ein positiv flankengesteuertes D-Flipflop einen invertierten Takt, wertet es bezogen auf den ursprünglichen Takt dessen fallende Flanke aus.",
+      "example": "Bei zwei hintereinandergeschalteten positiv flankengesteuerten D-Flipflops mit anfänglichem $N=Q=0$ und invertiertem Takt am ersten übernimmt das erste $D_{in}$ an fallenden CLK-Flanken in $N$; das zweite übernimmt $N$ an steigenden CLK-Flanken in $Q$.",
+      "pitfalls": [
+        "Ein Flipflop ist flankengesteuert; ein Latch ist während seines aktiven Pegels transparent.",
+        "Das erste Flipflop mit invertiertem Takt aktualisiert sich an fallenden Flanken des ursprünglichen Takts."
+      ],
+      "related": [
+        "D-Latch",
+        "Master-Slave-D-Flipflop",
+        "Register"
+      ],
+      "heading": "10. D-Flipflop – Folien 31–34"
+    },
+    {
+      "id": "era-19-k17",
+      "term": "Master-Slave-D-Flipflop",
+      "kind": "concept",
+      "short": "Zwei D-Latches mit entgegengesetzten Enable-Phasen bilden gemeinsam ein positiv flankengesteuertes D-Flipflop.",
+      "explanation": "Das erste Latch, der Master, ist bei $CLK=0$ transparent; das zweite Latch, der Slave, ist bei $CLK=1$ transparent. An der steigenden Flanke schließt der Master und der Slave übernimmt den zuvor gespeicherten Masterwert. Dadurch läuft der Eingang nicht während der gesamten High-Phase direkt bis zum Ausgang durch.",
+      "example": "Vor einer steigenden Flanke kann der Master $D$ aufnehmen; nach der Flanke gibt der Slave diesen festgehaltenen Wert an $Q$ weiter.",
+      "pitfalls": [
+        "Bei dieser Realisierung sind es zwei Latches mit gegenläufigen Enable-Phasen, nicht zwei hintereinandergeschaltete positiv flankengesteuerte Flipflops."
+      ],
+      "related": [
+        "D-Latch",
+        "D-Flipflop"
+      ],
+      "heading": "10. D-Flipflop – Folien 31–34"
+    },
+    {
+      "id": "era-19-k18",
+      "term": "Register",
+      "kind": "definition",
+      "short": "Ein Register speichert mehrere Bits, die durch ein gemeinsames Taktsignal gleichzeitig aktualisiert werden.",
+      "explanation": "Ein $n$-Bit-Register besteht aus mehreren Speicherstellen, typischerweise Flipflops, und hält den aktuellen Bitvektor $Q$. An einer aktiven Taktflanke übernehmen die Speicherstellen gemeinsam ihre jeweiligen Dateneingänge $D$. Wird ein Registerausgang auf Rechenlogik zurückgeführt, kann diese Logik den Folgezustand vorbereiten.",
+      "example": "Ein 4-Bit-Register kann den aktuellen Zählerstand $0111$ speichern und bei der nächsten steigenden Taktflanke den berechneten Wert $1000$ übernehmen.",
+      "pitfalls": [
+        "Der Registerinhalt ändert sich nicht kontinuierlich mit der kombinatorischen Logik, sondern an der aktiven Taktflanke."
+      ],
+      "related": [
+        "D-Flipflop",
+        "n-Bit-Inkrementer",
+        "Synchroner Zähler",
+        "Schieberegister"
+      ],
+      "heading": "11. Inkrementer mit n-Bit-Register – Folien 41–49"
+    },
+    {
+      "id": "era-19-k19",
+      "term": "n-Bit-Inkrementer",
+      "kind": "definition",
+      "short": "Ein n-Bit-Inkrementer berechnet den um eins erhöhten Registerwert modulo $2^n$.",
+      "explanation": "Mit Registerzustand $Q_t$ gilt $Q_{t+1}=(Q_t+1)\\bmod 2^n$. Bit 0 toggelt immer; für $i\\geq1$ toggelt Bit $i$ genau dann, wenn alle niederwertigeren Bits 1 sind: $s_i=a_i\\oplus\\bigwedge_{j=0}^{i-1}a_j$, wobei $a_i$ den aktuellen Bitwert und $s_i$ den berechneten Folgezustandsbitwert bezeichnet. Daher benötigt ein Zähler, der stets 1 addiert, weniger Logik als ein allgemeiner Addierer.",
+      "example": "Bei 4 Bit wird aus $0111$ der Wert $1000$; aus $1111$ wird modulo 16 wieder $0000$.",
+      "pitfalls": [
+        "Bit $i$ toggelt nur dann, wenn alle Bits mit kleinerem Index 1 sind.",
+        "Bei $n$ Bits ist der Überlauf zurück auf 0 Teil des Modulo-Verhaltens."
+      ],
+      "related": [
+        "Register",
+        "Synchroner Zähler",
+        "Volladdierer (VA / FA)",
+        "Program Counter (PC)"
+      ],
+      "heading": "11. Inkrementer mit n-Bit-Register – Folien 41–49"
+    },
+    {
+      "id": "era-19-k20",
+      "term": "Synchroner Zähler",
+      "kind": "definition",
+      "short": "Ein synchroner Zähler speichert seinen Zählstand in einem Register und aktualisiert ihn an gemeinsamen Taktflanken.",
+      "explanation": "Bei einem Inkrementzähler berechnet die kombinatorische Logik aus dem aktuellen Registerwert den Folgezustand $Q+1$. Alle Registerbits übernehmen diesen Wert gleichzeitig an der aktiven Taktflanke. Ein 4-Bit-Zähler durchläuft die Werte 0 bis 15 und springt beim nächsten Inkrement modulo 16 auf 0.",
+      "example": "Eine mögliche Zustandsfolge ist $1110\\rightarrow1111\\rightarrow0000\\rightarrow0001$.",
+      "pitfalls": [
+        "Die Rechenlogik bereitet den Folgezustand vor; erst die Taktflanke ändert den gespeicherten Zählerstand."
+      ],
+      "related": [
+        "Register",
+        "n-Bit-Inkrementer",
+        "D-Flipflop"
+      ],
+      "heading": "11. Inkrementer mit n-Bit-Register – Folien 41–49"
+    },
+    {
+      "id": "era-19-k21",
+      "term": "Program Counter (PC)",
+      "kind": "concept",
+      "short": "Der Program Counter speichert die Adresse der nächsten auszuführenden Instruktion und wird durch Folgezustandslogik aktualisiert.",
+      "explanation": "Ein einfacher Inkrementer veranschaulicht die getaktete Fortschaltung eines Programmzählers. Bei normalen 32-Bit-RISC-V-Instruktionen erhöht sich die PC-Adresse typischerweise um 4 Byte pro Instruktion. Sprünge und komprimierte Instruktionen können einen anderen Folgezustand erfordern.",
+      "example": "Bei der Instruktionsadresse $0x1000$ führt die gewöhnliche sequenzielle Fortschaltung für eine 32-Bit-Instruktion zu $0x1004$.",
+      "pitfalls": [
+        "Das Folienmodell $Q+1$ zählt einen abstrakten Wert; ein byteadressierter PC für normale 32-Bit-Instruktionen wird typischerweise um 4 Byte erhöht."
+      ],
+      "related": [
+        "n-Bit-Inkrementer",
+        "Synchroner Zähler",
+        "Befehlszyklus"
+      ],
+      "heading": "11. Inkrementer mit n-Bit-Register – Folien 41–49"
+    }
+  ],
+  "generator": {
+    "model": "gpt-6-luna",
+    "effort": "xhigh",
+    "promptVersion": "k1",
+    "generatedAt": "2026-11-27T23:22:15.258Z"
+  }
+}
