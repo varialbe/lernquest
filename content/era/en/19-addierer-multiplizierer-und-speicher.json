@@ -1,0 +1,1982 @@
+{
+  "schemaVersion": 1,
+  "id": "era-19",
+  "module": "ERA",
+  "number": 19,
+  "slug": "addierer-multiplizierer-und-speicher",
+  "title": "Adders, Multipliers, and Memory",
+  "summary": "This unit shows how half adders (Halbaddierer) and full adders (Volladdierer) are combined to build adders, and how multiplication uses partial products (Partialprodukte) and carry-save stages (Carry-Save-Stufen). It then covers RS latches (RS-Latch), D latches (D-Latch), and D flip-flops (D-Flipflop), which store state, as well as registers (Register) that form a counter with a synchronous incrementer (Inkrementer). Worked examples illustrate carries, clock edges, and common confusions.",
+  "concepts": [
+    "Half adder",
+    "Full adder",
+    "Ripple-carry adder",
+    "Conditional-sum adder",
+    "Two's-complement subtraction",
+    "Partial products",
+    "Carry-save adder",
+    "RS latch",
+    "D latch",
+    "D flip-flop",
+    "Register",
+    "Incrementer"
+  ],
+  "keyFacts": [
+    "A half adder computes s = a ⊕ b and c = a ∧ b; it has no carry-in.",
+    "A full adder processes two bits and a carry-in; the sum is the parity of the three inputs, and the carry-out is their majority function.",
+    "A ripple-carry adder passes each carry to the next higher bit position; its depth grows linearly with the word width.",
+    "A conditional-sum adder precomputes both possible carry cases for the upper half and selects the appropriate result with a MUX.",
+    "For subtraction at a fixed word width, A − B ≡ A + ¬B + 1 modulo 2ⁿ.",
+    "A partial-product bit aᵢ ∧ bⱼ has weight 2⁽ⁱ⁺ʲ⁾; the full product of two unsigned n-bit numbers fits in 2n bits.",
+    "A carry-save adder reduces three numbers column by column to two: X + Y + Z = S + C. C is already shifted; a final addition is still needed.",
+    "For an active-high NOR RS latch, S=R=0 means hold, S=1 means set, and R=1 means reset; S=R=1 is invalid.",
+    "A D latch is transparent when E=1 and holds its previous state when E=0.",
+    "A positive-edge-triggered D flip-flop captures D on the rising clock edge and holds its value between edges.",
+    "For an n-bit incrementer, Qₜ₊₁ = (Qₜ + 1) mod 2ⁿ; a bit toggles when all lower-order bits are 1.",
+    "With two positive-edge-triggered D flip-flops, where the first receives an inverted clock, the first output changes on falling edges and the second on rising edges of the original clock.",
+    "A 4-bit counter counts from 0 to 15 and returns to 0 on the next increment, modulo 16.",
+    "In the notes' simple program-counter model, the incrementer represents clocked address advancement; for ordinary 32-bit instructions, the PC typically increases by 4 Byte."
+  ],
+  "tags": [
+    "ERA",
+    "TUM",
+    "Digitaltechnik"
+  ],
+  "links": [],
+  "source": {
+    "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO19.md",
+    "sha256": "46d6faee8efb7cef2fa2587b5dfac8d6d8f5c982d4be97771206fc31d553b3c5",
+    "commit": "0a255b40d1ff324de696138c45a25ff3ab904d12"
+  },
+  "generator": {
+    "model": "gpt-6-luna",
+    "effort": "xhigh",
+    "reviewEffort": "high",
+    "promptVersion": "v3",
+    "generatedAt": "2026-11-27T23:10:57.507Z",
+    "review": {
+      "checked": 44,
+      "fixed": 0,
+      "removed": 0,
+      "notes": "44 Fragen geprüft. Rechenwege, Antwortmengen, Diagramme und vorhandene verify-Skripte geprüft; keine Korrekturen oder Ersetzungen erforderlich."
+    }
+  },
+  "levels": [
+    {
+      "id": "era-19-l1",
+      "index": 1,
+      "kind": "basics",
+      "title": "Fundamentals",
+      "questions": [
+        {
+          "id": "era-19-l1-q01",
+          "type": "single",
+          "prompt": "Which equations describe the outputs of a half adder for inputs $a$ and $b$?",
+          "options": [
+            {
+              "id": "a",
+              "text": "$s=a\\land b$, $c=a\\oplus b$"
+            },
+            {
+              "id": "b",
+              "text": "$s=a\\oplus b$, $c=a\\land b$"
+            },
+            {
+              "id": "c",
+              "text": "$s=a\\lor b$, $c=a\\land b$"
+            },
+            {
+              "id": "d",
+              "text": "$s=a\\oplus b$, $c=a\\lor b$"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "The sum is 1 exactly when the inputs differ, so it is XOR. A carry is generated when both inputs are 1, so it is AND.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO19.md",
+            "heading": "1. Halbaddierer (HA) – Folie 3"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Half adder"
+          ]
+        },
+        {
+          "id": "era-19-l1-q02",
+          "type": "cloze",
+          "prompt": "For a full adder, the carry-out is 1 when at least ___ of the three inputs are 1.",
+          "options": [
+            {
+              "id": "a",
+              "text": "three"
+            },
+            {
+              "id": "b",
+              "text": "one"
+            },
+            {
+              "id": "c",
+              "text": "two"
+            },
+            {
+              "id": "d",
+              "text": "four"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "The carry-out is the majority function of the three inputs. Just two 1s produce a carry to the next bit position.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO19.md",
+            "heading": "2. Volladdierer (VA / FA) – Folien 4–5"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Full adder"
+          ]
+        },
+        {
+          "id": "era-19-l1-q03",
+          "type": "truefalse",
+          "prompt": "In a ripple-carry adder, a carry can propagate from the least significant to the most significant bit; therefore, its logical depth grows linearly with the word width.",
+          "options": [
+            {
+              "id": "true",
+              "text": "True"
+            },
+            {
+              "id": "false",
+              "text": "False"
+            }
+          ],
+          "correct": [
+            "true"
+          ],
+          "explanation": "Each bit position may have to wait for the carry from the previous one. In the worst case, the carry passes through every adder stage.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO19.md",
+            "heading": "3. Ripple-Carry-Addierer (RCA) – Folien 6–7"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Ripple-carry adder"
+          ]
+        },
+        {
+          "id": "era-19-l1-q04",
+          "type": "diagram",
+          "prompt": "Which gate produces the carry output $c$ in this half adder?",
+          "context": {
+            "type": "mermaid",
+            "content": "flowchart LR\n  A[a] --> X[XOR]\n  B[b] --> X\n  A --> Y[AND]\n  B --> Y\n  X --> S[s]\n  Y --> C[c]",
+            "caption": "Signal paths in a half adder"
+          },
+          "options": [
+            {
+              "id": "a",
+              "text": "AND"
+            },
+            {
+              "id": "b",
+              "text": "NOT"
+            },
+            {
+              "id": "c",
+              "text": "OR"
+            },
+            {
+              "id": "d",
+              "text": "XOR"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "The path in the diagram to the carry output passes through the AND gate. A carry is produced only when $a=b=1$.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO19.md",
+            "heading": "1. Halbaddierer (HA) – Folie 3"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Half adder"
+          ]
+        },
+        {
+          "id": "era-19-l1-q05",
+          "type": "single",
+          "prompt": "What does a conditional-sum adder do with the upper half of the operands?",
+          "options": [
+            {
+              "id": "a",
+              "text": "It discards the upper half and adds only the final carry."
+            },
+            {
+              "id": "b",
+              "text": "It replaces all adders with a single OR gate."
+            },
+            {
+              "id": "c",
+              "text": "It precomputes the results for carry-in 0 and 1; a MUX then selects the appropriate result."
+            },
+            {
+              "id": "d",
+              "text": "It computes the result once and waits for the carry from the lower half."
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "Both possible carry cases are precomputed in parallel. The actual carry from the lower half then controls the MUX.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO19.md",
+            "heading": "4. Conditional Sum – Folien 8–14"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Conditional-sum adder"
+          ]
+        },
+        {
+          "id": "era-19-l1-q06",
+          "type": "multi",
+          "prompt": "Select all correct statements about the combined adder/subtractor circuit. More than one statement may be correct.",
+          "options": [
+            {
+              "id": "a",
+              "text": "When $sub=1$, the XOR inverts each bit of $B$ and the carry-in is 1."
+            },
+            {
+              "id": "b",
+              "text": "The signal $sub$ controls only the carry-in, not the bits of $B$."
+            },
+            {
+              "id": "c",
+              "text": "For every signed subtraction, the final carry is equal to the signed overflow."
+            },
+            {
+              "id": "d",
+              "text": "When $sub=0$, $B$ is passed through unchanged and the carry-in is 0."
+            },
+            {
+              "id": "e",
+              "text": "When $sub=1$, the circuit computes $A-B$ modulo $2^n$."
+            }
+          ],
+          "correct": [
+            "a",
+            "d",
+            "e"
+          ],
+          "explanation": "For subtraction, $B$ is inverted bitwise and 1 is added. The final carry and signed overflow are different quantities, so statement d is false.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO19.md",
+            "heading": "5. Addition und Subtraktion mit derselben Schaltung – Folien 15–16"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Two's-complement subtraction"
+          ]
+        },
+        {
+          "id": "era-19-l1-q07",
+          "type": "single",
+          "prompt": "How is the partial-product bit at positions $i$ and $j$ generated when multiplying two binary numbers?",
+          "options": [
+            {
+              "id": "a",
+              "text": "By $a_i\\land b_j$; its weight is $2^{i+j}$."
+            },
+            {
+              "id": "b",
+              "text": "By $a_i\\land b_j$; its weight is $2^{i-j}$."
+            },
+            {
+              "id": "c",
+              "text": "By $a_i\\oplus b_j$; its weight is $2^{i+j}$."
+            },
+            {
+              "id": "d",
+              "text": "By $a_i\\lor b_j$; its weight is $2^i+2^j$."
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "A single partial-product bit is the AND of the two operand bits. Their place values multiply, giving the weight $2^{i+j}$.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO19.md",
+            "heading": "6. Binäre Multiplikation – Folien 17–20"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Partial products"
+          ]
+        },
+        {
+          "id": "era-19-l1-q08",
+          "type": "truefalse",
+          "prompt": "After a reduction stage, a carry-save adder directly produces the final product; no final addition is needed.",
+          "options": [
+            {
+              "id": "true",
+              "text": "True"
+            },
+            {
+              "id": "false",
+              "text": "False"
+            }
+          ],
+          "correct": [
+            "false"
+          ],
+          "explanation": "Carry-save reduction turns three numbers into two whose sum equals the original total. A final adder is needed to produce the result.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO19.md",
+            "heading": "7. Carry-Save-Addierer – Folien 21–27"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Carry-save adder"
+          ]
+        },
+        {
+          "id": "era-19-l1-q09",
+          "type": "cloze",
+          "prompt": "For an active-high NOR RS latch, the stored state is held when $S=___$ and $R=0$.",
+          "options": [
+            {
+              "id": "a",
+              "text": "1"
+            },
+            {
+              "id": "b",
+              "text": "Q"
+            },
+            {
+              "id": "c",
+              "text": "0"
+            },
+            {
+              "id": "d",
+              "text": "$\\overline Q$"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "When $S=R=0$, the feedback preserves the previous stable state. By contrast, $S=1$ would set the latch.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO19.md",
+            "heading": "8. RS-Latch – Folie 28"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "RS latch"
+          ]
+        },
+        {
+          "id": "era-19-l1-q10",
+          "type": "single",
+          "prompt": "When is a D latch transparent, so that its output follows input $D$?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Only when $D=0$"
+            },
+            {
+              "id": "b",
+              "text": "When $E=1$"
+            },
+            {
+              "id": "c",
+              "text": "When $E=0$"
+            },
+            {
+              "id": "d",
+              "text": "Only on a rising clock edge"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "The enable $E$ is a level-control signal for a D latch. When $E=1$, $Q$ follows the input; when $E=0$, it holds its state.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO19.md",
+            "heading": "9. D-Latch – Folien 29–30 und 35–40"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "D latch"
+          ]
+        },
+        {
+          "id": "era-19-l1-q11",
+          "type": "multi",
+          "prompt": "Select all correct statements about D flip-flops and an n-bit incrementer. More than one statement may be correct.",
+          "options": [
+            {
+              "id": "a",
+              "text": "A D latch captures its input only on a rising edge."
+            },
+            {
+              "id": "b",
+              "text": "A D flip-flop holds its output between active edges."
+            },
+            {
+              "id": "c",
+              "text": "An n-bit incrementer computes the next state modulo $2^n$."
+            },
+            {
+              "id": "d",
+              "text": "A positive-edge-triggered D flip-flop captures $D$ on the rising clock edge."
+            }
+          ],
+          "correct": [
+            "b",
+            "c",
+            "d"
+          ],
+          "explanation": "The flip-flop responds to the specified clock edge and then holds its value. The incrementer counts modulo its word width; a D latch, by contrast, is level-sensitive.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO19.md",
+            "heading": "10. D-Flipflop – Folien 31–34"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "D flip-flop",
+            "Incrementer"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "era-19-l2",
+      "index": 2,
+      "kind": "apply",
+      "title": "Apply",
+      "questions": [
+        {
+          "id": "era-19-l2-q01",
+          "type": "calc",
+          "prompt": "A half adder receives $a=1$ and $b=1$. Which output pair $(s,c)$ does it produce?",
+          "options": [
+            {
+              "id": "a",
+              "text": "$(1,0)$"
+            },
+            {
+              "id": "b",
+              "text": "$(0,1)$"
+            },
+            {
+              "id": "c",
+              "text": "$(1,1)$"
+            },
+            {
+              "id": "d",
+              "text": "$(0,0)$"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "$1+1=2$, so the least significant sum bit is 0 and the carry is 1. Thus, $1+1=s+2c$.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO19.md",
+            "heading": "1. Halbaddierer (HA) – Folie 3"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Half adder"
+          ]
+        },
+        {
+          "id": "era-19-l2-q02",
+          "type": "calc",
+          "prompt": "A full adder receives $a=0$, $b=1$, and $c_{in}=1$. Which output pair $(s,c_{out})$ results?",
+          "options": [
+            {
+              "id": "a",
+              "text": "$(1,1)$"
+            },
+            {
+              "id": "b",
+              "text": "$(0,0)$"
+            },
+            {
+              "id": "c",
+              "text": "$(0,1)$"
+            },
+            {
+              "id": "d",
+              "text": "$(1,0)$"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "The three inputs sum to 2. This gives a sum bit of 0 and a carry-out of 1.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO19.md",
+            "heading": "2. Volladdierer (VA / FA) – Folien 4–5"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Full adder"
+          ]
+        },
+        {
+          "id": "era-19-l2-q03",
+          "type": "calc",
+          "prompt": "Add $0110_2+0101_2$ using a 4-bit ripple-carry adder. Give the full 5-bit result, including the final carry.",
+          "options": [
+            {
+              "id": "a",
+              "text": "$01011_2$"
+            },
+            {
+              "id": "b",
+              "text": "$01010_2$"
+            },
+            {
+              "id": "c",
+              "text": "$10101_2$"
+            },
+            {
+              "id": "d",
+              "text": "$00111_2$"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "$0110_2=6$ and $0101_2=5$, so the sum is 11. In five bits, it is $01011_2$.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO19.md",
+            "heading": "3. Ripple-Carry-Addierer (RCA) – Folien 6–7"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Ripple-carry adder"
+          ]
+        },
+        {
+          "id": "era-19-l2-q04",
+          "type": "calc",
+          "prompt": "A 4-bit conditional-sum adder computes $A=1010_2$ plus $B=0111_2$. Which 5-bit result must the MUX select?",
+          "options": [
+            {
+              "id": "a",
+              "text": "$01111_2$"
+            },
+            {
+              "id": "b",
+              "text": "$10000_2$"
+            },
+            {
+              "id": "c",
+              "text": "$00001_2$"
+            },
+            {
+              "id": "d",
+              "text": "$10001_2$"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "The lower bits generate a carry into the upper half. Overall, $10+7=17$, so the 5-bit result is $10001_2$.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO19.md",
+            "heading": "4. Conditional Sum – Folien 8–14"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Conditional-sum adder"
+          ]
+        },
+        {
+          "id": "era-19-l2-q05",
+          "type": "calc",
+          "prompt": "Compute $9-6$ using 4-bit two's-complement subtraction. What 4-bit result remains after discarding the final carry?",
+          "options": [
+            {
+              "id": "a",
+              "text": "$0001_2$"
+            },
+            {
+              "id": "b",
+              "text": "$0011_2$"
+            },
+            {
+              "id": "c",
+              "text": "$1110_2$"
+            },
+            {
+              "id": "d",
+              "text": "$1101_2$"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "With four bits, $\\overline{0110}+1=1010$. $1001+1010=1\\,0011$, and the lower four bits are $0011_2=3$.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO19.md",
+            "heading": "5. Addition und Subtraktion mit derselben Schaltung – Folien 15–16"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Two's-complement subtraction"
+          ]
+        },
+        {
+          "id": "era-19-l2-q06",
+          "type": "calc",
+          "prompt": "Multiply the unsigned 3-bit numbers $011_2$ and $101_2$. What is the full product in 6 bits?",
+          "options": [
+            {
+              "id": "a",
+              "text": "$001101_2$"
+            },
+            {
+              "id": "b",
+              "text": "$000111_2$"
+            },
+            {
+              "id": "c",
+              "text": "$011111_2$"
+            },
+            {
+              "id": "d",
+              "text": "$001111_2$"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "$011_2=3$ and $101_2=5$; $3\\cdot5=15$. The full 6-bit pattern is $001111_2$.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO19.md",
+            "heading": "6. Binäre Multiplikation – Folien 17–20"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Partial products"
+          ]
+        },
+        {
+          "id": "era-19-l2-q07",
+          "type": "calc",
+          "prompt": "A carry-save stage processes the 4-bit words $X=1010_2$, $Y=0111_2$, and $Z=0011_2$. Compute the sum $S$ and the already left-shifted carry number $C$.",
+          "options": [
+            {
+              "id": "a",
+              "text": "$S=1110_2$, $C=01100_2$"
+            },
+            {
+              "id": "b",
+              "text": "$S=1110_2$, $C=00110_2$"
+            },
+            {
+              "id": "c",
+              "text": "$S=1100_2$, $C=00011_2$"
+            },
+            {
+              "id": "d",
+              "text": "$S=1010_2$, $C=00110_2$"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "Column-wise XORs give $S=1110_2$. The carry bits are shifted one place to the left and give $C=00110_2$; together, the sum is 20.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO19.md",
+            "heading": "7. Carry-Save-Addierer – Folien 21–27"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Carry-save adder"
+          ]
+        },
+        {
+          "id": "era-19-l2-q08",
+          "type": "truefalse",
+          "prompt": "A D latch has the stored value $Q=1$. While $E=0$, $D$ changes from 0 to 1. Does $Q$ remain unchanged?",
+          "options": [
+            {
+              "id": "true",
+              "text": "True"
+            },
+            {
+              "id": "false",
+              "text": "False"
+            }
+          ],
+          "correct": [
+            "true"
+          ],
+          "explanation": "When $E=0$, the D latch holds its stored state regardless of changes to $D$. Therefore, $Q=1$.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO19.md",
+            "heading": "9. D-Latch – Folien 29–30 und 35–40"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "D latch"
+          ]
+        },
+        {
+          "id": "era-19-l2-q09",
+          "type": "calc",
+          "prompt": "A 4-bit incrementer has the current register value $Q=0111_2$. What next state is applied to the register?",
+          "options": [
+            {
+              "id": "a",
+              "text": "$1111_2$"
+            },
+            {
+              "id": "b",
+              "text": "$0000_2$"
+            },
+            {
+              "id": "c",
+              "text": "$1000_2$"
+            },
+            {
+              "id": "d",
+              "text": "$0110_2$"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "The incrementer adds 1: $0111_2+0001_2=1000_2$. The register captures this next state on the active clock edge.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO19.md",
+            "heading": "11. Inkrementer mit n-Bit-Register – Folien 41–49"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Incrementer",
+            "Register"
+          ]
+        },
+        {
+          "id": "era-19-l2-q10",
+          "type": "single",
+          "prompt": "A D flip-flop receives the inverted clock of the original $CLK$. On which edge of the original clock does it capture its input?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Throughout the entire low level"
+            },
+            {
+              "id": "b",
+              "text": "On the falling edge"
+            },
+            {
+              "id": "c",
+              "text": "On the rising edge"
+            },
+            {
+              "id": "d",
+              "text": "Throughout the entire high level"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "A rising edge of the inverted clock coincides with a falling edge of the original clock. Therefore, the flip-flop captures its input when the original $CLK$ falls.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO19.md",
+            "heading": "10. D-Flipflop – Folien 31–34"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "D flip-flop"
+          ]
+        },
+        {
+          "id": "era-19-l2-q11",
+          "type": "multi",
+          "prompt": "Select all correct statements about a D latch and a D flip-flop. More than one statement may be correct.",
+          "options": [
+            {
+              "id": "a",
+              "text": "A D latch holds its state when $E=0$."
+            },
+            {
+              "id": "b",
+              "text": "A D latch follows $D$ while its enable level is active."
+            },
+            {
+              "id": "c",
+              "text": "A D latch is inherently edge-triggered."
+            },
+            {
+              "id": "d",
+              "text": "A positive-edge-triggered D flip-flop captures its input only on the rising clock edge."
+            }
+          ],
+          "correct": [
+            "a",
+            "b",
+            "d"
+          ],
+          "explanation": "The latch responds while an active level is present; the flip-flop captures its input on a defined edge. Therefore, the last statement is false.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO19.md",
+            "heading": "10. D-Flipflop – Folien 31–34"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "D latch",
+            "D flip-flop"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "era-19-l3",
+      "index": 3,
+      "kind": "deepen",
+      "title": "Explore",
+      "questions": [
+        {
+          "id": "era-19-l3-q01",
+          "type": "calc",
+          "prompt": "For a D latch, $Q_{t+1}=(\\neg E\\land Q_t)\\lor(D\\land E)$. Given $E=0$, $D=0$, and $Q_t=1$: what is $Q_{t+1}$?",
+          "options": [
+            {
+              "id": "a",
+              "text": "$D$ is undefined"
+            },
+            {
+              "id": "b",
+              "text": "1"
+            },
+            {
+              "id": "c",
+              "text": "$E$ must first pass through an edge"
+            },
+            {
+              "id": "d",
+              "text": "0"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "With $E=0$, the first term becomes $Q_t$ and the second becomes 0. The latch therefore holds the old value 1.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO19.md",
+            "heading": "9. D-Latch – Folien 29–30 und 35–40"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "D latch"
+          ]
+        },
+        {
+          "id": "era-19-l3-q02",
+          "type": "multi",
+          "prompt": "Select all correct statements about a carry-save stage. More than one statement may be correct.",
+          "options": [
+            {
+              "id": "a",
+              "text": "The carry bits form a separate, left-shifted number."
+            },
+            {
+              "id": "b",
+              "text": "One stage reduces three input numbers to a single final result."
+            },
+            {
+              "id": "c",
+              "text": "It processes the inputs column by column and computes each column independently."
+            },
+            {
+              "id": "d",
+              "text": "The carry from each column immediately becomes an input to the adder in the next column of the same stage."
+            },
+            {
+              "id": "e",
+              "text": "After one stage, the two output words still have to be added to obtain the total sum."
+            }
+          ],
+          "correct": [
+            "a",
+            "c",
+            "e"
+          ],
+          "explanation": "Carry-save avoids a carry chain between columns by collecting the carries separately in shifted form. The stage produces two numbers; a final adder is still needed.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO19.md",
+            "heading": "7. Carry-Save-Addierer – Folien 21–27"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Carry-save adder"
+          ]
+        },
+        {
+          "id": "era-19-l3-q03",
+          "type": "truefalse",
+          "prompt": "For an active-high NOR RS latch, $S=R=1$ leads to an invalid state; after both inputs are released at the same time, the stored state may be indeterminate.",
+          "options": [
+            {
+              "id": "true",
+              "text": "True"
+            },
+            {
+              "id": "false",
+              "text": "False"
+            }
+          ],
+          "correct": [
+            "true"
+          ],
+          "explanation": "When $S=R=1$, both NOR outputs are 0 and therefore are not complements. After both inputs are released simultaneously, it is not determined which stable state will result.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO19.md",
+            "heading": "8. RS-Latch – Folie 28"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "RS latch"
+          ]
+        },
+        {
+          "id": "era-19-l3-q04",
+          "type": "single",
+          "prompt": "In the master-slave design of a positive-edge-triggered D flip-flop, $CLK=1$. What are the states of the two latches?",
+          "options": [
+            {
+              "id": "a",
+              "text": "The master is transparent; the slave holds."
+            },
+            {
+              "id": "b",
+              "text": "Both latches are transparent."
+            },
+            {
+              "id": "c",
+              "text": "Both latches always hold."
+            },
+            {
+              "id": "d",
+              "text": "The master holds; the slave is transparent."
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "When the clock is high, the master holds the value it captured earlier, while the slave is transparent. Thus, the input is not passed directly to the output throughout the entire high phase.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO19.md",
+            "heading": "10. D-Flipflop – Folien 31–34"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "D flip-flop",
+            "D latch"
+          ]
+        },
+        {
+          "id": "era-19-l3-q05",
+          "type": "single",
+          "prompt": "Two positive-edge-triggered D flip-flops are connected in series; the first receives the inverted clock. When does the first flip-flop's output change relative to the original $CLK$?",
+          "options": [
+            {
+              "id": "a",
+              "text": "On falling edges"
+            },
+            {
+              "id": "b",
+              "text": "Throughout each high level"
+            },
+            {
+              "id": "c",
+              "text": "Throughout each low level"
+            },
+            {
+              "id": "d",
+              "text": "On rising edges"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "The first flip-flop responds to the rising edge of its inverted clock. This edge corresponds to a falling edge of the original clock.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO19.md",
+            "heading": "10. D-Flipflop – Folien 31–34"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "D flip-flop"
+          ]
+        },
+        {
+          "id": "era-19-l3-q06",
+          "type": "diagram",
+          "prompt": "In this conditional-sum design, which signal controls the selection between the two precomputed results for the upper half?",
+          "context": {
+            "type": "mermaid",
+            "content": "flowchart TD\n  H[Upper operands] --> H0[Addition with carry 0]\n  H --> H1[Addition with carry 1]\n  L[Lower operands] --> LA[Addition with actual carry]\n  H0 --> M[MUX]\n  H1 --> M\n  LA -->|Carry-out as select| M\n  LA --> SL[Lower result bits]\n  M --> SH[Upper result bits and final carry]",
+            "caption": "Precomputation and selection in a conditional-sum adder"
+          },
+          "options": [
+            {
+              "id": "a",
+              "text": "The carry-in to the lower half before the addition"
+            },
+            {
+              "id": "b",
+              "text": "The most significant bit of the upper half"
+            },
+            {
+              "id": "c",
+              "text": "A fixed signal 0"
+            },
+            {
+              "id": "d",
+              "text": "The carry-out of the lower half"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "The lower half is added using the actual carry-in. Its carry-out is the MUX select input for the upper half.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO19.md",
+            "heading": "4. Conditional Sum – Folien 8–14"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Conditional-sum adder"
+          ]
+        },
+        {
+          "id": "era-19-l3-q07",
+          "type": "calc",
+          "prompt": "A 4-bit incrementer receives the register value $Q=1011_2$. What next state results after the increment?",
+          "options": [
+            {
+              "id": "a",
+              "text": "$0000_2$"
+            },
+            {
+              "id": "b",
+              "text": "$1100_2$"
+            },
+            {
+              "id": "c",
+              "text": "$1111_2$"
+            },
+            {
+              "id": "d",
+              "text": "$1010_2$"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "$1011_2=11$; adding 1 gives 12, or $1100_2$. The two least significant 1s toggle as the carry propagates.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO19.md",
+            "heading": "11. Inkrementer mit n-Bit-Register – Folien 41–49"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Incrementer",
+            "Register"
+          ]
+        },
+        {
+          "id": "era-19-l3-q08",
+          "type": "calc",
+          "prompt": "Multiply $1101_2$ and $0011_2$ as unsigned 4-bit numbers. What is the full product in 8 bits?",
+          "options": [
+            {
+              "id": "a",
+              "text": "$00100111_2$"
+            },
+            {
+              "id": "b",
+              "text": "$00011011_2$"
+            },
+            {
+              "id": "c",
+              "text": "$00110111_2$"
+            },
+            {
+              "id": "d",
+              "text": "$00001111_2$"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "$1101_2=13$ and $0011_2=3$, so the product is 39. In eight bits, this is $00100111_2$.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO19.md",
+            "heading": "6. Binäre Multiplikation – Folien 17–20"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Partial products"
+          ]
+        },
+        {
+          "id": "era-19-l3-q09",
+          "type": "single",
+          "prompt": "A 4-bit adder/subtractor receives $sub=1$. Which combination is used for subtraction?",
+          "options": [
+            {
+              "id": "a",
+              "text": "$B$ inverted bitwise and carry-in 0"
+            },
+            {
+              "id": "b",
+              "text": "$B$ inverted bitwise and carry-in 1"
+            },
+            {
+              "id": "c",
+              "text": "$B$ unchanged and carry-in 1"
+            },
+            {
+              "id": "d",
+              "text": "$B$ unchanged and carry-in 0"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "The XOR with $sub=1$ inverts each bit of $B$. The carry-in of 1 supplies the $+1$ required for two's complement.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO19.md",
+            "heading": "5. Addition und Subtraktion mit derselben Schaltung – Folien 15–16"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Two's-complement subtraction"
+          ]
+        },
+        {
+          "id": "era-19-l3-q10",
+          "type": "multi",
+          "prompt": "Select all correct comparisons of ripple-carry, conditional-sum, and carry-save adders. More than one statement may be correct.",
+          "options": [
+            {
+              "id": "a",
+              "text": "A conditional-sum adder can reduce depth by precomputing both carry cases, at the cost of more hardware."
+            },
+            {
+              "id": "b",
+              "text": "A carry-save adder always produces the final product without a final adder."
+            },
+            {
+              "id": "c",
+              "text": "In a ripple-carry adder, the carry can propagate along a linear chain."
+            },
+            {
+              "id": "d",
+              "text": "A ripple-carry adder has logarithmic depth at every word width."
+            },
+            {
+              "id": "e",
+              "text": "A carry-save adder reduces three numbers to two within one stage, without a carry chain."
+            }
+          ],
+          "correct": [
+            "a",
+            "c",
+            "e"
+          ],
+          "explanation": "The three circuits address different bottlenecks: ripple-carry passes carries along, conditional-sum precomputes cases, and carry-save reduces numbers without a carry chain between columns. A carry-save output still requires a final addition.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO19.md",
+            "heading": "7. Carry-Save-Addierer – Folien 21–27"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Ripple-carry adder",
+            "Conditional-sum adder",
+            "Carry-save adder"
+          ]
+        },
+        {
+          "id": "era-19-l3-q11",
+          "type": "calc",
+          "prompt": "For a normal 32-bit instruction, the PC is at $0x100$. By how many Byte does it advance in sequential execution, and what is the new PC?",
+          "options": [
+            {
+              "id": "a",
+              "text": "2 Byte, $0x102$"
+            },
+            {
+              "id": "b",
+              "text": "8 Byte, $0x108$"
+            },
+            {
+              "id": "c",
+              "text": "1 Byte, $0x101$"
+            },
+            {
+              "id": "d",
+              "text": "4 Byte, $0x104$"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "A normal 32-bit instruction occupies 4 Byte. The next sequential value is therefore $0x100+4=0x104$.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO19.md",
+            "heading": "11. Inkrementer mit n-Bit-Register – Folien 41–49"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Incrementer"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "era-19-l4",
+      "index": 4,
+      "kind": "boss",
+      "title": "Boss",
+      "questions": [
+        {
+          "id": "era-19-l4-q01-r1",
+          "type": "calc",
+          "prompt": "Add $0111_2$ and $0001_2$ in 4-bit two's complement. The representable signed range is $-8$ to $7$. The result bit pattern contains the lowest 4 bits of the sum. Signed overflow occurs when the mathematical sum of the signed operands lies outside this range. What result bit pattern is produced, and does signed overflow occur?",
+          "options": [
+            {
+              "id": "a",
+              "text": "$1000_2$; yes, signed overflow"
+            },
+            {
+              "id": "b",
+              "text": "$1000_2$; no, because the final carry is 0"
+            },
+            {
+              "id": "c",
+              "text": "$0000_2$; yes, signed overflow"
+            },
+            {
+              "id": "d",
+              "text": "$0111_2$; no, the second operand is discarded"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "The lowest 4 bits of $0111_2+0001_2$ are $1000_2$. As signed values, the operands are 7 and 1; their mathematical sum of 8 is outside the representable range $[-8,7]$. Therefore, signed overflow occurs. The final carry does not determine this.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO19.md",
+            "heading": "3. Ripple-Carry-Addierer (RCA) – Folien 6–7"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "4-bit two's complement",
+            "Signed overflow",
+            "Binary addition"
+          ]
+        },
+        {
+          "id": "era-19-l4-q02",
+          "type": "multi",
+          "prompt": "A carry-save stage processes $X=1010_2$, $Y=0111_2$, and $Z=0011_2$. Select all statements that apply. More than one statement may be correct.",
+          "options": [
+            {
+              "id": "a",
+              "text": "The already shifted carry number is $C=00110_2$."
+            },
+            {
+              "id": "b",
+              "text": "The final addition gives $S+C=10100_2$."
+            },
+            {
+              "id": "c",
+              "text": "The carry bits must be shifted one more place to the left before the final addition."
+            },
+            {
+              "id": "d",
+              "text": "The sum of the XOR outputs is $S=1110_2$."
+            }
+          ],
+          "correct": [
+            "a",
+            "b",
+            "d"
+          ],
+          "explanation": "Column by column, the three words produce $S=14$ and the shifted carries $C=6$. Their sum is 20; shifting $C$ again would incorrectly double the number.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO17.md",
+            "heading": null
+          },
+          "difficulty": 5,
+          "concepts": [
+            "Carry-save adder",
+            "Partial products"
+          ]
+        },
+        {
+          "id": "era-19-l4-q03",
+          "type": "calc",
+          "prompt": "A 2-bit register made of D flip-flops has state $Q=01_2$. The combinational logic applies $D=(Q+1)\\bmod 4$. What state is in the register after the next rising clock edge?",
+          "options": [
+            {
+              "id": "a",
+              "text": "$11_2$"
+            },
+            {
+              "id": "b",
+              "text": "$01_2$"
+            },
+            {
+              "id": "c",
+              "text": "$10_2$"
+            },
+            {
+              "id": "d",
+              "text": "$00_2$"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "The next-state logic computes $01_2+1=10_2$. On the rising edge, the register captures this value; until then, the old state remains stored.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO18.md",
+            "heading": null
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Register",
+            "D flip-flop",
+            "Incrementer"
+          ]
+        },
+        {
+          "id": "era-19-l4-q04",
+          "type": "calc",
+          "prompt": "A 4-bit adder/subtractor computes the difference $0100_2-0011_2$ using $sub=1$. What 4-bit result do you get?",
+          "options": [
+            {
+              "id": "a",
+              "text": "$1111_2$"
+            },
+            {
+              "id": "b",
+              "text": "$0111_2$"
+            },
+            {
+              "id": "c",
+              "text": "$0001_2$"
+            },
+            {
+              "id": "d",
+              "text": "$1101_2$"
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "The circuit forms $\\overline{0011}+1=1101$ and adds it to $0100$. The result modulo 16 is $0001_2$.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO19.md",
+            "heading": "5. Addition und Subtraktion mit derselben Schaltung – Folien 15–16"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "Two's-complement subtraction"
+          ]
+        },
+        {
+          "id": "era-19-l4-q05",
+          "type": "calc",
+          "prompt": "A carry-save stage processes $X=1100_2$, $Y=0011_2$, and $Z=0101_2$. Which two numbers, $S$ and $C$, does it output? $C$ is already shifted.",
+          "options": [
+            {
+              "id": "a",
+              "text": "$S=1010_2$, $C=01010_2$"
+            },
+            {
+              "id": "b",
+              "text": "$S=1010_2$, $C=10100_2$"
+            },
+            {
+              "id": "c",
+              "text": "$S=1110_2$, $C=00010_2$"
+            },
+            {
+              "id": "d",
+              "text": "$S=0100_2$, $C=01010_2$"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "The column-wise XORs give $S=1010_2$. Carries arise in bit positions 0 and 2 and are output already shifted as $C=01010_2$.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO19.md",
+            "heading": "7. Carry-Save-Addierer – Folien 21–27"
+          },
+          "difficulty": 5,
+          "concepts": [
+            "Carry-save adder"
+          ]
+        },
+        {
+          "id": "era-19-l4-q06",
+          "type": "single",
+          "prompt": "A D latch is transparent during a time interval when $E=1$. During this interval, $D$ changes from 0 to 1. What happens to $Q$?",
+          "options": [
+            {
+              "id": "a",
+              "text": "$Q$ becomes invalid because a D latch has two inputs."
+            },
+            {
+              "id": "b",
+              "text": "$Q$ changes only on the falling edge of $E$."
+            },
+            {
+              "id": "c",
+              "text": "$Q$ must remain 0 until the next rising clock edge."
+            },
+            {
+              "id": "d",
+              "text": "$Q$ can follow the change to 1 while the level is active."
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "When the enable is active, the D latch is transparent and the output follows the data input after the gate delay. Capturing only on an edge is the behavior of a flip-flop.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO19.md",
+            "heading": "9. D-Latch – Folien 29–30 und 35–40"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "D latch",
+            "D flip-flop"
+          ]
+        },
+        {
+          "id": "era-19-l4-q07",
+          "type": "truefalse",
+          "prompt": "For an active-high NOR RS latch, when $S=R=1$ both outputs are 0; therefore, they are still complements in this state.",
+          "options": [
+            {
+              "id": "true",
+              "text": "True"
+            },
+            {
+              "id": "false",
+              "text": "False"
+            }
+          ],
+          "correct": [
+            "false"
+          ],
+          "explanation": "Both NOR outputs are 0 in that case. They are therefore not complements; this is exactly why $S=R=1$ is invalid.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO19.md",
+            "heading": "8. RS-Latch – Folie 28"
+          },
+          "difficulty": 4,
+          "concepts": [
+            "RS latch"
+          ]
+        },
+        {
+          "id": "era-19-l4-q08",
+          "type": "single",
+          "prompt": "An 8-bit conditional-sum adder splits the operands into lower and upper halves. What is the method's central time-versus-hardware tradeoff?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Less logical depth through precomputation, but more hardware for the two carry cases."
+            },
+            {
+              "id": "b",
+              "text": "The upper half is discarded, making the computation faster."
+            },
+            {
+              "id": "c",
+              "text": "Less hardware through serial computation, but greater depth than with ripple-carry."
+            },
+            {
+              "id": "d",
+              "text": "No carry is computed, so the result is one bit shorter."
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "The upper half is computed for carry-in 0 and 1 while the lower half is being added. This reduces depth, but costs extra hardware for the precomputed cases and the MUX.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO19.md",
+            "heading": "4. Conditional Sum – Folien 8–14"
+          },
+          "difficulty": 5,
+          "concepts": [
+            "Conditional-sum adder"
+          ]
+        },
+        {
+          "id": "era-19-l4-q09",
+          "type": "calc",
+          "prompt": "Two positive-edge-triggered D flip-flops are connected in series. The first receives the inverted clock; at three falling edges of the original clock, $D_{in}$ is 1, 0, 1 in sequence. Between each falling edge there is a rising edge, at which the second flip-flop captures the current value of $N$. Initially, $N=Q=0$. What value does $Q$ have after the third rising edge?",
+          "options": [
+            {
+              "id": "a",
+              "text": "The value depends on whether $D_{in}$ is 1 at the rising edges."
+            },
+            {
+              "id": "b",
+              "text": "1"
+            },
+            {
+              "id": "c",
+              "text": "0"
+            },
+            {
+              "id": "d",
+              "text": "$N$ is indeterminate."
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "The falling edges successively capture 1, 0, and 1 in $N$. Each following rising edge transfers that value to $Q$, so after the third rising edge $Q=1$.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO19.md",
+            "heading": "10. D-Flipflop – Folien 31–34"
+          },
+          "difficulty": 5,
+          "concepts": [
+            "D flip-flop"
+          ]
+        },
+        {
+          "id": "era-19-l4-q10",
+          "type": "calc",
+          "prompt": "A 6-bit incrementer has state $Q=101111_2$. What next state results after adding 1?",
+          "options": [
+            {
+              "id": "a",
+              "text": "$110000_2$"
+            },
+            {
+              "id": "b",
+              "text": "$111111_2$"
+            },
+            {
+              "id": "c",
+              "text": "$101110_2$"
+            },
+            {
+              "id": "d",
+              "text": "$000000_2$"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "$101111_2=47$; adding 1 gives 48, or $110000_2$. The four least significant 1s toggle, and the carry reaches the next bit.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO19.md",
+            "heading": "11. Inkrementer mit n-Bit-Register – Folien 41–49"
+          },
+          "difficulty": 5,
+          "concepts": [
+            "Incrementer",
+            "Register"
+          ]
+        },
+        {
+          "id": "era-19-l4-q11",
+          "type": "multi",
+          "prompt": "A 4-bit adder/subtractor computes $0101_2-0011_2$ using $sub=1$. Select all correct statements. More than one statement may be correct.",
+          "options": [
+            {
+              "id": "a",
+              "text": "The second operand supplied to the adder is $1100_2$."
+            },
+            {
+              "id": "b",
+              "text": "The lower four result bits are $0010_2$."
+            },
+            {
+              "id": "c",
+              "text": "The final carry is equal to the signed overflow."
+            },
+            {
+              "id": "d",
+              "text": "The carry-in is 1."
+            }
+          ],
+          "correct": [
+            "a",
+            "b",
+            "d"
+          ],
+          "explanation": "$0011_2$ is inverted bitwise to $1100_2$, and $sub=1$ sets the carry-in. The sum is $0101+1100+1=1\\,0010$; the final carry is not the signed overflow.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO19.md",
+            "heading": "5. Addition und Subtraktion mit derselben Schaltung – Folien 15–16"
+          },
+          "difficulty": 5,
+          "concepts": [
+            "Two's-complement subtraction",
+            "Full adder"
+          ]
+        }
+      ]
+    },
+    {
+      "id": "era-19-l5",
+      "index": 5,
+      "kind": "bonus",
+      "title": "In Practice: Adders, Multipliers, and Memory",
+      "questions": [
+        {
+          "id": "era-19-l5-q01",
+          "type": "single",
+          "prompt": "You are building a simple CPU that executes only normal 32-bit instructions. To fetch the next instruction, a 32-bit register must advance the byte address. Which circuit approach fits?",
+          "options": [
+            {
+              "id": "a",
+              "text": "A register with an incrementer computes the next address."
+            },
+            {
+              "id": "b",
+              "text": "A carry-save adder reduces the address to two numbers."
+            },
+            {
+              "id": "c",
+              "text": "An RS latch resets the address to zero after every instruction."
+            },
+            {
+              "id": "d",
+              "text": "A ripple-carry adder adds an arbitrary second address at every step."
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "An incrementer computes a register's next state by increasing its value by a fixed amount. For a sequential byte address with 32-bit instructions, the step is 4 Byte.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO19.md",
+            "heading": "Bezug zum Program Counter"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Incrementer",
+            "Register"
+          ]
+        },
+        {
+          "id": "era-19-l5-q02",
+          "type": "single",
+          "prompt": "You see a hardware multiplier in a graphics chip. Each stage should quickly reduce three partial-product numbers to two; a final addition may follow. Which idea does this use?",
+          "options": [
+            {
+              "id": "a",
+              "text": "A carry-save adder: it produces a sum and an already shifted carry number."
+            },
+            {
+              "id": "b",
+              "text": "A D flip-flop: it stores the three numbers until the next clock edge."
+            },
+            {
+              "id": "c",
+              "text": "A ripple-carry adder: it immediately propagates all carries column by column."
+            },
+            {
+              "id": "d",
+              "text": "A conditional-sum adder: it precomputes upper sums for both carry cases."
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "A carry-save stage reduces three numbers to two without passing carries between columns within the stage. A final addition is still needed to complete the product.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO19.md",
+            "heading": "7. Carry-Save-Addierer – Folien 21–27"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Partial products",
+            "Carry-save adder"
+          ]
+        },
+        {
+          "id": "era-19-l5-q03",
+          "type": "estimate",
+          "prompt": "A register stores unsigned 8-bit patterns. How many different values can it represent?",
+          "options": [],
+          "correct": [],
+          "slider": {
+            "min": 16,
+            "max": 400,
+            "step": 1,
+            "answer": 256,
+            "tolerance": 0,
+            "unit": "values",
+            "scale": "linear"
+          },
+          "explanation": "Each of the 8 bits can be 0 or 1. Therefore, there are 2⁸ = 256 different bit patterns and thus 256 representable values.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO19.md",
+            "heading": "11. Inkrementer mit n-Bit-Register – Folien 41–49"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Register"
+          ]
+        },
+        {
+          "id": "era-19-l5-q04",
+          "type": "single",
+          "prompt": "You are designing a fast adder. The upper half should not wait for the actual carry from the lower half: it computes its sum once with carry-in 0 and once with carry-in 1; a MUX then selects the appropriate result. What is this concept?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Ripple-carry adder"
+            },
+            {
+              "id": "b",
+              "text": "Conditional-sum adder"
+            },
+            {
+              "id": "c",
+              "text": "D latch"
+            },
+            {
+              "id": "d",
+              "text": "Carry-save adder"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "A conditional-sum adder precomputes both possible carry cases for the upper half and later selects one with a MUX. This means the upper part does not have to wait for the entire carry chain.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO19.md",
+            "heading": "4. Conditional Sum – Folien 8–14"
+          },
+          "difficulty": 3,
+          "concepts": [
+            "Conditional-sum adder",
+            "Ripple-carry adder"
+          ]
+        },
+        {
+          "id": "era-19-l5-q05",
+          "type": "single",
+          "prompt": "You are building a small circuit with a status bit for a test mode. A SET signal makes the bit 1, and a RESET signal makes it 0; the signals are never active at the same time. If neither is active, the old value is retained. Which storage concept fits this behavior?",
+          "options": [
+            {
+              "id": "a",
+              "text": "A 4-bit incrementer that cyclically advances the status"
+            },
+            {
+              "id": "b",
+              "text": "A D latch that updates only on the rising clock edge"
+            },
+            {
+              "id": "c",
+              "text": "A D flip-flop that is transparent throughout an enable level"
+            },
+            {
+              "id": "d",
+              "text": "An active-high NOR RS latch"
+            }
+          ],
+          "correct": [
+            "d"
+          ],
+          "explanation": "For an active-high NOR RS latch, S=1 sets the state and R=1 resets it. When S=R=0, the stored state is retained. Simultaneously activating S and R is the forbidden input case for this latch, and it is excluded here.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO19.md",
+            "heading": "8. RS-Latch – Folie 28"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "RS latch"
+          ]
+        },
+        {
+          "id": "era-19-l5-q06",
+          "type": "estimate",
+          "prompt": "A hardware multiplier multiplies two unsigned 6-bit numbers. How many bits are needed for the result in the worst case?",
+          "options": [],
+          "correct": [],
+          "slider": {
+            "min": 5,
+            "max": 20,
+            "step": 1,
+            "answer": 12,
+            "tolerance": 0,
+            "unit": "Bit",
+            "scale": "linear"
+          },
+          "explanation": "The largest input value is 2⁶−1 = 63. The maximum product is 63·63 = 3969. Since 2¹¹ ≤ 3969 < 2¹², 12 bits are needed.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO19.md",
+            "heading": "6. Binäre Multiplikation – Folien 17–20"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Partial products"
+          ]
+        },
+        {
+          "id": "era-19-l5-q07",
+          "type": "single",
+          "prompt": "You are checking a write circuit: while `WRITE = 1`, the output follows input `DATA`. Once `WRITE = 0`, the last value is stored. Which component behavior are you looking for?",
+          "options": [
+            {
+              "id": "a",
+              "text": "Half adder: stores the sum and carry until the next write."
+            },
+            {
+              "id": "b",
+              "text": "D flip-flop: captures the input throughout the entire high level."
+            },
+            {
+              "id": "c",
+              "text": "D latch: transparent when enable is active; otherwise, it holds its state."
+            },
+            {
+              "id": "d",
+              "text": "Ripple-carry adder: holds its result when no carry is present."
+            }
+          ],
+          "correct": [
+            "c"
+          ],
+          "explanation": "A D latch is transparent when its enable is active and then follows the D input. When the enable is inactive, it holds the stored value.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO19.md",
+            "heading": "9. D-Latch – Folien 29–30 und 35–40"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "D latch"
+          ]
+        },
+        {
+          "id": "era-19-l5-q08",
+          "type": "estimate",
+          "prompt": "A 4-bit up-counter increases its value by 1 modulo 16 on each rising clock edge. Its current state is 1110₂. After how many rising clock edges will it show 0000₂ for the first time?",
+          "options": [],
+          "correct": [],
+          "slider": {
+            "min": 0,
+            "max": 10,
+            "step": 1,
+            "answer": 2,
+            "tolerance": 0,
+            "unit": "clock edges",
+            "scale": "linear"
+          },
+          "explanation": "The counter counts modulo 16. It goes from 14 to 15, then to 0 on the next edge. The overflow therefore occurs after 2 clock edges.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO19.md",
+            "heading": "11. Inkrementer mit n-Bit-Register – Folien 41–49"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "Incrementer",
+            "Register"
+          ]
+        },
+        {
+          "id": "era-19-l5-q09",
+          "type": "single",
+          "prompt": "You are designing a single state bit for a digital controller. It should capture input `D` only on each rising clock edge and remain unchanged in between. Which component fits?",
+          "options": [
+            {
+              "id": "a",
+              "text": "A positive-edge-triggered D flip-flop"
+            },
+            {
+              "id": "b",
+              "text": "An active-high RS latch with both inputs at 0"
+            },
+            {
+              "id": "c",
+              "text": "A half adder with no carry-in"
+            },
+            {
+              "id": "d",
+              "text": "A D latch with enable permanently set to 1"
+            }
+          ],
+          "correct": [
+            "a"
+          ],
+          "explanation": "A positive-edge-triggered D flip-flop captures D on the rising clock edge and holds its output between edges. A D latch with its enable permanently active would follow the input throughout the active level.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO19.md",
+            "heading": "10. D-Flipflop – Folien 31–34"
+          },
+          "difficulty": 2,
+          "concepts": [
+            "D flip-flop",
+            "Register"
+          ]
+        },
+        {
+          "id": "era-19-l5-q10",
+          "type": "single",
+          "prompt": "A simple processor uses fixed-length 32-bit instructions. The program counter contains a byte address, and the instructions are stored consecutively. By how many bytes is the address increased for the next instruction?",
+          "options": [
+            {
+              "id": "a",
+              "text": "By 32 bytes"
+            },
+            {
+              "id": "b",
+              "text": "By 4 bytes"
+            },
+            {
+              "id": "c",
+              "text": "By 8 bytes"
+            },
+            {
+              "id": "d",
+              "text": "By 1 byte"
+            }
+          ],
+          "correct": [
+            "b"
+          ],
+          "explanation": "A 32-bit instruction occupies 32 ÷ 8 = 4 Byte. For consecutive instructions, the byte address therefore increases by 4; an incrementer can compute this fixed step.",
+          "source": {
+            "file": "ERA/01_Vorlesungen/Einführung in die Rechnerarchitektur VO19.md",
+            "heading": "Bezug zum Program Counter"
+          },
+          "difficulty": 1,
+          "concepts": [
+            "Incrementer",
+            "Register"
+          ]
+        }
+      ]
+    }
+  ]
+}

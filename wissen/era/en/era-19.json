@@ -1,0 +1,393 @@
+{
+  "schemaVersion": 1,
+  "unitId": "era-19",
+  "module": "ERA",
+  "unitNumber": 19,
+  "unitTitle": "Adders, Multipliers, and Memory",
+  "sourceSha": "46d6faee8efb7cef2fa2587b5dfac8d6d8f5c982d4be97771206fc31d553b3c5",
+  "overview": "This unit covers half and full adders, adders built from them, and subtraction using two’s complement. It shows how partial products and carry-save stages compute multiplication efficiently, then introduces latches, flip-flops, registers, and a synchronous incrementing counter.",
+  "entries": [
+    {
+      "id": "era-19-k01",
+      "term": "Half adder (Halbaddierer; HA)",
+      "kind": "definition",
+      "short": "A half adder adds two bits and produces a sum and a carry, but has no carry-in.",
+      "explanation": "For the input bits $a$ and $b$, $s=a\\oplus b$ and $c=a\\land b$ hold. The sum is the least significant bit, and the carry $c$ is the most significant bit of the addition, so $a+b=s+2c$.",
+      "example": "For $a=b=1$, $s=0$ and $c=1$, so $1+1=0+2\\cdot1$.",
+      "pitfalls": [
+        "A half adder cannot process a carry from a previous bit position."
+      ],
+      "related": [
+        "Full adder (VA / FA)",
+        "Ripple-carry adder (RCA)",
+        "Boolean algebra"
+      ],
+      "heading": "1. Halbaddierer (HA) – Folie 3"
+    },
+    {
+      "id": "era-19-k02",
+      "term": "Full adder (Volladdierer; VA / FA)",
+      "kind": "definition",
+      "short": "A full adder adds two bits and an incoming carry.",
+      "explanation": "For the inputs $a$, $b$, and $c_{in}$, $s=a\\oplus b\\oplus c_{in}$ and $c_{out}=(a\\land b)\\lor(a\\land c_{in})\\lor(b\\land c_{in})$ hold. The sum is 1 when an odd number of the inputs are 1; the carry-out is 1 when at least two inputs are 1. Thus, $a+b+c_{in}=s+2c_{out}$.",
+      "example": "For $a=1$, $b=0$, and $c_{in}=1$, the outputs are $s=0$ and $c_{out}=1$, so $1+0+1=0+2$.",
+      "pitfalls": [
+        "The carry-out is the majority function of the three inputs, not their parity.",
+        "A full adder has a carry-in; a half adder does not."
+      ],
+      "related": [
+        "Half adder (HA)",
+        "Ripple-carry adder (RCA)",
+        "Carry-save adder"
+      ],
+      "heading": "2. Volladdierer (VA / FA) – Folien 4–5"
+    },
+    {
+      "id": "era-19-k03",
+      "term": "Ripple-carry adder (Ripple-Carry-Addierer; RCA)",
+      "kind": "definition",
+      "short": "A ripple-carry adder chains full adders so that the carry propagates from one bit position to the next.",
+      "explanation": "At each bit position $i$, a full adder computes $s_i=a_i\\oplus b_i\\oplus c_{i-1}$ and the carry-out $c_i=(a_i\\land b_i)\\lor((a_i\\oplus b_i)\\land c_{i-1})$. For ordinary addition, the initial carry is $c_{-1}=0$; in unsigned addition, the final carry can be the extra result bit. In the worst case, the carry passes through all $n$ stages, so with constant depth per full adder, the logic depth grows linearly with the word width: $\\Theta(n)$.",
+      "example": "For $0111_2+0001_2$, the carry propagates through the lowest three bit positions, giving the result $1000_2$.",
+      "pitfalls": [
+        "The carry propagates from the least significant to the most significant bit position.",
+        "For a fixed result width, the final carry-out is not automatically part of the stored result bits."
+      ],
+      "related": [
+        "Full adder (VA / FA)",
+        "Conditional-sum adder",
+        "Two’s-complement subtraction with an adder-subtractor circuit"
+      ],
+      "heading": "3. Ripple-Carry-Addierer (RCA) – Folien 6–7"
+    },
+    {
+      "id": "era-19-k04",
+      "term": "Multiplexer (MUX)",
+      "kind": "definition",
+      "short": "A multiplexer selects one of its data inputs as the output, based on a select signal.",
+      "explanation": "A multiplexer with two data inputs passes on one of the two values, depending on the select signal. In a conditional-sum adder, it selects the precomputed partial result that matches the actual carry from the lower half. In a D latch, a multiplexer can select between the old state and the new data value.",
+      "example": "When the select value is 1, a 2-to-1 multiplexer passes on the data input associated with that select value.",
+      "pitfalls": [
+        "The multiplexer does not compute the possible adder results; it selects one of the results that have already been computed."
+      ],
+      "related": [
+        "Conditional-sum adder",
+        "D latch"
+      ],
+      "heading": "4. Conditional Sum – Folien 8–14"
+    },
+    {
+      "id": "era-19-k05",
+      "term": "Conditional-sum adder (Conditional-Sum-Addierer)",
+      "kind": "method",
+      "short": "A conditional-sum adder computes possible carry cases in parallel, then selects the result that applies.",
+      "explanation": "The lower half is added using the actual carry-in. For the upper half, two results are computed in parallel: one assuming carry-in 0 and the other assuming carry-in 1. The carry-out from the lower half controls the multiplexer that selects the appropriate upper result. With recursive halving, the idealized model has depth $\\Theta(\\log n)$, at the cost of additional hardware.",
+      "example": "For $A=0111_2$ and $B=0001_2$, the lower half gives $11+01=100$, so the result bits are $00$ and the carry is 1. In the upper half, the multiplexer selects $01+00+1=10$; combining the halves gives $1000_2$ with final carry 0.",
+      "pitfalls": [
+        "The multiplexer must select the result that matches the actual carry from the lower half.",
+        "The reduced depth comes at the cost of additional computation logic."
+      ],
+      "related": [
+        "Multiplexer (MUX)",
+        "Ripple-carry adder (RCA)",
+        "Full adder (VA / FA)"
+      ],
+      "heading": "4. Conditional Sum – Folien 8–14"
+    },
+    {
+      "id": "era-19-k06",
+      "term": "Two’s-complement subtraction using an adder-subtractor circuit",
+      "kind": "method",
+      "short": "For a fixed word width, the same adder circuit computes $A-B$ as $A+\\overline B+1$ modulo $2^n$.",
+      "explanation": "In two’s complement, $-B\\equiv\\overline B+1\\pmod{2^n}$, and therefore $A-B\\equiv A+\\overline B+1\\pmod{2^n}$. A control signal $sub$ inverts every bit of $B$ using $b_i'=b_i\\oplus sub$ and is also used as the initial carry-in: $c_{-1}=sub$. When $sub=0$, the result is $A+B$; when $sub=1$, the result is $A-B$.",
+      "example": "With 4 bits, $5-3$ gives $0101+1100+1=1\\,0010$; the lower four bits are $0010_2=2$.",
+      "pitfalls": [
+        "For a fixed word width, the result must be interpreted modulo $2^n$.",
+        "The final carry and signed overflow are different quantities."
+      ],
+      "related": [
+        "Two’s complement",
+        "Ripple-carry adder (RCA)",
+        "Full adder (VA / FA)"
+      ],
+      "heading": "5. Addition und Subtraktion mit derselben Schaltung – Folien 15–16"
+    },
+    {
+      "id": "era-19-k07",
+      "term": "Binary multiplication using partial products (Binäre Multiplikation mit Partialprodukten)",
+      "kind": "method",
+      "short": "Binary multiplication forms weighted partial products and adds them to obtain the product.",
+      "explanation": "Writing $A=\\sum_i a_i2^i$ gives $A\\cdot B=\\sum_i(a_i\\cdot B)2^i$. For each position $i$, $B$ is ANDed with $a_i$ and shifted left by $i$ positions. Thus, an individual partial-product bit $a_i\\land b_j$ has place value $2^{i+j}$. The complete product of two unsigned $n$-bit numbers fits in $2n$ bits.",
+      "example": "For $1011_2\\cdot0101_2$, the nonzero shifted rows are $00001011$ and $00101100$; their sum is $00110111_2=55_{10}$.",
+      "pitfalls": [
+        "Each partial-product row must be shifted according to the position of the bit that generated it.",
+        "A bit $a_i\\land b_j$ is in column $i+j$, not column $j$."
+      ],
+      "related": [
+        "Partial products",
+        "Parallel multiplier",
+        "Carry-save adder",
+        "Binary multiplication and division"
+      ],
+      "heading": "6. Binäre Multiplikation – Folien 17–20"
+    },
+    {
+      "id": "era-19-k08",
+      "term": "Partial products (Partialprodukte)",
+      "kind": "definition",
+      "short": "A partial product is a weighted contribution to the multiplication of two numbers.",
+      "explanation": "When multiplying $A=\\sum_i a_i2^i$ by $B=\\sum_j b_j2^j$, each pair of bits contributes $(a_i\\land b_j)2^{i+j}$. Contributions with the same place value are collected in a column and then added. This gives the bitwise form of long multiplication.",
+      "example": "For $a_2=1$ and $b_1=1$, the partial-product bit is 1 and has weight $2^{2+1}=8$.",
+      "pitfalls": [
+        "The place value depends on the positions of both bits.",
+        "A partial product must be placed at its weighted position before addition."
+      ],
+      "related": [
+        "Binary multiplication using partial products",
+        "Parallel multiplier",
+        "Carry-save adder"
+      ],
+      "heading": "6. Binäre Multiplikation – Folien 17–20"
+    },
+    {
+      "id": "era-19-k09",
+      "term": "Parallel multiplier (Paralleler Multiplizierer)",
+      "kind": "definition",
+      "short": "A parallel multiplier forms partial products simultaneously and adds them with adders to obtain a product.",
+      "explanation": "AND gates compute the partial-product bits; half and full adders combine bits with the same weight. The circuit implements long multiplication as combinational hardware. With several partial-product rows, carry-save stages can reduce the numbers before a final adder completes the product.",
+      "example": "Two 4-bit factors produce up to four shifted partial-product rows, which are added to obtain the product.",
+      "pitfalls": [
+        "The complete product of two unsigned $n$-bit factors requires up to $2n$ result bits."
+      ],
+      "related": [
+        "Partial products",
+        "Binary multiplication using partial products",
+        "Carry-save adder",
+        "Half adder (HA)",
+        "Full adder (VA / FA)"
+      ],
+      "heading": "6. Binäre Multiplikation – Folien 17–20"
+    },
+    {
+      "id": "era-19-k10",
+      "term": "Carry-save adder (Carry-Save-Addierer)",
+      "kind": "method",
+      "short": "A carry-save adder reduces three numbers column by column to two numbers without propagating carries within the stage.",
+      "explanation": "For three bits $x_i,y_i,z_i$ in column $i$, the stage computes $s_i=x_i\\oplus y_i\\oplus z_i$ and carry $c_{i+1}=(x_i\\land y_i)\\lor(x_i\\land z_i)\\lor(y_i\\land z_i)$. The carry is written in the next column of the output number $C$, so $C$ is already shifted left by one position. The sum is preserved: $X+Y+Z=S+C$. The two outputs can be reduced further by additional carry-save stages; a final addition that resolves the carries is required at the end.",
+      "example": "The three numbers 7, 14, and 28 can be reduced to $S=21$ and $C=28$; $21+28=49$.",
+      "pitfalls": [
+        "Carry-save reduction produces two numbers, not the final result directly.",
+        "If $C$ is already written as a shifted number, it must not be shifted again.",
+        "CSA can mean either Conditional Sum Adder or Carry-Save Adder; the context determines which."
+      ],
+      "related": [
+        "Partial products",
+        "Parallel multiplier",
+        "Full adder (VA / FA)",
+        "Conditional-sum adder"
+      ],
+      "heading": "7. Carry-Save-Addierer – Folien 21–27"
+    },
+    {
+      "id": "era-19-k11",
+      "term": "Carry-save example 111 × 111 (Carry-Save-Beispiel 111 × 111)",
+      "kind": "example",
+      "short": "The product $111_2\\times111_2$ shows how carry-save reduction turns three partial products into two numbers.",
+      "explanation": "Both factors are 7; the partial products are $p_0=7$, $p_1=14$, and $p_2=28$. A carry-save stage reduces them to $S=21$ and $C=28$. The final addition gives $010101_2+011100_2=110001_2=49_{10}$.",
+      "example": null,
+      "pitfalls": [
+        "The number $C=28$ is already shifted in this representation.",
+        "After the carry-save stage, $S$ and $C$ still need to be added."
+      ],
+      "related": [
+        "Carry-save adder",
+        "Partial products"
+      ],
+      "heading": "7. Carry-Save-Addierer – Folien 21–27"
+    },
+    {
+      "id": "era-19-k12",
+      "term": "Feedback and state (Rückkopplung und Zustand)",
+      "kind": "concept",
+      "short": "Feedback can preserve a circuit’s previous output, giving it a state that can be stored.",
+      "explanation": "In a purely combinational circuit, outputs depend only on the current inputs. When outputs are fed back to inputs, the circuit can maintain different stable states depending on its previous state. Latches and flip-flops use feedback to store bits.",
+      "example": "A NOR RS latch feeds each of its two outputs back to the other NOR gate and can thereby hold a state.",
+      "pitfalls": [
+        "In a circuit with feedback, the output depends on the previous state as well as the current external inputs."
+      ],
+      "related": [
+        "RS latch (active-high NOR variant)",
+        "D latch",
+        "D flip-flop",
+        "Register"
+      ],
+      "heading": "8. RS-Latch – Folie 28"
+    },
+    {
+      "id": "era-19-k13",
+      "term": "RS latch (active-high NOR variant) (RS-Latch (aktiv-hohe NOR-Variante))",
+      "kind": "definition",
+      "short": "An active-high NOR RS latch stores one bit and responds to set and reset inputs.",
+      "explanation": "The latch consists of two cross-coupled NOR gates, with $S$ for set and $R$ for reset. When $S=R=0$, it holds $Q_t$; $S=1,R=0$ sets $Q$ to 1, and $S=0,R=1$ clears it to 0. When $S=R=1$, both NOR outputs are 0, making the combination invalid; the state may be indeterminate after both inputs are released at the same time.",
+      "example": "Starting from $Q=0$, $S=1,R=0$ sets the stored output to $Q=1$.",
+      "pitfalls": [
+        "The input assignments depend on whether the circuit uses NOR or NAND gates and active-high or active-low signals.",
+        "For the NOR variant described here, $S=R=1$ is invalid."
+      ],
+      "related": [
+        "Feedback and state",
+        "D latch",
+        "NAND RS latch"
+      ],
+      "heading": "8. RS-Latch – Folie 28"
+    },
+    {
+      "id": "era-19-k14",
+      "term": "D latch (D-Latch)",
+      "kind": "definition",
+      "short": "A D latch accepts the data value D while Enable is active and holds it while Enable is inactive.",
+      "explanation": "For Enable $E$, the RS latch is driven so that $S=D\\land E$ and $R=\\neg D\\land E$ hold. Thus, $Q_{t+1}=(\\neg E\\land Q_t)\\lor(D\\land E)$: when $E=1$, $Q$ follows the input $D$ after the gate delay; when $E=0$, the previous state is retained. A D latch is level-sensitive or pulse-controlled and requires Enable to remain active long enough for the state to settle.",
+      "example": "If $E=1$ and $D$ changes from 1 to 0, $Q$ also follows to 0 while the level is active; when $E$ goes low, it holds that value.",
+      "pitfalls": [
+        "A transparent D latch accepts changes throughout the active level, not only at a clock edge.",
+        "When $E=0$, a change in $D$ cannot change the stored value."
+      ],
+      "related": [
+        "RS latch (active-high NOR variant)",
+        "Multiplexer (MUX)",
+        "D flip-flop",
+        "Feedback and state"
+      ],
+      "heading": "9. D-Latch – Folien 29–30 und 35–40"
+    },
+    {
+      "id": "era-19-k15",
+      "term": "D latch state equation and truth table (D-Latch-Zustandsgleichung und Wahrheitstabelle)",
+      "kind": "theorem",
+      "short": "The next output of a D latch is either the held previous value or the data value accepted when Enable is active.",
+      "explanation": "The truth table for $D$, $E$, and $Q_t$ can be written in disjunctive normal form and simplified to $Q_{t+1}=(\\neg E\\land Q_t)\\lor(D\\land E)$. The first term preserves the state when $E=0$; the second supplies $D$ when $E=1$. The equation corresponds to a multiplexer that selects between feedback and the data input.",
+      "example": "For $E=0$, $Q_t=1$, and any value of $D$, the equation gives $Q_{t+1}=1$.",
+      "pitfalls": [
+        "The term $D\\land E$ alone does not describe the hold function; it also requires the feedback term $\\neg E\\land Q_t$."
+      ],
+      "related": [
+        "D latch",
+        "Multiplexer (MUX)",
+        "Boolean algebra",
+        "Disjunctive normal form"
+      ],
+      "heading": "9. D-Latch – Folien 29–30 und 35–40"
+    },
+    {
+      "id": "era-19-k16",
+      "term": "D flip-flop (D-Flipflop)",
+      "kind": "definition",
+      "short": "A positive-edge-triggered D flip-flop captures D on the rising clock edge and holds Q between edges.",
+      "explanation": "The output changes only at the active clock edge; between two such edges, the stored value remains constant. A master-slave arrangement of two D latches can produce this behavior, with the master and slave transparent at opposite clock levels. If a positive-edge-triggered D flip-flop receives an inverted clock, it responds to the falling edge of the original clock.",
+      "example": "For two cascaded positive-edge-triggered D flip-flops, with initial $N=Q=0$ and an inverted clock on the first, the first captures $D_{in}$ on falling CLK edges into $N$; the second captures $N$ on rising CLK edges into $Q$.",
+      "pitfalls": [
+        "A flip-flop is edge-triggered; a latch is transparent during its active level.",
+        "The first flip-flop, with its inverted clock, updates on falling edges of the original clock."
+      ],
+      "related": [
+        "D latch",
+        "Master-slave D flip-flop",
+        "Register"
+      ],
+      "heading": "10. D-Flipflop – Folien 31–34"
+    },
+    {
+      "id": "era-19-k17",
+      "term": "Master-slave D flip-flop (Master-Slave-D-Flipflop)",
+      "kind": "concept",
+      "short": "Two D latches with opposite Enable phases together form a positive-edge-triggered D flip-flop.",
+      "explanation": "The first latch, the master, is transparent when $CLK=0$; the second latch, the slave, is transparent when $CLK=1$. On the rising edge, the master closes and the slave accepts the previously stored master value. This prevents the input from passing directly through to the output throughout the entire High phase.",
+      "example": "Before a rising edge, the master can capture $D$; after the edge, the slave passes this held value to $Q$.",
+      "pitfalls": [
+        "In this implementation, there are two latches with opposite Enable phases, not two cascaded positive-edge-triggered flip-flops."
+      ],
+      "related": [
+        "D latch",
+        "D flip-flop"
+      ],
+      "heading": "10. D-Flipflop – Folien 31–34"
+    },
+    {
+      "id": "era-19-k18",
+      "term": "Register (Register)",
+      "kind": "definition",
+      "short": "A register stores multiple bits that are updated simultaneously by a shared clock signal.",
+      "explanation": "An $n$-bit register consists of multiple storage elements, typically flip-flops, and holds the current bit vector $Q$. At an active clock edge, the storage elements simultaneously accept their respective data inputs $D$. If a register output is fed back to the computational logic, that logic can prepare the next state.",
+      "example": "A 4-bit register can store the current counter value $0111$ and accept the computed value $1000$ at the next rising clock edge.",
+      "pitfalls": [
+        "The register contents do not change continuously with the combinational logic; they change at the active clock edge."
+      ],
+      "related": [
+        "D flip-flop",
+        "n-bit incrementer",
+        "Synchronous counter",
+        "Shift register"
+      ],
+      "heading": "11. Inkrementer mit n-Bit-Register – Folien 41–49"
+    },
+    {
+      "id": "era-19-k19",
+      "term": "n-bit incrementer (n-Bit-Inkrementer)",
+      "kind": "definition",
+      "short": "An n-bit incrementer computes the register value plus one, modulo $2^n$.",
+      "explanation": "For register state $Q_t$, $Q_{t+1}=(Q_t+1)\\bmod 2^n$ holds. Bit 0 always toggles; for $i\\geq1$, bit $i$ toggles exactly when all lower-order bits are 1: $s_i=a_i\\oplus\\bigwedge_{j=0}^{i-1}a_j$, where $a_i$ denotes the current bit value and $s_i$ denotes the computed next-state bit value. Therefore, a counter that always adds 1 requires less logic than a general-purpose adder.",
+      "example": "With 4 bits, $0111$ becomes $1000$; $1111$ wraps around modulo 16 to $0000$.",
+      "pitfalls": [
+        "Bit $i$ toggles only when all bits with lower indices are 1.",
+        "For $n$ bits, overflow back to 0 is part of the modulo behavior."
+      ],
+      "related": [
+        "Register",
+        "Synchronous counter",
+        "Full adder (VA / FA)",
+        "Program counter (PC)"
+      ],
+      "heading": "11. Inkrementer mit n-Bit-Register – Folien 41–49"
+    },
+    {
+      "id": "era-19-k20",
+      "term": "Synchronous counter (Synchroner Zähler)",
+      "kind": "definition",
+      "short": "A synchronous counter stores its count in a register and updates it on shared clock edges.",
+      "explanation": "In an incrementing counter, combinational logic computes the next state $Q+1$ from the current register value. All register bits accept this value simultaneously at the active clock edge. A 4-bit counter cycles through the values 0 to 15 and wraps to 0 modulo 16 on the next increment.",
+      "example": "One possible state sequence is $1110\\rightarrow1111\\rightarrow0000\\rightarrow0001$.",
+      "pitfalls": [
+        "The computational logic prepares the next state; the stored count changes only at the clock edge."
+      ],
+      "related": [
+        "Register",
+        "n-bit incrementer",
+        "D flip-flop"
+      ],
+      "heading": "11. Inkrementer mit n-Bit-Register – Folien 41–49"
+    },
+    {
+      "id": "era-19-k21",
+      "term": "Program counter (PC; Program Counter)",
+      "kind": "concept",
+      "short": "The program counter stores the address of the next instruction to execute and is updated by next-state logic.",
+      "explanation": "A simple incrementer illustrates the clocked progression of a program counter. For ordinary 32-bit RISC-V instructions, the PC address typically increases by 4 bytes per instruction. Jumps and compressed instructions may require a different next state.",
+      "example": "At instruction address $0x1000$, ordinary sequential progression for a 32-bit instruction gives $0x1004$.",
+      "pitfalls": [
+        "The lecture-slide model $Q+1$ counts an abstract value; a byte-addressed PC for ordinary 32-bit instructions typically increases by 4 bytes."
+      ],
+      "related": [
+        "n-bit incrementer",
+        "Synchronous counter",
+        "Instruction cycle"
+      ],
+      "heading": "11. Inkrementer mit n-Bit-Register – Folien 41–49"
+    }
+  ],
+  "generator": {
+    "model": "gpt-6-luna",
+    "effort": "xhigh",
+    "promptVersion": "k1",
+    "generatedAt": "2026-11-27T23:22:15.258Z"
+  }
+}
